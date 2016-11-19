@@ -1,14 +1,38 @@
 #pragma once
 
 #include "sphere_wavefunc.h"
+#include "sphere_kn.h"
 #include "utils.h"
 
 // az(t) = - Ez(t) - <Ψ|dUdz|Ψ>
 // @param dUdz - depends only r. It's dUdz/cos(\theta).
 double az(sphere_wavefunc_t const* wf, field_t E, sphere_pot_t dUdz, double t) {
 	double dUdz_masked(double r) {
-		return dUdz(r)*(1.0 - smoothstep(r, 8.0, 12.0));
+		return dUdz(r)*smoothstep(r, 12, 16.0);
 	}
 
 	return - E(t) - sphere_wavefunc_cos(wf, dUdz_masked);
+}
+
+/* 
+ * jrcd = Ng \int_{0}^{T} az dt 
+ * @return jrcd / Ng
+ * */
+double jrcd(sphere_kn_workspace_t* ws, sphere_wavefunc_t* wf, field_t E, sphere_pot_t dUdz, int Nt) {
+	double res = 0.0;
+	double t = 0.0;
+
+	for (int i = 0; i < Nt; ++i) {
+		res += az(wf, E, dUdz, t);
+
+//		if (i%100 == 0) {
+//			sphere_wavefunc_print(wf);
+//		}
+
+		sphere_kn_workspace_prop(ws, wf, E, t);
+
+		t += ws->dt;
+	}
+
+	return res*ws->dt;
 }

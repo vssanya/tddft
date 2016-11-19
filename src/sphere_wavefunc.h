@@ -44,12 +44,14 @@ void sphere_wavefunc_normalize(sphere_wavefunc_t* wf) {
 }
 
 void sphere_wavefunc_print(sphere_wavefunc_t const* wf) {
+	double r = 0.0;
 	for (int i = 0; i < wf->grid->Nr; ++i) {
+		r += wf->grid->dr;
 		double res = 0.0;
 		for (int l = 0; l < wf->grid->Nl; ++l) {
 			res += pow(cabs(wf->data[i + l*wf->grid->Nr]), 2);
 		}
-		printf("%f ", res);
+		printf("%f ", res/(r*r));
 	}
 	printf("\n");
 }
@@ -71,4 +73,12 @@ double sphere_wavefunc_cos(sphere_wavefunc_t const* wf, sphere_pot_t U) {
 
 	res *= 2*wf->grid->dr;
 	return res;
+}
+
+double sphere_wavefunc_z(sphere_wavefunc_t const* wf) {
+	double func(double r) {
+		return r;
+	}
+
+	return sphere_wavefunc_cos(wf, func);
 }
