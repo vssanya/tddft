@@ -1,14 +1,13 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+#define _USE_MATH_DEFINES
 #include <math.h>
 
 #include "sphere_kn.h"
 #include "jrcd.h"
 
 #include "utils.h"
-
-double const M_PI = 3.14;
 
 #include "fourier.h"
 
