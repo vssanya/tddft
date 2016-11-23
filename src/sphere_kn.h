@@ -12,7 +12,7 @@ typedef struct {
 	sphere_grid_t const* grid;
 
 	sphere_pot_t U;
-	sphere_pot_t Uabs;
+	sphere_pot_abs_t Uabs;
 
 	cdouble* b;
 	cdouble* f;
@@ -21,7 +21,7 @@ typedef struct {
 	cdouble* betta;
 } sphere_kn_workspace_t;
 
-sphere_kn_workspace_t* sphere_kn_workspace_alloc(sphere_grid_t const* grid, double const dt, sphere_pot_t U, sphere_pot_t Uabs);
+sphere_kn_workspace_t* sphere_kn_workspace_alloc(sphere_grid_t const* grid, double const dt, sphere_pot_t U, sphere_pot_abs_t Uabs);
 void sphere_kn_workspace_free(sphere_kn_workspace_t* ws);
 
 /* 

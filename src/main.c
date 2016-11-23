@@ -11,14 +11,8 @@
 
 #include "fourier.h"
 
-double U(double r) {
-	return -1.0/r;
-}
-
-// dUdz / cos(\theta)
-double dUdz(double r) {
-	return 1.0/pow(r, 2);
-}
+#include "hydrogen.h"
+#include "abs_pot.h"
 
 int main() {
 	sphere_grid_t grid = {
@@ -32,12 +26,6 @@ int main() {
 	double const T = 2.0*M_PI/omega;
 	double const tp = T*2.05/2.67/(2*log(2));
 
-	double Uabs(double r) {
-		double r_max = grid.dr*grid.Nr;
-		double dr = 0.2*r_max;
-		return 2*smoothstep(r, r_max-dr, r_max);
-	}
-
 	double dt = 0.025;
 	int Nt = (int)(3*T/dt);
 
@@ -47,7 +35,7 @@ int main() {
 		P[i] = 0.0;
 	}
 
-	sphere_kn_workspace_t* ws = sphere_kn_workspace_alloc(&grid, dt, U, Uabs);
+	sphere_kn_workspace_t* ws = sphere_kn_workspace_alloc(&grid, dt, hydrogen_U, Uabs);
 	sphere_wavefunc_t* psi = sphere_wavefunc_alloc(&grid, 0);
 
 	for (int l = 0; l < grid.Nl; ++l) {
@@ -70,7 +58,7 @@ int main() {
 	double t = 0.0;
 
 	for (int i = 0; i < Nt; ++i) {
-		double a = - E(t) - sphere_wavefunc_cos(psi, dUdz);
+		double a = - E(t) - sphere_wavefunc_cos(psi, hydrogen_dUdz);
 		fourier_update(P, a, Nt, dw, t, ws->dt);
 		//printf("%.10e  %.10e\n", E(t), Eenv(t));
 

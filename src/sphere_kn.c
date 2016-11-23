@@ -1,6 +1,6 @@
 #include "sphere_kn.h"
 
-sphere_kn_workspace_t* sphere_kn_workspace_alloc(sphere_grid_t const* grid, double const dt, sphere_pot_t U, sphere_pot_t Uabs) {
+sphere_kn_workspace_t* sphere_kn_workspace_alloc(sphere_grid_t const* grid, double const dt, sphere_pot_t U, sphere_pot_abs_t Uabs) {
 	sphere_kn_workspace_t* ws = malloc(sizeof(sphere_kn_workspace_t));
 
 	ws->grid = grid;
@@ -73,7 +73,7 @@ void sphere_kn_workspace_prop_at(sphere_kn_workspace_t* ws, sphere_wavefunc_t* w
 
 	for (int l = 0; l < ws->grid->Nl; ++l) {
 		double r = dr;
-		cdouble U = ws->U(r) - I*ws->Uabs(r);
+		cdouble U = ws->U(r) - I*ws->Uabs(r, ws->grid);
 
 		cdouble al[3];
 		cdouble ar[3];
@@ -99,7 +99,7 @@ void sphere_kn_workspace_prop_at(sphere_kn_workspace_t* ws, sphere_wavefunc_t* w
 
 		for (int i = 1; i < ws->grid->Nr; ++i) {
 			r += dr;
-			U = ws->U(r) - I*ws->Uabs(r);
+			U = ws->U(r) - I*ws->Uabs(r, ws->grid);
 
 			al[1] = (1.0 + I*c0) + c1*I*(U + l*(l+1)/(2*r*r));
 			ar[1] = (1.0 - I*c0) - c1*I*(U + l*(l+1)/(2*r*r));
@@ -140,7 +140,7 @@ void sphere_kn_workspace_prop_at_v2(sphere_kn_workspace_t* ws, sphere_wavefunc_t
 
 	for (int l = 0; l < ws->grid->Nl; ++l) {
 		double r = dr;
-		cdouble U = ws->U(r) - I*ws->Uabs(r);
+		cdouble U = ws->U(r) - I*ws->Uabs(r, ws->grid);
 
 		cdouble al[3];
 		cdouble ar[3];
@@ -163,7 +163,7 @@ void sphere_kn_workspace_prop_at_v2(sphere_kn_workspace_t* ws, sphere_wavefunc_t
 
 		for (int i = 1; i < ws->grid->Nr; ++i) {
 			r += dr;
-			U = ws->U(r) - I*ws->Uabs(r);
+			U = ws->U(r) - I*ws->Uabs(r, ws->grid);
 
 			al[1] = M2[1] + 0.5*I*dt*(-0.5*d2[1] + U + 0.5*l*(l+1)/(r*r));
 			ar[1] = M2[1] - 0.5*I*dt*(-0.5*d2[1] + U + 0.5*l*(l+1)/(r*r));

@@ -1,7 +1,8 @@
 #include "hydrogen.h"
 
-#include "math.h"
+#include <math.h>
 
+#include "utils.h"
 
 double hydrogen_U(double r) {
 	return -1.0/r;

@@ -5,6 +5,8 @@ set( LIB_SOURCES
 	sphere_kn.c
 	sphere_wavefunc.c
 	hydrogen.c
+	utils.c
+	abs_pot.c
 	)
 
 set( LIB_HEADERS
@@ -18,6 +20,7 @@ set( LIB_HEADERS
     types.h
     units.h
     utils.h
+	abs_pot.h
    )
 
 set( MAIN main.c )

@@ -1,4 +1,4 @@
-from types cimport cdouble, sphere_pot_t, field_t
+from types cimport cdouble, sphere_pot_t, sphere_pot_abs_t, field_t
 
 from sphere_grid cimport sphere_grid_t
 from sphere_wavefunc cimport sphere_wavefunc_t
@@ -11,7 +11,7 @@ cdef extern from "sphere_kn.h":
         sphere_grid_t* grid,
         double dt,
         sphere_pot_t U,
-        sphere_pot_t Uabs
+        sphere_pot_abs_t Uabs
     )
 
     void sphere_kn_workspace_free(sphere_kn_workspace_t* ws)
