@@ -1,5 +1,8 @@
 #include "sphere_kn.h"
 
+#include <stdlib.h>
+
+
 sphere_kn_workspace_t* sphere_kn_workspace_alloc(sphere_grid_t const* grid, double const dt, sphere_pot_t U, sphere_pot_abs_t Uabs) {
 	sphere_kn_workspace_t* ws = malloc(sizeof(sphere_kn_workspace_t));
 
@@ -182,10 +185,10 @@ void sphere_kn_workspace_prop_at_v2(sphere_kn_workspace_t* ws, sphere_wavefunc_t
 	}
 }
 
-void sphere_kn_workspace_prop(sphere_kn_workspace_t* ws, sphere_wavefunc_t* wf, field_t E, double t) {
+void sphere_kn_workspace_prop(sphere_kn_workspace_t* ws, sphere_wavefunc_t* wf, field_t field, double t) {
 	int const Nl = ws->grid->Nl;
 
-	double Et = E(t + ws->dt/2);
+	double Et = field_E(field, t + ws->dt/2);
 
 	for (int l = Nl - 2; l >= 0; --l) {
 		sphere_kn_workspace_prop_ang(ws, wf, l, Et);

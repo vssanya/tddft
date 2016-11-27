@@ -1,5 +1,7 @@
 #pragma once
 
+#include "fields.h"
+
 #include "sphere_grid.h"
 #include "sphere_wavefunc.h"
 
@@ -38,4 +40,4 @@ void sphere_kn_workspace_prop_at(sphere_kn_workspace_t* ws, sphere_wavefunc_t* w
 // O(dr^4)
 void sphere_kn_workspace_prop_at_v2(sphere_kn_workspace_t* ws, sphere_wavefunc_t* wf);
 
-void sphere_kn_workspace_prop(sphere_kn_workspace_t* ws, sphere_wavefunc_t* wf, field_t E, double t);
+void sphere_kn_workspace_prop(sphere_kn_workspace_t* ws, sphere_wavefunc_t* wf, field_t field, double t);

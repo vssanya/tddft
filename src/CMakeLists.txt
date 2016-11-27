@@ -7,6 +7,8 @@ set( LIB_SOURCES
 	hydrogen.c
 	utils.c
 	abs_pot.c
+	fields.c
+	calc.c
 	)
 
 set( LIB_HEADERS
@@ -21,6 +23,8 @@ set( LIB_HEADERS
     units.h
     utils.h
 	abs_pot.h
+	fields.h
+	calc.h
    )
 
 set( MAIN main.c )

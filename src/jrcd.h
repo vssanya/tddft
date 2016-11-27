@@ -6,12 +6,12 @@
 
 // az(t) = - Ez(t) - <Ψ|dUdz|Ψ>
 // @param dUdz - depends only r. It's dUdz/cos(\theta).
-double az(sphere_wavefunc_t const* wf, field_t E, sphere_pot_t dUdz, double t) {
+double az(sphere_wavefunc_t const* wf, field_t field, sphere_pot_t dUdz, double t) {
 	double dUdz_masked(double r) {
 		return dUdz(r)*smoothstep(r, 12, 16.0);
 	}
 
-	return - E(t) - sphere_wavefunc_cos(wf, dUdz_masked);
+	return - field_E(field, t) - sphere_wavefunc_cos(wf, dUdz_masked);
 }
 
 /* 
@@ -24,10 +24,6 @@ double jrcd(sphere_kn_workspace_t* ws, sphere_wavefunc_t* wf, field_t E, sphere_
 
 	for (int i = 0; i < Nt; ++i) {
 		res += az(wf, E, dUdz, t);
-
-//		if (i%100 == 0) {
-//			sphere_wavefunc_print(wf);
-//		}
 
 		sphere_kn_workspace_prop(ws, wf, E, t);
 
