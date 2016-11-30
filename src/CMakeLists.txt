@@ -1,4 +1,4 @@
-set( CMAKE_C_FLAGS "-std=gnu11 -Wall -O2" )
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=gnu11 -Wall -O2")
 
 
 set( LIB_SOURCES

@@ -4,5 +4,4 @@ cdef extern from "sphere_grid.h":
         double dr
 
 cdef class SGrid:
-    cdef:
-        sphere_grid_t data
+    cdef sphere_grid_t data

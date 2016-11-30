@@ -1,5 +1,5 @@
 from types cimport sphere_pot_t
-from sphere_grid cimport sphere_grid_t
+from grid cimport sphere_grid_t
 
 cdef extern from "sphere_wavefunc.h":
     ctypedef struct sphere_wavefunc_t:
@@ -18,3 +18,6 @@ cdef extern from "sphere_wavefunc.h":
 		sphere_pot_t U
     )
     double sphere_wavefunc_z(sphere_wavefunc_t * wf)
+
+cdef class SWavefunc:
+    cdef sphere_wavefunc_t* data

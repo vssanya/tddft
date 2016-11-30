@@ -32,7 +32,8 @@ int main() {
 	int Nt = (int)(3*T/dt);
 
 	sphere_kn_workspace_t* ws = sphere_kn_workspace_alloc(&grid, dt, hydrogen_U, Uabs);
-	sphere_wavefunc_t* psi = hydrogen_ground(&grid);
+	sphere_wavefunc_t* psi = sphere_wavefunc_alloc(&grid, 0);
+	hydrogen_ground(psi);
 
 	field_t field = two_color_pulse_field_alloc(E0, 0.0, omega, 0.0, tp, -1.5*T);
 

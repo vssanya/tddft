@@ -46,13 +46,13 @@ void sphere_kn_workspace_prop_ang(sphere_kn_workspace_t* ws, sphere_wavefunc_t* 
 
 	int const Nr = ws->grid->Nr;
 
-	double r = 0.0;
 
 	cdouble* psi_l0 = &wf->data[l*Nr];
 	cdouble* psi_l1 = &wf->data[(l+1)*Nr];
 
 	cdouble a_const = 0.25*ws->dt*I*E*clm(l, wf->m);
 
+	double r = 0.0;
 	for (int i = 0; i < Nr; ++i) {
 		r += ws->grid->dr;
 
@@ -60,8 +60,8 @@ void sphere_kn_workspace_prop_ang(sphere_kn_workspace_t* ws, sphere_wavefunc_t* 
 
 		cdouble const f0 = psi_l0[i] - a*psi_l1[i];
 		cdouble const f1 = psi_l1[i] - a*psi_l0[i];
-		psi_l0[i] = (f0 - a*f1)/(1 - a*a);
-		psi_l1[i] = (f1 - a*f0)/(1 - a*a);
+		psi_l0[i] = (f0 - a*f1)/(1.0 - a*a);
+		psi_l1[i] = (f1 - a*f0)/(1.0 - a*a);
 	}
 }
 

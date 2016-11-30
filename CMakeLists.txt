@@ -8,6 +8,11 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS "ON")
 
 include_directories(${PROJECT_SOURCE_DIR}/src)
 
+find_package(OpenMP)
+if (OPENMP_FOUND)
+	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
+endif()
+
 if ("${CMAKE_C_COMPILER_ID}" STREQUAL "Intel")
 	include_directories(/share/intel/mkl/include)
 	link_directories(/share/intel/mkl/lib/intel64)
