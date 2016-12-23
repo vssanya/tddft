@@ -21,7 +21,7 @@ field = field.TwoColorPulseField(
     freq = freq,
     phase = 0.0,
     tp = tp,
-    t0 = -1.5*T
+    t0 = 1.5*T
 )
 
 grid = grid.SGrid(Nr=2000, Nl=80, dr=0.125)

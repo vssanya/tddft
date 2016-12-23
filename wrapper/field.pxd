@@ -12,6 +12,7 @@ cdef extern from "fields.h":
             double t0
             )
     void two_color_pulse_field_free(field_t field)
+    double field_E(field_t field, double t)
 
 cdef class Field:
     cdef field_t data

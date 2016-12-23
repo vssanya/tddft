@@ -2,7 +2,7 @@
 
 #include "fields.h"
 
-#include "sphere_grid.h"
+#include "grid.h"
 #include "sphere_wavefunc.h"
 
 #include "utils.h"
@@ -11,7 +11,7 @@
 typedef struct {
 	double dt;
 
-	sphere_grid_t const* grid;
+	sh_grid_t const* grid;
 
 	sphere_pot_t U;
 	sphere_pot_abs_t Uabs;
@@ -23,7 +23,7 @@ typedef struct {
 	cdouble* betta;
 } sphere_kn_workspace_t;
 
-sphere_kn_workspace_t* sphere_kn_workspace_alloc(sphere_grid_t const* grid, double const dt, sphere_pot_t U, sphere_pot_abs_t Uabs);
+sphere_kn_workspace_t* sphere_kn_workspace_alloc(sh_grid_t const* grid, double const dt, sphere_pot_t U, sphere_pot_abs_t Uabs);
 void sphere_kn_workspace_free(sphere_kn_workspace_t* ws);
 
 /* 

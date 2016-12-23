@@ -1,20 +1,55 @@
 #pragma once
 
-#include "types.h"
-#include "sphere_grid.h"
+#include <math.h>
 
+#include "types.h"
+#include "grid.h"
+#include "sphere_harmonics.h"
+
+/*!\struct sphere_wavefunc_t
+ * \brief Волновая функция представленная в виде разложения по сферическим гармоникам
+ *
+ * \f[\psi(\vec{r}) = \frac{1}{r} \sum_{l=0}^{\infty} \Theta_{lm}(r) Y_{lm}(\theta, \phi) \simeq \frac{1}{r} \sum_{l=0}^{N_l - 1} \Theta_{lm}(r) Y_{lm}(\theta, \phi)\f]
+ *
+ * */
 typedef struct {
-	sphere_grid_t const* grid;
-	int m;
-	cdouble* data; // data[ix][il] = data[ix + il*Nr]
+    sh_grid_t const* grid;           
+    cdouble* data; //!< data[i + l*grid->Nr] = \f$\Theta_{lm}(r_i)\f$
+    int m; //!< is magnetic quantum number
 } sphere_wavefunc_t;
 
-sphere_wavefunc_t* sphere_wavefunc_alloc(
-		sphere_grid_t const* grid,
+sphere_wavefunc_t* sphere_wavefunc_new(
+		sh_grid_t const* grid,
 		int const m
 );
 
-void   sphere_wavefunc_free(sphere_wavefunc_t* wf);
+inline cdouble* swf_ptr(sphere_wavefunc_t const* wf, int ir, int il) {
+	return &wf->data[grid2_index(wf->grid, (int[2]){ir, il})];
+}
+
+inline cdouble const* swf_const_ptr(sphere_wavefunc_t const* wf, int ir, int il) {
+	return &wf->data[grid2_index(wf->grid, (int[2]){ir, il})];
+}
+
+inline cdouble swf_get(sphere_wavefunc_t const* wf, int ir, int il) {
+	return wf->data[grid2_index(wf->grid, (int[2]){ir, il})];
+}
+
+/*!
+ * \return \f$\psi(r, \Omega)\f$
+ * */
+cdouble swf_get_sp(sphere_wavefunc_t const* wf, int i[3]);
+
+inline void swf_set(sphere_wavefunc_t const* wf, int ir, int il, cdouble value) {
+	wf->data[grid2_index(wf->grid, (int[2]){ir, il})] = value;
+}
+
+inline double swf_get_abs_2(sphere_wavefunc_t const* wf, int ir, int il) {
+	cdouble const value = swf_get(wf, ir, il);
+	return pow(creal(value), 2) + pow(cimag(value), 2);
+}
+
+void   sphere_wavefunc_del(sphere_wavefunc_t* wf);
 
 double sphere_wavefunc_norm(sphere_wavefunc_t const* wf);
 

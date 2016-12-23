@@ -1,6 +1,6 @@
 from types cimport cdouble, sphere_pot_t, sphere_pot_abs_t
 
-from grid cimport sphere_grid_t
+from grid cimport sh_grid_t
 from wavefunc cimport sphere_wavefunc_t
 
 from field cimport field_t
@@ -10,7 +10,7 @@ cdef extern from "sphere_kn.h":
         pass
 
     sphere_kn_workspace_t* sphere_kn_workspace_alloc(
-        sphere_grid_t* grid,
+        sh_grid_t* grid,
         double dt,
         sphere_pot_t U,
         sphere_pot_abs_t Uabs

@@ -1,5 +1,5 @@
 #pragma once
 
-#include "sphere_grid.h"
+#include "grid.h"
 
-double Uabs(double r, sphere_grid_t const* grid);
+double Uabs(double r, sh_grid_t const* grid);

@@ -7,7 +7,7 @@ from field cimport Field
 cdef class SKnWorkspace:
     def __cinit__(self, SGrid grid, double dt):
         self.data = sphere_kn_workspace_alloc(
-            <sphere_grid_t*> &grid.data,
+            grid.data,
             dt, hydrogen_U, Uabs
         )
 

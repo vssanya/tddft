@@ -1,8 +1,19 @@
 #pragma once
 
-// clm = <Yl,m|cosθ|Yl+1,m>
-// Yl,m - сферические функции
+/* 
+ *
+ * Ylm - сферические функции
+ * Y10 = cosθ
+ * Y20 = (3cosθ^2 - 1)/2
+ * 
+ * clm = <Ylm|Y10|Yl+1m>
+ * qlm = <Ylm|Y20|Yl+2m>
+ * plm = <Ylm|Y20|Ylm>
+ * */
 double clm(int l, int m) __attribute__((pure));
+double qlm(int l, int m) __attribute__((pure));
+double plm(int l, int m) __attribute__((pure));
+
 double min(double a, double b) __attribute__((pure));
 double max(double a, double b) __attribute__((pure));
 double clamp(double x, double lower, double upper) __attribute__((pure));
