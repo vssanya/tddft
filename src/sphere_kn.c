@@ -54,7 +54,8 @@ void sphere_kn_workspace_prop_ang(sphere_kn_workspace_t* ws, sphere_wavefunc_t* 
 
 	double r = 0.0;
 	for (int i = 0; i < Nr; ++i) {
-		r += ws->grid->d[iR];
+		//r += ws->grid->d[iR];
+		r = ws->grid->d[iR]*(i+1);
 
 		cdouble const a = a_const*r;
 

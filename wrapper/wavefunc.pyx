@@ -23,5 +23,5 @@ cdef class SWavefunc:
         cdef cdouble[:, ::1] array = <cdouble[:self.data.grid.n[0],:self.data.grid.n[1]]>self.data.data
         return np.asarray(array)
 
-    def get_sp(self, int[3] i):
-        return swf_get_sp(self.data, i)
+    def get_sp(self, int ir, int ic, int ip):
+        return swf_get_sp(self.data, [ir, ic, ip])

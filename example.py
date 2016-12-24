@@ -24,7 +24,7 @@ field = field.TwoColorPulseField(
     t0 = 1.5*T
 )
 
-grid = grid.SGrid(Nr=2000, Nl=80, dr=0.125)
+grid = grid.SGrid(Nr=2000, Nl=80, r_max=250)
 wf = hydrogen.ground_state(grid)
 ws = workspace.SKnWorkspace(dt=dt, grid=grid)
 

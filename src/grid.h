@@ -61,15 +61,15 @@ inline size_t grid3_size(grid3_t const* grid) {
 
 inline size_t grid2_index(grid2_t const* grid, int i[2]) {
     check_index(grid, 0, i[0]);
-    check_index(grod, 1, i[1]);
+    check_index(grid, 1, i[1]);
     return i[0] +
            i[1]*grid->n[0];
 }
 
 inline size_t grid3_index(grid3_t const* grid, int i[3]) {
     check_index(grid, 0, i[0]);
-    check_index(grod, 1, i[1]);
-    check_index(grod, 2, i[2]);
+    check_index(grid, 1, i[1]);
+    check_index(grid, 2, i[2]);
     return i[0] + 
            i[1]*grid->n[0] +
            i[2]*grid->n[1]*grid->n[0];

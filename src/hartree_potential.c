@@ -202,20 +202,9 @@
 //	}
 //}
 
-double n(int ne, sphere_wavefunc_t const* wf[ne], int i[2]) {
-	double res = 0.0;
-
-	for (int ie = 0; ie < ne; ++ie) {
-		cdouble const psi = swf_get_sp(wf[ie], (int[3]){i[0], i[1], 0});
-		res += pow(creal(psi), 2) + pow(cimag(psi), 2);
-	}
-
-	return res;
-}
-
-void ux_lda(int l, int ne, sphere_wavefunc_t const* wf[ne], double U[wf[0]->grid->n[iR]]) {
+void ux_lda(int l, ks_orbitals_t const* orbs, double U[orbs->wf[0]->grid->n[iR]], sp_grid_t const* sp_grid) {
 	double func(int ir, int ic) {
-		return pow(n(ne, wf, (int[2]){ir, ic}), 1.0/3.0);
+		return pow(ks_orbitals_n(orbs, (int[2]){ir, ic}), 1.0/3.0);
 	}
 
 	sh_series(func, l, 0, sp_grid, U);

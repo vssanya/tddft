@@ -12,6 +12,7 @@ set( LIB_SOURCES
 	fields.c
 	calc.c
 	sphere_harmonics.c
+	ks_orbitals.c
 	)
 
 set( LIB_HEADERS
@@ -30,6 +31,7 @@ set( LIB_HEADERS
 	fields.h
 	calc.h
 	sphere_harmonics.h
+	ks_orbitals.h
    )
 
 set( MAIN main.c )

@@ -7,10 +7,9 @@ cdef extern from "sphere_wavefunc.h":
         cdouble* data
         int m
 
-    sphere_wavefunc_t* sphere_wavefunc_new(
-		sh_grid_t* grid,
-		int m
-    )
+    sphere_wavefunc_t* sphere_wavefunc_new(sh_grid_t* grid, int m)
+    sphere_wavefunc_t* sphere_wavefunc_new_from(cdouble* data, sh_grid_t* grid, int m)
+
     void   sphere_wavefunc_del(sphere_wavefunc_t* wf)
     double sphere_wavefunc_norm(sphere_wavefunc_t* wf)
     void   sphere_wavefunc_normalize(sphere_wavefunc_t* wf)

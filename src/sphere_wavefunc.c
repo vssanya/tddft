@@ -2,21 +2,34 @@
 
 #include <stdlib.h>
 #include <stdio.h>
-#include <math.h>
 
 #include "utils.h"
 
-sphere_wavefunc_t* sphere_wavefunc_new(sh_grid_t const* grid, int const m) {
+sphere_wavefunc_t* _sphere_wavefunc_new(cdouble* data, bool data_own, sh_grid_t const* grid, int const m) {
 	sphere_wavefunc_t* wf = malloc(sizeof(sphere_wavefunc_t));
 	wf->grid = grid;
-	wf->data = calloc(grid2_size(grid), sizeof(cdouble));
+
+	wf->data = data;
+	wf->data_own = data_own;
+
 	wf->m = m;
 
 	return wf;
 }
 
+sphere_wavefunc_t* sphere_wavefunc_new(sh_grid_t const* grid, int const m) {
+	cdouble* data = calloc(grid2_size(grid), sizeof(cdouble));
+	return _sphere_wavefunc_new(data, true, grid, m);
+}
+
+sphere_wavefunc_t* sphere_wavefunc_new_from(cdouble* data, sh_grid_t const* grid, int const m) {
+	return _sphere_wavefunc_new(data, false, grid, m);
+}
+
 void sphere_wavefunc_del(sphere_wavefunc_t* wf) {
-	free(wf->data);
+	if (wf->data_own) {
+		free(wf->data);
+	}
 	free(wf);
 }
 

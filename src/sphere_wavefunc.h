@@ -1,12 +1,13 @@
 #pragma once
 
+#include <stdbool.h>
 #include <math.h>
 
 #include "types.h"
 #include "grid.h"
 #include "sphere_harmonics.h"
 
-/*!\struct sphere_wavefunc_t
+/*!
  * \brief Волновая функция представленная в виде разложения по сферическим гармоникам
  *
  * \f[\psi(\vec{r}) = \frac{1}{r} \sum_{l=0}^{\infty} \Theta_{lm}(r) Y_{lm}(\theta, \phi) \simeq \frac{1}{r} \sum_{l=0}^{N_l - 1} \Theta_{lm}(r) Y_{lm}(\theta, \phi)\f]
@@ -14,11 +15,20 @@
  * */
 typedef struct {
     sh_grid_t const* grid;           
+
     cdouble* data; //!< data[i + l*grid->Nr] = \f$\Theta_{lm}(r_i)\f$
-    int m; //!< is magnetic quantum number
+	bool data_own;      //!< кто выделил данные
+
+    int m;         //!< is magnetic quantum number
 } sphere_wavefunc_t;
 
 sphere_wavefunc_t* sphere_wavefunc_new(
+		sh_grid_t const* grid,
+		int const m
+);
+
+sphere_wavefunc_t* sphere_wavefunc_new_from(
+		cdouble* data,
 		sh_grid_t const* grid,
 		int const m
 );

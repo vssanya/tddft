@@ -1,7 +1,7 @@
 #pragma once
 
 #include "utils.h"
-#include "sphere_wavefunc.h"
+#include "ks_orbitals.h"
 
 /*! \file
  * Разложение кулоновского потенциала по сферическим функциям
@@ -37,7 +37,7 @@
  * \param wf[in]
  * \param U[out] is \f$U_{Hl}(r) = \int Y_l^{m*} U_H d\Omega \f$
  * */
-void hantree_potential(int l, int ne, sphere_wavefunc_t const wf[ne], cdouble U[wf[0].grid->n[iR]]);
+void hantree_potential(int l, ks_orbitals_t const* orbs, cdouble U[orbs->wf[0]->grid->n[iR]]);
 
 /*!
  * Обменное взаимодействие приближение локальной плотности
@@ -46,12 +46,4 @@ void hantree_potential(int l, int ne, sphere_wavefunc_t const wf[ne], cdouble U[
  * \param wf[in] is wavefunction of Kohn's orbitals
  * \param Ux[out] is amplitude \f$Y_l^0\f$ component of \f$U_{x} = - \left(\frac{3}{\pi}\right)^{1/3} n(\vec{r})^{1/3}\f$
  * */
-void ux_lda(int l, int ne, sphere_wavefunc_t const wf[ne], double U[wf[0].grid->n[iR]]);
-
-/*!
- * Электронная плотность
- * \param ne[in] is count Kohn's orbitals
- * \param wf[in] is wavefunction of Kohn's orbitals
- * \param i is sphere index \f${i_r, i_\Theta, i_\phi}\f$
- * */
-double n(int ne, sphere_wavefunc_t const* wf[ne], int i[3]);
+void ux_lda(int l, ks_orbitals_t const* orbs, double U[orbs->wf[0]->grid->n[iR]], sp_grid_t const* sp_grid);
