@@ -13,6 +13,7 @@ set( LIB_SOURCES
 	calc.c
 	sphere_harmonics.c
 	ks_orbitals.c
+	jrcd.c
 	)
 
 set( LIB_HEADERS
