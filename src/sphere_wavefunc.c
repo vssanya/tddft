@@ -84,12 +84,13 @@ double sphere_wavefunc_z(sphere_wavefunc_t const* wf) {
 	return sphere_wavefunc_cos(wf, func);
 }
 
-cdouble swf_get_sp(sphere_wavefunc_t const* wf, int i[3]) {
+cdouble swf_get_sp(sphere_wavefunc_t const* wf, sp_grid_t const* grid, int i[3]) {
 	cdouble res = 0.0;
 	double r = sh_grid_r(wf->grid, i[iR]);
 	for (int il = 0; il < wf->grid->n[iL]; ++il) {
 		int const l = sh_grid_l(wf->grid, il);
-		res += swf_get(wf, i[iR], il)*Ylm(l, wf->m, i[iC]) / r;
+		double const x = sp_grid_c(grid, i[iC]);
+		res += swf_get(wf, i[iR], il)*Ylm(l, wf->m, x) / r;
 	}
 	return res;
 }

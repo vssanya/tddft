@@ -48,7 +48,7 @@ inline cdouble swf_get(sphere_wavefunc_t const* wf, int ir, int il) {
 /*!
  * \return \f$\psi(r, \Omega)\f$
  * */
-cdouble swf_get_sp(sphere_wavefunc_t const* wf, int i[3]);
+cdouble swf_get_sp(sphere_wavefunc_t const* wf, sp_grid_t const* grid, int i[3]);
 
 inline void swf_set(sphere_wavefunc_t const* wf, int ir, int il, cdouble value) {
 	wf->data[grid2_index(wf->grid, (int[2]){ir, il})] = value;

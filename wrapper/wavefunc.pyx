@@ -1,7 +1,7 @@
 import numpy as np
 
 from types cimport cdouble
-from grid cimport SGrid
+from grid cimport SGrid, SpGrid
 
 cdef class SWavefunc:
     def __cinit__(self, SGrid grid, int m=0):
@@ -23,5 +23,5 @@ cdef class SWavefunc:
         cdef cdouble[:, ::1] array = <cdouble[:self.data.grid.n[0],:self.data.grid.n[1]]>self.data.data
         return np.asarray(array)
 
-    def get_sp(self, int ir, int ic, int ip):
-        return swf_get_sp(self.data, [ir, ic, ip])
+    def get_sp(self, SpGrid grid, int ir, int ic, int ip):
+        return swf_get_sp(self.data, grid.data, [ir, ic, ip])

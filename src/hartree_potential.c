@@ -204,7 +204,7 @@
 
 void ux_lda(int l, ks_orbitals_t const* orbs, double U[orbs->wf[0]->grid->n[iR]], sp_grid_t const* sp_grid) {
 	double func(int ir, int ic) {
-		return pow(ks_orbitals_n(orbs, (int[2]){ir, ic}), 1.0/3.0);
+		return pow(ks_orbitals_n(orbs, sp_grid, (int[2]){ir, ic}), 1.0/3.0);
 	}
 
 	sh_series(func, l, 0, sp_grid, U);
