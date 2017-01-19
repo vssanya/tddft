@@ -66,6 +66,37 @@ void sphere_kn_workspace_prop_ang(sphere_kn_workspace_t* ws, sphere_wavefunc_t* 
 	}
 }
 
+void sphere_kn_workspace_prop_ang_l(sphere_kn_workspace_t* ws, sphere_wavefunc_t* wf, int lu, int le, double E) {
+	/*
+	 * Solve Nr equations:
+	 * psi(l  , t+dt, r) + a*psi(l+2, t+dt, r) = f0
+	 * psi(l+2, t+dt, r) + a*psi(l  , t+dt, r) = f1
+	 *
+	 * a(r) = a_const*r
+	 */
+
+	int const Nr = ws->grid->n[iR];
+
+
+	cdouble* psi_l0 = &wf->data[le*Nr];
+	cdouble* psi_l1 = &wf->data[(le+lu)*Nr];
+
+	cdouble a_const = 0.25*ws->dt*I*E*clm(le, wf->m);
+
+	double r = 0.0;
+	for (int i = 0; i < Nr; ++i) {
+		//r += ws->grid->d[iR];
+		r = ws->grid->d[iR]*(i+1);
+
+		cdouble const a = a_const*r;
+
+		cdouble const f0 = psi_l0[i] - a*psi_l1[i];
+		cdouble const f1 = psi_l1[i] - a*psi_l0[i];
+		psi_l0[i] = (f0 - a*f1)/(1.0 - a*a);
+		psi_l1[i] = (f1 - a*f0)/(1.0 - a*a);
+	}
+}
+
 // exp(-iΔtHat(l,m, t+Δt/2))
 void sphere_kn_workspace_prop_at(sphere_kn_workspace_t* ws, sphere_wavefunc_t* wf) {
 	double dr = ws->grid->d[iR];
@@ -198,5 +229,11 @@ void sphere_kn_workspace_prop(sphere_kn_workspace_t* ws, sphere_wavefunc_t* wf, 
 	for (int il = 0; il < ws->grid->n[iL] - 1; ++il) {
 		int const l = sh_grid_l(ws->grid, il);
 		sphere_kn_workspace_prop_ang(ws, wf, l, Et);
+	}
+}
+
+void sphere_kn_workspace_prop_orbs(sphere_kn_workspace_t* ws, ks_orbitals_t* orbs, field_t field, double t) {
+	for (int ie = 0; ie < orbs->ne; ++ie) {
+		sphere_kn_workspace_prop(ws, orbs->wf[ie], field, t);
 	}
 }

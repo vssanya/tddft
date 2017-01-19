@@ -4,6 +4,7 @@
 
 #include "grid.h"
 #include "sphere_wavefunc.h"
+#include "ks_orbitals.h"
 
 #include "utils.h"
 #include "types.h"
@@ -41,3 +42,5 @@ void sphere_kn_workspace_prop_at(sphere_kn_workspace_t* ws, sphere_wavefunc_t* w
 void sphere_kn_workspace_prop_at_v2(sphere_kn_workspace_t* ws, sphere_wavefunc_t* wf);
 
 void sphere_kn_workspace_prop(sphere_kn_workspace_t* ws, sphere_wavefunc_t* wf, field_t field, double t);
+
+void sphere_kn_workspace_prop_orbs(sphere_kn_workspace_t* ws, ks_orbitals_t* orbs, field_t field, double t);
