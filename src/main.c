@@ -28,7 +28,7 @@ int main() {
 	//int Nt = (int)(0.01*T/dt);
 	int Nt = 100;
 
-	sphere_kn_workspace_t* ws = sphere_kn_workspace_alloc(grid, dt, hydrogen_U, Uabs);
+    sphere_kn_workspace_t* ws = sphere_kn_workspace_alloc(grid, dt, hydrogen_sh_U, Uabs);
 	sphere_wavefunc_t* psi = sphere_wavefunc_new(grid, 0);
 	hydrogen_ground(psi);
 

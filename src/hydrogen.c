@@ -4,12 +4,14 @@
 
 #include "utils.h"
 
-double hydrogen_U(double r) {
+double hydrogen_sh_U(sh_grid_t const* grid, int ir, int il, int m) {
+    double const r = sh_grid_r(grid, ir);
 	return -1.0/r;
 }
 
-double hydrogen_dUdz(double r) {
-	return 1.0/pow(r, 2);
+double hydrogen_sh_dUdz(sh_grid_t const* grid, int ir, int il, int m) {
+    double const r = sh_grid_r(grid, ir);
+    return 1.0/pow(r, 2);
 }
 
 void hydrogen_ground(sphere_wavefunc_t* wf) {

@@ -2,4 +2,4 @@
 
 #include "grid.h"
 
-double Uabs(double r, sh_grid_t const* grid);
+double Uabs(sh_grid_t const* grid, int ir, int il, int im) __attribute__((pure));

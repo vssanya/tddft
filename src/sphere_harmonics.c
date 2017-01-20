@@ -11,7 +11,7 @@ int pow_minus_one(int p) {
 }
 
 double clebsch_gordan_coef(int j1, int m1, int j2, int m2, int J, int M) {
-	return pow_minus_one(j1-j2+M)*sqrt(2*J + 1)*gsl_sf_coupling_3j(j1, j2, J, m1, m2, -M);
+	return pow_minus_one(j1-j2+M)*sqrt(2*J + 1)*gsl_sf_coupling_3j(2*j1, 2*j2, 2*J, 2*m1, 2*m2, -2*M);
 }
 
 double y3(int l1, int m1, int l2, int m2, int L, int M) {

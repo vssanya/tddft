@@ -4,11 +4,12 @@
 // az(t) = - Ez(t) - <Ψ|dUdz|Ψ>
 // @param dUdz - depends only r. It's dUdz/cos(\theta).
 double az(sphere_wavefunc_t const* wf, field_t field, sphere_pot_t dUdz, double t) {
-	double dUdz_masked(double r) {
-		return dUdz(r)*smoothstep(r, 12, 16.0);
+    double dUdz_masked(sh_grid_t const* grid, int ir, int l, int m) {
+        double const r = sh_grid_r(grid, ir);
+        return dUdz(grid, ir, l, m)*smoothstep(r, 12, 16.0);
 	}
 
-	return - field_E(field, t) - sphere_wavefunc_cos(wf, dUdz_masked);
+    return - field_E(field, t) - sphere_wavefunc_cos(wf, dUdz_masked);
 }
 
 /* 

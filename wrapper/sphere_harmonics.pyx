@@ -19,3 +19,11 @@ def series(func, int l, int m, SpGrid grid):
 @np.vectorize
 def ylm(int l, int m, double x):
     return Ylm(l, m, x)
+
+@np.vectorize
+def sh_clebsch_gordan_coef(int j1, int m1, int j2, int m2, int J, int M):
+    return clebsch_gordan_coef(j1, m1, j2, m2, J, M)
+
+@np.vectorize
+def sh_y3(int l1, int m1, int l2, int m2, int L, int M):
+    return y3(l1, m1, l2, m2, L, M)

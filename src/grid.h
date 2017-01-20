@@ -81,12 +81,14 @@ void sp_grid_del(sp_grid_t* grid);
 sh_grid_t* sh_grid_new(int n[2], double r_max);
 void sh_grid_del(sh_grid_t* grid);
 
-inline double sp_grid_r(sp_grid_t const* grid, int ir) {
+__attribute__((pure)) inline
+double sp_grid_r(sp_grid_t const* grid, int ir) {
     check_index(grid, iR, ir);
     return grid->d[iR]*(ir+1);
 }
 
-inline double sp_grid_c(sp_grid_t const* grid, int ic) {
+__attribute_pure__ inline
+double sp_grid_c(sp_grid_t const* grid, int ic) {
     check_index(grid, iC, ic);
     return grid->d[iC]*ic - 1.0;
 }
