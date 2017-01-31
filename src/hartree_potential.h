@@ -18,26 +18,17 @@
 /*! 
  * U0(r,t) = 2*\sum_{i,l} \int |\theta_{ilm}(r', t)|^2 / r> dr'
  * */
-//void hartree_potential_l0(int Ne, sphere_wavefunc_t const wf[Ne], double  U[wf[0].grid->n[iR]] );
+void hartree_potential_l0(ks_orbitals_t const* orbs, double U[orbs->grid->n[iR]]);
 
 /*!
  * U1(r,t) = \int L1(r',t) r< / r>^2 dr'
  * */
-//void hartree_potential_l1(int Ne, sphere_wavefunc_t const wf[Ne], cdouble U[wf[0].grid->n[iR]]);
+void hartree_potential_l1(ks_orbitals_t const* orbs, double U[orbs->grid->n[iR]]);
 
 /*!
  * U2(r,t) = \int L2(r',t) r<^2 / r>^3 dr'
  * */
-//void hartree_potential_l2(int Ne, sphere_wavefunc_t const wf[Ne], cdouble U[wf[0].grid->n[iR]]);
-
-/*!
- * Рассчитываем коэффициент разложения потенциал Хантри для сферической функции \f$Y_l^0\f$
- * \param l[in]
- * \param ne[in]
- * \param wf[in]
- * \param U[out] is \f$U_{Hl}(r) = \int Y_l^{m*} U_H d\Omega \f$
- * */
-void hantree_potential(int l, ks_orbitals_t const* orbs, cdouble U[orbs->wf[0]->grid->n[iR]]);
+void hartree_potential_l2(ks_orbitals_t const* orbs, double U[orbs->grid->n[iR]]);
 
 /*!
  * Обменное взаимодействие приближение локальной плотности

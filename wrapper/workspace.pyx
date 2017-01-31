@@ -1,4 +1,4 @@
-from hydrogen cimport hydrogen_U
+from hydrogen cimport hydrogen_sh_U
 from abs_pot cimport Uabs
 from grid cimport SGrid
 from wavefunc cimport SWavefunc
@@ -8,7 +8,7 @@ cdef class SKnWorkspace:
     def __cinit__(self, SGrid grid, double dt):
         self.data = sphere_kn_workspace_alloc(
             grid.data,
-            dt, hydrogen_U, Uabs
+            dt, hydrogen_sh_U, Uabs
         )
 
     def __dealloc__(self):

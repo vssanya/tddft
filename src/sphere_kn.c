@@ -271,6 +271,10 @@ void sphere_kn_orbs_workspace_prop(sphere_kn_orbs_workspace_t* ws, ks_orbitals_t
 		ux_lda(l, orbs, &ws->Uxc[l*ws->wf_ws->grid->n[iR]], ws->sp_grid);
 	}
 
+	hartree_potential_l0(orbs, &ws->Uh[0*ws->wf_ws->grid->n[iR]]);
+	hartree_potential_l1(orbs, &ws->Uh[1*ws->wf_ws->grid->n[iR]]);
+	hartree_potential_l2(orbs, &ws->Uh[2*ws->wf_ws->grid->n[iR]]);
+
 	double Et = field_E(field, t + ws->wf_ws->dt/2);
 
 	double Ul0(sh_grid_t const* grid, int ir, int l, int m) {
