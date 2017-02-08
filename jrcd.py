@@ -9,7 +9,7 @@ def calc_jrcd(I0, length, t_fwhm, alpha, phase):
     tp = utils.t_fwhm(t_fwhm, 'fs')
     t0 = utils.t_shift(tp, I0, Imin=1e10)
 
-    field = field.TwoColorPulseField(
+    f = field.TwoColorPulseField(
         E0 = E0,
         alpha = alpha,
         freq = freq,
@@ -22,20 +22,22 @@ def calc_jrcd(I0, length, t_fwhm, alpha, phase):
     dr = 0.1
     Nt = (2*t0)/dt
 
-    r_max = utils.r_max(E, alpha, freq)
+    r_max = utils.r_max(E0, alpha, freq)
 
-    grid = grid.SGrid(Nr=r_max/dr, Nl=40, r_max=r_max)
-    wf = hydrogen.ground_state(grid)
-    ws = workspace.SKnWorkspace(dt=dt, grid=grid)
+    g = grid.SGrid(Nr=r_max/dr, Nl=40, r_max=r_max)
+    wf = hydrogen.ground_state(g)
+    ws = workspace.SKnWorkspace(dt=dt, grid=g)
 
-    return calc.jrcd_t(ws, wf, field, Nt)
+    return calc.jrcd_t(ws, wf, f, Nt)
 
 comm = MPI.COMM_WORLD
 rank = comm.Get_rank()
 size = comm.Get_size()
 
 if rank == 0:
-    phase = np.linspace(0.0, 2*np.pi, 20)
+    phase = np.linspace(0.0, 2*np.pi, size)
+else:
+    phase = None
 
 phase = comm.scatter(phase, root=0)
 
@@ -47,7 +49,8 @@ jrcd = calc_jrcd(
         phase=phase
         )
 
-jrcd = comm.gather(jrcd, root=0)
+phase = comm.gather(phase, root=0)
+jrcd  = comm.gather(jrcd, root=0)
 
 if rank == 0:
     np.savetxt('res.txt', [phase, jrcd])
