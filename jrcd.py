@@ -30,27 +30,84 @@ def calc_jrcd(I0, length, t_fwhm, alpha, phase):
 
     return calc.jrcd_t(ws, wf, f, Nt)
 
+def do_root(comm, count_workers):
+    result = {}
+    status = MPI.Status()
+
+    phase = np.linspace(0.0, 2*np.pi, 20)
+    I     = np.logspace(12, 15, 20)
+    jrcd  = np.zeros((phase.size, I.size))
+
+    ip = 0
+    iI = 0
+
+    work_status = 0
+    finished_workers = 0
+
+    while True:
+        print("Status calculation = {} %".format(work_status/jrcd.size*100))
+
+        res = comm.recv(source=MPI.ANY_SOURCE, tag=MPI.ANY_TAG, status=status)
+
+        if res['type'] == 'result':
+            work_status += 1
+            jrcd[res['index'][0],res['index'][1]] = res['jrcd']
+        elif res['type'] == 'next_calc':
+            if (ip+1)*(iI+1) >= jrcd.size:
+                comm.send({
+                    'type': 'finish'
+                    }, dest=status.Get_source(), tag=1)
+                finished_workers += 1
+            else:
+                comm.send({
+                    'type': 'calc',
+                    'param': {
+                        'I0':     I[iI],
+                        'length': 800,
+                        't_fwhm': 50,
+                        'alpha':  0.2,
+                        'phase':  phase[ip]
+                        },
+                    'index': [ip, iI]
+                    }, dest=status.Get_source(), tag=1)
+
+                if ip == phase.size-1:
+                    ip = 0
+                    iI += 1
+                else:
+                    ip += 1
+
+        if finished_workers >= count_workers:
+            break
+
+    np.savetxt('res_phase.txt', phase)
+    np.savetxt('res_I.txt', I)
+    np.savetxt('res_jrcd.txt', jrcd)
+
+def do_worker(common):
+    while True:
+        comm.send({
+            'type': 'next_calc'
+            }, dest=0, tag=1)
+
+        res = comm.recv(source=0, tag=1)
+
+        if res['type'] == 'finish':
+            break
+        elif res['type'] == 'calc':
+            jrcd = calc_jrcd(**res['param'])
+            comm.send({
+                'type': 'result',
+                'index': res['index'],
+                'jrcd': jrcd
+                }, dest=0, tag=1)
+
+
 comm = MPI.COMM_WORLD
 rank = comm.Get_rank()
 size = comm.Get_size()
 
 if rank == 0:
-    phase = np.linspace(0.0, 2*np.pi, size)
+    do_root(comm, size-1)
 else:
-    phase = None
-
-phase = comm.scatter(phase, root=0)
-
-jrcd = calc_jrcd(
-        I0=1e14,
-        length=800,
-        t_fwhm=50,
-        alpha=0.2,
-        phase=phase
-        )
-
-phase = comm.gather(phase, root=0)
-jrcd  = comm.gather(jrcd, root=0)
-
-if rank == 0:
-    np.savetxt('res.txt', [phase, jrcd])
+    do_worker(comm)
