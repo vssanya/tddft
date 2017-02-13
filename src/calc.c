@@ -5,7 +5,7 @@ void calc_a(int Nt, double a[Nt], sphere_kn_workspace_t* ws, sphere_wavefunc_t* 
 	double t = 0.0;
 
 	for (int i = 0; i < Nt; ++i) {
-        a[i] = - field_E(field, t) - sphere_wavefunc_cos(wf, hydrogen_sh_dUdz);
+        a[i] = - field_E(field, t) - sphere_wavefunc_cos(wf, hydrogen_sh_dudz);
 		sphere_kn_workspace_prop(ws, wf, field, t);
 
 		t += ws->dt;

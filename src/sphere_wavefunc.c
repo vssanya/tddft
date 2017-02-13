@@ -36,7 +36,8 @@ void sphere_wavefunc_del(sphere_wavefunc_t* wf) {
 double sphere_wavefunc_norm(sphere_wavefunc_t const* wf) {
 	double norm = 0.0;
 	for (int i = 0; i < grid2_size(wf->grid); ++i) {
-		norm += wf->data[i]*conj(wf->data[i]);
+		cdouble value = wf->data[i];
+		norm += pow(creal(value), 2) + pow(cimag(value), 2);
 	}
 	return norm*wf->grid->d[iR];
 }

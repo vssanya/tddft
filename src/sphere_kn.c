@@ -3,6 +3,7 @@
 #include <stdlib.h>
 
 #include "hartree_potential.h"
+#include "abs_pot.h"
 
 
 sphere_kn_workspace_t* sphere_kn_workspace_alloc(sh_grid_t const* grid, double const dt, sphere_pot_t U, sphere_pot_t Uabs) {
@@ -64,7 +65,7 @@ void sphere_kn_workspace_prop_ang_l1(sphere_kn_workspace_t* ws, sphere_wavefunc_
 	}
 }
 
-void sphere_kn_workspace_prop_ang_l(sphere_kn_workspace_t* ws, sphere_wavefunc_t* wf, int l, int l1, sphere_pot_t Ul) {
+void sphere_kn_workspace_prop_ang_l(sphere_kn_workspace_t* ws, sphere_wavefunc_t* wf, int l, int l1, sphere_pot_t Ul, bool img_time) {
 	/*
 	 * Solve Nr equations:
 	 * psi(l   , t+dt, r) + a*psi(l+l1, t+dt, r) = f0
@@ -75,11 +76,16 @@ void sphere_kn_workspace_prop_ang_l(sphere_kn_workspace_t* ws, sphere_wavefunc_t
 
 	int const Nr = ws->grid->n[iR];
 
+	cdouble dt = ws->dt;
+	if (img_time) {
+		dt = -I*ws->dt;
+	}
+
 
 	cdouble* psi_l0 = &wf->data[l*Nr];
 	cdouble* psi_l1 = &wf->data[(l+l1)*Nr];
 
-	cdouble a_const = 0.25*ws->dt*I;
+	cdouble a_const = 0.25*dt*I;
 
 	for (int i = 0; i < Nr; ++i) {
 		cdouble const a = a_const*Ul(ws->grid, i, l, wf->m);
@@ -146,9 +152,14 @@ void sphere_kn_workspace_prop_at(sphere_kn_workspace_t* ws, sphere_wavefunc_t* w
 }
 
 // O(dr^4)
-void sphere_kn_workspace_prop_at_v2(sphere_kn_workspace_t* ws, sphere_wavefunc_t* wf, sphere_pot_t Ul, sphere_pot_t Uabs) {
+void sphere_kn_workspace_prop_at_v2(sphere_kn_workspace_t* ws, sphere_wavefunc_t* wf, sphere_pot_t Ul, sphere_pot_t Uabs, bool img_time) {
 	double dr = ws->grid->d[iR];
+
 	cdouble dt = ws->dt;
+	if (img_time) {
+		dt = -I*ws->dt;
+	}
+
 	int Nr = ws->grid->n[iR];
 
 	double d2[3];
@@ -210,20 +221,25 @@ void sphere_kn_workspace_prop_at_v2(sphere_kn_workspace_t* ws, sphere_wavefunc_t
  * \f[U(r,t) = \sum_l U_l(r, t)\f]
  * \param[in] Ul = \f[U_l(r, t=t+dt/2)\f]
  * */
-void _sphere_kn_workspace_prop(sphere_kn_workspace_t* ws, sphere_wavefunc_t* wf, sphere_pot_t Ul[3], sphere_pot_t Uabs) {
+void _sphere_kn_workspace_prop(
+		sphere_kn_workspace_t* ws,
+		sphere_wavefunc_t* wf,
+		sphere_pot_t Ul[3],
+		sphere_pot_t Uabs,
+		bool img_time) {
     for (int l1 = 1; l1 < 3; ++l1) {
         for (int il = ws->grid->n[iL] - 1 - l1; il >= 0; --il) {
             int const l = sh_grid_l(ws->grid, il);
-            sphere_kn_workspace_prop_ang_l(ws, wf, l, l1, Ul[l1]);
+            sphere_kn_workspace_prop_ang_l(ws, wf, l, l1, Ul[l1], img_time);
         }
     }
 
-	sphere_kn_workspace_prop_at_v2(ws, wf, Ul[0], Uabs);
+	sphere_kn_workspace_prop_at_v2(ws, wf, Ul[0], Uabs, img_time);
 
     for (int l1 = 2; l1 > 0; --l1) {
         for (int il = 0; il < ws->grid->n[iL] - l1; ++il) {
             int const l = sh_grid_l(ws->grid, il);
-            sphere_kn_workspace_prop_ang_l(ws, wf, l, l1, Ul[l1]);
+            sphere_kn_workspace_prop_ang_l(ws, wf, l, l1, Ul[l1], img_time);
         }
     }
 }
@@ -245,7 +261,26 @@ void sphere_kn_workspace_prop(sphere_kn_workspace_t* ws, sphere_wavefunc_t* wf, 
 		return 0.0;
 	}
 
-	_sphere_kn_workspace_prop(ws,  wf, (sphere_pot_t[3]){Ul0, Ul1, Ul2}, ws->Uabs);
+	_sphere_kn_workspace_prop(ws,  wf, (sphere_pot_t[3]){Ul0, Ul1, Ul2}, ws->Uabs, false);
+}
+
+void sphere_kn_workspace_prop_img(
+		sphere_kn_workspace_t* ws,
+		sphere_wavefunc_t* wf) {
+	double Ul0(sh_grid_t const* grid, int ir, int l, int m) {
+		double const r = sh_grid_r(grid, ir);
+		return l*(l+1)/(2*r*r) + ws->U(grid, ir, l, m);
+	}
+
+	double Ul1(sh_grid_t const* grid, int ir, int l, int m) {
+		return 0.0;
+	}
+
+	double Ul2(sh_grid_t const* grid, int ir, int l, int m) {
+		return 0.0;
+	}
+
+	_sphere_kn_workspace_prop(ws,  wf, (sphere_pot_t[3]){Ul0, Ul1, Ul2}, uabs_zero, true);
 }
 
 sphere_kn_orbs_workspace_t* sphere_kn_orbs_workspace_alloc(sh_grid_t const* grid, double const dt, sphere_pot_t U, sphere_pot_t Uabs) {
@@ -292,6 +327,6 @@ void sphere_kn_orbs_workspace_prop(sphere_kn_orbs_workspace_t* ws, ks_orbitals_t
 	}
 
 	for (int ie = 0; ie < orbs->ne; ++ie) {
-        _sphere_kn_workspace_prop(ws->wf_ws, orbs->wf[ie], (sphere_pot_t[3]){Ul0, Ul1, Ul2}, ws->wf_ws->Uabs);
+        _sphere_kn_workspace_prop(ws->wf_ws, orbs->wf[ie], (sphere_pot_t[3]){Ul0, Ul1, Ul2}, ws->wf_ws->Uabs, false);
 	}
 }

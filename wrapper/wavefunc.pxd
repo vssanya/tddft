@@ -1,10 +1,14 @@
 from types cimport sphere_pot_t, cdouble
 from grid cimport sh_grid_t, sp_grid_t
+from grid cimport SGrid
 
 cdef extern from "sphere_wavefunc.h":
     ctypedef struct sphere_wavefunc_t:
         sh_grid_t* grid
+
         cdouble* data
+        bint data_own
+
         int m
 
     sphere_wavefunc_t* sphere_wavefunc_new(sh_grid_t* grid, int m)
@@ -23,3 +27,4 @@ cdef extern from "sphere_wavefunc.h":
 
 cdef class SWavefunc:
     cdef sphere_wavefunc_t* data
+    cdef SGrid grid

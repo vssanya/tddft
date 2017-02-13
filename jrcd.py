@@ -18,11 +18,11 @@ def calc_jrcd(I0, length, t_fwhm, alpha, phase):
         t0 = t0
     )
 
-    dt = 0.025
+    dt = 0.01
     dr = 0.1
     Nt = (2*t0)/dt
 
-    r_max = utils.r_max(E0, alpha, freq)
+    r_max = np.max([utils.r_max(E0, alpha, freq), 30])
 
     g = grid.SGrid(Nr=r_max/dr, Nl=40, r_max=r_max)
     wf = hydrogen.ground_state(g)
@@ -35,7 +35,7 @@ def do_root(comm, count_workers):
     status = MPI.Status()
 
     phase = np.linspace(0.0, 2*np.pi, 20)
-    I     = np.logspace(12, 15, 20)
+    I     = np.logspace(12, 15, 10)
     jrcd  = np.zeros((phase.size, I.size))
 
     ip = 0

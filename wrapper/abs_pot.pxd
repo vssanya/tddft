@@ -1,5 +1,6 @@
 from grid cimport sh_grid_t
 
 cdef extern from "abs_pot.h":
-    double Uabs(double r, sh_grid_t* grid)
+    double Uabs(sh_grid_t* grid, int ir, int il, int im)
+    double uabs_zero(sh_grid_t* grid, int ir, int il, int im)
 

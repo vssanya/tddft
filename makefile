@@ -1,5 +1,8 @@
-all: build_wrapper
-
+all: build_core build_wrapper
 
 build_wrapper:
-	python3.5 setup.py build_ext -b tdse
+	python setup.py build_ext -b tdse
+
+build_core:
+	cd ./build; make
+

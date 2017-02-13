@@ -1,4 +1,4 @@
-from types cimport cdouble, sphere_pot_t, sphere_pot_abs_t
+from types cimport cdouble, sphere_pot_t
 
 from grid cimport sh_grid_t
 from wavefunc cimport sphere_wavefunc_t
@@ -13,7 +13,7 @@ cdef extern from "sphere_kn.h":
         sh_grid_t* grid,
         double dt,
         sphere_pot_t U,
-        sphere_pot_abs_t Uabs
+        sphere_pot_t Uabs
     )
 
     void sphere_kn_workspace_free(sphere_kn_workspace_t* ws)
@@ -29,8 +29,10 @@ cdef extern from "sphere_kn.h":
 
     void sphere_kn_workspace_prop_at_v2(
         sphere_kn_workspace_t* ws,
-        sphere_wavefunc_t* wf
-    )
+        sphere_wavefunc_t* wf,
+        sphere_pot_t Ul,
+        sphere_pot_t Uabs,
+        bint img_time)
 
     void sphere_kn_workspace_prop(
         sphere_kn_workspace_t* ws,
@@ -38,6 +40,10 @@ cdef extern from "sphere_kn.h":
         field_t E,
         double t
     )
+
+    void sphere_kn_workspace_prop_img(
+            sphere_kn_workspace_t* ws,
+            sphere_wavefunc_t* wf);
 
 cdef class SKnWorkspace:
     cdef:
