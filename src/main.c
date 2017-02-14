@@ -35,7 +35,7 @@ int main() {
 	field_t field = two_color_pulse_field_alloc(E0, 0.0, omega, 0.0, tp, -1.5*T);
 
 	double a[Nt];
-	calc_a(Nt, a, ws, psi, field);
+	calc_az_t(Nt, a, ws, psi, field);
 
 	for (int i = 0; i < Nt; ++i) {
 		printf("%e\n", a[i]);

@@ -4,10 +4,6 @@
 #include "sphere_kn.h"
 #include "utils.h"
 
-// az(t) = - Ez(t) - <Ψ|dUdz|Ψ>
-// @param dUdz - depends only r. It's dUdz/cos(\theta).
-double az(sphere_wavefunc_t const* wf, field_t field, sphere_pot_t dUdz, double t);
-
 /* 
  * jrcd = Ng \int_{0}^{T} az dt 
  * @return jrcd / Ng

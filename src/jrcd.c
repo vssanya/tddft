@@ -1,16 +1,6 @@
 #include "jrcd.h"
+#include "calc.h"
 
-
-// az(t) = - Ez(t) - <Ψ|dUdz|Ψ>
-// @param dUdz - depends only r. It's dUdz/cos(\theta).
-double az(sphere_wavefunc_t const* wf, field_t field, sphere_pot_t dUdz, double t) {
-    double dUdz_masked(sh_grid_t const* grid, int ir, int l, int m) {
-        double const r = sh_grid_r(grid, ir);
-        return dUdz(grid, ir, l, m)*smoothstep(r, 12, 16.0);
-	}
-
-    return - field_E(field, t) - sphere_wavefunc_cos(wf, dUdz_masked);
-}
 
 /* 
  * jrcd = Ng \int_{0}^{T} az dt 
@@ -21,7 +11,7 @@ double jrcd(sphere_kn_workspace_t* ws, sphere_wavefunc_t* wf, field_t E, sphere_
 	double t = 0.0;
 
 	for (int i = 0; i < Nt; ++i) {
-		res += az(wf, E, dUdz, t);
+		res += calc_az_lf(wf, E, dUdz, t);
 
 		sphere_kn_workspace_prop(ws, wf, E, t);
 

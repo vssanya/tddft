@@ -69,7 +69,7 @@ double sphere_wavefunc_cos(sphere_wavefunc_t const* wf, sphere_pot_t U) {
 		double res_l = 0.0;
 		for (int ir = 0; ir < wf->grid->n[iR]; ++ir) {
 			double r = sh_grid_r(wf->grid, ir);
-            res_l += creal(swf_get(wf, ir, il)*conj(swf_get(wf, ir, il+1)))*U(wf->grid, ir, il, wf->m)*pow(r, 2);
+            res_l += creal(swf_get(wf, ir, il)*conj(swf_get(wf, ir, il+1)))*U(wf->grid, ir, il, wf->m);
 		}
 		int const l = sh_grid_l(wf->grid, il);
 		res += res_l*clm(l, wf->m);
