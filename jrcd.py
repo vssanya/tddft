@@ -7,7 +7,7 @@ def calc_jrcd(I0, length, t_fwhm, alpha, phase):
     freq = utils.length_to_freq(800, 'nm')
     E0 = utils.I_to_E(I0)
     tp = utils.t_fwhm(t_fwhm, 'fs')
-    t0 = utils.t_shift(tp, I0, Imin=1e10)
+    t0 = utils.t_shift(tp, I0, Imin=I0*1e-7)
 
     f = field.TwoColorPulseField(
         E0 = E0,

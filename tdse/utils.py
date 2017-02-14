@@ -15,7 +15,7 @@ def unit_to(value, u_from='au', u_to='au'):
     return UNIT[u_from]*value/UNIT[u_to]
 
 def t_fwhm(fwhm, u='fs', u_to='au'):
-    return unit_to(fwhm, u, u_to)*2*np.log(2)
+    return unit_to(fwhm, u, u_to)/np.sqrt(2*np.log(2))
 
 def length_to_freq(length, u='nm', u_to='au'):
     freq_au = 2*np.pi*const.C / unit_to(length, u)
