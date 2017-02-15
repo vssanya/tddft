@@ -1,5 +1,5 @@
 from hydrogen cimport hydrogen_sh_u
-from abs_pot cimport Uabs
+from abs_pot cimport Uabs, uabs_zero
 from grid cimport SGrid
 from wavefunc cimport SWavefunc
 from field cimport Field

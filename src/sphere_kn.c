@@ -38,34 +38,7 @@ void sphere_kn_workspace_free(sphere_kn_workspace_t* ws) {
 
 // exp(-0.5iΔtHang(l,m, t+Δt/2))
 // @param E = E(t+dt/2)
-void sphere_kn_workspace_prop_ang_l1(sphere_kn_workspace_t* ws, sphere_wavefunc_t* wf, int l, double* U) {
-	/*
-	 * Solve Nr equations:
-	 * psi(l  , t+dt, r) + a*psi(l+1, t+dt, r) = f0
-	 * psi(l+1, t+dt, r) + a*psi(l  , t+dt, r) = f1
-	 *
-	 * a(r) = a_const*r
-	 */
-
-	int const Nr = ws->grid->n[iR];
-
-
-	cdouble* psi_l0 = &wf->data[l*Nr];
-	cdouble* psi_l1 = &wf->data[(l+1)*Nr];
-
-	cdouble a_const = 0.25*ws->dt*I*clm(l, wf->m);
-
-	for (int i = 0; i < Nr; ++i) {
-		cdouble const a = a_const*U[i];
-
-		cdouble const f0 = psi_l0[i] - a*psi_l1[i];
-		cdouble const f1 = psi_l1[i] - a*psi_l0[i];
-		psi_l0[i] = (f0 - a*f1)/(1.0 - a*a);
-		psi_l1[i] = (f1 - a*f0)/(1.0 - a*a);
-	}
-}
-
-void sphere_kn_workspace_prop_ang_l(sphere_kn_workspace_t* ws, sphere_wavefunc_t* wf, int l, int l1, sphere_pot_t Ul, bool img_time) {
+void sphere_kn_workspace_prop_ang_l(sphere_kn_workspace_t* ws, sphere_wavefunc_t* wf, int l, int l1, sphere_pot_t Ul) {
 	/*
 	 * Solve Nr equations:
 	 * psi(l   , t+dt, r) + a*psi(l+l1, t+dt, r) = f0
@@ -77,13 +50,9 @@ void sphere_kn_workspace_prop_ang_l(sphere_kn_workspace_t* ws, sphere_wavefunc_t
 	int const Nr = ws->grid->n[iR];
 
 	cdouble dt = ws->dt;
-	if (img_time) {
-		dt = -I*ws->dt;
-	}
 
-
-	cdouble* psi_l0 = &wf->data[l*Nr];
-	cdouble* psi_l1 = &wf->data[(l+l1)*Nr];
+	cdouble* psi_l0 = swf_ptr(wf, 0, l);
+	cdouble* psi_l1 = swf_ptr(wf, 0, l+l1);
 
 	cdouble a_const = 0.25*dt*I;
 
@@ -92,6 +61,7 @@ void sphere_kn_workspace_prop_ang_l(sphere_kn_workspace_t* ws, sphere_wavefunc_t
 
 		cdouble const f0 = psi_l0[i] - a*psi_l1[i];
 		cdouble const f1 = psi_l1[i] - a*psi_l0[i];
+
 		psi_l0[i] = (f0 - a*f1)/(1.0 - a*a);
 		psi_l1[i] = (f1 - a*f0)/(1.0 - a*a);
 	}
@@ -224,22 +194,22 @@ void sphere_kn_workspace_prop_at_v2(sphere_kn_workspace_t* ws, sphere_wavefunc_t
 void _sphere_kn_workspace_prop(
 		sphere_kn_workspace_t* ws,
 		sphere_wavefunc_t* wf,
-		sphere_pot_t Ul[3],
+		int l_max,
+		sphere_pot_t Ul[l_max],
 		sphere_pot_t Uabs,
 		bool img_time) {
-    for (int l1 = 1; l1 < 3; ++l1) {
-        for (int il = ws->grid->n[iL] - 1 - l1; il >= 0; --il) {
-            int const l = sh_grid_l(ws->grid, il);
-            sphere_kn_workspace_prop_ang_l(ws, wf, l, l1, Ul[l1], img_time);
+
+    for (int l1 = 1; l1 < l_max; ++l1) {
+        for (int il = 0; il < ws->grid->n[iL] - l1; ++il) {
+            sphere_kn_workspace_prop_ang_l(ws, wf, il, l1, Ul[l1]);
         }
     }
 
 	sphere_kn_workspace_prop_at_v2(ws, wf, Ul[0], Uabs, img_time);
 
-    for (int l1 = 2; l1 > 0; --l1) {
-        for (int il = 0; il < ws->grid->n[iL] - l1; ++il) {
-            int const l = sh_grid_l(ws->grid, il);
-            sphere_kn_workspace_prop_ang_l(ws, wf, l, l1, Ul[l1], img_time);
+    for (int l1 = l_max-1; l1 > 0; --l1) {
+        for (int il = ws->grid->n[iL] - 1 - l1; il >= 0; --il) {
+            sphere_kn_workspace_prop_ang_l(ws, wf, il, l1, Ul[l1]);
         }
     }
 }
@@ -257,11 +227,7 @@ void sphere_kn_workspace_prop(sphere_kn_workspace_t* ws, sphere_wavefunc_t* wf, 
 		return r*Et*clm(l,m);
 	}
 
-	double Ul2(sh_grid_t const* grid, int ir, int l, int m) {
-		return 0.0;
-	}
-
-	_sphere_kn_workspace_prop(ws,  wf, (sphere_pot_t[3]){Ul0, Ul1, Ul2}, ws->Uabs, false);
+	_sphere_kn_workspace_prop(ws,  wf, 2, (sphere_pot_t[3]){Ul0, Ul1}, ws->Uabs, false);
 }
 
 void sphere_kn_workspace_prop_img(
@@ -272,15 +238,7 @@ void sphere_kn_workspace_prop_img(
 		return l*(l+1)/(2*r*r) + ws->U(grid, ir, l, m);
 	}
 
-	double Ul1(sh_grid_t const* grid, int ir, int l, int m) {
-		return 0.0;
-	}
-
-	double Ul2(sh_grid_t const* grid, int ir, int l, int m) {
-		return 0.0;
-	}
-
-	_sphere_kn_workspace_prop(ws,  wf, (sphere_pot_t[3]){Ul0, Ul1, Ul2}, uabs_zero, true);
+	_sphere_kn_workspace_prop(ws,  wf, 1, (sphere_pot_t[3]){Ul0}, uabs_zero, true);
 }
 
 sphere_kn_orbs_workspace_t* sphere_kn_orbs_workspace_alloc(sh_grid_t const* grid, double const dt, sphere_pot_t U, sphere_pot_t Uabs) {
@@ -327,6 +285,6 @@ void sphere_kn_orbs_workspace_prop(sphere_kn_orbs_workspace_t* ws, ks_orbitals_t
 	}
 
 	for (int ie = 0; ie < orbs->ne; ++ie) {
-        _sphere_kn_workspace_prop(ws->wf_ws, orbs->wf[ie], (sphere_pot_t[3]){Ul0, Ul1, Ul2}, ws->wf_ws->Uabs, false);
+        _sphere_kn_workspace_prop(ws->wf_ws, orbs->wf[ie], 3, (sphere_pot_t[3]){Ul0, Ul1, Ul2}, ws->wf_ws->Uabs, false);
 	}
 }

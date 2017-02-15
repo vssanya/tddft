@@ -7,15 +7,6 @@ double calc_az(sphere_wavefunc_t const* wf, field_t field, sphere_pot_t dudz, do
     return - field_E(field, t) - sphere_wavefunc_cos(wf, dudz);
 }
 
-double calc_az_lf(sphere_wavefunc_t const* wf, field_t field, sphere_pot_t dudz, double t) {
-    double dudz_masked(sh_grid_t const* grid, int ir, int l, int m) {
-        double const r = sh_grid_r(grid, ir);
-        return dudz(grid, ir, l, m)*smoothstep(r, 12.0, 16.0);
-	}
-
-	return calc_az(wf, field, dudz_masked, t);
-}
-
 void calc_az_t(int Nt, double a[Nt], sphere_kn_workspace_t* ws, sphere_wavefunc_t* wf, field_t field) {
 	double t = 0.0;
 

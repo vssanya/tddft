@@ -27,6 +27,8 @@ sphere_wavefunc_t* sphere_wavefunc_new(
 		int const m
 );
 
+void sphere_wavefunc_random_l(sphere_wavefunc_t* wf, int l);
+
 sphere_wavefunc_t* sphere_wavefunc_new_from(
 		cdouble* data,
 		sh_grid_t const* grid,
@@ -45,14 +47,14 @@ inline cdouble swf_get(sphere_wavefunc_t const* wf, int ir, int il) {
 	return wf->data[grid2_index(wf->grid, (int[2]){ir, il})];
 }
 
+inline void swf_set(sphere_wavefunc_t* wf, int ir, int il, cdouble value) {
+	wf->data[grid2_index(wf->grid, (int[2]){ir, il})] = value;
+}
+
 /*!
  * \return \f$\psi(r, \Omega)\f$
  * */
 cdouble swf_get_sp(sphere_wavefunc_t const* wf, sp_grid_t const* grid, int i[3]);
-
-inline void swf_set(sphere_wavefunc_t const* wf, int ir, int il, cdouble value) {
-	wf->data[grid2_index(wf->grid, (int[2]){ir, il})] = value;
-}
 
 inline double swf_get_abs_2(sphere_wavefunc_t const* wf, int ir, int il) {
 	cdouble const value = swf_get(wf, ir, il);
@@ -60,6 +62,9 @@ inline double swf_get_abs_2(sphere_wavefunc_t const* wf, int ir, int il) {
 }
 
 void   sphere_wavefunc_del(sphere_wavefunc_t* wf);
+
+// \return \f$<\psi_1|\psi_2>\f$
+cdouble sphere_wavefunc_prod(sphere_wavefunc_t const* wf1, sphere_wavefunc_t const* wf2);
 
 double sphere_wavefunc_norm(sphere_wavefunc_t const* wf);
 

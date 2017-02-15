@@ -20,7 +20,8 @@ def calc_jrcd(I0, length, t_fwhm, alpha, phase):
 
     dt = 0.01
     dr = 0.1
-    Nt = (2*t0)/dt
+    t_smooth = 200
+    Nt = (2*t0 + t_smooth)/dt
 
     r_max = np.max([utils.r_max(E0, alpha, freq), 30])
 
@@ -28,7 +29,7 @@ def calc_jrcd(I0, length, t_fwhm, alpha, phase):
     wf = hydrogen.ground_state(g)
     ws = workspace.SKnWorkspace(dt=dt, grid=g)
 
-    return calc.jrcd_t(ws, wf, f, Nt)
+    return calc.jrcd_t(ws, wf, f, Nt, t_smooth)
 
 def do_root(comm, count_workers):
     result = {}

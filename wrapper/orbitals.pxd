@@ -5,8 +5,8 @@ from wavefunc cimport sphere_wavefunc_t
 cdef extern from "ks_orbitals.h":
     ctypedef struct ks_orbitals_t:
         int ne
-        sphere_wavefunc_t** wf
         sh_grid_t* grid
+        sphere_wavefunc_t** wf
         cdouble* data
 
     ks_orbitals_t* ks_orbials_new(int ne, sh_grid_t* grid)

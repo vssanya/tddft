@@ -2,6 +2,8 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <time.h>
+#include <assert.h>
 
 #include "utils.h"
 
@@ -31,6 +33,41 @@ void sphere_wavefunc_del(sphere_wavefunc_t* wf) {
 		free(wf->data);
 	}
 	free(wf);
+}
+
+cdouble sphere_wavefunc_prod(sphere_wavefunc_t const* wf1, sphere_wavefunc_t const* wf2) {
+	cdouble res = 0.0;
+	for (int i = 0; i < grid2_size(wf1->grid); ++i) {
+		res += wf2->data[i]*conj(wf1->data[i]);
+	}
+	return res*wf1->grid->d[iR];
+}
+
+void sphere_wavefunc_ort_l(int l, int n, sphere_wavefunc_t* wfs[n]) {
+	assert(n > 1);
+	for (int in=1; in<n; ++in) {
+		assert(wfs[in-1]->m == wfs[in]->m);
+	}
+
+	sh_grid_t const* grid = wfs[0]->grid;
+
+	cdouble proj[n];
+	cdouble norm[n];
+
+	for (int in=0; in<n; ++in) {
+		for (int ip=0; ip<in; ++ip) {
+			proj[ip] = sphere_wavefunc_prod(wfs[ip], wfs[in]) / norm[in];
+		}
+
+		for (int ip=0; ip<in; ++ip) {
+			cdouble* psi = swf_ptr(wfs[in], 0, l);
+			for (int ir=0; ir<grid->n[iR]; ++ir) {
+				psi[ir] -= proj[ip]*swf_get(wfs[ip], ir, l);
+			}
+		}
+
+		norm[in] = sphere_wavefunc_norm(wfs[in]);
+	}
 }
 
 double sphere_wavefunc_norm(sphere_wavefunc_t const* wf) {
@@ -94,4 +131,30 @@ cdouble swf_get_sp(sphere_wavefunc_t const* wf, sp_grid_t const* grid, int i[3])
 		res += swf_get(wf, i[iR], il)*Ylm(l, wf->m, x) / r;
 	}
 	return res;
+}
+
+void sphere_wavefunc_random_l(sphere_wavefunc_t* wf, int l) {
+	assert(l > 0 && l < wf->grid->n[iL]);
+
+	for (int il=0; il<l; ++il) {
+		for (int ir=0; ir<wf->grid->n[iR]; ++ir) {
+			swf_set(wf, ir, il, 0.0);
+		}
+	}
+
+	{
+		time_t t;
+		srand((unsigned) time(&t));
+
+		int il = l;
+		for (int ir=0; ir<wf->grid->n[iR]; ++ir) {
+			swf_set(wf, ir, il, (double)rand()/(double)RAND_MAX);
+		}
+	}
+
+	for (int il=il+1; il<l; ++il) {
+		for (int ir=0; ir<wf->grid->n[iR]; ++ir) {
+			swf_set(wf, ir, il, 0.0);
+		}
+	}
 }

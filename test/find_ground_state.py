@@ -5,8 +5,9 @@ import matplotlib.animation as animation
 from tdse import grid, wavefunc, field, workspace, hydrogen, calc, utils
 
 dt = 0.025
-Nr = 100
-g = grid.SGrid(Nr=Nr, Nl=1, r_max=10)
+dr = 0.125
+r_max = 60
+g = grid.SGrid(Nr=r_max/dr, Nl=1, r_max=r_max)
 wf = wavefunc.SWavefunc.random(g)
 ws = workspace.SKnWorkspace(dt=dt, grid=g)
 

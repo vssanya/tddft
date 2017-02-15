@@ -15,6 +15,7 @@ double hydrogen_sh_dudz(sh_grid_t const* grid, int ir, int il, int m) {
 }
 
 void hydrogen_ground(sphere_wavefunc_t* wf) {
+	assert(wf->m == 0);
 	// l = 0
 	{
 		int const il = 0;
