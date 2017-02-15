@@ -51,6 +51,8 @@ inline void swf_set(sphere_wavefunc_t* wf, int ir, int il, cdouble value) {
 	wf->data[grid2_index(wf->grid, (int[2]){ir, il})] = value;
 }
 
+void sphere_wavefunc_ort_l(int l, int n, sphere_wavefunc_t* wfs[n]);
+
 /*!
  * \return \f$\psi(r, \Omega)\f$
  * */

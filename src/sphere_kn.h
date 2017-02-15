@@ -83,3 +83,5 @@ sphere_kn_orbs_workspace_alloc(
 		sphere_pot_t Uabs);
 
 void sphere_kn_orbs_workspace_free(sphere_kn_orbs_workspace_t* ws);
+
+void sphere_kn_workspace_orbs_prop_img(sphere_kn_workspace_t* ws, ks_orbitals_t* orbs);

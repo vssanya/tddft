@@ -14,6 +14,7 @@ set( LIB_SOURCES
 	sphere_harmonics.c
 	ks_orbitals.c
 	jrcd.c
+	argon.c
 	)
 
 set( LIB_HEADERS
@@ -33,6 +34,7 @@ set( LIB_HEADERS
 	calc.h
 	sphere_harmonics.h
 	ks_orbitals.h
+	argon.h
    )
 
 set( MAIN main.c )

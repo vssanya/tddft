@@ -15,6 +15,8 @@ typedef struct {
 ks_orbitals_t* ks_orbials_new(int ne, sh_grid_t const* grid);
 void ks_orbitals_del(ks_orbitals_t* orbs);
 
+void ks_orbitals_normilize(ks_orbitals_t* orbs);
+
 /*!
  * Электронная плотность
  * \param ne[in] is count Kohn's orbitals

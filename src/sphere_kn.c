@@ -288,3 +288,14 @@ void sphere_kn_orbs_workspace_prop(sphere_kn_orbs_workspace_t* ws, ks_orbitals_t
         _sphere_kn_workspace_prop(ws->wf_ws, orbs->wf[ie], 3, (sphere_pot_t[3]){Ul0, Ul1, Ul2}, ws->wf_ws->Uabs, false);
 	}
 }
+
+void sphere_kn_workspace_orbs_prop_img(sphere_kn_workspace_t* ws, ks_orbitals_t* orbs) {
+	double Ul0(sh_grid_t const* grid, int ir, int l, int m) {
+		double const r = sh_grid_r(grid, ir);
+		return l*(l+1)/(2*r*r) + ws->U(grid, ir, l, m);
+	}
+
+	for (int ie = 0; ie < orbs->ne; ++ie) {
+        _sphere_kn_workspace_prop(ws, orbs->wf[ie], 1, (sphere_pot_t[1]){Ul0}, uabs_zero, true);
+	}
+}

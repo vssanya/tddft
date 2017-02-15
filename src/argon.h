@@ -6,4 +6,5 @@
 
 // 1s 2s 2p 3s 3p
 // 2  2  6  2  6
-ks_orbitals_t* argon_init(sh_grid_t const* grid);
+void argon_init(ks_orbitals_t* orbs);
+void argon_ort(ks_orbitals_t* orbs);

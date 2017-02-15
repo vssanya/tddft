@@ -3,6 +3,7 @@ from abs_pot cimport Uabs, uabs_zero
 from grid cimport SGrid
 from wavefunc cimport SWavefunc
 from field cimport Field
+from orbitals cimport SOrbitals
 
 cdef class SKnWorkspace:
     def __cinit__(self, SGrid grid, double dt):
@@ -19,3 +20,6 @@ cdef class SKnWorkspace:
 
     def prop_img(self, SWavefunc wf):
         sphere_kn_workspace_prop_img(self.data, wf.data)
+
+    def orbs_prop_img(self, SOrbitals orbs):
+        sphere_kn_workspace_orbs_prop_img(self.data, orbs._data)

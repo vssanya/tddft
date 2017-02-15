@@ -56,7 +56,7 @@ void sphere_wavefunc_ort_l(int l, int n, sphere_wavefunc_t* wfs[n]) {
 
 	for (int in=0; in<n; ++in) {
 		for (int ip=0; ip<in; ++ip) {
-			proj[ip] = sphere_wavefunc_prod(wfs[ip], wfs[in]) / norm[in];
+			proj[ip] = sphere_wavefunc_prod(wfs[ip], wfs[in]) / norm[ip];
 		}
 
 		for (int ip=0; ip<in; ++ip) {
@@ -143,9 +143,6 @@ void sphere_wavefunc_random_l(sphere_wavefunc_t* wf, int l) {
 	}
 
 	{
-		time_t t;
-		srand((unsigned) time(&t));
-
 		int il = l;
 		for (int ir=0; ir<wf->grid->n[iR]; ++ir) {
 			swf_set(wf, ir, il, (double)rand()/(double)RAND_MAX);

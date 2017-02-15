@@ -4,6 +4,7 @@ from grid cimport sh_grid_t
 from wavefunc cimport sphere_wavefunc_t
 
 from field cimport field_t
+from orbitals cimport ks_orbitals_t
 
 cdef extern from "sphere_kn.h":
     ctypedef struct sphere_kn_workspace_t:
@@ -44,6 +45,9 @@ cdef extern from "sphere_kn.h":
     void sphere_kn_workspace_prop_img(
             sphere_kn_workspace_t* ws,
             sphere_wavefunc_t* wf);
+
+    void sphere_kn_workspace_orbs_prop_img(sphere_kn_workspace_t* ws, ks_orbitals_t* orbs)
+
 
 cdef class SKnWorkspace:
     cdef:
