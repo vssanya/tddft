@@ -28,7 +28,17 @@ void argon_init(ks_orbitals_t* orbs) {
 void argon_ort(ks_orbitals_t* orbs) {
 	sphere_wavefunc_ort_l(0, 3, orbs->wf);
 
-//	sphere_wavefunc_ort_l(1, 2, &orbs->wf[3]);
-//	sphere_wavefunc_ort_l(1, 2, &orbs->wf[5]);
-//	sphere_wavefunc_ort_l(1, 2, &orbs->wf[7]);
+	sphere_wavefunc_ort_l(1, 2, &orbs->wf[3]);
+	sphere_wavefunc_ort_l(1, 2, &orbs->wf[5]);
+	sphere_wavefunc_ort_l(1, 2, &orbs->wf[7]);
+}
+
+double argon_sh_u(sh_grid_t const* grid, int ir, int il, int m) {
+    double const r = sh_grid_r(grid, ir);
+	return -18.0/r;
+}
+
+double argon_sh_dudz(sh_grid_t const* grid, int ir, int il, int m) {
+    double const r = sh_grid_r(grid, ir);
+    return 18.0/pow(r, 2);
 }

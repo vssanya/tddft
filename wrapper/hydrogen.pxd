@@ -10,3 +10,5 @@ cdef extern from "hydrogen.h":
 cdef extern from "argon.h":
     void argon_init(ks_orbitals_t* orbs)
     void argon_ort(ks_orbitals_t* orbs)
+    double argon_sh_u(sh_grid_t* grid, int ir, int il, int m)
+    double argon_sh_dudz(sh_grid_t* grid, int ir, int il, int m)

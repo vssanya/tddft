@@ -180,7 +180,7 @@ void sphere_kn_workspace_prop_at_v2(sphere_kn_workspace_t* ws, sphere_wavefunc_t
 			ws->betta[ir] = (f - al[0]*ws->betta[ir-1]) / c;
 		}
 
-		psi[Nr-1] = ws->betta[Nr-1]/(1 - ws->alpha[Nr-1]);
+		psi[Nr-1] = 0;//ws->betta[Nr-1]/(1 - ws->alpha[Nr-1]);
 		for (int ir = ws->grid->n[iR]-2; ir >= 0; --ir) {
 			psi[ir] = ws->alpha[ir]*psi[ir+1] + ws->betta[ir];
 		}
@@ -289,13 +289,26 @@ void sphere_kn_orbs_workspace_prop(sphere_kn_orbs_workspace_t* ws, ks_orbitals_t
 	}
 }
 
-void sphere_kn_workspace_orbs_prop_img(sphere_kn_workspace_t* ws, ks_orbitals_t* orbs) {
+void sphere_kn_orbs_workspace_prop_img(sphere_kn_orbs_workspace_t* ws, ks_orbitals_t* orbs) {
+	hartree_potential_l0(orbs, &ws->Uh[0*ws->wf_ws->grid->n[iR]]);
+//	hartree_potential_l1(orbs, &ws->Uh[1*ws->wf_ws->grid->n[iR]]);
+//	hartree_potential_l2(orbs, &ws->Uh[2*ws->wf_ws->grid->n[iR]]);
+
 	double Ul0(sh_grid_t const* grid, int ir, int l, int m) {
 		double const r = sh_grid_r(grid, ir);
-		return l*(l+1)/(2*r*r) + ws->U(grid, ir, l, m);
+		return l*(l+1)/(2*r*r) + ws->wf_ws->U(grid, ir, l, m) + ws->Uh[ir];// + plm(l,m)*ws->Uh[ir + 2*grid->n[iR]];
+	}
+
+	double Ul1(sh_grid_t const* grid, int ir, int l, int m) {
+		double const r = sh_grid_r(grid, ir);
+		return clm(l, m)*ws->Uh[ir + grid->n[iR]];
+	}
+
+	double Ul2(sh_grid_t const* grid, int ir, int l, int m) {
+		return qlm(l, m)*ws->Uh[ir + 2*grid->n[iR]];
 	}
 
 	for (int ie = 0; ie < orbs->ne; ++ie) {
-        _sphere_kn_workspace_prop(ws, orbs->wf[ie], 1, (sphere_pot_t[1]){Ul0}, uabs_zero, true);
+        _sphere_kn_workspace_prop(ws->wf_ws, orbs->wf[ie], 1, (sphere_pot_t[3]){Ul0, Ul1, Ul2}, uabs_zero, true);
 	}
 }

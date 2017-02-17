@@ -134,7 +134,7 @@ cdouble swf_get_sp(sphere_wavefunc_t const* wf, sp_grid_t const* grid, int i[3])
 }
 
 void sphere_wavefunc_random_l(sphere_wavefunc_t* wf, int l) {
-	assert(l > 0 && l < wf->grid->n[iL]);
+	assert(l >= 0 && l < wf->grid->n[iL]);
 
 	for (int il=0; il<l; ++il) {
 		for (int ir=0; ir<wf->grid->n[iR]; ++ir) {

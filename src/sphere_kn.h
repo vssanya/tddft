@@ -84,4 +84,4 @@ sphere_kn_orbs_workspace_alloc(
 
 void sphere_kn_orbs_workspace_free(sphere_kn_orbs_workspace_t* ws);
 
-void sphere_kn_workspace_orbs_prop_img(sphere_kn_workspace_t* ws, ks_orbitals_t* orbs);
+void sphere_kn_orbs_workspace_prop_img(sphere_kn_orbs_workspace_t* ws, ks_orbitals_t* orbs);
