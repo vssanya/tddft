@@ -69,10 +69,12 @@ void sphere_kn_workspace_prop_img(
 		sphere_wavefunc_t* wf);
 
 typedef struct {
-	sphere_kn_workspace_t* wf_ws;
+	sphere_kn_workspace_t** wf_ws;
 	double* Uh;
 	double* Uxc;
+	sh_grid_t const* sh_grid;
 	sp_grid_t* sp_grid;
+	int num_threads;
 } sphere_kn_orbs_workspace_t;
 
 sphere_kn_orbs_workspace_t*

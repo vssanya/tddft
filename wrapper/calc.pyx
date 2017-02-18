@@ -4,7 +4,7 @@ cimport numpy as np
 from wavefunc cimport SWavefunc
 from workspace cimport SKnWorkspace
 from field cimport Field
-from hydrogen cimport hydrogen_sh_dudz
+from atom cimport hydrogen_sh_dudz
 
 
 def az(SWavefunc wf, Field field, double t):

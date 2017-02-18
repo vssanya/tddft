@@ -105,7 +105,6 @@ double sphere_wavefunc_cos(sphere_wavefunc_t const* wf, sphere_pot_t U) {
 	for (int il = 0; il < wf->grid->n[iL]-1; ++il) {
 		double res_l = 0.0;
 		for (int ir = 0; ir < wf->grid->n[iR]; ++ir) {
-			double r = sh_grid_r(wf->grid, ir);
             res_l += creal(swf_get(wf, ir, il)*conj(swf_get(wf, ir, il+1)))*U(wf->grid, ir, il, wf->m);
 		}
 		int const l = sh_grid_l(wf->grid, il);
@@ -145,11 +144,12 @@ void sphere_wavefunc_random_l(sphere_wavefunc_t* wf, int l) {
 	{
 		int il = l;
 		for (int ir=0; ir<wf->grid->n[iR]; ++ir) {
-			swf_set(wf, ir, il, (double)rand()/(double)RAND_MAX);
+			double const r = sh_grid_r(wf->grid, ir);
+			swf_set(wf, ir, il, (double)rand()/(double)RAND_MAX*exp(-r/(10*l+1)));
 		}
 	}
 
-	for (int il=il+1; il<l; ++il) {
+	for (int il=l+1; il<wf->grid->n[iL]; ++il) {
 		for (int ir=0; ir<wf->grid->n[iR]; ++ir) {
 			swf_set(wf, ir, il, 0.0);
 		}

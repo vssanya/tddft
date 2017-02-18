@@ -1,4 +1,4 @@
-from hydrogen cimport hydrogen_sh_u, argon_sh_u
+from atom cimport hydrogen_sh_u, argon_sh_u, neon_sh_u
 from abs_pot cimport Uabs, uabs_zero
 from grid cimport SGrid
 from wavefunc cimport SWavefunc
@@ -23,7 +23,7 @@ cdef class SKnWorkspace:
 
 cdef class SOrbsWorkspace:
     def __cinit__(self, SGrid grid, double dt):
-        self._data = sphere_kn_orbs_workspace_alloc( grid.data, dt, argon_sh_u, Uabs )
+        self._data = sphere_kn_orbs_workspace_alloc( grid.data, dt, neon_sh_u, Uabs )
 
     def __dealloc__(self):
         sphere_kn_orbs_workspace_free(self._data)

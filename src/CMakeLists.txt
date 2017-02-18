@@ -4,7 +4,6 @@ set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=gnu11 -Wall -O2")
 set( LIB_SOURCES
 	sphere_kn.c
 	sphere_wavefunc.c
-	hydrogen.c
 	hartree_potential.c
 	utils.c
 	abs_pot.c
@@ -14,7 +13,7 @@ set( LIB_SOURCES
 	sphere_harmonics.c
 	ks_orbitals.c
 	jrcd.c
-	argon.c
+	atom.c
 	)
 
 set( LIB_HEADERS
@@ -34,13 +33,8 @@ set( LIB_HEADERS
 	calc.h
 	sphere_harmonics.h
 	ks_orbitals.h
-	argon.h
+	atom.h
    )
 
-set( MAIN main.c )
-
 add_library( tdse SHARED ${LIB_SOURCES} ${LIB_HEADERS} )
-add_executable( main ${MAIN} )
-
 target_link_libraries( tdse m gsl gslcblas )
-target_link_libraries( main tdse m gsl gslcblas )

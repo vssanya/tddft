@@ -1,5 +1,5 @@
 #include "calc.h"
-#include "hydrogen.h"
+#include "atom.h"
 #include "utils.h"
 
 

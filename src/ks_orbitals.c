@@ -32,7 +32,7 @@ double ks_orbitals_n(ks_orbitals_t const* orbs, sp_grid_t const* grid, int i[2])
 		res += pow(creal(psi), 2) + pow(cimag(psi), 2);
 	}
 
-	return res;
+	return 2.0*res;
 }
 
 void ks_orbitals_normilize(ks_orbitals_t* orbs) {

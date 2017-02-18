@@ -14,3 +14,11 @@ def a_init(SGrid grid):
 
 def a_ort(SOrbitals orbs):
     argon_ort(orbs._data)
+
+def n_init(SGrid grid):
+    orbs = SOrbitals(5, grid)
+    neon_init(orbs._data)
+    return orbs
+
+def n_ort(SOrbitals orbs):
+    neon_ort(orbs._data)

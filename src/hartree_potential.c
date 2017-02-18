@@ -136,7 +136,7 @@ void hartree_potential_l2(ks_orbitals_t const* orbs, double U[orbs->grid->n[iR]]
 
 void ux_lda(int l, ks_orbitals_t const* orbs, double U[orbs->wf[0]->grid->n[iR]], sp_grid_t const* sp_grid) {
 	double func(int ir, int ic) {
-		return pow(ks_orbitals_n(orbs, sp_grid, (int[2]){ir, ic}), 1.0/3.0);
+		return - pow(3/M_PI*ks_orbitals_n(orbs, sp_grid, (int[2]){ir, ic}), 1.0/3.0);
 	}
 
 	sh_series(func, l, 0, sp_grid, U);
