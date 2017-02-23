@@ -1,4 +1,4 @@
-from atom cimport hydrogen_sh_u, argon_sh_u, neon_sh_u
+from atom cimport Atom
 from abs_pot cimport Uabs, uabs_zero
 from grid cimport SGrid
 from wavefunc cimport SWavefunc
@@ -6,27 +6,28 @@ from field cimport Field
 from orbitals cimport SOrbitals
 
 cdef class SKnWorkspace:
-    def __cinit__(self, SGrid grid, double dt):
-        self.data = sphere_kn_workspace_alloc(
+    def __cinit__(self, SGrid grid, Atom atom):
+        self.data = sh_workspace_alloc(
             grid.data,
-            dt, hydrogen_sh_u, Uabs
+            atom._data.u, Uabs
         )
 
     def __dealloc__(self):
-        sphere_kn_workspace_free(self.data)
+        sh_workspace_free(self.data)
 
-    def prop(self, SWavefunc wf, Field E, double t):
-        sphere_kn_workspace_prop(self.data, wf.data, E.data, t)
+    def prop(self, SWavefunc wf, Field E, double t, double dt):
+        sh_workspace_prop(self.data, wf.data, E.data, t, dt)
 
-    def prop_img(self, SWavefunc wf):
-        sphere_kn_workspace_prop_img(self.data, wf.data)
+    def prop_img(self, SWavefunc wf, double dt):
+        sh_workspace_prop_img(self.data, wf.data, dt)
 
 cdef class SOrbsWorkspace:
-    def __cinit__(self, SGrid grid, double dt):
-        self._data = sphere_kn_orbs_workspace_alloc( grid.data, dt, neon_sh_u, Uabs )
+    def __cinit__(self, SGrid grid, Atom atom):
+        self._data = sh_orbs_workspace_alloc(grid.data, atom._data.u, Uabs)
 
     def __dealloc__(self):
-        sphere_kn_orbs_workspace_free(self._data)
+        if self._data != NULL:
+            sh_orbs_workspace_free(self._data)
 
-    def prop_img(self, SOrbitals orbs):
-        sphere_kn_orbs_workspace_prop_img(self._data, orbs._data)
+    def prop_img(self, SOrbitals orbs, double dt):
+        sh_orbs_workspace_prop_img(self._data, orbs._data, dt)

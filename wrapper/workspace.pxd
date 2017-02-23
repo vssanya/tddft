@@ -1,4 +1,4 @@
-from types cimport cdouble, sphere_pot_t
+from types cimport cdouble, sh_f
 
 from grid cimport sh_grid_t, sp_grid_t
 from wavefunc cimport sphere_wavefunc_t
@@ -6,72 +6,91 @@ from wavefunc cimport sphere_wavefunc_t
 from field cimport field_t
 from orbitals cimport ks_orbitals_t
 
-cdef extern from "sphere_kn.h":
-    ctypedef struct sphere_kn_workspace_t:
-        double dt
+cdef extern from "sh_workspace.h":
+    ctypedef struct sh_workspace_t:
         sh_grid_t* grid
-        sphere_pot_t U
-        sphere_pot_t Uabs
+        sh_f U
+        sh_f Uabs
         cdouble* b
         cdouble* f
         cdouble* alpha
         cdouble* betta
 
-    ctypedef struct sphere_kn_orbs_workspace_t:
-        sphere_kn_workspace_t* wf_ws;
+    ctypedef struct sh_orbs_workspace_t:
+        sh_workspace_t* wf_ws;
         double* Uh;
         double* Uxc;
         sp_grid_t* sp_grid;
 
-    sphere_kn_workspace_t* sphere_kn_workspace_alloc(
+    sh_workspace_t* sh_workspace_alloc(
             sh_grid_t* grid,
-            double dt,
-            sphere_pot_t U,
-            sphere_pot_t Uabs
+            sh_f U,
+            sh_f Uabs
             )
 
-    void sphere_kn_workspace_free(sphere_kn_workspace_t* ws)
+    void sh_workspace_free(sh_workspace_t* ws)
 
-    void sphere_kn_workspace_prop_ang(
-            sphere_kn_workspace_t* ws,
+    void sh_workspace_prop_ang(
+            sh_workspace_t* ws,
             sphere_wavefunc_t* wf,
+            double dt,
             int l, double E)
 
-    void sphere_kn_workspace_prop_at(
-            sphere_kn_workspace_t* ws,
-            sphere_wavefunc_t* wf)
-
-    void sphere_kn_workspace_prop_at_v2(
-            sphere_kn_workspace_t* ws,
+    void sh_workspace_prop_at(
+            sh_workspace_t* ws,
             sphere_wavefunc_t* wf,
-            sphere_pot_t Ul,
-            sphere_pot_t Uabs,
-            bint img_time)
+            cdouble dt,
+            sh_f Ul,
+            sh_f Uabs
+    )
 
-    void sphere_kn_workspace_prop(
-            sphere_kn_workspace_t* ws,
+    void sh_workspace_prop_at_v2(
+            sh_workspace_t* ws,
+            sphere_wavefunc_t* wf,
+            cdouble dt,
+            sh_f Ul,
+            sh_f Uabs
+    )
+
+    void sh_workspace_prop(
+            sh_workspace_t* ws,
             sphere_wavefunc_t* wf,
             field_t E,
-            double t
-            )
+            double t,
+            double dt
+    )
 
-    void sphere_kn_workspace_prop_img(
-            sphere_kn_workspace_t* ws,
-            sphere_wavefunc_t* wf);
+    void sh_workspace_prop_img(
+            sh_workspace_t* ws,
+            sphere_wavefunc_t* wf,
+            double dt
+    )
 
-    void sphere_kn_workspace_orbs_prop_img(sphere_kn_workspace_t* ws, ks_orbitals_t* orbs)
+    void sh_orbs_workspace_prop(
+            sh_orbs_workspace_t* ws,
+            ks_orbitals_t* orbs,
+            field_t field,
+            double t,
+            double dt
+    )
+    void sh_orbs_workspace_prop_img(
+            sh_orbs_workspace_t* ws,
+            ks_orbitals_t* orbs,
+            double dt
+    )
 
-    sphere_kn_orbs_workspace_t* sphere_kn_orbs_workspace_alloc(sh_grid_t* grid, double dt, sphere_pot_t U, sphere_pot_t Uabs)
-
-    void sphere_kn_orbs_workspace_free(sphere_kn_orbs_workspace_t* ws);
-
-    void sphere_kn_orbs_workspace_prop_img(sphere_kn_orbs_workspace_t* ws, ks_orbitals_t* orbs);
+    sh_orbs_workspace_t* sh_orbs_workspace_alloc(
+            sh_grid_t* grid,
+            sh_f U,
+            sh_f Uabs
+    )
+    void sh_orbs_workspace_free(sh_orbs_workspace_t* ws)
 
 
 cdef class SKnWorkspace:
     cdef:
-        sphere_kn_workspace_t* data
+        sh_workspace_t* data
 
 cdef class SOrbsWorkspace:
     cdef:
-        sphere_kn_orbs_workspace_t* _data
+        sh_orbs_workspace_t* _data

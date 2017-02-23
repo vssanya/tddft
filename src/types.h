@@ -6,4 +6,4 @@
 
 typedef double complex cdouble;
 
-typedef double (*sphere_pot_t)(sh_grid_t const* grid, int ir, int l, int m);
+typedef double (*sh_f)(sh_grid_t const* grid, int ir, int il, int m);

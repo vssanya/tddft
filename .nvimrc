@@ -1,6 +1,9 @@
-function Cadd()
-	syn keyword	cRepeat for_grid
-endfun
+let g:neomake_make_maker = {
+	\ 'exe': 'make',
+	\ 'errorformat': '%f:%l:%c: %m'
+	\ }
 
-au Syntax c call Cadd()
-au Syntax h call Cadd()
+let g:neomake_verbose=3
+let g:neomake_logfile='/tmp/neomake.log'
+
+nnoremap ,r :Neomake! make<CR>

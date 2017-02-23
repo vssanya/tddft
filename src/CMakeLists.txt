@@ -2,7 +2,7 @@ set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=gnu11 -Wall -O2")
 
 
 set( LIB_SOURCES
-	sphere_kn.c
+	sh_workspace.c
 	sphere_wavefunc.c
 	hartree_potential.c
 	utils.c
@@ -22,7 +22,7 @@ set( LIB_HEADERS
     kn.h
     prog.h
     grid.h
-    sphere_kn.h
+	sh_workspace.h
     sphere_wavefunc.h
 	hartree_potential.h
     types.h

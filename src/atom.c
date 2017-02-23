@@ -1,6 +1,6 @@
 #include "atom.h"
 
-void argon_init(ks_orbitals_t* orbs) {
+void atom_argon_init(ks_orbitals_t* orbs) {
 	assert(orbs->ne == 9);
 
 	// init s states
@@ -25,7 +25,7 @@ void argon_init(ks_orbitals_t* orbs) {
 	orbs->wf[8]->m = 1;
 }
 
-void neon_init(ks_orbitals_t* orbs) {
+void atom_neon_init(ks_orbitals_t* orbs) {
 	assert(orbs->ne == 5);
 
 	// init s states
@@ -46,7 +46,7 @@ void neon_init(ks_orbitals_t* orbs) {
 	orbs->wf[4]->m = 1;
 }
 
-void argon_ort(ks_orbitals_t* orbs) {
+void atom_argon_ort(ks_orbitals_t* orbs) {
 	sphere_wavefunc_ort_l(0, 3, orbs->wf);
 
 	sphere_wavefunc_ort_l(1, 2, &orbs->wf[3]);
@@ -54,41 +54,41 @@ void argon_ort(ks_orbitals_t* orbs) {
 	sphere_wavefunc_ort_l(1, 2, &orbs->wf[7]);
 }
 
-void neon_ort(ks_orbitals_t* orbs) {
+void atom_neon_ort(ks_orbitals_t* orbs) {
 	sphere_wavefunc_ort_l(0, 2, orbs->wf);
 }
 
-double argon_sh_u(sh_grid_t const* grid, int ir, int il, int m) {
+double atom_argon_sh_u(sh_grid_t const* grid, int ir, int il, int m) {
     double const r = sh_grid_r(grid, ir);
 	return -18.0/r;
 }
 
-double argon_sh_dudz(sh_grid_t const* grid, int ir, int il, int m) {
+double atom_argon_sh_dudz(sh_grid_t const* grid, int ir, int il, int m) {
     double const r = sh_grid_r(grid, ir);
     return 18.0/pow(r, 2);
 }
 
-double neon_sh_u(sh_grid_t const* grid, int ir, int il, int m) {
+double atom_neon_sh_u(sh_grid_t const* grid, int ir, int il, int m) {
     double const r = sh_grid_r(grid, ir);
 	return -10.0/r;
 }
 
-double neon_sh_dudz(sh_grid_t const* grid, int ir, int il, int m) {
+double atom_neon_sh_dudz(sh_grid_t const* grid, int ir, int il, int m) {
     double const r = sh_grid_r(grid, ir);
     return 10.0/pow(r, 2);
 }
 
-double hydrogen_sh_u(sh_grid_t const* grid, int ir, int il, int m) {
+double atom_hydrogen_sh_u(sh_grid_t const* grid, int ir, int il, int m) {
     double const r = sh_grid_r(grid, ir);
 	return -1.0/r;
 }
 
-double hydrogen_sh_dudz(sh_grid_t const* grid, int ir, int il, int m) {
+double atom_hydrogen_sh_dudz(sh_grid_t const* grid, int ir, int il, int m) {
     double const r = sh_grid_r(grid, ir);
     return 1.0/pow(r, 2);
 }
 
-void hydrogen_ground(sphere_wavefunc_t* wf) {
+void atom_hydrogen_ground(sphere_wavefunc_t* wf) {
 	assert(wf->m == 0);
 	// l = 0
 	{

@@ -1,3 +1,5 @@
+#include "grid.h"
+
 /*! \file
  * Свойства сферических функций
  */
@@ -25,11 +27,12 @@ double y3(int l1, int m1, int l2, int m2, int L, int M);
  * \brief [Spherical harmonics](https://en.wikipedia.org/wiki/Spherical_harmonics)\f$Y_l^m(\theta)\f$
  * \param[in] l
  * \param[in] m
- * \param[in] x is \f$\cos\theta\f$
- *
- * \todo написать хэшированную версию
+ * \param[in] ic index of \f$\cos\theta\f$
  * */
-double Ylm(int l, int m, double x);
+void ylm_cache_init(int l_max, sp_grid_t const* grid);
+void ylm_cache_deinit();
+
+double ylm(int l, int m, int ic);
 
 #include "grid.h"
 #include "integrate.h"

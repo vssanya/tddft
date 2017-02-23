@@ -99,7 +99,7 @@ void sphere_wavefunc_print(sphere_wavefunc_t const* wf) {
 }
 
 // <psi|U(r)cos(\theta)|psi>
-double sphere_wavefunc_cos(sphere_wavefunc_t const* wf, sphere_pot_t U) {
+double sphere_wavefunc_cos(sphere_wavefunc_t const* wf, sh_f U) {
 	double res = 0.0;
 
 	for (int il = 0; il < wf->grid->n[iL]-1; ++il) {
@@ -126,8 +126,7 @@ cdouble swf_get_sp(sphere_wavefunc_t const* wf, sp_grid_t const* grid, int i[3])
 	double r = sh_grid_r(wf->grid, i[iR]);
 	for (int il = 0; il < wf->grid->n[iL]; ++il) {
 		int const l = sh_grid_l(wf->grid, il);
-		double const x = sp_grid_c(grid, i[iC]);
-		res += swf_get(wf, i[iR], il)*Ylm(l, wf->m, x) / r;
+		res += swf_get(wf, i[iR], il)*ylm(l, wf->m, i[iC]) / r;
 	}
 	return res;
 }

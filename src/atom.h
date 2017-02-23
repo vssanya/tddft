@@ -5,28 +5,63 @@
 #include "sphere_wavefunc.h"
 #include "ks_orbitals.h"
 
+#include "types.h"
+
+
+typedef void (*atom_init_f)(ks_orbitals_t* orbs);
+typedef void (*atom_ort_f)(ks_orbitals_t* orbs);
+
+typedef struct atom_s {
+	int ne;
+	atom_init_f init;
+	atom_ort_f ort;
+	sh_f u;
+	sh_f dudz;
+} atom_t;
+
 // Potential
-double hydrogen_sh_u(sh_grid_t const* grid, int ir, int il, int m) __attribute__((pure));
-double hydrogen_sh_dudz(sh_grid_t const* grid, int ir, int il, int m) __attribute__((pure));
+double atom_hydrogen_sh_u(sh_grid_t const* grid, int ir, int il, int m) __attribute__((pure));
+double atom_hydrogen_sh_dudz(sh_grid_t const* grid, int ir, int il, int m) __attribute__((pure));
+void atom_hydrogen_ground(sphere_wavefunc_t* wf);
 
-void hydrogen_ground(sphere_wavefunc_t* wf);
-
+static atom_t const atom_hydrogen = {
+	.ne = 1,
+	.init = NULL,
+	.ort  = NULL,
+	.u    = atom_hydrogen_sh_u,
+	.dudz = atom_hydrogen_sh_dudz
+};
 
 // I_p = 0.5791 au
 // 1s 2s 2p 3s 3p
 // 2  2  6  2  6
-void argon_init(ks_orbitals_t* orbs);
-void argon_ort(ks_orbitals_t* orbs);
+void atom_argon_init(ks_orbitals_t* orbs);
+void atom_argon_ort(ks_orbitals_t* orbs);
 
-double argon_sh_u(sh_grid_t const* grid, int ir, int il, int m) __attribute__((pure));
-double argon_sh_dudz(sh_grid_t const* grid, int ir, int il, int m) __attribute__((pure));
+double atom_argon_sh_u(sh_grid_t const* grid, int ir, int il, int m) __attribute__((pure));
+double atom_argon_sh_dudz(sh_grid_t const* grid, int ir, int il, int m) __attribute__((pure));
 
+static atom_t const atom_argon = {
+	.ne = 9,
+	.init = atom_argon_init,
+	.ort  = atom_argon_ort,
+	.u    = atom_argon_sh_u,
+	.dudz = atom_argon_sh_dudz
+};
 
 // I_p = 0.5791 au
 // 1s 2s 2p
 // 2  2  6
-void neon_init(ks_orbitals_t* orbs);
-void neon_ort(ks_orbitals_t* orbs);
+void atom_neon_init(ks_orbitals_t* orbs);
+void atom_neon_ort(ks_orbitals_t* orbs);
 
-double neon_sh_u(sh_grid_t const* grid, int ir, int il, int m) __attribute__((pure));
-double neon_sh_dudz(sh_grid_t const* grid, int ir, int il, int m) __attribute__((pure));
+double atom_neon_sh_u(sh_grid_t const* grid, int ir, int il, int m) __attribute__((pure));
+double atom_neon_sh_dudz(sh_grid_t const* grid, int ir, int il, int m) __attribute__((pure));
+
+static atom_t const atom_neon = {
+	.ne = 5,
+	.init = atom_neon_init,
+	.ort  = atom_neon_ort,
+	.u    = atom_neon_sh_u,
+	.dudz = atom_neon_sh_dudz
+};

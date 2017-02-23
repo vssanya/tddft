@@ -1,18 +1,17 @@
-#include "sphere_kn.h"
+#include "sh_workspace.h"
 
 #include <stdlib.h>
 #include <stdio.h>
 #include <omp.h>
 
 #include "hartree_potential.h"
+#include "sphere_harmonics.h"
 #include "abs_pot.h"
 
-
-sphere_kn_workspace_t* sphere_kn_workspace_alloc(sh_grid_t const* grid, double const dt, sphere_pot_t U, sphere_pot_t Uabs) {
-	sphere_kn_workspace_t* ws = malloc(sizeof(sphere_kn_workspace_t));
+sh_workspace_t* sh_workspace_alloc(sh_grid_t const* grid, sh_f U, sh_f Uabs) {
+	sh_workspace_t* ws = malloc(sizeof(sh_workspace_t));
 
 	ws->grid = grid;
-	ws->dt = dt;
 
 	ws->U = U;
 	ws->Uabs = Uabs;
@@ -26,7 +25,7 @@ sphere_kn_workspace_t* sphere_kn_workspace_alloc(sh_grid_t const* grid, double c
 	return ws;
 }
 
-void sphere_kn_workspace_free(sphere_kn_workspace_t* ws) {
+void sh_workspace_free(sh_workspace_t* ws) {
 	free(ws->b);
 	free(ws->f);
 	free(ws->alpha);
@@ -40,7 +39,7 @@ void sphere_kn_workspace_free(sphere_kn_workspace_t* ws) {
 
 // exp(-0.5iΔtHang(l,m, t+Δt/2))
 // @param E = E(t+dt/2)
-void sphere_kn_workspace_prop_ang_l(sphere_kn_workspace_t* ws, sphere_wavefunc_t* wf, int l, int l1, sphere_pot_t Ul) {
+void sh_workspace_prop_ang_l(sh_workspace_t* ws, sphere_wavefunc_t* wf, cdouble dt, int l, int l1, sh_f Ul) {
 	/*
 	 * Solve Nr equations:
 	 * psi(l   , t+dt, r) + a*psi(l+l1, t+dt, r) = f0
@@ -50,8 +49,6 @@ void sphere_kn_workspace_prop_ang_l(sphere_kn_workspace_t* ws, sphere_wavefunc_t
 	 */
 
 	int const Nr = ws->grid->n[iR];
-
-	cdouble dt = ws->dt;
 
 	cdouble* psi_l0 = swf_ptr(wf, 0, l);
 	cdouble* psi_l1 = swf_ptr(wf, 0, l+l1);
@@ -70,9 +67,14 @@ void sphere_kn_workspace_prop_ang_l(sphere_kn_workspace_t* ws, sphere_wavefunc_t
 }
 
 // exp(-iΔtHat(l,m, t+Δt/2))
-void sphere_kn_workspace_prop_at(sphere_kn_workspace_t* ws, sphere_wavefunc_t* wf, sphere_pot_t Ul, sphere_pot_t Uabs) {
+void sh_workspace_prop_at(
+		sh_workspace_t* ws,
+		sphere_wavefunc_t* wf,
+		double dt,
+		sh_f Ul,
+		sh_f Uabs
+) {
 	double dr = ws->grid->d[iR];
-	cdouble dt = ws->dt;
 	int Nr = ws->grid->n[iR];
 
 	cdouble c0 = 0.5*dt/(dr*dr);
@@ -124,13 +126,14 @@ void sphere_kn_workspace_prop_at(sphere_kn_workspace_t* ws, sphere_wavefunc_t* w
 }
 
 // O(dr^4)
-void sphere_kn_workspace_prop_at_v2(sphere_kn_workspace_t* ws, sphere_wavefunc_t* wf, sphere_pot_t Ul, sphere_pot_t Uabs, bool img_time) {
+void sh_workspace_prop_at_v2(
+		sh_workspace_t* ws,
+		sphere_wavefunc_t* wf,
+		cdouble dt,
+		sh_f Ul,
+		sh_f Uabs
+) {
 	double dr = ws->grid->d[iR];
-
-	cdouble dt = ws->dt;
-	if (img_time) {
-		dt = -I*ws->dt;
-	}
 
 	int Nr = ws->grid->n[iR];
 
@@ -193,31 +196,32 @@ void sphere_kn_workspace_prop_at_v2(sphere_kn_workspace_t* ws, sphere_wavefunc_t
  * \f[U(r,t) = \sum_l U_l(r, t)\f]
  * \param[in] Ul = \f[U_l(r, t=t+dt/2)\f]
  * */
-void _sphere_kn_workspace_prop(
-		sphere_kn_workspace_t* ws,
+void _sh_workspace_prop(
+		sh_workspace_t* ws,
 		sphere_wavefunc_t* wf,
+		cdouble dt,
 		int l_max,
-		sphere_pot_t Ul[l_max],
-		sphere_pot_t Uabs,
-		bool img_time) {
+		sh_f Ul[l_max],
+		sh_f Uabs
+) {
 
     for (int l1 = 1; l1 < l_max; ++l1) {
         for (int il = 0; il < ws->grid->n[iL] - l1; ++il) {
-            sphere_kn_workspace_prop_ang_l(ws, wf, il, l1, Ul[l1]);
+            sh_workspace_prop_ang_l(ws, wf, dt, il, l1, Ul[l1]);
         }
     }
 
-	sphere_kn_workspace_prop_at_v2(ws, wf, Ul[0], Uabs, img_time);
+	sh_workspace_prop_at_v2(ws, wf, dt, Ul[0], Uabs);
 
     for (int l1 = l_max-1; l1 > 0; --l1) {
         for (int il = ws->grid->n[iL] - 1 - l1; il >= 0; --il) {
-            sphere_kn_workspace_prop_ang_l(ws, wf, il, l1, Ul[l1]);
+            sh_workspace_prop_ang_l(ws, wf, dt, il, l1, Ul[l1]);
         }
     }
 }
 
-void sphere_kn_workspace_prop(sphere_kn_workspace_t* ws, sphere_wavefunc_t* wf, field_t field, double t) {
-	double Et = field_E(field, t + ws->dt/2);
+void sh_workspace_prop(sh_workspace_t* ws, sphere_wavefunc_t* wf, field_t field, double t, double dt) {
+	double Et = field_E(field, t + dt/2);
 
 	double Ul0(sh_grid_t const* grid, int ir, int l, int m) {
 		double const r = sh_grid_r(grid, ir);
@@ -229,30 +233,36 @@ void sphere_kn_workspace_prop(sphere_kn_workspace_t* ws, sphere_wavefunc_t* wf, 
 		return r*Et*clm(l,m);
 	}
 
-	_sphere_kn_workspace_prop(ws,  wf, 2, (sphere_pot_t[3]){Ul0, Ul1}, ws->Uabs, false);
+	_sh_workspace_prop(ws,  wf, dt, 2, (sh_f[3]){Ul0, Ul1}, ws->Uabs);
 }
 
-void sphere_kn_workspace_prop_img(
-		sphere_kn_workspace_t* ws,
-		sphere_wavefunc_t* wf) {
+void sh_workspace_prop_img(
+		sh_workspace_t* ws,
+		sphere_wavefunc_t* wf,
+		double dt
+) {
 	double Ul0(sh_grid_t const* grid, int ir, int l, int m) {
 		double const r = sh_grid_r(grid, ir);
 		return l*(l+1)/(2*r*r) + ws->U(grid, ir, l, m);
 	}
 
-	_sphere_kn_workspace_prop(ws,  wf, 1, (sphere_pot_t[3]){Ul0}, uabs_zero, true);
+	_sh_workspace_prop(ws,  wf, -I*dt, 1, (sh_f[3]){Ul0}, uabs_zero);
 }
 
-sphere_kn_orbs_workspace_t* sphere_kn_orbs_workspace_alloc(sh_grid_t const* grid, double const dt, sphere_pot_t U, sphere_pot_t Uabs) {
-	sphere_kn_orbs_workspace_t* ws = malloc(sizeof(sphere_kn_workspace_t));
+sh_orbs_workspace_t* sh_orbs_workspace_alloc(
+		sh_grid_t const* grid,
+		sh_f U,
+		sh_f Uabs
+) {
+	sh_orbs_workspace_t* ws = malloc(sizeof(sh_workspace_t));
 #ifdef WITH_OMP
 	ws->num_threads = omp_get_max_threads();
 #else
 	ws->num_threads = 1;
 #endif
-	ws->wf_ws = malloc(sizeof(sphere_kn_workspace_t*)*ws->num_threads);
+	ws->wf_ws = malloc(sizeof(sh_workspace_t*)*ws->num_threads);
 	for (int i=0; i<ws->num_threads; ++i) {
-		ws->wf_ws[i] = sphere_kn_workspace_alloc(grid, dt, U, Uabs);
+		ws->wf_ws[i] = sh_workspace_alloc(grid, U, Uabs);
 	}
 
 	ws->Uh  = malloc(sizeof(double)*grid->n[iR]*3);
@@ -261,21 +271,31 @@ sphere_kn_orbs_workspace_t* sphere_kn_orbs_workspace_alloc(sh_grid_t const* grid
 	ws->sh_grid = grid;
 	ws->sp_grid = sp_grid_new((int[3]){grid->n[iR], 32, 1}, sh_grid_r_max(grid));
 
+	ylm_cache_init(grid->n[iL], ws->sp_grid);
+
 	return ws;
 }
 
-void sphere_kn_orbs_workspace_free(sphere_kn_orbs_workspace_t* ws) {
+void sh_orbs_workspace_free(sh_orbs_workspace_t* ws) {
 	for (int i=0; i<ws->num_threads; ++i) {
-		sphere_kn_workspace_free(ws->wf_ws[i]);
+		sh_workspace_free(ws->wf_ws[i]);
 	}
 	free(ws->wf_ws);
 	sp_grid_del(ws->sp_grid);
 	free(ws->Uh);
 	free(ws->Uxc);
 	free(ws);
+
+	ylm_cache_deinit();
 }
 
-void sphere_kn_orbs_workspace_prop(sphere_kn_orbs_workspace_t* ws, ks_orbitals_t* orbs, field_t field, double t) {
+void sh_orbs_workspace_prop(
+		sh_orbs_workspace_t* ws,
+		ks_orbitals_t* orbs,
+		field_t field,
+		double t,
+		double dt
+) {
 	for (int l=0; l<3; ++l) {
 		ux_lda(l, orbs, &ws->Uxc[l*ws->sh_grid->n[iR]], ws->sp_grid);
 	}
@@ -284,7 +304,7 @@ void sphere_kn_orbs_workspace_prop(sphere_kn_orbs_workspace_t* ws, ks_orbitals_t
 	hartree_potential_l1(orbs, &ws->Uh[1*ws->sh_grid->n[iR]]);
 	hartree_potential_l2(orbs, &ws->Uh[2*ws->sh_grid->n[iR]]);
 
-	double Et = field_E(field, t + ws->wf_ws[0]->dt/2);
+	double Et = field_E(field, t + dt/2);
 
 	double Ul0(sh_grid_t const* grid, int ir, int l, int m) {
 		double const r = sh_grid_r(grid, ir);
@@ -301,11 +321,15 @@ void sphere_kn_orbs_workspace_prop(sphere_kn_orbs_workspace_t* ws, ks_orbitals_t
 	}
 
 	for (int ie = 0; ie < orbs->ne; ++ie) {
-        _sphere_kn_workspace_prop(ws->wf_ws[0], orbs->wf[ie], 3, (sphere_pot_t[3]){Ul0, Ul1, Ul2}, ws->wf_ws[0]->Uabs, false);
+        _sh_workspace_prop(ws->wf_ws[0], orbs->wf[ie], dt, 3, (sh_f[3]){Ul0, Ul1, Ul2}, ws->wf_ws[0]->Uabs);
 	}
 }
 
-void sphere_kn_orbs_workspace_prop_img(sphere_kn_orbs_workspace_t* ws, ks_orbitals_t* orbs) {
+void sh_orbs_workspace_prop_img(
+		sh_orbs_workspace_t* ws,
+		ks_orbitals_t* orbs,
+		double dt
+) {
 	for (int l=0; l<1; ++l) {
 		ux_lda(l, orbs, &ws->Uxc[l*ws->sh_grid->n[iR]], ws->sp_grid);
 	}
@@ -336,6 +360,6 @@ void sphere_kn_orbs_workspace_prop_img(sphere_kn_orbs_workspace_t* ws, ks_orbita
 		tid = 0;
 #endif
 
-        _sphere_kn_workspace_prop(ws->wf_ws[tid], orbs->wf[ie], 1, (sphere_pot_t[3]){Ul0, Ul1, Ul2}, uabs_zero, true);
+        _sh_workspace_prop(ws->wf_ws[tid], orbs->wf[ie], -I*dt, 1, (sh_f[3]){Ul0, Ul1, Ul2}, uabs_zero);
 	}
 }

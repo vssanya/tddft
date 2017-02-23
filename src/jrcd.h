@@ -1,11 +1,19 @@
 #pragma once
 
 #include "sphere_wavefunc.h"
-#include "sphere_kn.h"
+#include "sh_workspace.h"
 #include "utils.h"
 
 /* 
  * jrcd = Ng \int_{0}^{T} az dt 
  * @return jrcd / Ng
  * */
-double jrcd(sphere_kn_workspace_t* ws, sphere_wavefunc_t* wf, field_t E, sphere_pot_t dUdz, int Nt, double t_smooth);
+double jrcd(
+		sh_workspace_t* ws,
+		sphere_wavefunc_t* wf,
+		field_t E,
+		sh_f dUdz,
+		int Nt, 
+		double dt,
+		double t_smooth
+);

@@ -77,7 +77,7 @@ void   sphere_wavefunc_print(sphere_wavefunc_t const* wf);
 // <psi|U(r)cos(\theta)|psi>
 double sphere_wavefunc_cos(
 		sphere_wavefunc_t const* wf,
-		sphere_pot_t U
+		sh_f U
 );
 
 double sphere_wavefunc_z(sphere_wavefunc_t const* wf);
