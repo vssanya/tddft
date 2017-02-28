@@ -2,10 +2,14 @@ import numpy as np
 cimport numpy as np
 
 from wavefunc cimport SWavefunc
+from orbitals cimport SOrbitals
 from workspace cimport SKnWorkspace
 from field cimport Field
 from atom cimport Atom
 
+
+def ionization_prob(SOrbitals orbs):
+    return calc_ionization_prob(orbs._data)
 
 def az(Atom atom, SWavefunc wf, Field field, double t):
     return calc_az(wf.data, field.data, atom._data.dudz, t)

@@ -15,6 +15,7 @@ typedef struct {
 ks_orbitals_t* ks_orbials_new(int ne, sh_grid_t const* grid);
 void ks_orbitals_del(ks_orbitals_t* orbs);
 
+double ks_orbitals_norm(ks_orbitals_t const* orbs);
 void ks_orbitals_normilize(ks_orbitals_t* orbs);
 
 /*!

@@ -3,6 +3,7 @@
 #include "fields.h"
 
 #include "sphere_wavefunc.h"
+#include "ks_orbitals.h"
 #include "sh_workspace.h"
 
 
@@ -20,3 +21,5 @@ void calc_az_t(
 		field_t field,
 		double dt
 );
+
+double calc_ionization_prob(ks_orbitals_t const* orbs);

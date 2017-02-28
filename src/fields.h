@@ -10,6 +10,7 @@ typedef struct {
 inline double field_E(field_t field, double t) {
 	return field.func(t, field.data);
 }
+void field_free(field_t field);
 
 field_t two_color_pulse_field_alloc(
 		double E0,
@@ -19,4 +20,12 @@ field_t two_color_pulse_field_alloc(
 		double tp,
 		double t0
 		);
-void two_color_pulse_field_free(field_t field);
+
+field_t field_sin_alloc(
+		double E0,
+		double alpha,
+		double freq,
+		double phase,
+		double tp,
+		double t0
+		);

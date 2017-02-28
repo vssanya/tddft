@@ -15,6 +15,9 @@ cdef class SOrbitals:
     def n(self, SpGrid grid, int ir, int ic):
         return ks_orbitals_n(self._data, grid.data, [ir, ic])
 
+    def norm(self):
+        return ks_orbitals_norm(self._data)
+
     def normalize(self):
         ks_orbitals_normilize(self._data)
 

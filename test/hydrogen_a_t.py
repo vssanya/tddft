@@ -2,7 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 
-from tdse import grid, wavefunc, field, workspace, hydrogen, calc, utils
+from tdse import grid, wavefunc, field, workspace, atom, calc, utils
 
 def calc_az_t():
     freq = utils.length_to_freq(800, 'nm')
@@ -29,7 +29,7 @@ def calc_az_t():
 
     r = np.linspace(dr, r_max, r_max/dr)
     g = grid.SGrid(Nr=r_max/dr, Nl=20, r_max=r_max)
-    wf = hydrogen.ground_state(g)
+    wf = atom.ground_state(g)
     ws = workspace.SKnWorkspace(dt=dt, grid=g)
 
     t = np.arange(0, 2*t0, dt)
@@ -38,7 +38,7 @@ def calc_az_t():
 
     def data_gen():
         for it in range(t.size):
-            ws.prop(wf, f, t[it])
+            ws.prop(wf, f, t[it], dt)
             yield it, calc.az(wf, f, t[it])
 
     fig = plt.figure()

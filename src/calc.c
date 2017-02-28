@@ -17,3 +17,7 @@ void calc_az_t(int Nt, double a[Nt], sh_workspace_t* ws, sphere_wavefunc_t* wf, 
 		t += dt;
 	}
 }
+
+double calc_ionization_prob(ks_orbitals_t const* orbs) {
+	return 2*orbs->ne - ks_orbitals_norm(orbs);
+}

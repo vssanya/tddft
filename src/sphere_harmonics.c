@@ -6,6 +6,7 @@
 #include <gsl/gsl_sf_coupling.h>
 #include <gsl/gsl_sf_legendre.h>
 
+
 int pow_minus_one(int p) {
 	return p % 2 == 0 ? 1 : -1;
 }

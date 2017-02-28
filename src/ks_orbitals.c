@@ -35,6 +35,14 @@ double ks_orbitals_n(ks_orbitals_t const* orbs, sp_grid_t const* grid, int i[2])
 	return 2.0*res;
 }
 
+double ks_orbitals_norm(ks_orbitals_t const* orbs) {
+	double res = 0.0;
+	for (int ie=0; ie<orbs->ne; ++ie) {
+		res += sphere_wavefunc_norm(orbs->wf[ie]);
+	}
+	return 2*res;
+}
+
 void ks_orbitals_normilize(ks_orbitals_t* orbs) {
 	for (int ie=0; ie<orbs->ne; ++ie) {
 		sphere_wavefunc_normalize(orbs->wf[ie]);

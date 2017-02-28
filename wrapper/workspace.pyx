@@ -31,3 +31,6 @@ cdef class SOrbsWorkspace:
 
     def prop_img(self, SOrbitals orbs, double dt):
         sh_orbs_workspace_prop_img(self._data, orbs._data, dt)
+
+    def prop(self, SOrbitals orbs, Field f, double t, double dt):
+        sh_orbs_workspace_prop(self._data, orbs._data, f.data, t, dt)

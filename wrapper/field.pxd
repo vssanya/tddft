@@ -11,11 +11,22 @@ cdef extern from "fields.h":
             double tp,
             double t0
             )
-    void two_color_pulse_field_free(field_t field)
+    field_t field_sin_alloc(
+            double E0,
+            double alpha,
+            double freq,
+            double phase,
+            double tp,
+            double t0
+            )
+    void field_free(field_t field)
     double field_E(field_t field, double t)
 
 cdef class Field:
     cdef field_t data
 
 cdef class TwoColorPulseField(Field):
+    pass
+
+cdef class SinField(Field):
     pass
