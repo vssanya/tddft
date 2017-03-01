@@ -354,13 +354,12 @@ void sh_orbs_workspace_prop(
 		return qlm(l, m)*(ws->Uh[ir + 2*grid->n[iR]] + ws->Uxc[ir + 2*grid->n[iR]]);
 	}
 
-	int tid;
-#pragma omp parallel for default(shared) private(tid)
+#pragma omp parallel for
 	for (int ie = 0; ie < orbs->ne; ++ie) {
 #ifdef WITH_OMP
-		tid = omp_get_thread_num();
+		int tid = omp_get_thread_num();
 #else
-		tid = 0;
+		int tid = 0;
 #endif
         _sh_workspace_prop(ws->wf_ws[tid], orbs->wf[ie], dt, 2, (sh_f[3]){Ul0, Ul1, Ul2}, ws->wf_ws[0]->Uabs);
 	}
