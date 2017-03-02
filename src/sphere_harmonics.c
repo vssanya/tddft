@@ -61,12 +61,18 @@ double ylm(int l, int m, int ic) {
 	return ylm_cache.data[gsl_sf_legendre_array_index(l, m) + ic*ylm_cache.size];
 }
 
-void sh_series(func_2d_t f, int l, int m, sp_grid_t const* grid, double series[grid->n[iR]]) {
-	for (int ir = 0; ir < grid->n[iR]; ++ir) {
-		double func(int ic) {
-			return f(ir, ic)*ylm(l, m, ic);
-		}
+double sh_series_r(func_2d_t f, int ir, int l, int m, sp_grid_t const* grid) {
+	double func(int ic) {
+		return f(ir, ic)*ylm(l, m, ic);
+	}
 
-		series[ir] = integrate_1d(func, grid->n[iC], grid->d[iC])*2*M_PI;
+	return integrate_1d(func, grid->n[iC], grid->d[iC])*2*M_PI;
+}
+
+void sh_series(func_2d_t f, int l, int m, sp_grid_t const* grid, double series[grid->n[iR]]) {
+#pragma omp parallel for
+	for (int ir = 0; ir < grid->n[iR]; ++ir) {
+		series[ir] = sh_series_r(f, ir, l, m, grid);
 	}
 }
+

@@ -18,17 +18,17 @@
 /*! 
  * U0(r,t) = 2*\sum_{i,l} \int |\theta_{ilm}(r', t)|^2 / r> dr'
  * */
-void hartree_potential_l0(ks_orbitals_t const* orbs, double U[orbs->grid->n[iR]]);
+void hartree_potential_l0(ks_orbitals_t const* orbs, double U[orbs->grid->n[iR]], double f[orbs->grid->n[iR]]);
 
 /*!
  * U1(r,t) = \int L1(r',t) r< / r>^2 dr'
  * */
-void hartree_potential_l1(ks_orbitals_t const* orbs, double U[orbs->grid->n[iR]]);
+void hartree_potential_l1(ks_orbitals_t const* orbs, double U[orbs->grid->n[iR]], double f[orbs->grid->n[iR]]);
 
 /*!
  * U2(r,t) = \int L2(r',t) r<^2 / r>^3 dr'
  * */
-void hartree_potential_l2(ks_orbitals_t const* orbs, double U[orbs->grid->n[iR]]);
+void hartree_potential_l2(ks_orbitals_t const* orbs, double U[orbs->grid->n[iR]], double f[orbs->grid->n[iR]]);
 
 /*!
  * Обменное взаимодействие приближение локальной плотности

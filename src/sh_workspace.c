@@ -164,7 +164,7 @@ void sh_workspace_prop_at_v2(
 #pragma omp for
 	for (int l = 0; l < ws->grid->n[iL]; ++l) {
 		int tid = omp_get_thread_num();
-		printf("TID = %d, l = %d\n", tid, l);
+
 		cdouble* alpha = &ws->alpha[tid*ws->grid->n[iR]];
 		cdouble* betta = &ws->betta[tid*ws->grid->n[iR]];
 
@@ -287,6 +287,8 @@ sh_orbs_workspace_t* sh_orbs_workspace_alloc(
 	ws->Uh  = malloc(sizeof(double)*grid->n[iR]*3);
 	ws->Uxc = malloc(sizeof(double)*grid->n[iR]*3);
 
+	ws->uh_tmp = malloc(sizeof(double)*grid->n[iR]);
+
 	ws->sh_grid = grid;
 	ws->sp_grid = sp_grid_new((int[3]){grid->n[iR], 32, 1}, sh_grid_r_max(grid));
 
@@ -303,6 +305,7 @@ void sh_orbs_workspace_free(sh_orbs_workspace_t* ws) {
 	sp_grid_del(ws->sp_grid);
 	free(ws->Uh);
 	free(ws->Uxc);
+	free(ws->uh_tmp);
 	free(ws);
 
 	ylm_cache_deinit();
@@ -355,7 +358,7 @@ void sh_orbs_workspace_prop(
 		ux_lda(l, orbs, &ws->Uxc[l*ws->sh_grid->n[iR]], ws->sp_grid);
 	}
 
-	hartree_potential_l0(orbs, &ws->Uh[0*ws->sh_grid->n[iR]]);
+	hartree_potential_l0(orbs, &ws->Uh[0*ws->sh_grid->n[iR]], ws->uh_tmp);
 
 	double Et = field_E(field, t + dt/2);
 
@@ -373,13 +376,8 @@ void sh_orbs_workspace_prop(
 		return qlm(l, m)*(ws->Uh[ir + 2*grid->n[iR]] + ws->Uxc[ir + 2*grid->n[iR]]);
 	}
 
-#pragma omp parallel for
 	for (int ie = 0; ie < orbs->ne; ++ie) {
-#ifdef WITH_OMP
-		int tid = omp_get_thread_num();
-#else
 		int tid = 0;
-#endif
         _sh_workspace_prop(ws->wf_ws[tid], orbs->wf[ie], dt, 2, (sh_f[3]){Ul0, Ul1, Ul2}, ws->wf_ws[0]->Uabs);
 	}
 }
@@ -393,9 +391,9 @@ void sh_orbs_workspace_prop_img(
 		ux_lda(l, orbs, &ws->Uxc[l*ws->sh_grid->n[iR]], ws->sp_grid);
 	}
 
-	hartree_potential_l0(orbs, &ws->Uh[0*ws->sh_grid->n[iR]]);
-//	hartree_potential_l1(orbs, &ws->Uh[1*ws->sh_grid->n[iR]]);
-//	hartree_potential_l2(orbs, &ws->Uh[2*ws->sh_grid->n[iR]]);
+	hartree_potential_l0(orbs, &ws->Uh[0*ws->sh_grid->n[iR]], ws->uh_tmp);
+//	hartree_potential_l1(orbs, &ws->Uh[1*ws->sh_grid->n[iR]], ws->uh_tmp);
+//	hartree_potential_l2(orbs, &ws->Uh[2*ws->sh_grid->n[iR]], ws->uh_tmp);
 
 	double Ul0(sh_grid_t const* grid, int ir, int l, int m) {
 		double const r = sh_grid_r(grid, ir);
@@ -411,14 +409,8 @@ void sh_orbs_workspace_prop_img(
 	}
 
 	int tid;
-#pragma omp parallel for default(shared) private(tid)
 	for (int ie = 0; ie < orbs->ne; ++ie) {
-#ifdef WITH_OMP
-		tid = omp_get_thread_num();
-#else
 		tid = 0;
-#endif
-
         _sh_workspace_prop(ws->wf_ws[tid], orbs->wf[ie], -I*dt, 1, (sh_f[3]){Ul0, Ul1, Ul2}, uabs_zero);
 	}
 }

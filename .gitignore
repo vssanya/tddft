@@ -7,3 +7,5 @@ build
 
 wrapper/*.c
 tdse/*.so
+
+.asv
