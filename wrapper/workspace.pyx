@@ -6,10 +6,12 @@ from field cimport Field
 from orbitals cimport SOrbitals
 
 cdef class SKnWorkspace:
-    def __cinit__(self, SGrid grid, Atom atom):
+    def __cinit__(self, SGrid grid, Atom atom, int count_threads = -1):
         self.data = sh_workspace_alloc(
             grid.data,
-            atom._data.u, Uabs
+            atom._data.u,
+            Uabs,
+            count_threads
         )
 
     def __dealloc__(self):

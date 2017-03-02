@@ -8,7 +8,11 @@
 #include "sphere_harmonics.h"
 #include "abs_pot.h"
 
-sh_workspace_t* sh_workspace_alloc(sh_grid_t const* grid, sh_f U, sh_f Uabs) {
+sh_workspace_t* sh_workspace_alloc(
+		sh_grid_t const* grid,
+		sh_f U, sh_f Uabs,
+		int count_threads
+) {
 	sh_workspace_t* ws = malloc(sizeof(sh_workspace_t));
 
 	ws->grid = grid;
@@ -16,18 +20,24 @@ sh_workspace_t* sh_workspace_alloc(sh_grid_t const* grid, sh_f U, sh_f Uabs) {
 	ws->U = U;
 	ws->Uabs = Uabs;
 
-	ws->b = malloc(sizeof(cdouble)*grid->n[iR]);
-	ws->f = malloc(sizeof(cdouble)*grid->n[iR]);
+#ifdef _OPENMP
+	int max_threads = omp_get_max_threads();
+	if (count_threads < 1 || count_threads > max_threads) {
+		ws->count_threads = max_threads;
+	} else {
+		ws->count_threads = count_threads;
+	}
+#else
+	ws->count_threads = 1;
+#endif
 
-	ws->alpha = malloc(sizeof(cdouble)*grid->n[iR]);
-	ws->betta = malloc(sizeof(cdouble)*grid->n[iR]);
+	ws->alpha = malloc(sizeof(cdouble)*grid->n[iR]*ws->count_threads);
+	ws->betta = malloc(sizeof(cdouble)*grid->n[iR]*ws->count_threads);
 
 	return ws;
 }
 
 void sh_workspace_free(sh_workspace_t* ws) {
-	free(ws->b);
-	free(ws->f);
 	free(ws->alpha);
 	free(ws->betta);
 	free(ws);
@@ -55,6 +65,7 @@ void sh_workspace_prop_ang_l(sh_workspace_t* ws, sphere_wavefunc_t* wf, cdouble 
 
 	cdouble a_const = 0.25*dt*I;
 
+#pragma omp for
 	for (int i = 0; i < Nr; ++i) {
 		cdouble const a = a_const*Ul(ws->grid, i, l, wf->m);
 
@@ -150,7 +161,13 @@ void sh_workspace_prop_at_v2(
 	M2[2] = 1.0/12.0;
 
 	const double M2_11 = 1.0 + d2_11*(dr*dr)/12.0;
+#pragma omp for
 	for (int l = 0; l < ws->grid->n[iL]; ++l) {
+		int tid = omp_get_thread_num();
+		printf("TID = %d, l = %d\n", tid, l);
+		cdouble* alpha = &ws->alpha[tid*ws->grid->n[iR]];
+		cdouble* betta = &ws->betta[tid*ws->grid->n[iR]];
+
         cdouble U = Ul(ws->grid, 0, l, wf->m) - I*Uabs(ws->grid, 0, l, wf->m);
 
 		cdouble al[3];
@@ -169,8 +186,8 @@ void sh_workspace_prop_at_v2(
 
 		f = ar[1]*psi[0] + ar[2]*psi[1];
 
-		ws->alpha[0] = -al[2]/al[1];
-		ws->betta[0] = f/al[1];
+		alpha[0] = -al[2]/al[1];
+		betta[0] = f/al[1];
 
 		for (int ir = 1; ir < ws->grid->n[iR]; ++ir) {
             U = Ul(ws->grid, ir, l, wf->m) - I*Uabs(ws->grid, ir, l, wf->m);
@@ -178,16 +195,16 @@ void sh_workspace_prop_at_v2(
 			al[1] = M2[1] + 0.5*I*dt*(-0.5*d2[1] + U);
 			ar[1] = M2[1] - 0.5*I*dt*(-0.5*d2[1] + U);
 			
-			cdouble c = al[1] + al[0]*ws->alpha[ir-1];
+			cdouble c = al[1] + al[0]*alpha[ir-1];
 			f = ar[0]*psi[ir-1] + ar[1]*psi[ir] + ar[2]*psi[ir+1];
 
-			ws->alpha[ir] = - al[2] / c;
-			ws->betta[ir] = (f - al[0]*ws->betta[ir-1]) / c;
+			alpha[ir] = - al[2] / c;
+			betta[ir] = (f - al[0]*betta[ir-1]) / c;
 		}
 
-		psi[Nr-1] = 0;//ws->betta[Nr-1]/(1 - ws->alpha[Nr-1]);
+		psi[Nr-1] = 0;//betta[Nr-1]/(1 - alpha[Nr-1]);
 		for (int ir = ws->grid->n[iR]-2; ir >= 0; --ir) {
-			psi[ir] = ws->alpha[ir]*psi[ir+1] + ws->betta[ir];
+			psi[ir] = alpha[ir]*psi[ir+1] + betta[ir];
 		}
 	}
 }
@@ -204,20 +221,22 @@ void _sh_workspace_prop(
 		sh_f Ul[l_max],
 		sh_f Uabs
 ) {
+#pragma omp parallel num_threads(ws->count_threads)
+	{
+		for (int l1 = 1; l1 < l_max; ++l1) {
+			for (int il = 0; il < ws->grid->n[iL] - l1; ++il) {
+				sh_workspace_prop_ang_l(ws, wf, dt, il, l1, Ul[l1]);
+			}
+		}
 
-    for (int l1 = 1; l1 < l_max; ++l1) {
-        for (int il = 0; il < ws->grid->n[iL] - l1; ++il) {
-            sh_workspace_prop_ang_l(ws, wf, dt, il, l1, Ul[l1]);
-        }
-    }
+		sh_workspace_prop_at_v2(ws, wf, dt, Ul[0], Uabs);
 
-	sh_workspace_prop_at_v2(ws, wf, dt, Ul[0], Uabs);
-
-    for (int l1 = l_max-1; l1 > 0; --l1) {
-        for (int il = ws->grid->n[iL] - 1 - l1; il >= 0; --il) {
-            sh_workspace_prop_ang_l(ws, wf, dt, il, l1, Ul[l1]);
-        }
-    }
+		for (int l1 = l_max-1; l1 > 0; --l1) {
+			for (int il = ws->grid->n[iL] - 1 - l1; il >= 0; --il) {
+				sh_workspace_prop_ang_l(ws, wf, dt, il, l1, Ul[l1]);
+			}
+		}
+	}
 }
 
 void sh_workspace_prop(sh_workspace_t* ws, sphere_wavefunc_t* wf, field_t field, double t, double dt) {
@@ -262,7 +281,7 @@ sh_orbs_workspace_t* sh_orbs_workspace_alloc(
 #endif
 	ws->wf_ws = malloc(sizeof(sh_workspace_t*)*ws->num_threads);
 	for (int i=0; i<ws->num_threads; ++i) {
-		ws->wf_ws[i] = sh_workspace_alloc(grid, U, Uabs);
+		ws->wf_ws[i] = sh_workspace_alloc(grid, U, Uabs, 1);
 	}
 
 	ws->Uh  = malloc(sizeof(double)*grid->n[iR]*3);

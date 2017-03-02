@@ -7,8 +7,9 @@ from tdse import grid, wavefunc, orbitals, field, atom, workspace, calc, utils
 
 comm = MPI.COMM_WORLD
 rank = comm.Get_rank()
+size = comm.Get_size()
 
-I = np.linspace(1e14, 5e14, 5)
+I = np.linspace(1e14, 5e14, size)
 E = utils.I_to_E(I)
 
 dt = 0.008
