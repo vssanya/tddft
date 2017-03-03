@@ -11,7 +11,7 @@
 sh_workspace_t* sh_workspace_alloc(
 		sh_grid_t const* grid,
 		sh_f U, sh_f Uabs,
-		int count_threads
+		int num_threads
 ) {
 	sh_workspace_t* ws = malloc(sizeof(sh_workspace_t));
 
@@ -22,17 +22,17 @@ sh_workspace_t* sh_workspace_alloc(
 
 #ifdef _OPENMP
 	int max_threads = omp_get_max_threads();
-	if (count_threads < 1 || count_threads > max_threads) {
-		ws->count_threads = max_threads;
+	if (num_threads < 1 || num_threads > max_threads) {
+		ws->num_threads = max_threads;
 	} else {
-		ws->count_threads = count_threads;
+		ws->num_threads = num_threads;
 	}
 #else
-	ws->count_threads = 1;
+	ws->num_threads = 1;
 #endif
 
-	ws->alpha = malloc(sizeof(cdouble)*grid->n[iR]*ws->count_threads);
-	ws->betta = malloc(sizeof(cdouble)*grid->n[iR]*ws->count_threads);
+	ws->alpha = malloc(sizeof(cdouble)*grid->n[iR]*ws->num_threads);
+	ws->betta = malloc(sizeof(cdouble)*grid->n[iR]*ws->num_threads);
 
 	return ws;
 }
@@ -221,7 +221,7 @@ void _sh_workspace_prop(
 		sh_f Ul[l_max],
 		sh_f Uabs
 ) {
-#pragma omp parallel num_threads(ws->count_threads)
+#pragma omp parallel num_threads(ws->num_threads)
 	{
 		for (int l1 = 1; l1 < l_max; ++l1) {
 			for (int il = 0; il < ws->grid->n[iL] - l1; ++il) {
@@ -271,17 +271,16 @@ void sh_workspace_prop_img(
 sh_orbs_workspace_t* sh_orbs_workspace_alloc(
 		sh_grid_t const* grid,
 		sh_f U,
-		sh_f Uabs
-) {
+		sh_f Uabs,
+		int num_threads
+) {	
 	sh_orbs_workspace_t* ws = malloc(sizeof(sh_workspace_t));
-#ifdef WITH_OMP
-	ws->num_threads = omp_get_max_threads();
-#else
+
 	ws->num_threads = 1;
-#endif
+
 	ws->wf_ws = malloc(sizeof(sh_workspace_t*)*ws->num_threads);
 	for (int i=0; i<ws->num_threads; ++i) {
-		ws->wf_ws[i] = sh_workspace_alloc(grid, U, Uabs, 1);
+		ws->wf_ws[i] = sh_workspace_alloc(grid, U, Uabs, num_threads);
 	}
 
 	ws->Uh  = malloc(sizeof(double)*grid->n[iR]*3);

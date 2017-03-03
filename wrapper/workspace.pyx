@@ -5,13 +5,14 @@ from wavefunc cimport SWavefunc
 from field cimport Field
 from orbitals cimport SOrbitals
 
+
 cdef class SKnWorkspace:
-    def __cinit__(self, SGrid grid, Atom atom, int count_threads = -1):
+    def __cinit__(self, SGrid grid, Atom atom, int num_threads = -1):
         self.data = sh_workspace_alloc(
             grid.data,
             atom._data.u,
             Uabs,
-            count_threads
+            num_threads
         )
 
     def __dealloc__(self):
@@ -23,9 +24,10 @@ cdef class SKnWorkspace:
     def prop_img(self, SWavefunc wf, double dt):
         sh_workspace_prop_img(self.data, wf.data, dt)
 
+
 cdef class SOrbsWorkspace:
-    def __cinit__(self, SGrid grid, Atom atom):
-        self._data = sh_orbs_workspace_alloc(grid.data, atom._data.u, Uabs)
+    def __cinit__(self, SGrid grid, Atom atom, int num_threads=-1):
+        self._data = sh_orbs_workspace_alloc(grid.data, atom._data.u, Uabs, num_threads)
 
     def __dealloc__(self):
         if self._data != NULL:

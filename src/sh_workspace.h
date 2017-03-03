@@ -21,7 +21,7 @@ typedef struct {
 	cdouble* alpha;
 	cdouble* betta;
 
-	int count_threads;
+	int num_threads;
 } sh_workspace_t;
 
 sh_workspace_t*
@@ -29,7 +29,7 @@ sh_workspace_alloc(
 		sh_grid_t const* grid,
 		sh_f U,
 		sh_f Uabs,
-		int count_threads);
+		int num_threads);
 
 void sh_workspace_free(sh_workspace_t* ws);
 
@@ -90,7 +90,8 @@ sh_orbs_workspace_t*
 sh_orbs_workspace_alloc(
 		sh_grid_t const* grid,
 		sh_f U,
-		sh_f Uabs
+		sh_f Uabs,
+		int num_threads
 );
 
 void sh_orbs_workspace_free(sh_orbs_workspace_t* ws);

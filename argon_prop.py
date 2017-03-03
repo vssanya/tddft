@@ -9,7 +9,7 @@ comm = MPI.COMM_WORLD
 rank = comm.Get_rank()
 size = comm.Get_size()
 
-I = np.linspace(1e14, 5e14, size)
+I = np.logspace(14, 15, size)
 E = utils.I_to_E(I)
 
 dt = 0.008
@@ -38,11 +38,8 @@ f = field.SinField(
 r = np.linspace(dr,r_max,Nr)
 t = np.arange(0, tp, dt)
 
-start = time.time()
 for i in range(10):
     ws.prop(orbs, f, t[i], dt)
-print("Time:", time.time() - start)
-print(t.size)
 
 prob = calc.ionization_prob(orbs)
 

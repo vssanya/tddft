@@ -15,7 +15,7 @@ cdef extern from "sh_workspace.h":
         cdouble* f
         cdouble* alpha
         cdouble* betta
-        int count_threads
+        int num_threads
 
     ctypedef struct sh_orbs_workspace_t:
         sh_workspace_t* wf_ws;
@@ -27,7 +27,7 @@ cdef extern from "sh_workspace.h":
             sh_grid_t* grid,
             sh_f U,
             sh_f Uabs,
-            int count_threads
+            int num_threads
             )
 
     void sh_workspace_free(sh_workspace_t* ws)
@@ -84,7 +84,8 @@ cdef extern from "sh_workspace.h":
     sh_orbs_workspace_t* sh_orbs_workspace_alloc(
             sh_grid_t* grid,
             sh_f U,
-            sh_f Uabs
+            sh_f Uabs,
+            int num_threads
     )
     void sh_orbs_workspace_free(sh_orbs_workspace_t* ws)
 
