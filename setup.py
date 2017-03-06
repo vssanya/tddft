@@ -12,6 +12,9 @@ ext = Extension("*", ["wrapper/*.pyx"],
                 include_dirs=[
                     'src',
                     numpy.get_include()
+                ],
+                extra_compile_args=[
+                    '-std=gnu99',
                 ])
 setup(
     name = "tdse",
