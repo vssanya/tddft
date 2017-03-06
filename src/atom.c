@@ -46,6 +46,13 @@ void atom_neon_init(ks_orbitals_t* orbs) {
 	orbs->wf[4]->m = 1;
 }
 
+void atom_hydrogen_init(ks_orbitals_t* orbs) {
+	assert(orbs->ne == 1);
+
+	atom_hydrogen_ground(orbs->wf[0]);
+}
+
+
 void atom_argon_ort(ks_orbitals_t* orbs) {
 	sphere_wavefunc_ort_l(0, 3, orbs->wf);
 

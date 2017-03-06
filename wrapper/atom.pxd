@@ -13,6 +13,7 @@ cdef extern from "atom.h":
         sh_f u
         sh_f dudz
 
+    void atom_hydrogen_init(ks_orbitals_t* orbs)
     double atom_hydrogen_sh_u(sh_grid_t* grid, int ir, int il, int m)
     double atom_hydrogen_sh_dudz(sh_grid_t* grid, int ir, int il, int m)
     void atom_hydrogen_ground(sphere_wavefunc_t* wf)

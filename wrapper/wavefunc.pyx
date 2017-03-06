@@ -4,12 +4,20 @@ from types cimport cdouble
 from grid cimport SGrid, SpGrid
 
 cdef class SWavefunc:
-    def __cinit__(self, SGrid grid, int m=0):
-        self.data = sphere_wavefunc_new(grid.data, m)
-        self.grid = grid
+    def __cinit__(self, SGrid grid, int m=0, dealloc=True):
+        if grid is None:
+            self.data = NULL
+        else:
+            self.data = sphere_wavefunc_new(grid.data, m)
+        
+        self.dealloc = dealloc
+
+    cdef _set_data(self, sphere_wavefunc_t* data):
+        self.data = data
 
     def __dealloc__(self):
-        sphere_wavefunc_del(self.data)
+        if self.dealloc and self.data != NULL:
+            sphere_wavefunc_del(self.data)
 
     def norm(self):
         return sphere_wavefunc_norm(self.data)
@@ -34,3 +42,8 @@ cdef class SWavefunc:
         arr[:] = np.random.rand(*arr.shape)
         wf.normalize()
         return wf
+
+cdef SWavefunc swavefunc_from_point(sphere_wavefunc_t* data):
+    wf = SWavefunc(grid=None, dealloc=False)
+    wf._set_data(data)
+    return wf

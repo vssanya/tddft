@@ -19,6 +19,7 @@ typedef struct atom_s {
 	sh_f dudz;
 } atom_t;
 
+void atom_hydrogen_init(ks_orbitals_t* orbs);
 // Potential
 double atom_hydrogen_sh_u(sh_grid_t const* grid, int ir, int il, int m) __attribute__((pure));
 double atom_hydrogen_sh_dudz(sh_grid_t const* grid, int ir, int il, int m) __attribute__((pure));
@@ -26,7 +27,7 @@ void atom_hydrogen_ground(sphere_wavefunc_t* wf);
 
 static atom_t const atom_hydrogen = {
 	.ne = 1,
-	.init = NULL,
+	.init = atom_hydrogen_init,
 	.ort  = NULL,
 	.u    = atom_hydrogen_sh_u,
 	.dudz = atom_hydrogen_sh_dudz

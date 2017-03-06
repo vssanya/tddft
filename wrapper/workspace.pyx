@@ -16,7 +16,8 @@ cdef class SKnWorkspace:
         )
 
     def __dealloc__(self):
-        sh_workspace_free(self.data)
+        if self.data != NULL:
+            sh_workspace_free(self.data)
 
     def prop(self, SWavefunc wf, Field E, double t, double dt):
         sh_workspace_prop(self.data, wf.data, E.data, t, dt)

@@ -3,7 +3,7 @@ cimport numpy as np
 
 from types cimport cdouble
 from grid cimport SGrid, SpGrid
-from wavefunc cimport sphere_wavefunc_norm
+from wavefunc cimport sphere_wavefunc_norm, swavefunc_from_point
 
 cdef class SOrbitals:
     def __cinit__(self, int ne, SGrid grid):
@@ -20,6 +20,10 @@ cdef class SOrbitals:
 
     def normalize(self):
         ks_orbitals_normilize(self._data)
+
+    def get_wf(self, int ne):
+        assert(ne < self._data.ne)
+        return swavefunc_from_point(self._data.wf[ne])
 
     def asarray(self):
         cdef cdouble[:, :, ::1] array = <cdouble[:self._data.ne, :self._data.grid.n[1],:self._data.grid.n[0]]>self._data.data

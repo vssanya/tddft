@@ -27,4 +27,8 @@ cdef extern from "sphere_wavefunc.h":
 
 cdef class SWavefunc:
     cdef sphere_wavefunc_t* data
-    cdef SGrid grid
+    cdef bint dealloc
+
+    cdef _set_data(self, sphere_wavefunc_t* data)
+
+cdef SWavefunc swavefunc_from_point(sphere_wavefunc_t* data)

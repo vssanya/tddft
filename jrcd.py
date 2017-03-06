@@ -1,20 +1,22 @@
 from mpi4py import MPI
 
 import numpy as np
-from tdse import grid, wavefunc, field, workspace, hydrogen, calc, utils
+import tdse
+
+
+atom = tdse.atom.Atom('H')
 
 def calc_jrcd(I0, length, t_fwhm, alpha, phase):
-    freq = utils.length_to_freq(800, 'nm')
-    E0 = utils.I_to_E(I0)
-    tp = utils.t_fwhm(t_fwhm, 'fs')
-    t0 = utils.t_shift(tp, I0, Imin=I0*1e-7)
+    freq = tdse.utils.length_to_freq(800, 'nm')
+    E0 = tdse.utils.I_to_E(I0)
+    tp = tdse.utils.t_fwhm(t_fwhm, 'fs')
+    t0 = tdse.utils.t_shift(tp, I0, Imin=I0*1e-7)
 
-    f = field.TwoColorPulseField(
+    f = tdse.field.TwoColorPulseField(
         E0 = E0,
         alpha = alpha,
         freq = freq,
-        phase = phase,
-        tp = tp,
+        phase = phase, tp = tp,
         t0 = t0
     )
 
@@ -23,20 +25,26 @@ def calc_jrcd(I0, length, t_fwhm, alpha, phase):
     t_smooth = 200
     Nt = (2*t0 + t_smooth)/dt
 
-    r_max = np.max([utils.r_max(E0, alpha, freq), 30])
+    r_max = np.max([tdse.utils.r_max(E0, alpha, freq), 30])
 
-    g = grid.SGrid(Nr=r_max/dr, Nl=40, r_max=r_max)
-    wf = hydrogen.ground_state(g)
-    ws = workspace.SKnWorkspace(dt=dt, grid=g)
+    g = tdse.grid.SGrid(Nr=r_max/dr, Nl=40, r_max=r_max)
+    wf = tdse.atom.ground_state(g)
+    ws = tdse.workspace.SKnWorkspace(atom=atom, grid=g)
 
-    return calc.jrcd_t(ws, wf, f, Nt, t_smooth)
+    tmp = np.array(wf.asarray())
+
+    for i in range(50):
+        ws.prop_img(wf, 0.1)
+        wf.normalize()
+
+    return tdse.calc.jrcd_t(ws, wf, f, Nt, dt, t_smooth)
 
 def do_root(comm, count_workers):
     result = {}
     status = MPI.Status()
 
     phase = np.linspace(0.0, 2*np.pi, 20)
-    I     = np.logspace(12, 15, 10)
+    I     = np.logspace(12, 15, 20)
     jrcd  = np.zeros((phase.size, I.size))
 
     ip = 0
