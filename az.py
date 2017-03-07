@@ -3,7 +3,7 @@ import numpy as np
 
 from tdse import grid, wavefunc, field, workspace, hydrogen, calc, utils
 
-def calc_az_t(tp, t0, rank):
+def calc_wf_az_t(tp, t0, rank):
     freq = utils.length_to_freq(800, 'nm')
     T = 2*np.pi/freq
 
@@ -44,4 +44,4 @@ rank = comm.Get_rank()
 tp = [ 9.33, 3.99, 2.05 ]
 t0 = [ 8, 3, 1.5 ]
 
-calc_az_t(tp[rank], t0[rank], rank)
+calc_wf_az_t(tp[rank], t0[rank], rank)

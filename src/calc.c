@@ -1,23 +1,63 @@
 #include "calc.h"
-#include "atom.h"
 #include "utils.h"
 
 
-double calc_az(sphere_wavefunc_t const* wf, field_t field, sh_f dudz, double t) {
-    return - field_E(field, t) - sphere_wavefunc_cos(wf, dudz);
+double calc_wf_az(sh_wavefunc_t const* wf, atom_t const* atom, field_t field, double t) {
+    return - field_E(field, t) - sh_wavefunc_cos(wf, atom->dudz);
 }
 
-void calc_az_t(int Nt, double a[Nt], sh_workspace_t* ws, sphere_wavefunc_t* wf, field_t field, double dt) {
+double calc_orbs_az(orbitals_t const* orbs, atom_t const* atom, field_t field, double t) {
+	return - field_E(field, t) - orbitals_cos(orbs, atom->dudz);
+}
+
+double calc_wf_ionization_prob(sh_wavefunc_t const* wf) {
+	return 1.0 - sh_wavefunc_norm(wf);
+}
+
+double calc_orbs_ionization_prob(orbitals_t const* orbs) {
+	return 2*orbs->ne - orbitals_norm(orbs);
+}
+
+double calc_wf_jrcd(
+		sh_workspace_t* ws,
+		sh_wavefunc_t* wf,
+		atom_t const* atom,
+		field_t field,
+		int Nt, 
+		double dt,
+		double t_smooth
+) {
+	double res = 0.0;
 	double t = 0.0;
+	double const t_max = Nt*dt;
 
 	for (int i = 0; i < Nt; ++i) {
-        a[i] = calc_az(wf, field, atom_hydrogen_sh_dudz, t);
+		res += calc_wf_az(wf, atom, field, t)*smoothstep(t_max - t, 0, t_smooth);
 		sh_workspace_prop(ws, wf, field, t, dt);
-
 		t += dt;
 	}
+
+	return res*dt;
 }
 
-double calc_ionization_prob(ks_orbitals_t const* orbs) {
-	return 2*orbs->ne - ks_orbitals_norm(orbs);
+double calc_orbs_jrcd(
+		sh_orbs_workspace_t* ws,
+		orbitals_t* orbs,
+		atom_t const* atom,
+		field_t field,
+		int Nt, 
+		double dt,
+		double t_smooth
+) {
+	double res = 0.0;
+	double t = 0.0;
+	double const t_max = Nt*dt;
+
+	for (int i = 0; i < Nt; ++i) {
+		res += calc_orbs_az(orbs, atom, field, t)*smoothstep(t_max - t, 0, t_smooth);
+		sh_orbs_workspace_prop(ws, orbs, field, t, dt);
+		t += dt;
+	}
+
+	return res*dt;
 }

@@ -2,8 +2,8 @@ from types cimport sh_f, cdouble
 from grid cimport sh_grid_t, sp_grid_t
 from grid cimport SGrid
 
-cdef extern from "sphere_wavefunc.h":
-    ctypedef struct sphere_wavefunc_t:
+cdef extern from "sh_wavefunc.h":
+    ctypedef struct sh_wavefunc_t:
         sh_grid_t* grid
 
         cdouble* data
@@ -11,24 +11,24 @@ cdef extern from "sphere_wavefunc.h":
 
         int m
 
-    sphere_wavefunc_t* sphere_wavefunc_new(sh_grid_t* grid, int m)
-    sphere_wavefunc_t* sphere_wavefunc_new_from(cdouble* data, sh_grid_t* grid, int m)
+    sh_wavefunc_t* sh_wavefunc_new(sh_grid_t* grid, int m)
+    sh_wavefunc_t* sh_wavefunc_new_from(cdouble* data, sh_grid_t* grid, int m)
 
-    void   sphere_wavefunc_del(sphere_wavefunc_t* wf)
-    double sphere_wavefunc_norm(sphere_wavefunc_t* wf)
-    void   sphere_wavefunc_normalize(sphere_wavefunc_t* wf)
-    void   sphere_wavefunc_print(sphere_wavefunc_t * wf)
-    double sphere_wavefunc_cos(
-		sphere_wavefunc_t * wf,
+    void   sh_wavefunc_del(sh_wavefunc_t* wf)
+    double sh_wavefunc_norm(sh_wavefunc_t* wf)
+    void   sh_wavefunc_normalize(sh_wavefunc_t* wf)
+    void   sh_wavefunc_print(sh_wavefunc_t * wf)
+    double sh_wavefunc_cos(
+		sh_wavefunc_t * wf,
 		sh_f U
     )
-    double sphere_wavefunc_z(sphere_wavefunc_t * wf)
-    cdouble swf_get_sp(sphere_wavefunc_t* wf, sp_grid_t* grid, int i[3]);
+    double sh_wavefunc_z(sh_wavefunc_t * wf)
+    cdouble swf_get_sp(sh_wavefunc_t* wf, sp_grid_t* grid, int i[3]);
 
 cdef class SWavefunc:
-    cdef sphere_wavefunc_t* data
+    cdef sh_wavefunc_t* data
     cdef bint dealloc
 
-    cdef _set_data(self, sphere_wavefunc_t* data)
+    cdef _set_data(self, sh_wavefunc_t* data)
 
-cdef SWavefunc swavefunc_from_point(sphere_wavefunc_t* data)
+cdef SWavefunc swavefunc_from_point(sh_wavefunc_t* data)

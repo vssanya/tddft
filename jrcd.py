@@ -31,13 +31,11 @@ def calc_jrcd(I0, length, t_fwhm, alpha, phase):
     wf = tdse.atom.ground_state(g)
     ws = tdse.workspace.SKnWorkspace(atom=atom, grid=g)
 
-    tmp = np.array(wf.asarray())
-
     for i in range(50):
         ws.prop_img(wf, 0.1)
         wf.normalize()
 
-    return tdse.calc.jrcd_t(ws, wf, f, Nt, dt, t_smooth)
+    return tdse.calc.jrcd_t(atom, ws, wf, f, Nt, dt, t_smooth)
 
 def do_root(comm, count_workers):
     result = {}

@@ -4,7 +4,7 @@ import matplotlib.animation as animation
 
 from tdse import grid, wavefunc, orbitals, field, workspace, atom, calc, utils
 
-def calc_az_t():
+def calc_wf_az_t():
     freq = utils.length_to_freq(800, 'nm')
     T = 2*np.pi/freq
 
@@ -115,4 +115,4 @@ def calc_az_t():
     return az
 
 if __name__ == "__main__":
-    calc_az_t()
+    calc_wf_az_t()

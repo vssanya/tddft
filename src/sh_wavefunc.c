@@ -1,4 +1,4 @@
-#include "sphere_wavefunc.h"
+#include "sh_wavefunc.h"
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -7,8 +7,8 @@
 
 #include "utils.h"
 
-sphere_wavefunc_t* _sphere_wavefunc_new(cdouble* data, bool data_own, sh_grid_t const* grid, int const m) {
-	sphere_wavefunc_t* wf = malloc(sizeof(sphere_wavefunc_t));
+sh_wavefunc_t* _sh_wavefunc_new(cdouble* data, bool data_own, sh_grid_t const* grid, int const m) {
+	sh_wavefunc_t* wf = malloc(sizeof(sh_wavefunc_t));
 	wf->grid = grid;
 
 	wf->data = data;
@@ -19,23 +19,23 @@ sphere_wavefunc_t* _sphere_wavefunc_new(cdouble* data, bool data_own, sh_grid_t 
 	return wf;
 }
 
-sphere_wavefunc_t* sphere_wavefunc_new(sh_grid_t const* grid, int const m) {
+sh_wavefunc_t* sh_wavefunc_new(sh_grid_t const* grid, int const m) {
 	cdouble* data = calloc(grid2_size(grid), sizeof(cdouble));
-	return _sphere_wavefunc_new(data, true, grid, m);
+	return _sh_wavefunc_new(data, true, grid, m);
 }
 
-sphere_wavefunc_t* sphere_wavefunc_new_from(cdouble* data, sh_grid_t const* grid, int const m) {
-	return _sphere_wavefunc_new(data, false, grid, m);
+sh_wavefunc_t* sh_wavefunc_new_from(cdouble* data, sh_grid_t const* grid, int const m) {
+	return _sh_wavefunc_new(data, false, grid, m);
 }
 
-void sphere_wavefunc_del(sphere_wavefunc_t* wf) {
+void sh_wavefunc_del(sh_wavefunc_t* wf) {
 	if (wf->data_own) {
 		free(wf->data);
 	}
 	free(wf);
 }
 
-cdouble sphere_wavefunc_prod(sphere_wavefunc_t const* wf1, sphere_wavefunc_t const* wf2) {
+cdouble sh_wavefunc_prod(sh_wavefunc_t const* wf1, sh_wavefunc_t const* wf2) {
 	cdouble res = 0.0;
 	for (int i = 0; i < grid2_size(wf1->grid); ++i) {
 		res += wf2->data[i]*conj(wf1->data[i]);
@@ -43,7 +43,7 @@ cdouble sphere_wavefunc_prod(sphere_wavefunc_t const* wf1, sphere_wavefunc_t con
 	return res*wf1->grid->d[iR];
 }
 
-void sphere_wavefunc_ort_l(int l, int n, sphere_wavefunc_t* wfs[n]) {
+void sh_wavefunc_ort_l(int l, int n, sh_wavefunc_t* wfs[n]) {
 	assert(n > 1);
 	for (int in=1; in<n; ++in) {
 		assert(wfs[in-1]->m == wfs[in]->m);
@@ -56,7 +56,7 @@ void sphere_wavefunc_ort_l(int l, int n, sphere_wavefunc_t* wfs[n]) {
 
 	for (int in=0; in<n; ++in) {
 		for (int ip=0; ip<in; ++ip) {
-			proj[ip] = sphere_wavefunc_prod(wfs[ip], wfs[in]) / norm[ip];
+			proj[ip] = sh_wavefunc_prod(wfs[ip], wfs[in]) / norm[ip];
 		}
 
 		for (int ip=0; ip<in; ++ip) {
@@ -66,27 +66,27 @@ void sphere_wavefunc_ort_l(int l, int n, sphere_wavefunc_t* wfs[n]) {
 			}
 		}
 
-		norm[in] = sphere_wavefunc_norm(wfs[in]);
+		norm[in] = sh_wavefunc_norm(wfs[in]);
 	}
 }
 
-double sphere_wavefunc_norm(sphere_wavefunc_t const* wf) {
+double sh_wavefunc_norm(sh_wavefunc_t const* wf) {
 	double norm = 0.0;
+
 	for (int i = 0; i < grid2_size(wf->grid); ++i) {
 		cdouble value = wf->data[i];
 		norm += pow(creal(value), 2) + pow(cimag(value), 2);
 	}
-	return norm*wf->grid->d[iR];
-}
+	return norm*wf->grid->d[iR]; }
 
-void sphere_wavefunc_normalize(sphere_wavefunc_t* wf) {
-	double norm = sphere_wavefunc_norm(wf);
+void sh_wavefunc_normalize(sh_wavefunc_t* wf) {
+	double norm = sh_wavefunc_norm(wf);
 	for (int i = 0; i < grid2_size(wf->grid); ++i) {
 		wf->data[i] /= sqrt(norm);
 	}
 }
 
-void sphere_wavefunc_print(sphere_wavefunc_t const* wf) {
+void sh_wavefunc_print(sh_wavefunc_t const* wf) {
 	for (int ir = 0; ir < wf->grid->n[iR]; ++ir) {
 		double const r = sh_grid_r(wf->grid, ir);
 		double res = 0.0;
@@ -99,7 +99,7 @@ void sphere_wavefunc_print(sphere_wavefunc_t const* wf) {
 }
 
 // <psi|U(r)cos(\theta)|psi>
-double sphere_wavefunc_cos(sphere_wavefunc_t const* wf, sh_f U) {
+double sh_wavefunc_cos(sh_wavefunc_t const* wf, sh_f U) {
 	double res = 0.0;
 
 	for (int il = 0; il < wf->grid->n[iL]-1; ++il) {
@@ -115,13 +115,13 @@ double sphere_wavefunc_cos(sphere_wavefunc_t const* wf, sh_f U) {
 	return res;
 }
 
-double sphere_wavefunc_z(sphere_wavefunc_t const* wf) {
+double sh_wavefunc_z(sh_wavefunc_t const* wf) {
     double func(sh_grid_t const* grid, int ir, int il, int im) { return sh_grid_r(grid, ir); }
 
-	return sphere_wavefunc_cos(wf, func);
+	return sh_wavefunc_cos(wf, func);
 }
 
-cdouble swf_get_sp(sphere_wavefunc_t const* wf, sp_grid_t const* grid, int i[3]) {
+cdouble swf_get_sp(sh_wavefunc_t const* wf, sp_grid_t const* grid, int i[3]) {
 	cdouble res = 0.0;
 	double r = sh_grid_r(wf->grid, i[iR]);
 	for (int il = 0; il < wf->grid->n[iL]; ++il) {
@@ -131,7 +131,7 @@ cdouble swf_get_sp(sphere_wavefunc_t const* wf, sp_grid_t const* grid, int i[3])
 	return res;
 }
 
-void sphere_wavefunc_random_l(sphere_wavefunc_t* wf, int l) {
+void sh_wavefunc_random_l(sh_wavefunc_t* wf, int l) {
 	assert(l >= 0 && l < wf->grid->n[iL]);
 
 	for (int il=0; il<l; ++il) {

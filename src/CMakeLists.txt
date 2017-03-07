@@ -3,7 +3,7 @@ set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=gnu99 -Wall -O3")
 
 set( LIB_SOURCES
 	sh_workspace.c
-	sphere_wavefunc.c
+	sh_wavefunc.c
 	hartree_potential.c
 	utils.c
 	abs_pot.c
@@ -11,19 +11,17 @@ set( LIB_SOURCES
 	fields.c
 	calc.c
 	sphere_harmonics.c
-	ks_orbitals.c
-	jrcd.c
+	orbitals.c
 	atom.c
 	)
 
 set( LIB_HEADERS
     fourier.h
-    jrcd.h
     kn.h
     prog.h
     grid.h
 	sh_workspace.h
-    sphere_wavefunc.h
+    sh_wavefunc.h
 	hartree_potential.h
     types.h
     units.h
@@ -32,7 +30,7 @@ set( LIB_HEADERS
 	fields.h
 	calc.h
 	sphere_harmonics.h
-	ks_orbitals.h
+	orbitals.h
 	atom.h
    )
 

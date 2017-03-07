@@ -8,25 +8,25 @@ cdef class SWavefunc:
         if grid is None:
             self.data = NULL
         else:
-            self.data = sphere_wavefunc_new(grid.data, m)
+            self.data = sh_wavefunc_new(grid.data, m)
         
         self.dealloc = dealloc
 
-    cdef _set_data(self, sphere_wavefunc_t* data):
+    cdef _set_data(self, sh_wavefunc_t* data):
         self.data = data
 
     def __dealloc__(self):
         if self.dealloc and self.data != NULL:
-            sphere_wavefunc_del(self.data)
+            sh_wavefunc_del(self.data)
 
     def norm(self):
-        return sphere_wavefunc_norm(self.data)
+        return sh_wavefunc_norm(self.data)
 
     def normalize(self):
-        sphere_wavefunc_normalize(self.data)
+        sh_wavefunc_normalize(self.data)
 
     def z(self):
-        return sphere_wavefunc_z(self.data)
+        return sh_wavefunc_z(self.data)
 
     def asarray(self):
         cdef cdouble[:, ::1] array = <cdouble[:self.data.grid.n[1],:self.data.grid.n[0]]>self.data.data
@@ -43,7 +43,7 @@ cdef class SWavefunc:
         wf.normalize()
         return wf
 
-cdef SWavefunc swavefunc_from_point(sphere_wavefunc_t* data):
+cdef SWavefunc swavefunc_from_point(sh_wavefunc_t* data):
     wf = SWavefunc(grid=None, dealloc=False)
     wf._set_data(data)
     return wf

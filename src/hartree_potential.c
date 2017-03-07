@@ -29,11 +29,11 @@ double F_next(double F[2], int l, int ir, sh_grid_t const* grid, double f[grid->
 	return (F[0] + F[1])*dr;
 }
 
-void hartree_potential_l0(ks_orbitals_t const* orbs, double U[orbs->grid->n[iR]], double f[orbs->grid->n[iR]]) {
+void hartree_potential_l0(orbitals_t const* orbs, double U[orbs->grid->n[iR]], double f[orbs->grid->n[iR]]) {
 	sh_grid_t const* grid = orbs->grid;
 
 	for (int ie = 0; ie < orbs->ne; ++ie) {
-        sphere_wavefunc_t const* wf = orbs->wf[ie];
+        sh_wavefunc_t const* wf = orbs->wf[ie];
         for (int il = 0; il < grid->n[iL]; ++il) {
 			for (int ir = 0; ir < grid->n[iR]; ++ir) {
                 f[ir] += swf_get_abs_2(wf, ir, il);
@@ -48,11 +48,11 @@ void hartree_potential_l0(ks_orbitals_t const* orbs, double U[orbs->grid->n[iR]]
 	}
 }
 
-void hartree_potential_l1(ks_orbitals_t const* orbs, double U[orbs->grid->n[iR]], double f[orbs->grid->n[iR]]) {
+void hartree_potential_l1(orbitals_t const* orbs, double U[orbs->grid->n[iR]], double f[orbs->grid->n[iR]]) {
 	sh_grid_t const* grid = orbs->grid;
 
 	for (int ie = 0; ie < orbs->ne; ++ie) {
-        sphere_wavefunc_t const* wf = orbs->wf[ie];
+        sh_wavefunc_t const* wf = orbs->wf[ie];
 
 		{
 			int il = 0;
@@ -87,11 +87,11 @@ void hartree_potential_l1(ks_orbitals_t const* orbs, double U[orbs->grid->n[iR]]
 	}
 }
 
-void hartree_potential_l2(ks_orbitals_t const* orbs, double U[orbs->grid->n[iR]], double f[orbs->grid->n[iR]]) {
+void hartree_potential_l2(orbitals_t const* orbs, double U[orbs->grid->n[iR]], double f[orbs->grid->n[iR]]) {
 	sh_grid_t const* grid = orbs->grid;
 
 	for (int ie = 0; ie < orbs->ne; ++ie) {
-        sphere_wavefunc_t const* wf = orbs->wf[ie];
+        sh_wavefunc_t const* wf = orbs->wf[ie];
         for (int il = 0; il < 2; ++il) {
 			for (int ir = 0; ir < grid->n[iR]; ++ir) {
                 f[ir] += swf_get(wf, ir, il) * (
@@ -126,9 +126,9 @@ void hartree_potential_l2(ks_orbitals_t const* orbs, double U[orbs->grid->n[iR]]
 	}
 }
 
-void ux_lda(int l, ks_orbitals_t const* orbs, double U[orbs->wf[0]->grid->n[iR]], sp_grid_t const* sp_grid) {
+void ux_lda(int l, orbitals_t const* orbs, double U[orbs->wf[0]->grid->n[iR]], sp_grid_t const* sp_grid) {
 	double func(int ir, int ic) {
-		return - pow(3/M_PI*ks_orbitals_n(orbs, sp_grid, (int[2]){ir, ic}), 1.0/3.0);
+		return - pow(3/M_PI*orbitals_n(orbs, sp_grid, (int[2]){ir, ic}), 1.0/3.0);
 	}
 
 	sh_series(func, l, 0, sp_grid, U);

@@ -31,6 +31,8 @@ sh_workspace_t* sh_workspace_alloc(
 	ws->num_threads = 1;
 #endif
 
+	printf("Create workspace with %d threads\n", ws->num_threads);
+
 	ws->alpha = malloc(sizeof(cdouble)*grid->n[iR]*ws->num_threads);
 	ws->betta = malloc(sizeof(cdouble)*grid->n[iR]*ws->num_threads);
 
@@ -49,7 +51,7 @@ void sh_workspace_free(sh_workspace_t* ws) {
 
 // exp(-0.5iΔtHang(l,m, t+Δt/2))
 // @param E = E(t+dt/2)
-void sh_workspace_prop_ang_l(sh_workspace_t* ws, sphere_wavefunc_t* wf, cdouble dt, int l, int l1, sh_f Ul) {
+void sh_workspace_prop_ang_l(sh_workspace_t* ws, sh_wavefunc_t* wf, cdouble dt, int l, int l1, sh_f Ul) {
 	/*
 	 * Solve Nr equations:
 	 * psi(l   , t+dt, r) + a*psi(l+l1, t+dt, r) = f0
@@ -80,7 +82,7 @@ void sh_workspace_prop_ang_l(sh_workspace_t* ws, sphere_wavefunc_t* wf, cdouble 
 // exp(-iΔtHat(l,m, t+Δt/2))
 void sh_workspace_prop_at(
 		sh_workspace_t* ws,
-		sphere_wavefunc_t* wf,
+		sh_wavefunc_t* wf,
 		double dt,
 		sh_f Ul,
 		sh_f Uabs
@@ -139,7 +141,7 @@ void sh_workspace_prop_at(
 // O(dr^4)
 void sh_workspace_prop_at_v2(
 		sh_workspace_t* ws,
-		sphere_wavefunc_t* wf,
+		sh_wavefunc_t* wf,
 		cdouble dt,
 		sh_f Ul,
 		sh_f Uabs
@@ -215,7 +217,7 @@ void sh_workspace_prop_at_v2(
  * */
 void _sh_workspace_prop(
 		sh_workspace_t* ws,
-		sphere_wavefunc_t* wf,
+		sh_wavefunc_t* wf,
 		cdouble dt,
 		int l_max,
 		sh_f Ul[l_max],
@@ -223,6 +225,7 @@ void _sh_workspace_prop(
 ) {
 #pragma omp parallel num_threads(ws->num_threads)
 	{
+		int tid = omp_get_thread_num();
 		for (int l1 = 1; l1 < l_max; ++l1) {
 			for (int il = 0; il < ws->grid->n[iL] - l1; ++il) {
 				sh_workspace_prop_ang_l(ws, wf, dt, il, l1, Ul[l1]);
@@ -239,7 +242,7 @@ void _sh_workspace_prop(
 	}
 }
 
-void sh_workspace_prop(sh_workspace_t* ws, sphere_wavefunc_t* wf, field_t field, double t, double dt) {
+void sh_workspace_prop(sh_workspace_t* ws, sh_wavefunc_t* wf, field_t field, double t, double dt) {
 	double Et = field_E(field, t + dt/2);
 
 	double Ul0(sh_grid_t const* grid, int ir, int l, int m) {
@@ -257,7 +260,7 @@ void sh_workspace_prop(sh_workspace_t* ws, sphere_wavefunc_t* wf, field_t field,
 
 void sh_workspace_prop_img(
 		sh_workspace_t* ws,
-		sphere_wavefunc_t* wf,
+		sh_wavefunc_t* wf,
 		double dt
 ) {
 	double Ul0(sh_grid_t const* grid, int ir, int l, int m) {
@@ -312,7 +315,7 @@ void sh_orbs_workspace_free(sh_orbs_workspace_t* ws) {
 
 //void sh_orbs_workspace_prop(
 //		sh_orbs_workspace_t* ws,
-//		ks_orbitals_t* orbs,
+//		orbitals_t* orbs,
 //		field_t field,
 //		double t,
 //		double dt
@@ -348,7 +351,7 @@ void sh_orbs_workspace_free(sh_orbs_workspace_t* ws) {
 
 void sh_orbs_workspace_prop(
 		sh_orbs_workspace_t* ws,
-		ks_orbitals_t* orbs,
+		orbitals_t* orbs,
 		field_t field,
 		double t,
 		double dt
@@ -383,7 +386,7 @@ void sh_orbs_workspace_prop(
 
 void sh_orbs_workspace_prop_img(
 		sh_orbs_workspace_t* ws,
-		ks_orbitals_t* orbs,
+		orbitals_t* orbs,
 		double dt
 ) {
 	for (int l=0; l<1; ++l) {

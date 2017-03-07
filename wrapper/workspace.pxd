@@ -1,10 +1,10 @@
 from types cimport cdouble, sh_f
 
 from grid cimport sh_grid_t, sp_grid_t
-from wavefunc cimport sphere_wavefunc_t
+from wavefunc cimport sh_wavefunc_t
 
 from field cimport field_t
-from orbitals cimport ks_orbitals_t
+from orbitals cimport orbitals_t
 
 cdef extern from "sh_workspace.h":
     ctypedef struct sh_workspace_t:
@@ -34,13 +34,13 @@ cdef extern from "sh_workspace.h":
 
     void sh_workspace_prop_ang(
             sh_workspace_t* ws,
-            sphere_wavefunc_t* wf,
+            sh_wavefunc_t* wf,
             double dt,
             int l, double E)
 
     void sh_workspace_prop_at(
             sh_workspace_t* ws,
-            sphere_wavefunc_t* wf,
+            sh_wavefunc_t* wf,
             cdouble dt,
             sh_f Ul,
             sh_f Uabs
@@ -48,7 +48,7 @@ cdef extern from "sh_workspace.h":
 
     void sh_workspace_prop_at_v2(
             sh_workspace_t* ws,
-            sphere_wavefunc_t* wf,
+            sh_wavefunc_t* wf,
             cdouble dt,
             sh_f Ul,
             sh_f Uabs
@@ -56,7 +56,7 @@ cdef extern from "sh_workspace.h":
 
     void sh_workspace_prop(
             sh_workspace_t* ws,
-            sphere_wavefunc_t* wf,
+            sh_wavefunc_t* wf,
             field_t E,
             double t,
             double dt
@@ -64,20 +64,20 @@ cdef extern from "sh_workspace.h":
 
     void sh_workspace_prop_img(
             sh_workspace_t* ws,
-            sphere_wavefunc_t* wf,
+            sh_wavefunc_t* wf,
             double dt
     )
 
     void sh_orbs_workspace_prop(
             sh_orbs_workspace_t* ws,
-            ks_orbitals_t* orbs,
+            orbitals_t* orbs,
             field_t field,
             double t,
             double dt
     )
     void sh_orbs_workspace_prop_img(
             sh_orbs_workspace_t* ws,
-            ks_orbitals_t* orbs,
+            orbitals_t* orbs,
             double dt
     )
 

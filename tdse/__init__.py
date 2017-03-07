@@ -6,3 +6,4 @@ from . import atom
 from . import workspace
 from . import calc
 from . import utils
+from . import hartree_potential

@@ -3,24 +3,38 @@ cimport numpy as np
 
 from wavefunc cimport SWavefunc
 from orbitals cimport SOrbitals
-from workspace cimport SKnWorkspace
+from workspace cimport SKnWorkspace, SOrbsWorkspace
 from field cimport Field
 from atom cimport Atom
 
 
-def ionization_prob(SOrbitals orbs):
-    return calc_ionization_prob(orbs._data)
+ctypedef fused WF:
+    SOrbitals
+    SWavefunc
 
-def az(Atom atom, SWavefunc wf, Field field, double t):
-    return calc_az(wf.data, field.data, atom._data.dudz, t)
+ctypedef fused WS:
+    SKnWorkspace
+    SOrbsWorkspace
 
-def az_t(int Nt, SKnWorkspace ws, SWavefunc wf, Field field, double dt):
-    cdef np.ndarray[np.double_t, ndim=1, mode='c'] az = np.ndarray(Nt, dtype=np.double)
-    calc_az_t(Nt, &az[0], ws.data, wf.data, field.data, dt)
-    return az
+def ionization_prob(WF wf):
+    if WF is SOrbitals:
+        return calc_orbs_ionization_prob(wf._data)
+    else:
+        return calc_wf_ionization_prob(wf.data)
 
-def jrcd_t(Atom atom, SKnWorkspace ws, SWavefunc wf, Field field, int Nt, double dt, double t_smooth):
-    return jrcd(ws.data, wf.data, field.data, atom._data.dudz, Nt, dt, t_smooth)
+def az(WF wf, Atom atom, Field field, double t):
+    if WF is SOrbitals:
+        return calc_orbs_az(wf._data, atom._data, field.data, t)
+    else:
+        return calc_wf_az(wf.data, atom._data, field.data, t)
+
+def jrcd(Atom atom, WS ws, WF wf, Field field, int Nt, double dt, double t_smooth):
+    if WF is SOrbitals and WS is SOrbsWorkspace:
+        return calc_orbs_jrcd(ws._data, wf._data, atom._data, field.data, Nt, dt, t_smooth)
+    elif WF is SWavefunc and WS is SKnWorkspace:
+        return calc_wf_jrcd(ws.data, wf.data, atom._data, field.data, Nt, dt, t_smooth)
+    else:
+        assert(False)
 
 def smstep(double x, double x0, double x1):
     return smoothstep(x, x0, x1)

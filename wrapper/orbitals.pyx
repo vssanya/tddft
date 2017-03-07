@@ -3,23 +3,23 @@ cimport numpy as np
 
 from types cimport cdouble
 from grid cimport SGrid, SpGrid
-from wavefunc cimport sphere_wavefunc_norm, swavefunc_from_point
+from wavefunc cimport sh_wavefunc_norm, swavefunc_from_point
 
 cdef class SOrbitals:
     def __cinit__(self, int ne, SGrid grid):
         self._data = ks_orbials_new(ne, grid.data)
 
     def __dealloc__(self):
-        ks_orbitals_del(self._data)
+        orbitals_del(self._data)
     
     def n(self, SpGrid grid, int ir, int ic):
-        return ks_orbitals_n(self._data, grid.data, [ir, ic])
+        return orbitals_n(self._data, grid.data, [ir, ic])
 
     def norm(self):
-        return ks_orbitals_norm(self._data)
+        return orbitals_norm(self._data)
 
     def normalize(self):
-        ks_orbitals_normilize(self._data)
+        orbitals_normalize(self._data)
 
     def get_wf(self, int ne):
         assert(ne < self._data.ne)
@@ -32,6 +32,6 @@ cdef class SOrbitals:
     def norm_ne(self):
         cdef np.ndarray[np.double_t, ndim=1, mode='c'] res = np.ndarray(self._data.ne, dtype=np.double)
         for i in range(self._data.ne):
-            res[i] = sphere_wavefunc_norm(self._data.wf[i])
+            res[i] = sh_wavefunc_norm(self._data.wf[i])
 
         return res
