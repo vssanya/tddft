@@ -71,6 +71,7 @@ void sh_wavefunc_ort_l(int l, int n, sh_wavefunc_t* wfs[n]) {
 }
 
 void sh_wavefunc_n_sp(sh_wavefunc_t const* wf, sp_grid_t const* grid, double n[grid->n[iR]*grid->n[iC]]) {
+#pragma omp parallel for collapse(2)
 	for (int ir = 0; ir < grid->n[iR]; ++ir) {
 		for (int ic = 0; ic < grid->n[iC]; ++ic) {
 			cdouble const psi = swf_get_sp(wf, grid, (int[3]){ir, ic, 0});
