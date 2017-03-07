@@ -38,3 +38,4 @@ void hartree_potential_l2(orbitals_t const* orbs, double U[orbs->grid->n[iR]], d
  * \param Ux[out] is amplitude \f$Y_l^0\f$ component of \f$U_{x} = - \left(\frac{3}{\pi}\right)^{1/3} n(\vec{r})^{1/3}\f$
  * */
 void ux_lda(int l, orbitals_t const* orbs, double U[orbs->wf[0]->grid->n[iR]], sp_grid_t const* sp_grid);
+void ux_lda_n(int l, sp_grid_t const* grid, double n[grid->n[iR]*grid->n[iC]], double U[grid->n[iR]]);

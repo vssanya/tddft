@@ -42,3 +42,13 @@ def lda(int l, SOrbitals orbs, SpGrid grid, np.ndarray[np.double_t, ndim=1] uxc 
 
     return uxc
 
+def lda_n(int l, np.ndarray[np.double_t, ndim=2] n, SpGrid grid, np.ndarray[np.double_t, ndim=1] uxc = None):
+    if uxc is None:
+        uxc = np.ndarray((grid.data.n[0]), np.double)
+    else:
+        assert(uxc.size == grid.data.n[0])
+
+    ux_lda_n(l, grid.data, &n[0,0], &uxc[0])
+
+    return uxc
+

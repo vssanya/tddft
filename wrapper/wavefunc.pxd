@@ -15,6 +15,7 @@ cdef extern from "sh_wavefunc.h":
     sh_wavefunc_t* sh_wavefunc_new_from(cdouble* data, sh_grid_t* grid, int m)
 
     void   sh_wavefunc_del(sh_wavefunc_t* wf)
+    void   sh_wavefunc_n_sp(sh_wavefunc_t* wf, sp_grid_t* grid, double* n)
     double sh_wavefunc_norm(sh_wavefunc_t* wf)
     void   sh_wavefunc_normalize(sh_wavefunc_t* wf)
     void   sh_wavefunc_print(sh_wavefunc_t * wf)

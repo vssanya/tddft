@@ -70,6 +70,15 @@ void sh_wavefunc_ort_l(int l, int n, sh_wavefunc_t* wfs[n]) {
 	}
 }
 
+void sh_wavefunc_n_sp(sh_wavefunc_t const* wf, sp_grid_t const* grid, double n[grid->n[iR]*grid->n[iC]]) {
+	for (int ir = 0; ir < grid->n[iR]; ++ir) {
+		for (int ic = 0; ic < grid->n[iC]; ++ic) {
+			cdouble const psi = swf_get_sp(wf, grid, (int[3]){ir, ic, 0});
+			n[ir + ic*grid->n[iR]] = pow(creal(psi), 2) + pow(cimag(psi), 2);
+		}
+	}
+}
+
 double sh_wavefunc_norm(sh_wavefunc_t const* wf) {
 	double norm = 0.0;
 
@@ -77,7 +86,8 @@ double sh_wavefunc_norm(sh_wavefunc_t const* wf) {
 		cdouble value = wf->data[i];
 		norm += pow(creal(value), 2) + pow(cimag(value), 2);
 	}
-	return norm*wf->grid->d[iR]; }
+	return norm*wf->grid->d[iR];
+}
 
 void sh_wavefunc_normalize(sh_wavefunc_t* wf) {
 	double norm = sh_wavefunc_norm(wf);

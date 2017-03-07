@@ -1,4 +1,5 @@
 import numpy as np
+cimport numpy as np
 
 from types cimport cdouble
 from grid cimport SGrid, SpGrid
@@ -18,6 +19,14 @@ cdef class SWavefunc:
     def __dealloc__(self):
         if self.dealloc and self.data != NULL:
             sh_wavefunc_del(self.data)
+
+    def n_sp(self, SpGrid grid, np.ndarray[np.double_t, ndim=2] n = None):
+        if n is None:
+            n = np.ndarray((grid.data.n[1], grid.data.n[0]), np.double)
+
+        sh_wavefunc_n_sp(self.data, grid.data, &n[0,0])
+
+        return n
 
     def norm(self):
         return sh_wavefunc_norm(self.data)

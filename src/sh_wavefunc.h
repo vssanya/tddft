@@ -68,6 +68,8 @@ void   sh_wavefunc_del(sh_wavefunc_t* wf);
 // \return \f$<\psi_1|\psi_2>\f$
 cdouble sh_wavefunc_prod(sh_wavefunc_t const* wf1, sh_wavefunc_t const* wf2);
 
+void sh_wavefunc_n_sp(sh_wavefunc_t const* wf, sp_grid_t const* grid, double n[grid->n[iR]*grid->n[iC]]);
+
 double sh_wavefunc_norm(sh_wavefunc_t const* wf);
 
 void   sh_wavefunc_normalize(sh_wavefunc_t* wf);

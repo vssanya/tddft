@@ -87,7 +87,11 @@ void hartree_potential_l1(orbitals_t const* orbs, double U[orbs->grid->n[iR]], d
 	}
 }
 
-void hartree_potential_l2(orbitals_t const* orbs, double U[orbs->grid->n[iR]], double f[orbs->grid->n[iR]]) {
+void hartree_potential_l2(
+		orbitals_t const* orbs,
+		double U[orbs->grid->n[iR]],
+		double f[orbs->grid->n[iR]]
+) {
 	sh_grid_t const* grid = orbs->grid;
 
 	for (int ie = 0; ie < orbs->ne; ++ie) {
@@ -126,10 +130,27 @@ void hartree_potential_l2(orbitals_t const* orbs, double U[orbs->grid->n[iR]], d
 	}
 }
 
-void ux_lda(int l, orbitals_t const* orbs, double U[orbs->wf[0]->grid->n[iR]], sp_grid_t const* sp_grid) {
+void ux_lda(
+		int l, orbitals_t const* orbs,
+		double U[orbs->wf[0]->grid->n[iR]],
+		sp_grid_t const* sp_grid
+) {
 	double func(int ir, int ic) {
 		return - pow(3/M_PI*orbitals_n(orbs, sp_grid, (int[2]){ir, ic}), 1.0/3.0);
 	}
 
 	sh_series(func, l, 0, sp_grid, U);
+}
+
+void ux_lda_n(
+		int l,
+		sp_grid_t const* grid,
+		double n[grid->n[iR]*grid->n[iC]],
+		double U[grid->n[iR]]
+) {
+	double func(int ir, int ic) {
+		return - pow(3/M_PI*n[ir + ic*grid->n[iR]], 1.0/3.0);
+	}
+
+	sh_series(func, l, 0, grid, U);
 }
