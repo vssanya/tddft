@@ -68,8 +68,11 @@ class WavefuncPropagate:
         Nl = 64
 
         self.grid = tdse.grid.SGrid(Nr, Nl, r_max)
+        self.sp_grid = tdse.grid.SpGrid(Nr, 32, 1, r_max)
         self.atom = tdse.atom.Atom('H')
+        self.n = np.ndarray((Nr, 32))
         self.wf = tdse.atom.ground_state(self.grid)
+        self.ws_orbs = tdse.workspace.SOrbsWorkspace(grid=self.grid, atom=self.atom)
         self.ws = tdse.workspace.SKnWorkspace(grid=self.grid, atom=self.atom)
         self.field = tdse.field.SinField()
 
@@ -78,6 +81,9 @@ class WavefuncPropagate:
 
     def time_z(self):
         self.wf.z()
+
+    def time_n_sp(self):
+        self.wf.n_sp(self.sp_grid, self.n)
 
     def time_norm(self):
         self.wf.norm()
