@@ -15,9 +15,6 @@ typedef struct {
 	sh_f U;
 	sh_f Uabs;
 
-	cdouble* b;
-	cdouble* f;
-
 	cdouble* alpha;
 	cdouble* betta;
 

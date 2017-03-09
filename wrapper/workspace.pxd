@@ -11,8 +11,6 @@ cdef extern from "sh_workspace.h":
         sh_grid_t* grid
         sh_f U
         sh_f Uabs
-        cdouble* b
-        cdouble* f
         cdouble* alpha
         cdouble* betta
         int num_threads

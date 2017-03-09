@@ -1,6 +1,7 @@
 import numpy as np
 cimport numpy as np
 
+from wavefunc cimport SWavefunc
 from orbitals cimport SOrbitals
 from grid cimport SpGrid
 
@@ -11,6 +12,15 @@ def l0(SOrbitals orbs, np.ndarray[np.double_t, ndim=1] uh = None):
 
     cdef np.ndarray[np.double_t, ndim=1] f = np.ndarray((orbs._data.wf[0].grid.n[0]), np.double)
     hartree_potential_l0(orbs._data, &uh[0], &f[0])
+
+    return uh
+
+def wf_l0(SWavefunc wf, np.ndarray[np.double_t, ndim=1] uh = None):
+    if uh is None:
+        uh = np.ndarray((wf.data.grid.n[0]), np.double)
+
+    cdef np.ndarray[np.double_t, ndim=1] f = np.ndarray((wf.data.grid.n[0]), np.double)
+    hartree_potential_wf_l0(wf.data, &uh[0], &f[0])
 
     return uh
 

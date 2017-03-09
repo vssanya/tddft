@@ -42,9 +42,25 @@ void hartree_potential_l0(orbitals_t const* orbs, double U[orbs->grid->n[iR]], d
 	}
 
 	double F[2];
-	U[0] = 2*F_first(F, 0, orbs->grid, f);
+	U[0] = 2*F_first(F, 0, grid, f);
     for (int ir = 0; ir < grid->n[iR]; ++ir) {
-		U[ir] = 2*F_next(F, 0, ir, orbs->grid, f);
+		U[ir] = 2*F_next(F, 0, ir, grid, f);
+	}
+}
+
+void hartree_potential_wf_l0(sh_wavefunc_t const* wf, double U[wf->grid->n[iR]], double f[wf->grid->n[iR]]) {
+	sh_grid_t const* grid = wf->grid;
+
+	for (int il = 0; il < grid->n[iL]; ++il) {
+		for (int ir = 0; ir < grid->n[iR]; ++ir) {
+			f[ir] += swf_get_abs_2(wf, ir, il);
+		}
+	}
+
+	double F[2];
+	U[0] = 2*F_first(F, 0, grid, f);
+    for (int ir = 0; ir < grid->n[iR]; ++ir) {
+		U[ir] = 2*F_next(F, 0, ir, grid, f);
 	}
 }
 

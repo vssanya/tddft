@@ -9,3 +9,5 @@ wrapper/*.c
 tdse/*.so
 
 .asv
+
+CMakeLists.txt.user

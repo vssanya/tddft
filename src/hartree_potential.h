@@ -20,6 +20,8 @@
  * */
 void hartree_potential_l0(orbitals_t const* orbs, double U[orbs->grid->n[iR]], double f[orbs->grid->n[iR]]);
 
+void hartree_potential_wf_l0(sh_wavefunc_t const* wf, double U[wf->grid->n[iR]], double f[wf->grid->n[iR]]);
+
 /*!
  * U1(r,t) = \int L1(r',t) r< / r>^2 dr'
  * */

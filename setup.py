@@ -15,8 +15,11 @@ ext = Extension("*", ["wrapper/*.pyx"],
                 ],
                 extra_compile_args=[
                     '-std=gnu99',
-                ])
+                ],
+                )
 setup(
     name = "tdse",
-    ext_modules = cythonize([ext])
+    ext_modules = cythonize([ext], compiler_directives={
+                    'embedsignature': True
+                    })
 )

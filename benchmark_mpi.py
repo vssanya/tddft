@@ -9,8 +9,9 @@ comm = MPI.COMM_WORLD
 rank = comm.Get_rank()
 size = comm.Get_size()
 
+Nr = 10000
 
-grid = tdse.grid.SGrid(Nr=10000, Nl=60, r_max=200)
+grid = tdse.grid.SGrid(Nr=Nr, Nl=60, r_max=200)
 
 if rank == 0:
     orbs = tdse.orbitals.SOrbitals(size, grid)
@@ -33,19 +34,21 @@ for i in range(20):
         print("Time send = ", end - start)
 
 
-sp_grid = tdse.grid.SpGrid(10000, 32, 1, 200)
+sp_grid = tdse.grid.SpGrid(Nr, 32, 1, 200)
 
-n_wf = np.ndarray((10000, 32))
+n_wf = np.ndarray((Nr, 32))
+
+uh = np.ndarray(Nr)
+uxc = np.ndarray(Nr)
+
 if rank == 0:
-    n_orbs = np.ndarray((10000, 32))
+    n_orbs = np.ndarray((Nr, 32))
 else:
     n_orbs = None
 
 start = time.time()
-tdse.mpi.orbitals_calc_n_sp(wf, sp_grid, n_wf, n_orbs, comm)
-if rank == 0:
-    u_lda = tdse.hartree_potential.lda_n(0, n_orbs, sp_grid)
-
+tdse.mpi.orbitals_calc_uxc_l0(wf, sp_grid, n_wf, n_orbs, uxc, comm)
+tdse.mpi.orbitals_calc_uh_l0(wf, uh, comm)
 end = time.time()
 if rank == 0:
     print("Calc u_lda time", end - start)
