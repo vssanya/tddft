@@ -74,13 +74,13 @@ void sh_workspace_prop_img(
 );
 
 typedef struct {
-	sh_workspace_t** wf_ws;
+	sh_workspace_t* wf_ws;
 	double* Uh;
 	double* Uxc;
 	sh_grid_t const* sh_grid;
 	sp_grid_t* sp_grid;
-	int num_threads;
 	double* uh_tmp;
+	double* n_sp;
 } sh_orbs_workspace_t;
 
 sh_orbs_workspace_t*

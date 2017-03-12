@@ -32,11 +32,19 @@ double F_next(double F[2], int l, int ir, sh_grid_t const* grid, double f[grid->
 void hartree_potential_l0(orbitals_t const* orbs, double U[orbs->grid->n[iR]], double f[orbs->grid->n[iR]]) {
 	sh_grid_t const* grid = orbs->grid;
 
-	for (int ie = 0; ie < orbs->ne; ++ie) {
-        sh_wavefunc_t const* wf = orbs->wf[ie];
-        for (int il = 0; il < grid->n[iL]; ++il) {
+	if (orbs->mpi_comm != MPI_COMM_NULL) {
+		for (int il = 0; il < grid->n[iL]; ++il) {
 			for (int ir = 0; ir < grid->n[iR]; ++ir) {
-                f[ir] += swf_get_abs_2(wf, ir, il);
+				f[ir] += swf_get_abs_2(orbs->mpi_wf, ir, il);
+			}
+		}
+	} else {
+		for (int ie = 0; ie < orbs->ne; ++ie) {
+			sh_wavefunc_t const* wf = orbs->wf[ie];
+			for (int il = 0; il < grid->n[iL]; ++il) {
+				for (int ir = 0; ir < grid->n[iR]; ++ir) {
+					f[ir] += swf_get_abs_2(wf, ir, il);
+				}
 			}
 		}
 	}
@@ -45,6 +53,10 @@ void hartree_potential_l0(orbitals_t const* orbs, double U[orbs->grid->n[iR]], d
 	U[0] = 2*F_first(F, 0, grid, f);
     for (int ir = 0; ir < grid->n[iR]; ++ir) {
 		U[ir] = 2*F_next(F, 0, ir, grid, f);
+	}
+
+	if (orbs->mpi_comm != MPI_COMM_NULL) {
+		MPI_Allreduce(MPI_IN_PLACE, U, grid->n[iR], MPI_DOUBLE, MPI_SUM, orbs->mpi_comm);
 	}
 }
 
@@ -148,14 +160,23 @@ void hartree_potential_l2(
 
 void ux_lda(
 		int l, orbitals_t const* orbs,
-		double U[orbs->wf[0]->grid->n[iR]],
-		sp_grid_t const* sp_grid
+		double U[orbs->grid->n[iR]],
+		sp_grid_t const* grid,
+		double n[grid->n[iR]*grid->n[iC]] // for calc using mpi
 ) {
-	double func(int ir, int ic) {
-		return - pow(3/M_PI*orbitals_n(orbs, sp_grid, (int[2]){ir, ic}), 1.0/3.0);
-	}
+	if (orbs->mpi_comm == MPI_COMM_NULL) {
+		double func(int ir, int ic) {
+			return - pow(3/M_PI*orbitals_n(orbs, grid, (int[2]){ir, ic}), 1.0/3.0);
+		}
 
-	sh_series(func, l, 0, sp_grid, U);
+		sh_series(func, l, 0, grid, U);
+	} else {
+		orbitals_n_sp(orbs, grid, n);
+		if (orbs->mpi_rank == 0) {
+			ux_lda_n(l, grid, n, U);
+		}
+		MPI_Bcast(U, orbs->grid->n[iR], MPI_DOUBLE, 0, orbs->mpi_comm);
+	}
 }
 
 void ux_lda_n(

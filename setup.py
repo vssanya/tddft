@@ -1,8 +1,12 @@
 import numpy
+import mpi4py
 
 from distutils.core import setup
 from distutils.extension import Extension
 from Cython.Build import cythonize
+
+import os
+os.environ['CC'] = 'mpicc'
 
 ext = Extension("*", ["wrapper/*.pyx"],
                 libraries=["tdse"],
@@ -11,7 +15,8 @@ ext = Extension("*", ["wrapper/*.pyx"],
                 ],
                 include_dirs=[
                     'src',
-                    numpy.get_include()
+                    numpy.get_include(),
+                    mpi4py.get_include(),
                 ],
                 extra_compile_args=[
                     '-std=gnu99',
@@ -20,6 +25,6 @@ ext = Extension("*", ["wrapper/*.pyx"],
 setup(
     name = "tdse",
     ext_modules = cythonize([ext], compiler_directives={
-                    'embedsignature': True
-                    })
+        'embedsignature': True
+        })
 )

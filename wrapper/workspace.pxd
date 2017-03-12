@@ -16,10 +16,12 @@ cdef extern from "sh_workspace.h":
         int num_threads
 
     ctypedef struct sh_orbs_workspace_t:
-        sh_workspace_t* wf_ws;
-        double* Uh;
-        double* Uxc;
-        sp_grid_t* sp_grid;
+        sh_workspace_t* wf_ws
+        double* Uh
+        double* Uxc
+        sp_grid_t* sp_grid
+        double* uh_tmp
+        double* n_sp
 
     sh_workspace_t* sh_workspace_alloc(
             sh_grid_t* grid,

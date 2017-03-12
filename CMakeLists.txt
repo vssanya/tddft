@@ -14,6 +14,11 @@ if (OPENMP_FOUND)
 	add_definitions(-DWITH_OMP)
 endif()
 
+find_package(MPI)
+if (MPI_FOUND)
+	include_directories(${MPI_INCLUDE_DIR})
+endif()
+
 set(CMAKE_EXPORT_COMPILE_COMMANDS 1)
 
 find_package(GSL)

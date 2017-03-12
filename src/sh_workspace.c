@@ -279,12 +279,7 @@ sh_orbs_workspace_t* sh_orbs_workspace_alloc(
 ) {	
 	sh_orbs_workspace_t* ws = malloc(sizeof(sh_workspace_t));
 
-	ws->num_threads = 1;
-
-	ws->wf_ws = malloc(sizeof(sh_workspace_t*)*ws->num_threads);
-	for (int i=0; i<ws->num_threads; ++i) {
-		ws->wf_ws[i] = sh_workspace_alloc(grid, U, Uabs, num_threads);
-	}
+	ws->wf_ws = sh_workspace_alloc(grid, U, Uabs, num_threads);
 
 	ws->Uh  = malloc(sizeof(double)*grid->n[iR]*3);
 	ws->Uxc = malloc(sizeof(double)*grid->n[iR]*3);
@@ -294,23 +289,24 @@ sh_orbs_workspace_t* sh_orbs_workspace_alloc(
 	ws->sh_grid = grid;
 	ws->sp_grid = sp_grid_new((int[3]){grid->n[iR], 32, 1}, sh_grid_r_max(grid));
 
+	ws->n_sp = malloc(sizeof(double)*ws->sp_grid->n[iR]*ws->sp_grid->n[iC]);
+
 	ylm_cache_init(grid->n[iL], ws->sp_grid);
 
 	return ws;
 }
 
 void sh_orbs_workspace_free(sh_orbs_workspace_t* ws) {
-	for (int i=0; i<ws->num_threads; ++i) {
-		sh_workspace_free(ws->wf_ws[i]);
-	}
+	ylm_cache_deinit();
+
+	free(ws->n_sp);
+
 	free(ws->wf_ws);
 	sp_grid_del(ws->sp_grid);
 	free(ws->Uh);
 	free(ws->Uxc);
 	free(ws->uh_tmp);
 	free(ws);
-
-	ylm_cache_deinit();
 }
 
 //void sh_orbs_workspace_prop(
@@ -357,7 +353,7 @@ void sh_orbs_workspace_prop(
 		double dt
 ) {
 	for (int l=0; l<1; ++l) {
-		ux_lda(l, orbs, &ws->Uxc[l*ws->sh_grid->n[iR]], ws->sp_grid);
+		ux_lda(l, orbs, &ws->Uxc[l*ws->sh_grid->n[iR]], ws->sp_grid, ws->n_sp);
 	}
 
 	hartree_potential_l0(orbs, &ws->Uh[0*ws->sh_grid->n[iR]], ws->uh_tmp);
@@ -366,7 +362,7 @@ void sh_orbs_workspace_prop(
 
 	double Ul0(sh_grid_t const* grid, int ir, int l, int m) {
 		double const r = sh_grid_r(grid, ir);
-		return l*(l+1)/(2*r*r) + ws->wf_ws[0]->U(grid, ir, l, m) + ws->Uh[ir] + ws->Uxc[ir];
+		return l*(l+1)/(2*r*r) + ws->wf_ws->U(grid, ir, l, m) + ws->Uh[ir] + ws->Uxc[ir];
 	}
 
 	double Ul1(sh_grid_t const* grid, int ir, int l, int m) {
@@ -378,9 +374,12 @@ void sh_orbs_workspace_prop(
 		return qlm(l, m)*(ws->Uh[ir + 2*grid->n[iR]] + ws->Uxc[ir + 2*grid->n[iR]]);
 	}
 
-	for (int ie = 0; ie < orbs->ne; ++ie) {
-		int tid = 0;
-        _sh_workspace_prop(ws->wf_ws[tid], orbs->wf[ie], dt, 2, (sh_f[3]){Ul0, Ul1, Ul2}, ws->wf_ws[0]->Uabs);
+	if (orbs->mpi_comm == MPI_COMM_NULL) {
+		for (int ie = 0; ie < orbs->ne; ++ie) {
+			_sh_workspace_prop(ws->wf_ws, orbs->wf[ie], dt, 2, (sh_f[3]){Ul0, Ul1, Ul2}, ws->wf_ws->Uabs);
+		}
+	} else {
+			_sh_workspace_prop(ws->wf_ws, orbs->mpi_wf, dt, 2, (sh_f[3]){Ul0, Ul1, Ul2}, ws->wf_ws->Uabs);
 	}
 }
 
@@ -390,7 +389,7 @@ void sh_orbs_workspace_prop_img(
 		double dt
 ) {
 	for (int l=0; l<1; ++l) {
-		ux_lda(l, orbs, &ws->Uxc[l*ws->sh_grid->n[iR]], ws->sp_grid);
+		ux_lda(l, orbs, &ws->Uxc[l*ws->sh_grid->n[iR]], ws->sp_grid, ws->n_sp);
 	}
 
 	hartree_potential_l0(orbs, &ws->Uh[0*ws->sh_grid->n[iR]], ws->uh_tmp);
@@ -399,7 +398,7 @@ void sh_orbs_workspace_prop_img(
 
 	double Ul0(sh_grid_t const* grid, int ir, int l, int m) {
 		double const r = sh_grid_r(grid, ir);
-		return l*(l+1)/(2*r*r) + ws->wf_ws[0]->U(grid, ir, l, m) + ws->Uh[ir] + ws->Uxc[ir]/sqrt(2*M_PI);// + plm(l,m)*ws->Uh[ir + 2*grid->n[iR]];
+		return l*(l+1)/(2*r*r) + ws->wf_ws->U(grid, ir, l, m) + ws->Uh[ir] + ws->Uxc[ir]/sqrt(2*M_PI);// + plm(l,m)*ws->Uh[ir + 2*grid->n[iR]];
 	}
 
 	double Ul1(sh_grid_t const* grid, int ir, int l, int m) {
@@ -410,9 +409,7 @@ void sh_orbs_workspace_prop_img(
 		return qlm(l, m)*ws->Uh[ir + 2*grid->n[iR]];
 	}
 
-	int tid;
 	for (int ie = 0; ie < orbs->ne; ++ie) {
-		tid = 0;
-        _sh_workspace_prop(ws->wf_ws[tid], orbs->wf[ie], -I*dt, 1, (sh_f[3]){Ul0, Ul1, Ul2}, uabs_zero);
+        _sh_workspace_prop(ws->wf_ws, orbs->wf[ie], -I*dt, 1, (sh_f[3]){Ul0, Ul1, Ul2}, uabs_zero);
 	}
 }
