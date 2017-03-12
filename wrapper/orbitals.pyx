@@ -5,14 +5,20 @@ from types cimport cdouble
 from grid cimport SGrid, SpGrid
 from wavefunc cimport sh_wavefunc_norm, swavefunc_from_point
 
+import mpi4py.MPI
 cimport mpi4py.MPI
+
 
 cdef class SOrbitals:
     def __cinit__(self, int ne, SGrid grid, mpi4py.MPI.Comm comm = None):
+        if comm is None:
+            comm = mpi4py.MPI.COMM_NULL
+
         self._data = ks_orbials_new(ne, grid.data, comm.ob_mpi)
 
     def __dealloc__(self):
-        orbitals_del(self._data)
+        if self._data != NULL:
+            orbitals_del(self._data)
     
     def n(self, SpGrid grid, int ir, int ic):
         return orbitals_n(self._data, grid.data, [ir, ic])

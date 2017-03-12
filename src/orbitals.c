@@ -11,7 +11,7 @@ orbitals_t* ks_orbials_new(int ne, sh_grid_t const* grid, MPI_Comm mpi_comm) {
 
 	orbs->wf = malloc(sizeof(sh_wavefunc_t*)*ne);
 
-	if (mpi_comm != MPI_COMM_NULL) {
+	if (mpi_comm == MPI_COMM_NULL) {
 		orbs->data = malloc(grid2_size(grid)*ne*sizeof(cdouble));
 		for (int ie = 0; ie < ne; ++ie) {
 			orbs->wf[ie] = sh_wavefunc_new_from(&orbs->data[grid2_size(grid)*ie], grid, 0);
@@ -45,7 +45,7 @@ void orbitals_del(orbitals_t* orbs) {
 }
 
 double orbitals_n(orbitals_t const* orbs, sp_grid_t const* grid, int i[2]) {
-	assert(orbs->mpi_comm == NULL);
+	assert(orbs->mpi_comm == MPI_COMM_NULL);
 
 	double res = 0.0;
 
@@ -60,7 +60,7 @@ double orbitals_n(orbitals_t const* orbs, sp_grid_t const* grid, int i[2]) {
 double orbitals_norm(orbitals_t const* orbs) {
 	double res = 0.0;
 
-	if (orbs->mpi_comm == NULL) {
+	if (orbs->mpi_comm == MPI_COMM_NULL) {
 #pragma omp parallel for reduction(+:res)
 		for (int ie=0; ie<orbs->ne; ++ie) {
 			res += sh_wavefunc_norm(orbs->wf[ie]);
@@ -74,7 +74,7 @@ double orbitals_norm(orbitals_t const* orbs) {
 }
 
 void orbitals_normalize(orbitals_t* orbs) {
-	if (orbs->mpi_comm == NULL) {
+	if (orbs->mpi_comm == MPI_COMM_NULL) {
 #pragma omp parallel for
 		for (int ie=0; ie<orbs->ne; ++ie) {
 			sh_wavefunc_normalize(orbs->wf[ie]);
@@ -87,7 +87,7 @@ void orbitals_normalize(orbitals_t* orbs) {
 double orbitals_cos(orbitals_t const* orbs, sh_f U) {
 	double res = 0.0;
 
-	if (orbs->mpi_comm == NULL) {
+	if (orbs->mpi_comm == MPI_COMM_NULL) {
 #pragma omp parallel for reduction(+:res)
 		for (int ie=0; ie<orbs->ne; ++ie) {
 			res += sh_wavefunc_cos(orbs->wf[ie], U);
