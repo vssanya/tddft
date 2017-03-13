@@ -104,7 +104,6 @@ void orbitals_n_sp(orbitals_t const* orbs, sp_grid_t const* grid, double n[grid-
 	if (orbs->mpi_comm != MPI_COMM_NULL) {
 		sh_wavefunc_n_sp(orbs->mpi_wf, grid, n, ylm_cache);
 		MPI_Reduce(MPI_IN_PLACE, n, grid->n[iR]*grid->n[iC], MPI_DOUBLE, MPI_SUM, 0, orbs->mpi_comm);
-		MPI_Barrier(orbs->mpi_comm);
 		printf("Reduce complite N = %d\n", orbs->mpi_rank);
 	} else {
 		assert(false);
