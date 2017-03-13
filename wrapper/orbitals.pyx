@@ -1,16 +1,17 @@
 import numpy as np
 cimport numpy as np
 
-from types cimport cdouble
-from grid cimport SGrid, SpGrid
-from wavefunc cimport sh_wavefunc_norm, swavefunc_from_point
-
 import mpi4py.MPI
 cimport mpi4py.MPI
 
+from types cimport cdouble
+from grid cimport ShGrid, SpGrid
+from wavefunc cimport sh_wavefunc_norm, swavefunc_from_point
+from sphere_harmonics cimport YlmCache
+
 
 cdef class SOrbitals:
-    def __cinit__(self, int ne, SGrid grid, mpi4py.MPI.Comm comm = None):
+    def __cinit__(self, int ne, ShGrid grid, mpi4py.MPI.Comm comm = None):
         if comm is None:
             comm = mpi4py.MPI.COMM_NULL
 
@@ -20,8 +21,8 @@ cdef class SOrbitals:
         if self._data != NULL:
             orbitals_del(self._data)
     
-    def n(self, SpGrid grid, int ir, int ic):
-        return orbitals_n(self._data, grid.data, [ir, ic])
+    def n(self, SpGrid grid, YlmCache ylm_cache, int ir, int ic):
+        return orbitals_n(self._data, grid.data, [ir, ic], ylm_cache._data)
 
     def norm(self):
         return orbitals_norm(self._data)

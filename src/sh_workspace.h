@@ -78,16 +78,19 @@ typedef struct {
 	double* Uh;
 	double* Uxc;
 	sh_grid_t const* sh_grid;
-	sp_grid_t* sp_grid;
+	sp_grid_t const* sp_grid;
 	double* uh_tmp;
 	double* n_sp;
+	ylm_cache_t const* ylm_cache;
 } sh_orbs_workspace_t;
 
 sh_orbs_workspace_t*
 sh_orbs_workspace_alloc(
-		sh_grid_t const* grid,
+		sh_grid_t const* sh_grid,
+		sp_grid_t const* sp_grid,
 		sh_f U,
 		sh_f Uabs,
+		ylm_cache_t const* ylm_cache,
 		int num_threads
 );
 

@@ -162,18 +162,19 @@ void ux_lda(
 		int l, orbitals_t const* orbs,
 		double U[orbs->grid->n[iR]],
 		sp_grid_t const* grid,
-		double n[grid->n[iR]*grid->n[iC]] // for calc using mpi
+		double n[grid->n[iR]*grid->n[iC]], // for calc using mpi
+		ylm_cache_t const* ylm_cache
 ) {
 	if (orbs->mpi_comm == MPI_COMM_NULL) {
 		double func(int ir, int ic) {
-			return - pow(3/M_PI*orbitals_n(orbs, grid, (int[2]){ir, ic}), 1.0/3.0);
+			return - pow(3/M_PI*orbitals_n(orbs, grid, (int[2]){ir, ic}, ylm_cache), 1.0/3.0);
 		}
 
-		sh_series(func, l, 0, grid, U);
+		sh_series(func, l, 0, grid, U, ylm_cache);
 	} else {
-		orbitals_n_sp(orbs, grid, n);
+		orbitals_n_sp(orbs, grid, n, ylm_cache);
 		if (orbs->mpi_rank == 0) {
-			ux_lda_n(l, grid, n, U);
+			ux_lda_n(l, grid, n, U, ylm_cache);
 		}
 		MPI_Bcast(U, orbs->grid->n[iR], MPI_DOUBLE, 0, orbs->mpi_comm);
 	}
@@ -183,11 +184,12 @@ void ux_lda_n(
 		int l,
 		sp_grid_t const* grid,
 		double n[grid->n[iR]*grid->n[iC]],
-		double U[grid->n[iR]]
+		double U[grid->n[iR]],
+		ylm_cache_t const* ylm_cache
 ) {
 	double func(int ir, int ic) {
 		return - pow(3/M_PI*n[ir + ic*grid->n[iR]], 1.0/3.0);
 	}
 
-	sh_series(func, l, 0, grid, U);
+	sh_series(func, l, 0, grid, U, ylm_cache);
 }

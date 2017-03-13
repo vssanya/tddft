@@ -25,7 +25,7 @@ def calc_wf_az_t(tp, t0, rank):
     dr = 0.125
     r_max = 100
 
-    g = grid.SGrid(Nr=r_max/dr, Nl=80, r_max=r_max)
+    g = grid.ShGrid(Nr=r_max/dr, Nl=80, r_max=r_max)
     wf = hydrogen.ground_state(g)
     ws = workspace.SKnWorkspace(dt=dt, grid=g)
 

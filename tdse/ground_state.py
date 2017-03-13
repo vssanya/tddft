@@ -3,7 +3,7 @@ from . import grid, wavefunc, field, workspace, hydrogen, calc, utils
 
 def calc_hydrogen():
     dt = 0.001
-    g = grid.SGrid(Nr=1000, Nl=1, r_max=100)
+    g = grid.ShGrid(Nr=1000, Nl=1, r_max=100)
     wf = wavefunc.SWavefunc.random(g)
     ws = workspace.SKnWorkspace(dt=dt, grid=g)
 

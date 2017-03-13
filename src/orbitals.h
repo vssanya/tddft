@@ -31,7 +31,7 @@ void orbitals_normalize(orbitals_t* orbs);
  * \param wf[in] is wavefunction of Kohn's orbitals
  * \param i is sphere index \f${i_r, i_\Theta, i_\phi}\f$
  * */
-double orbitals_n(orbitals_t const* orbs, sp_grid_t const* grid, int i[2]);
-void orbitals_n_sp(orbitals_t const* orbs, sp_grid_t const* grid, double n[grid->n[iR]*grid->n[iC]]);
+double orbitals_n(orbitals_t const* orbs, sp_grid_t const* grid, int i[2], ylm_cache_t const* ylm_cache);
+void orbitals_n_sp(orbitals_t const* orbs, sp_grid_t const* grid, double n[grid->n[iR]*grid->n[iC]], ylm_cache_t const* ylm_cache);
 
 double orbitals_cos(orbitals_t const* orbs, sh_f U);

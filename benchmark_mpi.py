@@ -11,7 +11,7 @@ size = comm.Get_size()
 
 Nr = 10000
 
-grid = tdse.grid.SGrid(Nr=Nr, Nl=60, r_max=200)
+grid = tdse.grid.ShGrid(Nr=Nr, Nl=60, r_max=200)
 
 if rank == 0:
     orbs = tdse.orbitals.SOrbitals(size, grid)
@@ -52,3 +52,6 @@ tdse.mpi.orbitals_calc_uh_l0(wf, uh, comm)
 end = time.time()
 if rank == 0:
     print("Calc u_lda time", end - start)
+
+f = tdse.field.TwoColorPulseField()
+ws.prop(orbs, f, 0.0, 0.1)

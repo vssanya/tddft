@@ -18,7 +18,7 @@ r_max = 200
 Nr=r_max/dr
 
 Ar = atom.Atom('Ar')
-g = grid.SGrid(Nr=Nr, Nl=20, r_max=r_max)
+g = grid.ShGrid(Nr=Nr, Nl=20, r_max=r_max)
 ws = workspace.SOrbsWorkspace(grid=g, atom=Ar)
 orbs = Ar.get_ground_state(grid=g, filename='./argon_ground_state.npy')
 orbs.normalize()

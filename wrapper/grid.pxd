@@ -29,7 +29,7 @@ cdef extern from "grid.h":
     int sh_grid_l(sh_grid_t* grid, int il)
     int sh_grid_m(sh_grid_t* grid, int im)
 
-cdef class SGrid:
+cdef class ShGrid:
     cdef sh_grid_t* data
 
 cdef class SpGrid:

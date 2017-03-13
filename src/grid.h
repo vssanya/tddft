@@ -87,7 +87,7 @@ double sp_grid_r(sp_grid_t const* grid, int ir) {
     return grid->d[iR]*(ir+1);
 }
 
-__attribute_pure__ inline
+__attribute__((pure)) inline
 double sp_grid_c(sp_grid_t const* grid, int ic) {
     check_index(grid, iC, ic);
     return grid->d[iC]*ic - 1.0;

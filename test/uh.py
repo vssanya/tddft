@@ -8,7 +8,7 @@ dr = 0.0125
 r_max = 100
 Nr=r_max/dr
 
-g = grid.SGrid(Nr=Nr, Nl=6, r_max=r_max)
+g = grid.ShGrid(Nr=Nr, Nl=6, r_max=r_max)
 sg = grid.SpGrid(Nr, 32, 2, r_max)
 
 orbs = hydrogen.a_init(g)

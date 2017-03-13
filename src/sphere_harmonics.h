@@ -1,3 +1,5 @@
+#pragma once
+
 #include "grid.h"
 
 /*! \file
@@ -23,20 +25,26 @@ double clebsch_gordan_coef(int j1, int m1, int j2, int m2, int J, int M);
  * */
 double y3(int l1, int m1, int l2, int m2, int L, int M);
 
+typedef struct {
+	double* data;
+	int size;
+	int l_max;
+	sp_grid_t const* grid;
+} ylm_cache_t;
+
 /*!
  * \brief [Spherical harmonics](https://en.wikipedia.org/wiki/Spherical_harmonics)\f$Y_l^m(\theta)\f$
  * \param[in] l
  * \param[in] m
  * \param[in] ic index of \f$\cos\theta\f$
  * */
-void ylm_cache_init(int l_max, sp_grid_t const* grid);
-void ylm_cache_deinit();
-
-double ylm(int l, int m, int ic);
+ylm_cache_t* ylm_cache_new(int l_max, sp_grid_t const* grid);
+void ylm_cache_del(ylm_cache_t* ylm_cache);
+double ylm_cache_get(ylm_cache_t const* cache, int l, int m, int ic);
 
 #include "grid.h"
 #include "integrate.h"
 /*!
  * \brief Разложение функции по сферическим гармоникам
  * */
-void sh_series(func_2d_t func, int l, int m, sp_grid_t const* grid, double series[grid->n[iR]]);
+void sh_series(func_2d_t func, int l, int m, sp_grid_t const* grid, double series[grid->n[iR]], ylm_cache_t const* ylm_cache);

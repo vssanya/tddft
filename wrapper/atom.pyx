@@ -2,7 +2,7 @@ import numpy as np
 cimport numpy as np
 
 from wavefunc cimport SWavefunc
-from grid cimport SGrid
+from grid cimport ShGrid
 from orbitals cimport SOrbitals
 
 
@@ -17,12 +17,12 @@ cdef class Atom:
         else:
             assert(False, 'Atom {} is not exist'.format(id))
 
-    def get_init_orbs(self, SGrid grid):
+    def get_init_orbs(self, ShGrid grid):
         orbs = SOrbitals(self._data.ne, grid)
         self._data.init(orbs._data)
         return orbs
 
-    def get_ground_state(self, SGrid grid, filename):
+    def get_ground_state(self, ShGrid grid, filename):
         orbs = SOrbitals(self._data.ne, grid)
 
         arr = orbs.asarray()
@@ -37,7 +37,7 @@ cdef class Atom:
     def ort(self, SOrbitals orbs):
         self._data.ort(orbs._data)
 
-def ground_state(SGrid grid):
+def ground_state(ShGrid grid) -> SWavefunc:
     wf = SWavefunc(grid)
     atom_hydrogen_ground(wf.data)
     return wf

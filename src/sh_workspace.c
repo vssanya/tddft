@@ -272,40 +272,40 @@ void sh_workspace_prop_img(
 }
 
 sh_orbs_workspace_t* sh_orbs_workspace_alloc(
-		sh_grid_t const* grid,
+		sh_grid_t const* sh_grid,
+		sp_grid_t const* sp_grid,
 		sh_f U,
 		sh_f Uabs,
+		ylm_cache_t const* ylm_cache,
 		int num_threads
 ) {	
-	sh_orbs_workspace_t* ws = malloc(sizeof(sh_workspace_t));
+	sh_orbs_workspace_t* ws = malloc(sizeof(sh_orbs_workspace_t));
 
-	ws->wf_ws = sh_workspace_alloc(grid, U, Uabs, num_threads);
+	ws->sh_grid = sh_grid;
+	ws->sp_grid = sp_grid;
+	ws->ylm_cache = ylm_cache;
 
-	ws->Uh  = malloc(sizeof(double)*grid->n[iR]*3);
-	ws->Uxc = malloc(sizeof(double)*grid->n[iR]*3);
+	ws->wf_ws = sh_workspace_alloc(sh_grid, U, Uabs, num_threads);
 
-	ws->uh_tmp = malloc(sizeof(double)*grid->n[iR]);
+	ws->Uh  = malloc(sizeof(double)*sh_grid->n[iR]*3);
+	ws->Uxc = malloc(sizeof(double)*sh_grid->n[iR]*3);
 
-	ws->sh_grid = grid;
-	ws->sp_grid = sp_grid_new((int[3]){grid->n[iR], 32, 1}, sh_grid_r_max(grid));
+	ws->uh_tmp = malloc(sizeof(double)*sh_grid->n[iR]);
 
 	ws->n_sp = malloc(sizeof(double)*ws->sp_grid->n[iR]*ws->sp_grid->n[iC]);
 
-	ylm_cache_init(grid->n[iL], ws->sp_grid);
 
 	return ws;
 }
 
 void sh_orbs_workspace_free(sh_orbs_workspace_t* ws) {
-	ylm_cache_deinit();
-
 	free(ws->n_sp);
-
-	free(ws->wf_ws);
-	sp_grid_del(ws->sp_grid);
-	free(ws->Uh);
-	free(ws->Uxc);
 	free(ws->uh_tmp);
+	free(ws->Uxc);
+	free(ws->Uh);
+
+	sh_workspace_free(ws->wf_ws);
+
 	free(ws);
 }
 
@@ -353,7 +353,7 @@ void sh_orbs_workspace_prop(
 		double dt
 ) {
 	for (int l=0; l<1; ++l) {
-		ux_lda(l, orbs, &ws->Uxc[l*ws->sh_grid->n[iR]], ws->sp_grid, ws->n_sp);
+		ux_lda(l, orbs, &ws->Uxc[l*ws->sh_grid->n[iR]], ws->sp_grid, ws->n_sp, ws->ylm_cache);
 	}
 
 	hartree_potential_l0(orbs, &ws->Uh[0*ws->sh_grid->n[iR]], ws->uh_tmp);
@@ -389,7 +389,7 @@ void sh_orbs_workspace_prop_img(
 		double dt
 ) {
 	for (int l=0; l<1; ++l) {
-		ux_lda(l, orbs, &ws->Uxc[l*ws->sh_grid->n[iR]], ws->sp_grid, ws->n_sp);
+		ux_lda(l, orbs, &ws->Uxc[l*ws->sh_grid->n[iR]], ws->sp_grid, ws->n_sp, ws->ylm_cache);
 	}
 
 	hartree_potential_l0(orbs, &ws->Uh[0*ws->sh_grid->n[iR]], ws->uh_tmp);

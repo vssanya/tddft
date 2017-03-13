@@ -1,4 +1,4 @@
-cdef class SGrid:
+cdef class ShGrid:
     def __cinit__(self, int Nr, int Nl, double r_max):
         self.data = sh_grid_new([Nr, Nl], r_max)
 

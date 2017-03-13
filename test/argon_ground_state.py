@@ -10,7 +10,7 @@ r_max = 200
 Nr=r_max/dr
 
 Ar = atom.Atom('Ar')
-g = grid.SGrid(Nr=Nr, Nl=2, r_max=r_max)
+g = grid.ShGrid(Nr=Nr, Nl=2, r_max=r_max)
 ws = workspace.SOrbsWorkspace(grid=g, atom=Ar)
 orbs = Ar.get_init_orbs(g)
 

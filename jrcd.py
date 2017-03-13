@@ -27,7 +27,7 @@ def calc_jrcd(I0, length, t_fwhm, alpha, phase):
 
     r_max = np.max([tdse.utils.r_max(E0, alpha, freq), 30])
 
-    g = tdse.grid.SGrid(Nr=r_max/dr, Nl=40, r_max=r_max)
+    g = tdse.grid.ShGrid(Nr=r_max/dr, Nl=40, r_max=r_max)
     wf = tdse.atom.ground_state(g)
     ws = tdse.workspace.SKnWorkspace(atom=atom, grid=g)
 

@@ -29,14 +29,14 @@ def calc_wf_az_t():
 
     a = atom.Atom('H')
     r = np.linspace(dr, r_max, r_max/dr)
-    g = grid.SGrid(Nr=r_max/dr, Nl=20, r_max=r_max)
+    g = grid.ShGrid(Nr=r_max/dr, Nl=20, r_max=r_max)
 
     orbs = a.get_init_orbs(g)
     orbs.normalize()
     wf = orbs.get_wf(0)
     ws = workspace.SKnWorkspace(grid=g, atom=a)
 
-    for i in range(500):
+    for i in range(1000):
         ws.prop_img(wf, 0.1)
         wf.normalize()
 
@@ -54,9 +54,10 @@ def calc_wf_az_t():
     z    = np.zeros(t.size)
 
     def data_gen():
-        for it in range(t.size):
-            yield it, calc.az(a, wf, f, t[it])
-            ws.prop(wf, f, t[it], dt)
+        for it in range(int(t.size/100)):
+            yield it, calc.az(wf, a, f, t[it])
+            for i in range(100):
+                ws.prop(wf, f, t[it*100 + i], dt)
 
     fig = plt.figure()
 

@@ -1,4 +1,5 @@
 from . import grid
+from . import sphere_harmonics
 from . import wavefunc
 from . import orbitals
 from . import field

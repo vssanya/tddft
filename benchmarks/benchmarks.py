@@ -13,7 +13,7 @@ class OrbitalsFunc:
         Nr = int(r_max/dr)
         Nl = 60
 
-        self.grid = tdse.grid.SGrid(Nr, Nl, r_max)
+        self.grid = tdse.grid.ShGrid(Nr, Nl, r_max)
         self.atom = tdse.atom.Atom('Ar')
         self.orbs = self.atom.get_init_orbs(self.grid)
         self.field = tdse.field.SinField()
@@ -37,19 +37,22 @@ class OrbitalsPropagate:
         Nr = int(r_max/dr)
         Nl = 60
 
-        self.grid = tdse.grid.SGrid(Nr, Nl, r_max)
+        self.grid = tdse.grid.ShGrid(Nr, Nl, r_max)
+        self.sp_grid = tdse.grid.SpGrid(Nr, 32, 1, r_max)
+
+        self.ylm_cache = tdse.sphere_harmonics.YlmCache(Nl, self.sp_grid)
+
         self.atom = tdse.atom.Atom('Ar')
         self.orbs = self.atom.get_init_orbs(self.grid)
         self.uh = np.ndarray(Nr)
-        self.ws = tdse.workspace.SOrbsWorkspace(grid=self.grid, atom=self.atom)
+        self.ws = tdse.workspace.SOrbsWorkspace(self.grid, self.sp_grid, atom=self.atom, ylm_cache=self.ylm_cache)
         self.field = tdse.field.SinField()
-        self.sp_grid = tdse.grid.SpGrid(Nr, 32, 1, r_max)
 
     def time_hartree_potential_l0(self):
         tdse.hartree_potential.l0(self.orbs, self.uh)
 
     def time_lda(self):
-        tdse.hartree_potential.lda(0, self.orbs, self.sp_grid, self.uh)
+        tdse.hartree_potential.lda(0, self.orbs, self.sp_grid, self.ylm_cache, self.uh)
 
     def time_orbitals_propagate(self):
         self.ws.prop(self.orbs, self.field, 0.0, 0.1)
@@ -64,12 +67,12 @@ class WavefuncPropagate:
         Nr = int(r_max/dr)
         Nl = 64
 
-        self.grid = tdse.grid.SGrid(Nr, Nl, r_max)
+        self.grid = tdse.grid.ShGrid(Nr, Nl, r_max)
         self.sp_grid = tdse.grid.SpGrid(Nr, 32, 1, r_max)
+        self.ylm_cache = tdse.sphere_harmonics.YlmCache(Nl, self.sp_grid)
         self.atom = tdse.atom.Atom('H')
         self.n = np.ndarray((Nr, 32))
         self.wf = tdse.atom.ground_state(self.grid)
-        self.ws_orbs = tdse.workspace.SOrbsWorkspace(grid=self.grid, atom=self.atom)
         self.ws = tdse.workspace.SKnWorkspace(grid=self.grid, atom=self.atom)
         self.field = tdse.field.SinField()
 
@@ -80,7 +83,7 @@ class WavefuncPropagate:
         self.wf.z()
 
     def time_n_sp(self):
-        self.wf.n_sp(self.sp_grid, self.n)
+        self.wf.n_sp(self.sp_grid, self.ylm_cache, self.n)
 
     def time_norm(self):
         self.wf.norm()

@@ -71,12 +71,12 @@ void sh_wavefunc_ort_l(int l, int n, sh_wavefunc_t* wfs[n]) {
 	}
 }
 
-void sh_wavefunc_n_sp(sh_wavefunc_t const* wf, sp_grid_t const* grid, double n[grid->n[iR]*grid->n[iC]]) {
+void sh_wavefunc_n_sp(sh_wavefunc_t const* wf, sp_grid_t const* grid, double n[grid->n[iR]*grid->n[iC]], ylm_cache_t const* ylm_cache) {
 #pragma omp target map(to: wf)
 #pragma omp parallel for collapse(2)
 	for (int ir = 0; ir < grid->n[iR]; ++ir) {
 		for (int ic = 0; ic < grid->n[iC]; ++ic) {
-			cdouble const psi = swf_get_sp(wf, grid, (int[3]){ir, ic, 0});
+			cdouble const psi = swf_get_sp(wf, grid, (int[3]){ir, ic, 0}, ylm_cache);
 			n[ir + ic*grid->n[iR]] = pow(creal(psi), 2) + pow(cimag(psi), 2);
 		}
 	}
@@ -134,12 +134,12 @@ double sh_wavefunc_z(sh_wavefunc_t const* wf) {
 	return sh_wavefunc_cos(wf, func);
 }
 
-cdouble swf_get_sp(sh_wavefunc_t const* wf, sp_grid_t const* grid, int i[3]) {
+cdouble swf_get_sp(sh_wavefunc_t const* wf, sp_grid_t const* grid, int i[3], ylm_cache_t const* ylm_cache) {
 	cdouble res = 0.0;
 	double r = sh_grid_r(wf->grid, i[iR]);
 	for (int il = 0; il < wf->grid->n[iL]; ++il) {
 		int const l = sh_grid_l(wf->grid, il);
-		res += swf_get(wf, i[iR], il)*ylm(l, wf->m, i[iC]) / r;
+		res += swf_get(wf, i[iR], il)*ylm_cache_get(ylm_cache, l, wf->m, i[iC]) / r;
 	}
 	return res;
 }

@@ -5,6 +5,7 @@ from wavefunc cimport sh_wavefunc_t
 
 from field cimport field_t
 from orbitals cimport orbitals_t
+from sphere_harmonics cimport ylm_cache_t
 
 cdef extern from "sh_workspace.h":
     ctypedef struct sh_workspace_t:
@@ -19,12 +20,14 @@ cdef extern from "sh_workspace.h":
         sh_workspace_t* wf_ws
         double* Uh
         double* Uxc
-        sp_grid_t* sp_grid
+        sh_grid_t* sh_grid;
+        sp_grid_t* sp_grid;
         double* uh_tmp
         double* n_sp
+        ylm_cache_t* ylm_cache;
 
     sh_workspace_t* sh_workspace_alloc(
-            sh_grid_t* grid,
+            sh_grid_t* sh_grid,
             sh_f U,
             sh_f Uabs,
             int num_threads
@@ -44,7 +47,7 @@ cdef extern from "sh_workspace.h":
             cdouble dt,
             sh_f Ul,
             sh_f Uabs
-    )
+            )
 
     void sh_workspace_prop_at_v2(
             sh_workspace_t* ws,
@@ -52,7 +55,7 @@ cdef extern from "sh_workspace.h":
             cdouble dt,
             sh_f Ul,
             sh_f Uabs
-    )
+            )
 
     void sh_workspace_prop(
             sh_workspace_t* ws,
@@ -60,13 +63,13 @@ cdef extern from "sh_workspace.h":
             field_t E,
             double t,
             double dt
-    )
+            )
 
     void sh_workspace_prop_img(
             sh_workspace_t* ws,
             sh_wavefunc_t* wf,
             double dt
-    )
+            )
 
     void sh_orbs_workspace_prop(
             sh_orbs_workspace_t* ws,
@@ -74,19 +77,21 @@ cdef extern from "sh_workspace.h":
             field_t field,
             double t,
             double dt
-    )
+            )
     void sh_orbs_workspace_prop_img(
             sh_orbs_workspace_t* ws,
             orbitals_t* orbs,
             double dt
-    )
+            )
 
     sh_orbs_workspace_t* sh_orbs_workspace_alloc(
-            sh_grid_t* grid,
+            sh_grid_t* sh_grid,
+            sp_grid_t* sp_grid,
             sh_f U,
             sh_f Uabs,
+            ylm_cache_t* ylm_cache,
             int num_threads
-    )
+            )
     void sh_orbs_workspace_free(sh_orbs_workspace_t* ws)
 
 

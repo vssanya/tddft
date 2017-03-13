@@ -1,6 +1,7 @@
 from types cimport cdouble
 from grid cimport sh_grid_t, sp_grid_t
 from wavefunc cimport sh_wavefunc_t
+from sphere_harmonics cimport ylm_cache_t
 
 cimport mpi4py.libmpi as mpi
 
@@ -18,8 +19,8 @@ cdef extern from "orbitals.h":
     void orbitals_del(orbitals_t* orbs)
     double orbitals_norm(orbitals_t* orbs)
     void orbitals_normalize(orbitals_t* orbs)
-    double orbitals_n(orbitals_t* orbs, sp_grid_t* grid, int i[2])
-    void orbitals_n_sp(orbitals_t* orbs, sp_grid_t* grid, double* n)
+    double orbitals_n(orbitals_t* orbs, sp_grid_t* grid, int i[2], ylm_cache_t* ylm_cache)
+    void orbitals_n_sp(orbitals_t* orbs, sp_grid_t* grid, double* n, ylm_cache_t* ylm_cache)
 
 cdef class SOrbitals:
     cdef orbitals_t* _data
