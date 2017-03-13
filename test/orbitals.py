@@ -24,5 +24,4 @@ class TestOrbitals(unittest.TestCase):
         # print("Test Norm")
 
     def test_prop(self):
-        # self.ws.prop(self.orbs, self.field, 0.0, 0.1)
-        print("Test Prop")
+        self.ws.prop(self.orbs, self.field, 0.0, 0.1)

@@ -72,10 +72,12 @@ void sh_wavefunc_ort_l(int l, int n, sh_wavefunc_t* wfs[n]) {
 }
 
 void sh_wavefunc_n_sp(sh_wavefunc_t const* wf, sp_grid_t const* grid, double n[grid->n[iR]*grid->n[iC]], ylm_cache_t const* ylm_cache) {
-#pragma omp target map(to: wf)
 #pragma omp parallel for collapse(2)
 	for (int ir = 0; ir < grid->n[iR]; ++ir) {
 		for (int ic = 0; ic < grid->n[iC]; ++ic) {
+			if (ic == 0 && ir % 1000 == 0) {
+				printf("Calc ir = %d\n", ir);
+			}
 			cdouble const psi = swf_get_sp(wf, grid, (int[3]){ir, ic, 0}, ylm_cache);
 			n[ir + ic*grid->n[iR]] = pow(creal(psi), 2) + pow(cimag(psi), 2);
 		}

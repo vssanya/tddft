@@ -22,7 +22,7 @@ orbitals_t* ks_orbials_new(int ne, sh_grid_t const* grid, MPI_Comm mpi_comm) {
 		orbs->data = malloc(grid2_size(grid)*sizeof(cdouble));
 		for (int ie = 0; ie < ne; ++ie) {
 			if (ie == orbs->mpi_rank) {
-				orbs->wf[ie] = sh_wavefunc_new_from(&orbs->data[grid2_size(grid)*ie], grid, 0);
+				orbs->wf[ie] = sh_wavefunc_new_from(orbs->data, grid, 0);
 				orbs->mpi_wf = orbs->wf[ie];
 			} else {
 				orbs->wf[ie] = NULL;
@@ -104,6 +104,8 @@ void orbitals_n_sp(orbitals_t const* orbs, sp_grid_t const* grid, double n[grid-
 	if (orbs->mpi_comm != MPI_COMM_NULL) {
 		sh_wavefunc_n_sp(orbs->mpi_wf, grid, n, ylm_cache);
 		MPI_Reduce(MPI_IN_PLACE, n, grid->n[iR]*grid->n[iC], MPI_DOUBLE, MPI_SUM, 0, orbs->mpi_comm);
+		MPI_Barrier(orbs->mpi_comm);
+		printf("Reduce complite N = %d\n", orbs->mpi_rank);
 	} else {
 		assert(false);
 	}

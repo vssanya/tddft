@@ -4,9 +4,7 @@ double F_first(double F[2], int l, sh_grid_t const* grid, double f[grid->n[iR]])
     double const dr = grid->d[iR];
 
     F[0] = 0.0;
-    F[1] = 0.0;
-
-	for (int ir = 0; ir < grid->n[iR]; ++ir) {
+    F[1] = 0.0; for (int ir = 0; ir < grid->n[iR]; ++ir) {
         double const r = sh_grid_r(grid, ir);
 		F[1] += f[ir]*pow(dr/r, l)/r;
 	}
@@ -176,6 +174,7 @@ void ux_lda(
 		if (orbs->mpi_rank == 0) {
 			ux_lda_n(l, grid, n, U, ylm_cache);
 		}
+		printf("BCast N = %d\n", orbs->mpi_rank);
 		MPI_Bcast(U, orbs->grid->n[iR], MPI_DOUBLE, 0, orbs->mpi_comm);
 	}
 }
@@ -187,6 +186,7 @@ void ux_lda_n(
 		double U[grid->n[iR]],
 		ylm_cache_t const* ylm_cache
 ) {
+	printf("Start calc ux_lda_n");
 	double func(int ir, int ic) {
 		return - pow(3/M_PI*n[ir + ic*grid->n[iR]], 1.0/3.0);
 	}
