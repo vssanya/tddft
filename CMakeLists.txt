@@ -11,12 +11,12 @@ include_directories(${PROJECT_SOURCE_DIR}/src)
 find_package(OpenMP)
 if (OPENMP_FOUND)
 	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
-	add_definitions(-DWITH_OMP)
 endif()
 
 find_package(MPI)
 if (MPI_FOUND)
 	include_directories(${MPI_INCLUDE_DIR})
+	add_definitions(-D_MPI)
 endif()
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS 1)

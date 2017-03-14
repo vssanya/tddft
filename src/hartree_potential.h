@@ -44,6 +44,9 @@ void ux_lda(
 		double U[orbs->grid->n[iR]],
 		sp_grid_t const* grid,
 		double n[grid->n[iR]*grid->n[iC]], // for calc using mpi
+		double n_tmp[grid->n[iR]*grid->n[iC]], // for calc using mpi
 		ylm_cache_t const* ylm_cache
 );
-void ux_lda_n(int l, sp_grid_t const* grid, double n[grid->n[iR]*grid->n[iC]], double U[grid->n[iR]], ylm_cache_t const* ylm_cache);
+void ux_lda_n(int l, sp_grid_t const* grid,
+		double n[grid->n[iR]*grid->n[iC]],
+		double U[grid->n[iR]], ylm_cache_t const* ylm_cache);

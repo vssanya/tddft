@@ -13,6 +13,7 @@ cdef extern from "hartree_potential.h":
         double* U,
         sp_grid_t* grid,
         double* n, # for calc using mpi
+        double* n_local, # for calc using mpi
         ylm_cache_t* ylm_cache
     );
     void ux_lda_n(int l, sp_grid_t* grid, double* n, double* U, ylm_cache_t* ylm_cache)

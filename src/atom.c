@@ -1,57 +1,23 @@
 #include "atom.h"
+#include <mpi/mpi.h>
 
-void atom_argon_init(orbitals_t* orbs) {
-	assert(orbs->ne == 9);
 
-	// init s states
-	for (int ie = 0; ie < 3; ++ie) {
-		sh_wavefunc_random_l(orbs->wf[ie], 0);
+void atom_init(atom_t const* atom, orbitals_t* orbs) {
+	assert(orbs->ne == atom->ne);
+
+#ifdef _MPI
+	if (orbs->mpi_comm != MPI_COMM_NULL) {
+		orbs->mpi_wf->m = atom->m[orbs->mpi_rank];
+		sh_wavefunc_random_l(orbs->mpi_wf, atom->l[orbs->mpi_rank]);
+	} else
+#endif
+	{
+		for (int ie = 0; ie < orbs->ne; ++ie) {
+			orbs->wf[ie]->m = atom->m[ie];
+			sh_wavefunc_random_l(orbs->wf[ie], atom->l[ie]);
+		}
 	}
-
-	// init p states
-	for (int ie = 0; ie < 3*2; ++ie) {
-		sh_wavefunc_random_l(orbs->wf[ie+3], 1);
-	}
-
-	orbs->wf[0]->m = 0;
-	orbs->wf[1]->m = 0;
-	orbs->wf[2]->m = 0;
-
-	orbs->wf[3]->m = -1;
-	orbs->wf[4]->m = -1;
-	orbs->wf[5]->m = 0;
-	orbs->wf[6]->m = 0;
-	orbs->wf[7]->m = 1;
-	orbs->wf[8]->m = 1;
 }
-
-void atom_neon_init(orbitals_t* orbs) {
-	assert(orbs->ne == 5);
-
-	// init s states
-	for (int ie = 0; ie < 2; ++ie) {
-		sh_wavefunc_random_l(orbs->wf[ie], 0);
-	}
-
-	// init p states
-	for (int ie = 0; ie < 3; ++ie) {
-		sh_wavefunc_random_l(orbs->wf[ie+2], 1);
-	}
-
-	orbs->wf[0]->m = 0;
-	orbs->wf[1]->m = 0;
-
-	orbs->wf[2]->m = -1;
-	orbs->wf[3]->m = 0;
-	orbs->wf[4]->m = 1;
-}
-
-void atom_hydrogen_init(orbitals_t* orbs) {
-	assert(orbs->ne == 1);
-
-	atom_hydrogen_ground(orbs->wf[0]);
-}
-
 
 void atom_argon_ort(orbitals_t* orbs) {
 	sh_wavefunc_ort_l(0, 3, orbs->wf);

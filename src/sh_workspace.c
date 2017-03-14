@@ -293,12 +293,13 @@ sh_orbs_workspace_t* sh_orbs_workspace_alloc(
 	ws->uh_tmp = malloc(sizeof(double)*sh_grid->n[iR]);
 
 	ws->n_sp = malloc(sizeof(double)*ws->sp_grid->n[iR]*ws->sp_grid->n[iC]);
-
+	ws->n_sp_local = malloc(sizeof(double)*ws->sp_grid->n[iR]*ws->sp_grid->n[iC]);
 
 	return ws;
 }
 
 void sh_orbs_workspace_free(sh_orbs_workspace_t* ws) {
+	free(ws->n_sp_local);
 	free(ws->n_sp);
 	free(ws->uh_tmp);
 	free(ws->Uxc);
@@ -353,7 +354,7 @@ void sh_orbs_workspace_prop(
 		double dt
 ) {
 	for (int l=0; l<1; ++l) {
-		ux_lda(l, orbs, &ws->Uxc[l*ws->sh_grid->n[iR]], ws->sp_grid, ws->n_sp, ws->ylm_cache);
+		ux_lda(l, orbs, &ws->Uxc[l*ws->sh_grid->n[iR]], ws->sp_grid, ws->n_sp, ws->n_sp_local, ws->ylm_cache);
 	}
 
 	hartree_potential_l0(orbs, &ws->Uh[0*ws->sh_grid->n[iR]], ws->uh_tmp);
@@ -374,12 +375,15 @@ void sh_orbs_workspace_prop(
 		return qlm(l, m)*(ws->Uh[ir + 2*grid->n[iR]] + ws->Uxc[ir + 2*grid->n[iR]]);
 	}
 
-	if (orbs->mpi_comm == MPI_COMM_NULL) {
+#ifdef _MPI
+	if (orbs->mpi_comm != MPI_COMM_NULL) {
+		_sh_workspace_prop(ws->wf_ws, orbs->mpi_wf, dt, 2, (sh_f[3]){Ul0, Ul1, Ul2}, ws->wf_ws->Uabs);
+	} else
+#endif
+	{
 		for (int ie = 0; ie < orbs->ne; ++ie) {
 			_sh_workspace_prop(ws->wf_ws, orbs->wf[ie], dt, 2, (sh_f[3]){Ul0, Ul1, Ul2}, ws->wf_ws->Uabs);
 		}
-	} else {
-			_sh_workspace_prop(ws->wf_ws, orbs->mpi_wf, dt, 2, (sh_f[3]){Ul0, Ul1, Ul2}, ws->wf_ws->Uabs);
 	}
 }
 
@@ -389,7 +393,7 @@ void sh_orbs_workspace_prop_img(
 		double dt
 ) {
 	for (int l=0; l<1; ++l) {
-		ux_lda(l, orbs, &ws->Uxc[l*ws->sh_grid->n[iR]], ws->sp_grid, ws->n_sp, ws->ylm_cache);
+		ux_lda(l, orbs, &ws->Uxc[l*ws->sh_grid->n[iR]], ws->sp_grid, ws->n_sp, ws->n_sp_local, ws->ylm_cache);
 	}
 
 	hartree_potential_l0(orbs, &ws->Uh[0*ws->sh_grid->n[iR]], ws->uh_tmp);
@@ -409,7 +413,14 @@ void sh_orbs_workspace_prop_img(
 		return qlm(l, m)*ws->Uh[ir + 2*grid->n[iR]];
 	}
 
-	for (int ie = 0; ie < orbs->ne; ++ie) {
-        _sh_workspace_prop(ws->wf_ws, orbs->wf[ie], -I*dt, 1, (sh_f[3]){Ul0, Ul1, Ul2}, uabs_zero);
+#ifdef _MPI
+	if (orbs->mpi_comm != MPI_COMM_NULL) {
+		_sh_workspace_prop(ws->wf_ws, orbs->mpi_wf, -I*dt, 1, (sh_f[3]){Ul0, Ul1, Ul2}, uabs_zero);
+	} else
+#endif
+	{
+		for (int ie = 0; ie < orbs->ne; ++ie) {
+			_sh_workspace_prop(ws->wf_ws, orbs->wf[ie], -I*dt, 1, (sh_f[3]){Ul0, Ul1, Ul2}, uabs_zero);
+		}
 	}
 }

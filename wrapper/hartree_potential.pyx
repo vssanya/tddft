@@ -49,7 +49,7 @@ def lda(int l, SOrbitals orbs, SpGrid grid, YlmCache ylm_cache, np.ndarray[np.do
     else:
         assert(uxc.size == orbs._data.wf[0].grid.n[0])
 
-    ux_lda(l, orbs._data, &uxc[0], grid.data, NULL, ylm_cache._data)
+    ux_lda(l, orbs._data, &uxc[0], grid.data, NULL, NULL, ylm_cache._data)
 
     return uxc
 

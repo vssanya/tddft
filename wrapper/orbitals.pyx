@@ -3,6 +3,7 @@ cimport numpy as np
 
 import mpi4py.MPI
 cimport mpi4py.MPI
+cimport mpi4py.libmpi
 
 from types cimport cdouble
 from grid cimport ShGrid, SpGrid
@@ -15,7 +16,7 @@ cdef class SOrbitals:
         if comm is None:
             comm = mpi4py.MPI.COMM_NULL
 
-        self._data = ks_orbials_new(ne, grid.data, comm.ob_mpi)
+        self._data = orbials_new(ne, grid.data, comm.ob_mpi)
 
     def __dealloc__(self):
         if self._data != NULL:
@@ -35,8 +36,16 @@ cdef class SOrbitals:
         return swavefunc_from_point(self._data.wf[ne])
 
     def asarray(self):
-        cdef cdouble[:, :, ::1] array = <cdouble[:self._data.ne, :self._data.grid.n[1],:self._data.grid.n[0]]>self._data.data
+        cdef cdouble[:, :, ::1] res
+        if self.is_mpi():
+            array = <cdouble[:1, :self._data.grid.n[1],:self._data.grid.n[0]]>self._data.data
+        else:
+            array = <cdouble[:self._data.ne, :self._data.grid.n[1],:self._data.grid.n[0]]>self._data.data
+
         return np.asarray(array)
+
+    def is_mpi(self) -> bool:
+        return self._data.mpi_comm != mpi4py.libmpi.MPI_COMM_NULL
 
     def norm_ne(self):
         cdef np.ndarray[np.double_t, ndim=1, mode='c'] res = np.ndarray(self._data.ne, dtype=np.double)
@@ -44,3 +53,6 @@ cdef class SOrbitals:
             res[i] = sh_wavefunc_norm(self._data.wf[i])
 
         return res
+
+    def __str__(self):
+        return "Orbitals MPI, wf.m = {}".format(self._data.mpi_wf.m)

@@ -80,7 +80,8 @@ typedef struct {
 	sh_grid_t const* sh_grid;
 	sp_grid_t const* sp_grid;
 	double* uh_tmp;
-	double* n_sp;
+	double* n_sp; // for root
+	double* n_sp_local;
 	ylm_cache_t const* ylm_cache;
 } sh_orbs_workspace_t;
 
