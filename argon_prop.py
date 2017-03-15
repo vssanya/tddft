@@ -1,3 +1,4 @@
+import matplotlib.pyplot as plt
 import time
 from mpi4py import MPI
 import numpy as np
@@ -24,7 +25,13 @@ ylm_cache = tdse.sphere_harmonics.YlmCache(Nl, sp_grid)
 ws = tdse.workspace.SOrbsWorkspace(sh_grid, sp_grid, atom, ylm_cache)
 
 orbs = atom.get_ground_state(grid=sh_grid, filename='./argon_ground_state.npy', comm=comm)
+orbsl = atom.get_ground_state(grid=sh_grid, filename='./argon_ground_state.npy')
+
 orbs.normalize()
+orbsl.normalize()
+
+if rank == 0:
+    print("Nsp: ", np.sum(n - nl))
 
 freq = tdse.utils.length_to_freq(800, 'nm')
 tp = 20*(2*np.pi/freq)
@@ -44,8 +51,11 @@ t = np.arange(0, tp, dt)
 for i in range(1):
     ws.prop(orbs, f, t[i], dt)
 
-print(orbs.norm())
-prob = tdse.calc.ionization_prob(orbs)
+ws.prop(orbsl, f, t[i], dt)
 
+print(np.sum(orbs.asarray()[0] - orbsl.asarray()[rank]))
+
+prob = tdse.calc.ionization_prob(orbs)
 if rank == 0:
     print(prob)
+    print(tdse.calc.ionization_prob(orbsl))

@@ -12,7 +12,7 @@ def l0(SOrbitals orbs, np.ndarray[np.double_t, ndim=1] uh = None) -> np.ndarray:
         uh = np.ndarray((orbs._data.wf[0].grid.n[0]), np.double)
 
     cdef np.ndarray[np.double_t, ndim=1] f = np.ndarray((orbs._data.wf[0].grid.n[0]), np.double)
-    hartree_potential_l0(orbs._data, &uh[0], &f[0])
+    hartree_potential_l0(orbs._data, &uh[0], &uh[0], &f[0])
 
     return uh
 

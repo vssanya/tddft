@@ -4,7 +4,9 @@ double F_first(double F[2], int l, sh_grid_t const* grid, double f[grid->n[iR]])
     double const dr = grid->d[iR];
 
     F[0] = 0.0;
-    F[1] = 0.0; for (int ir = 0; ir < grid->n[iR]; ++ir) {
+    F[1] = 0.0;
+
+	for (int ir = 0; ir < grid->n[iR]; ++ir) {
         double const r = sh_grid_r(grid, ir);
 		F[1] += f[ir]*pow(dr/r, l)/r;
 	}
@@ -27,15 +29,19 @@ double F_next(double F[2], int l, int ir, sh_grid_t const* grid, double f[grid->
 	return (F[0] + F[1])*dr;
 }
 
-void hartree_potential_l0(orbitals_t const* orbs, double U[orbs->grid->n[iR]], double f[orbs->grid->n[iR]]) {
+void hartree_potential_l0(orbitals_t const* orbs, double U[orbs->grid->n[iR]], double U_local[orbs->grid->n[iR]], double f[orbs->grid->n[iR]]) {
 	sh_grid_t const* grid = orbs->grid;
 
+	for (int ir = 0; ir < grid->n[iR]; ++ir) {
+		f[ir] = 0.0;
+	}
+
 	if (orbs->mpi_comm != MPI_COMM_NULL) {
-		for (int il = 0; il < grid->n[iL]; ++il) {
-			for (int ir = 0; ir < grid->n[iR]; ++ir) {
-				f[ir] += swf_get_abs_2(orbs->mpi_wf, ir, il);
+			for (int il = 0; il < grid->n[iL]; ++il) {
+				for (int ir = 0; ir < grid->n[iR]; ++ir) {
+					f[ir] += swf_get_abs_2(orbs->mpi_wf, ir, il);
+				}
 			}
-		}
 	} else {
 		for (int ie = 0; ie < orbs->ne; ++ie) {
 			sh_wavefunc_t const* wf = orbs->wf[ie];
@@ -47,14 +53,21 @@ void hartree_potential_l0(orbitals_t const* orbs, double U[orbs->grid->n[iR]], d
 		}
 	}
 
+	double* U_calc;
+	if (orbs->mpi_comm != MPI_COMM_NULL) {
+		U_calc = U_local;
+	} else {
+		U_calc = U;
+	}
+
 	double F[2];
-	U[0] = 2*F_first(F, 0, grid, f);
+	U_calc[0] = 2*F_first(F, 0, grid, f);
     for (int ir = 0; ir < grid->n[iR]; ++ir) {
-		U[ir] = 2*F_next(F, 0, ir, grid, f);
+		U_calc[ir] = 2*F_next(F, 0, ir, grid, f);
 	}
 
 	if (orbs->mpi_comm != MPI_COMM_NULL) {
-		MPI_Allreduce(MPI_IN_PLACE, U, grid->n[iR], MPI_DOUBLE, MPI_SUM, orbs->mpi_comm);
+		MPI_Allreduce(U_local, U, grid->n[iR], MPI_DOUBLE, MPI_SUM, orbs->mpi_comm);
 	}
 }
 

@@ -1,6 +1,7 @@
 import unittest
 
 import tdse
+import numpy as np
 
 
 class TestOrbitals(unittest.TestCase):
@@ -25,3 +26,9 @@ class TestOrbitals(unittest.TestCase):
 
     def test_prop(self):
         self.ws.prop(self.orbs, self.field, 0.0, 0.1)
+
+    def test_lda(self):
+        n = self.orbs.n_sp(self.sp_grid, self.ylm_cache)
+        ulda_1 = tdse.hartree_potential.lda(0, self.orbs, self.sp_grid, self.ylm_cache)
+        ulda_2 = tdse.hartree_potential.lda_n(0, n, self.sp_grid, self.ylm_cache)
+        self.assertAlmostEqual(np.sum(ulda_1 - ulda_2), 0.0)

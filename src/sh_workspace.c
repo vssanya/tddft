@@ -287,7 +287,9 @@ sh_orbs_workspace_t* sh_orbs_workspace_alloc(
 
 	ws->wf_ws = sh_workspace_alloc(sh_grid, U, Uabs, num_threads);
 
-	ws->Uh  = malloc(sizeof(double)*sh_grid->n[iR]*3);
+	ws->Uh = malloc(sizeof(double)*sh_grid->n[iR]*3);
+	ws->Uh_local = malloc(sizeof(double)*sh_grid->n[iR]);
+
 	ws->Uxc = malloc(sizeof(double)*sh_grid->n[iR]*3);
 
 	ws->uh_tmp = malloc(sizeof(double)*sh_grid->n[iR]);
@@ -357,7 +359,7 @@ void sh_orbs_workspace_prop(
 		ux_lda(l, orbs, &ws->Uxc[l*ws->sh_grid->n[iR]], ws->sp_grid, ws->n_sp, ws->n_sp_local, ws->ylm_cache);
 	}
 
-	hartree_potential_l0(orbs, &ws->Uh[0*ws->sh_grid->n[iR]], ws->uh_tmp);
+	hartree_potential_l0(orbs, &ws->Uh[0*ws->sh_grid->n[iR]], ws->Uh_local, ws->uh_tmp);
 
 	double Et = field_E(field, t + dt/2);
 
@@ -396,7 +398,7 @@ void sh_orbs_workspace_prop_img(
 		ux_lda(l, orbs, &ws->Uxc[l*ws->sh_grid->n[iR]], ws->sp_grid, ws->n_sp, ws->n_sp_local, ws->ylm_cache);
 	}
 
-	hartree_potential_l0(orbs, &ws->Uh[0*ws->sh_grid->n[iR]], ws->uh_tmp);
+	hartree_potential_l0(orbs, &ws->Uh[0*ws->sh_grid->n[iR]], ws->Uh_local, ws->uh_tmp);
 //	hartree_potential_l1(orbs, &ws->Uh[1*ws->sh_grid->n[iR]], ws->uh_tmp);
 //	hartree_potential_l2(orbs, &ws->Uh[2*ws->sh_grid->n[iR]], ws->uh_tmp);
 

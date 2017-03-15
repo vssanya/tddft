@@ -76,6 +76,7 @@ void sh_workspace_prop_img(
 typedef struct {
 	sh_workspace_t* wf_ws;
 	double* Uh;
+	double* Uh_local;
 	double* Uxc;
 	sh_grid_t const* sh_grid;
 	sp_grid_t const* sp_grid;

@@ -20,7 +20,7 @@ cdef extern from "orbitals.h":
     double orbitals_norm(orbitals_t* orbs)
     void orbitals_normalize(orbitals_t* orbs)
     double orbitals_n(orbitals_t* orbs, sp_grid_t* grid, int i[2], ylm_cache_t* ylm_cache)
-    void orbitals_n_sp(orbitals_t* orbs, sp_grid_t* grid, double* n, ylm_cache_t* ylm_cache)
+    void orbitals_n_sp(orbitals_t* orbs, sp_grid_t* grid, double* n, double* n_tmp, ylm_cache_t* ylm_cache)
     void orbitals_set_init_state(orbitals_t* orbs, cdouble* data, int l_max)
 
 cdef class SOrbitals:
