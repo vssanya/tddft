@@ -32,3 +32,6 @@ class TestOrbitals(unittest.TestCase):
         ulda_1 = tdse.hartree_potential.lda(0, self.orbs, self.sp_grid, self.ylm_cache)
         ulda_2 = tdse.hartree_potential.lda_n(0, n, self.sp_grid, self.ylm_cache)
         self.assertAlmostEqual(np.sum(ulda_1 - ulda_2), 0.0)
+
+    def test_az(self):
+        tdse.calc.az(self.orbs, self.atom, self.field, 0.0)

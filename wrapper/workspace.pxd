@@ -6,6 +6,7 @@ from wavefunc cimport sh_wavefunc_t
 from field cimport field_t
 from orbitals cimport orbitals_t
 from sphere_harmonics cimport ylm_cache_t
+from atom cimport atom_t
 
 cdef extern from "sh_workspace.h":
     ctypedef struct sh_workspace_t:
@@ -74,6 +75,7 @@ cdef extern from "sh_workspace.h":
     void sh_orbs_workspace_prop(
             sh_orbs_workspace_t* ws,
             orbitals_t* orbs,
+            atom_t* atom,
             field_t field,
             double t,
             double dt
@@ -81,6 +83,7 @@ cdef extern from "sh_workspace.h":
     void sh_orbs_workspace_prop_img(
             sh_orbs_workspace_t* ws,
             orbitals_t* orbs,
+            atom_t* atom,
             double dt
             )
 

@@ -24,20 +24,17 @@ sp_grid = tdse.grid.SpGrid(Nr=Nr, Nc=Nl, Np=1, r_max=r_max)
 ylm_cache = tdse.sphere_harmonics.YlmCache(Nl, sp_grid)
 ws = tdse.workspace.SOrbsWorkspace(sh_grid, sp_grid, atom, ylm_cache)
 
-orbs = atom.get_ground_state(grid=sh_grid, filename='./argon_ground_state.npy', comm=comm)
-orbsl = atom.get_ground_state(grid=sh_grid, filename='./argon_ground_state.npy')
+orbs = atom.get_ground_state(grid=sh_grid, filename='./argon_ground_state_new.npy', comm=comm)
+orbsl = atom.get_ground_state(grid=sh_grid, filename='./argon_ground_state_new.npy')
 
 orbs.normalize()
 orbsl.normalize()
-
-if rank == 0:
-    print("Nsp: ", np.sum(n - nl))
 
 freq = tdse.utils.length_to_freq(800, 'nm')
 tp = 20*(2*np.pi/freq)
 
 f = tdse.field.SinField(
-    E0 = E,
+    E0 = 0.0,
     alpha = 0.0,
     freq = freq,
     phase = 0.0,
@@ -48,14 +45,11 @@ f = tdse.field.SinField(
 r = np.linspace(dr,r_max,Nr)
 t = np.arange(0, tp, dt)
 
-for i in range(1):
+for i in range(10):
     ws.prop(orbs, f, t[i], dt)
+    ws.prop(orbsl, f, t[i], dt)
 
-ws.prop(orbsl, f, t[i], dt)
-
-print(np.sum(orbs.asarray()[0] - orbsl.asarray()[rank]))
-
-prob = tdse.calc.ionization_prob(orbs)
-if rank == 0:
-    print(prob)
-    print(tdse.calc.ionization_prob(orbsl))
+    prob = tdse.calc.ionization_prob(orbs)
+    if rank == 0:
+        print(prob)
+        print(tdse.calc.ionization_prob(orbsl))

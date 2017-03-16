@@ -55,7 +55,7 @@ double calc_orbs_jrcd(
 
 	for (int i = 0; i < Nt; ++i) {
 		res += calc_orbs_az(orbs, atom, field, t)*smoothstep(t_max - t, 0, t_smooth);
-		sh_orbs_workspace_prop(ws, orbs, field, t, dt);
+		sh_orbs_workspace_prop(ws, orbs, atom, field, t, dt);
 		t += dt;
 	}
 

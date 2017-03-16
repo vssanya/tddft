@@ -5,6 +5,7 @@
 #include "grid.h"
 #include "sh_wavefunc.h"
 #include "orbitals.h"
+#include "atom.h"
 
 #include "utils.h"
 #include "types.h"
@@ -56,7 +57,8 @@ void sh_workspace_prop_at_v2(
 		sh_wavefunc_t* wf,
 		cdouble dt,
 		sh_f Ul,
-		sh_f Uabs
+		sh_f Uabs,
+		int Z
 );
 
 void sh_workspace_prop(
@@ -100,6 +102,7 @@ void sh_orbs_workspace_free(sh_orbs_workspace_t* ws);
 void sh_orbs_workspace_prop(
 		sh_orbs_workspace_t* ws,
 		orbitals_t* orbs,
+		atom_t const* atom,
 		field_t field,
 		double t,
 		double dt
@@ -107,5 +110,6 @@ void sh_orbs_workspace_prop(
 void sh_orbs_workspace_prop_img(
 		sh_orbs_workspace_t* ws,
 		orbitals_t* orbs,
+		atom_t const* atom,
 		double dt
 );

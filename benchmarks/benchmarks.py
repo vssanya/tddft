@@ -39,6 +39,7 @@ class OrbitalsPropagate:
 
         self.grid = tdse.grid.ShGrid(Nr, Nl, r_max)
         self.sp_grid = tdse.grid.SpGrid(Nr, 32, 1, r_max)
+        self.n = np.ndarray((32, Nr))
 
         self.ylm_cache = tdse.sphere_harmonics.YlmCache(Nl, self.sp_grid)
 
@@ -53,6 +54,9 @@ class OrbitalsPropagate:
 
     def time_lda(self):
         tdse.hartree_potential.lda(0, self.orbs, self.sp_grid, self.ylm_cache, self.uh)
+    def time_lda_n(self):
+        self.orbs.n_sp(self.sp_grid, self.ylm_cache, self.n)
+        tdse.hartree_potential.lda_n(0, self.n, self.sp_grid, self.ylm_cache, uxc=self.uh)
 
     def time_orbitals_propagate(self):
         self.ws.prop(self.orbs, self.field, 0.0, 0.1)

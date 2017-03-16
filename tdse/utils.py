@@ -13,6 +13,7 @@ UNIT = {
         'eV': 1.602e-19 / 4.3597e-18
 }
 
+@np.vectorize
 def unit_to(value, u_from='au', u_to='au'):
     return UNIT[u_from]*value/UNIT[u_to]
 

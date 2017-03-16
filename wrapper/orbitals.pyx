@@ -25,9 +25,8 @@ cdef class SOrbitals:
     def n(self, SpGrid grid, YlmCache ylm_cache, int ir, int ic):
         return orbitals_n(self._data, grid.data, [ir, ic], ylm_cache._data)
 
-    def n_sp(self, SpGrid grid, YlmCache ylm_cache):
+    def n_sp(self, SpGrid grid, YlmCache ylm_cache, np.ndarray[np.double_t, ndim=2] n = None):
         cdef np.ndarray[np.double_t, ndim=2, mode='c'] n_local = np.ndarray(grid.shape, dtype=np.double)
-        cdef np.ndarray[np.double_t, ndim=2, mode='c'] n = None
         cdef double* n_ptr = NULL
 
         if not self.is_mpi() or self._data.mpi_rank == 0:
@@ -66,6 +65,9 @@ cdef class SOrbitals:
             res[i] = sh_wavefunc_norm(self._data.wf[i])
 
         return res
+
+    def load(self, file):
+        pass
 
     def save(self, file):
         cdef np.ndarray[np.complex_t, ndim=3, mode='c'] arr = None

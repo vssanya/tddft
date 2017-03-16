@@ -2,17 +2,20 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 
-from tdse import grid, wavefunc, orbitals, field, atom, workspace, calc, utils
+import tdse
 
 dt = 0.008
 dr = 0.02
 r_max = 200
 Nr=r_max/dr
+Nl = 2
 
-Ar = atom.Atom('Ar')
-g = grid.ShGrid(Nr=Nr, Nl=2, r_max=r_max)
-ws = workspace.SOrbsWorkspace(grid=g, atom=Ar)
-orbs = Ar.get_init_orbs(g)
+Ar = tdse.atom.Atom('Ar')
+g = tdse.grid.ShGrid(Nr=Nr, Nl=Nl, r_max=r_max)
+sp_grid = tdse.grid.SpGrid(Nr=Nr, Nc=32, Np=1, r_max=r_max)
+ylm_cache = tdse.sphere_harmonics.YlmCache(Nl, sp_grid)
+ws = tdse.workspace.SOrbsWorkspace(g, sp_grid, Ar, ylm_cache)
+orbs = Ar.get_ground_state(grid=g, filename='./argon_ground_state_new.npy')
 
 r = np.linspace(dr,r_max,Nr) + 1.0
 
@@ -50,4 +53,4 @@ def run(data):
 ani = animation.FuncAnimation(fig, run, data_gen, blit=False, interval=1, repeat=False)
 plt.show()
 
-np.save('argon_ground_state.npy', orbs.asarray())
+#np.save('argon_ground_state.npy', orbs.asarray())
