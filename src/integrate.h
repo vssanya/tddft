@@ -4,6 +4,7 @@
  * */
 
 #pragma once
+#include <assert.h>
 
 typedef double (*func_1d_t)(int i);
 typedef double (*func_2d_t)(int ix, int iy);

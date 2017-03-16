@@ -4,8 +4,8 @@ import matplotlib.animation as animation
 
 import tdse
 
-dt = 0.008
-dr = 0.02
+dt = 0.0001
+dr = 0.005
 r_max = 200
 Nr=r_max/dr
 Nl=32
@@ -24,7 +24,7 @@ r = np.linspace(dr,r_max,Nr)
 def data_gen():
     t = 0.0
     while True:
-        ws.prop(orbs, f, t, dt)
+        ws.prop(orbs, atom, f, t, dt)
         t += dt
         yield 1
 

@@ -9,3 +9,5 @@ from . import calc
 from . import utils
 from . import hartree_potential
 from . import mpi
+
+from . import sfa

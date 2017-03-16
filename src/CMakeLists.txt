@@ -13,6 +13,7 @@ set( LIB_SOURCES
 	sphere_harmonics.c
 	orbitals.c
 	atom.c
+	"sfa/anal.c"
 	)
 
 set( LIB_HEADERS
@@ -32,6 +33,7 @@ set( LIB_HEADERS
 	sphere_harmonics.h
 	orbitals.h
 	atom.h
+	"sfa/anal.h"
    )
 
 add_library( tdse SHARED ${LIB_SOURCES} ${LIB_HEADERS} )
