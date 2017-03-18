@@ -6,6 +6,7 @@ from types cimport sh_f
 cdef extern from "atom.h":
     ctypedef void (*atom_ort_f)(orbitals_t* orbs)
     ctypedef struct atom_t:
+        int Z
         int ne
         int* m
         int* l

@@ -1,5 +1,6 @@
 #include "calc.h"
 #include "utils.h"
+#include "abs_pot.h"
 
 
 double calc_wf_az(sh_wavefunc_t const* wf, atom_t const* atom, field_t field, double t) {
@@ -11,11 +12,11 @@ double calc_orbs_az(orbitals_t const* orbs, atom_t const* atom, field_t field, d
 }
 
 double calc_wf_ionization_prob(sh_wavefunc_t const* wf) {
-	return 1.0 - sh_wavefunc_norm(wf);
+	return 1.0 - sh_wavefunc_norm(wf, mask_core);
 }
 
 double calc_orbs_ionization_prob(orbitals_t const* orbs) {
-	return 2*orbs->ne - orbitals_norm(orbs);
+	return 2*orbs->ne - orbitals_norm(orbs, mask_core);
 }
 
 double calc_wf_jrcd(
@@ -33,7 +34,7 @@ double calc_wf_jrcd(
 
 	for (int i = 0; i < Nt; ++i) {
 		res += calc_wf_az(wf, atom, field, t)*smoothstep(t_max - t, 0, t_smooth);
-		sh_workspace_prop(ws, wf, field, t, dt);
+		sh_workspace_prop(ws, wf, atom, field, t, dt);
 		t += dt;
 	}
 

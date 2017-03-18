@@ -2,47 +2,41 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 
-from tdse import grid, wavefunc, orbitals, field, workspace, atom, calc, utils
+import tdse
+
 
 def calc_wf_az_t():
-    freq = utils.length_to_freq(800, 'nm')
+    freq = tdse.utils.length_to_freq(800, 'nm')
     T = 2*np.pi/freq
 
     I = 1e12
-    E0 = utils.I_to_E(I)
+    E0 = tdse.utils.I_to_E(I)
 
-    tp = utils.t_fwhm(2.05, 'fs')
+    tp = tdse.utils.t_fwhm(2.05, 'fs')
     t0 = 1.5*T
 
-    f = field.TwoColorPulseField(
-        E0 = 0.0,
-        alpha = 0.0,
-        freq = freq,
-        phase = 0.0,
-        tp = tp,
-        t0 = t0
-    )
+    f = tdse.field.TwoColorPulseField(E0=0.0, alpha=0.0)
 
     dt = 0.004
     dr = 0.02
     r_max = 60
 
-    a = atom.Atom('H')
+    a = tdse.atom.Atom('Ar')
     r = np.linspace(dr, r_max, r_max/dr)
-    g = grid.ShGrid(Nr=r_max/dr, Nl=20, r_max=r_max)
+    g = tdse.grid.ShGrid(Nr=r_max/dr, Nl=20, r_max=r_max)
 
     orbs = a.get_init_orbs(g)
     orbs.normalize()
     wf = orbs.get_wf(0)
-    ws = workspace.SKnWorkspace(grid=g, atom=a)
+    ws = tdse.workspace.SKnWorkspace(grid=g)
 
     for i in range(1000):
-        ws.prop_img(wf, 0.1)
+        ws.prop_img(wf, a, 0.001)
         wf.normalize()
 
     arr1 = np.array(wf.asarray())
     #plt.plot(np.abs(arr1)[0])
-    ws.prop(wf, f, 0.0, dt)
+    ws.prop(wf, a, f, 0.0, dt)
     arr2 = np.array(wf.asarray())
     plt.plot(np.abs(arr2)[0] - np.abs(arr1)[0])
     plt.plot(np.abs(arr2)[1] - np.abs(arr1)[1])
@@ -55,9 +49,9 @@ def calc_wf_az_t():
 
     def data_gen():
         for it in range(int(t.size/100)):
-            yield it, calc.az(wf, a, f, t[it])
+            yield it, tdse.calc.az(wf, a, f, t[it])
             for i in range(100):
-                ws.prop(wf, f, t[it*100 + i], dt)
+                ws.prop(wf, a, f, t[it*100 + i], dt)
 
     fig = plt.figure()
 
@@ -66,8 +60,9 @@ def calc_wf_az_t():
     ax1.set_xlim(t[0], t[-1])
 
     ax2 = plt.subplot(222)
-    ax2.set_xlim(r[0], r[-1])
-    ax2.set_ylim(1e-12,1)
+    #ax2.set_xlim(r[0], r[-1])
+    ax2.set_xlim(0, 20)
+    ax2.set_ylim(1e-12,1e2)
     ax2.set_yscale('log')
 
     ax3 = plt.subplot(223)
@@ -89,8 +84,8 @@ def calc_wf_az_t():
     def run(data):
         it = data[0]
         az[it] = data[1]
-        prob[it] = calc.ionization_prob(orbs)
-        print(prob[it])
+        prob[it] = tdse.calc.ionization_prob(orbs)
+        print(t[it*100])
         z[it] = wf.z()
 
         ax1.set_xlim(t[0], t[it])
@@ -106,7 +101,7 @@ def calc_wf_az_t():
         line6.set_ydata(z)
 
         line3.set_ydata(np.sum(np.abs(wf.asarray()), axis=0))
-        line5.set_data([t[it-1],],[E[it],])
+        line5.set_data([t[it*100],],[E[it],])
 
         return (line1, line3, line5, line6),
 

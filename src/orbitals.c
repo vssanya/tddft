@@ -54,6 +54,8 @@ void orbitals_set_init_state(orbitals_t* orbs, cdouble* data, int l_max) {
 }
 
 void orbitals_del(orbitals_t* orbs) {
+	assert(orbs != NULL);
+
 	for (int ie = 0; ie < orbs->ne; ++ie) {
 		if (orbs->wf[ie] != NULL) {
 			sh_wavefunc_del(orbs->wf[ie]);
@@ -64,26 +66,46 @@ void orbitals_del(orbitals_t* orbs) {
 	free(orbs);
 }
 
-double orbitals_norm(orbitals_t const* orbs) {
+double orbitals_norm(orbitals_t const* orbs, sh_f mask) {
+	assert(orbs != NULL);
+
 	double res = 0.0;
 
 #ifdef _MPI
 	if (orbs->mpi_comm != MPI_COMM_NULL) {
-		res = sh_wavefunc_norm(orbs->mpi_wf);
+		res = sh_wavefunc_norm(orbs->mpi_wf, mask);
 		MPI_Allreduce(MPI_IN_PLACE, &res, 1, MPI_DOUBLE, MPI_SUM, orbs->mpi_comm);
 	} else
 #endif
 	{
 #pragma omp parallel for reduction(+:res)
 		for (int ie=0; ie<orbs->ne; ++ie) {
-			res += sh_wavefunc_norm(orbs->wf[ie]);
+			res += sh_wavefunc_norm(orbs->wf[ie], mask);
 		}
 	}
 
 	return 2*res;
 }
 
+void orbitals_norm_ne(orbitals_t const* orbs, double n[orbs->ne], sh_f mask) {
+	assert(orbs != NULL);
+
+#ifdef _MPI
+	if (orbs->mpi_comm != MPI_COMM_NULL) {
+		double n_local = sh_wavefunc_norm(orbs->mpi_wf, mask);
+		MPI_Gather(&n_local, 1, MPI_DOUBLE, n, 1, MPI_DOUBLE, 0, orbs->mpi_comm);
+	} else
+#endif
+	{
+		for (int ie=0; ie<orbs->ne; ++ie) {
+			n[ie] = sh_wavefunc_norm(orbs->wf[ie], mask);
+		}
+	}
+}
+
 void orbitals_normalize(orbitals_t* orbs) {
+	assert(orbs != NULL);
+
 #ifdef _MPI
 	if (orbs->mpi_comm != MPI_COMM_NULL) {
 		sh_wavefunc_normalize(orbs->mpi_wf);
@@ -98,6 +120,8 @@ void orbitals_normalize(orbitals_t* orbs) {
 }
 
 double orbitals_cos(orbitals_t const* orbs, sh_f U) {
+	assert(orbs != NULL);
+
 	double res = 0.0;
 
 #ifdef _MPI
@@ -117,6 +141,7 @@ double orbitals_cos(orbitals_t const* orbs, sh_f U) {
 }
 
 void orbitals_n_sp(orbitals_t const* orbs, sp_grid_t const* grid, double n[grid->n[iR]*grid->n[iC]], double n_tmp[grid->n[iR]*grid->n[iC]], ylm_cache_t const* ylm_cache) {
+	assert(orbs != NULL && grid != NULL && n != NULL && ylm_cache != NULL);
 #ifdef _MPI
 	if (orbs->mpi_comm != MPI_COMM_NULL) {
 #pragma omp parallel for collapse(2)
@@ -154,6 +179,7 @@ void orbitals_n_sp(orbitals_t const* orbs, sp_grid_t const* grid, double n[grid-
 }
 
 double orbitals_n(orbitals_t const* orbs, sp_grid_t const* grid, int i[2], ylm_cache_t const* ylm_cache) {
+	assert(orbs != NULL);
 #ifdef _MPI
 	assert(orbs->mpi_comm == MPI_COMM_NULL);
 #endif

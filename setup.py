@@ -20,6 +20,7 @@ ext = Extension("*", ["wrapper/*.pyx"],
                 ],
                 extra_compile_args=[
                     '-std=gnu99',
+                    '-D_MPI',
                 ],
                 )
 setup(

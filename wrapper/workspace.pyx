@@ -8,10 +8,9 @@ from sphere_harmonics cimport YlmCache
 
 
 cdef class SKnWorkspace:
-    def __cinit__(self, ShGrid grid, Atom atom, int num_threads = -1):
+    def __cinit__(self, ShGrid grid, int num_threads = -1):
         self.data = sh_workspace_alloc(
             grid.data,
-            atom._data.u,
             Uabs,
             num_threads
         )
@@ -20,16 +19,16 @@ cdef class SKnWorkspace:
         if self.data != NULL:
             sh_workspace_free(self.data)
 
-    def prop(self, SWavefunc wf, Field E, double t, double dt):
-        sh_workspace_prop(self.data, wf.data, E.data, t, dt)
+    def prop(self, SWavefunc wf, Atom atom, Field E, double t, double dt):
+        sh_workspace_prop(self.data, wf.data, atom._data, E.data, t, dt)
 
-    def prop_img(self, SWavefunc wf, double dt):
-        sh_workspace_prop_img(self.data, wf.data, dt)
+    def prop_img(self, SWavefunc wf, Atom atom, double dt):
+        sh_workspace_prop_img(self.data, wf.data, atom._data, dt)
 
 
 cdef class SOrbsWorkspace:
-    def __cinit__(self, ShGrid sh_grid, SpGrid sp_grid, Atom atom, YlmCache ylm_cache, int num_threads=-1):
-        self._data = sh_orbs_workspace_alloc(sh_grid.data, sp_grid.data, atom._data.u, Uabs, ylm_cache._data, num_threads)
+    def __cinit__(self, ShGrid sh_grid, SpGrid sp_grid, YlmCache ylm_cache, int num_threads=-1):
+        self._data = sh_orbs_workspace_alloc(sh_grid.data, sp_grid.data, Uabs, ylm_cache._data, num_threads)
 
     def __dealloc__(self):
         if self._data != NULL:

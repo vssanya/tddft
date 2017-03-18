@@ -67,7 +67,7 @@ void sh_wavefunc_ort_l(int l, int n, sh_wavefunc_t* wfs[n]) {
 			}
 		}
 
-		norm[in] = sh_wavefunc_norm(wfs[in]);
+		norm[in] = sh_wavefunc_norm(wfs[in], NULL);
 	}
 }
 
@@ -81,18 +81,27 @@ void sh_wavefunc_n_sp(sh_wavefunc_t const* wf, sp_grid_t const* grid, double n[g
 	}
 }
 
-double sh_wavefunc_norm(sh_wavefunc_t const* wf) {
+double sh_wavefunc_norm(sh_wavefunc_t const* wf, sh_f mask) {
 	double norm = 0.0;
 
-	for (int i = 0; i < grid2_size(wf->grid); ++i) {
-		cdouble value = wf->data[i];
-		norm += pow(creal(value), 2) + pow(cimag(value), 2);
+	if (mask == NULL) {
+		for (int i = 0; i < grid2_size(wf->grid); ++i) {
+			cdouble value = wf->data[i];
+			norm += pow(creal(value), 2) + pow(cimag(value), 2);
+		}
+	} else {
+		for (int il = 0; il < wf->grid->n[iL]; ++il) {
+			for (int ir = 0; ir < wf->grid->n[iR]; ++ir) {
+				norm += swf_get_abs_2(wf, ir, il)*mask(wf->grid, ir, il, wf->m);
+			}
+		}
 	}
+
 	return norm*wf->grid->d[iR];
 }
 
 void sh_wavefunc_normalize(sh_wavefunc_t* wf) {
-	double norm = sh_wavefunc_norm(wf);
+	double norm = sh_wavefunc_norm(wf, NULL);
 	for (int i = 0; i < grid2_size(wf->grid); ++i) {
 		wf->data[i] /= sqrt(norm);
 	}

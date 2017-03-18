@@ -18,14 +18,14 @@ class TestOrbitals(unittest.TestCase):
         self.atom = tdse.atom.Atom('Ar')
         self.orbs = self.atom.get_init_orbs(self.grid)
         self.field = tdse.field.SinField()
-        self.ws = tdse.workspace.SOrbsWorkspace(self.grid, self.sp_grid, atom=self.atom, ylm_cache=self.ylm_cache)
+        self.ws = tdse.workspace.SOrbsWorkspace(self.grid, self.sp_grid, ylm_cache=self.ylm_cache)
 
     # def test_norm(self):
         # self.orbs.norm()
         # print("Test Norm")
 
     def test_prop(self):
-        self.ws.prop(self.orbs, self.field, 0.0, 0.1)
+        self.ws.prop(self.orbs, self.atom, self.field, 0.0, 0.1)
 
     def test_lda(self):
         n = self.orbs.n_sp(self.sp_grid, self.ylm_cache)

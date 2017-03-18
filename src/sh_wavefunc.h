@@ -70,8 +70,7 @@ cdouble sh_wavefunc_prod(sh_wavefunc_t const* wf1, sh_wavefunc_t const* wf2);
 
 void sh_wavefunc_n_sp(sh_wavefunc_t const* wf, sp_grid_t const* grid, double n[grid->n[iR]*grid->n[iC]], ylm_cache_t const* ylm_cache);
 
-double sh_wavefunc_norm(sh_wavefunc_t const* wf);
-
+double sh_wavefunc_norm(sh_wavefunc_t const* wf, sh_f mask);
 void   sh_wavefunc_normalize(sh_wavefunc_t* wf);
 
 void   sh_wavefunc_print(sh_wavefunc_t const* wf);

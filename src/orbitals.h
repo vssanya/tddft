@@ -14,9 +14,11 @@ typedef struct {
 	sh_wavefunc_t** wf; //!< волновые функции орбиталей
 	cdouble* data; //!< raw data[ir + il*nr + ie*nr*nl]
 
+#ifdef _MPI
 	MPI_Comm mpi_comm;
 	int mpi_rank;
 	sh_wavefunc_t* mpi_wf;
+#endif
 } orbitals_t;
 
 orbitals_t* orbials_new(int ne, sh_grid_t const* grid, MPI_Comm mpi_comm);
@@ -31,7 +33,8 @@ void orbitals_set_init_state(orbitals_t* orbs, cdouble* data, int l_max);
 /*!
  * \brief [MPI support]
  */
-double orbitals_norm(orbitals_t const* orbs);
+double orbitals_norm(orbitals_t const* orbs, sh_f mask);
+void orbitals_norm_ne(orbitals_t const* orbs, double n[orbs->ne], sh_f mask);
 /*!
  * \brief [MPI support]
  */
@@ -43,6 +46,9 @@ void orbitals_normalize(orbitals_t* orbs);
  * \param wf[in] is wavefunction of Kohn's orbitals
  * \param i is sphere index \f${i_r, i_\Theta, i_\phi}\f$
  * */
+/*!
+ * \brief [MPI not support]
+ */
 double orbitals_n(orbitals_t const* orbs, sp_grid_t const* grid, int i[2], ylm_cache_t const* ylm_cache);
 void orbitals_n_sp(orbitals_t const* orbs, sp_grid_t const* grid, double n[grid->n[iR]*grid->n[iC]], double n_tmp[grid->n[iR]*grid->n[iC]], ylm_cache_t const* ylm_cache);
 

@@ -11,7 +11,8 @@
 typedef void (*atom_ort_f)(orbitals_t* orbs);
 
 typedef struct atom_s {
-	int ne;
+	int Z; //!< nuclear charge
+	int ne; //!< orbitals count
 	int* m;
 	int* l;
 	atom_ort_f ort;
@@ -27,6 +28,7 @@ double atom_hydrogen_sh_dudz(sh_grid_t const* grid, int ir, int il, int m) __att
 void atom_hydrogen_ground(sh_wavefunc_t* wf);
 
 static atom_t const atom_hydrogen = {
+	.Z = 1,
 	.ne = 1,
 	.m = (int[]){0},
 	.l = (int[]){0},
@@ -44,6 +46,7 @@ double atom_argon_sh_u(sh_grid_t const* grid, int ir, int il, int m) __attribute
 double atom_argon_sh_dudz(sh_grid_t const* grid, int ir, int il, int m) __attribute__((pure));
 
 static atom_t const atom_argon = {
+	.Z = 18,
 	.ne = 9,
 	.m = (int[]){0,0,0,-1,-1,0,0,1,1},
 	.l = (int[]){0,0,0, 1, 1,1,1,1,1},
@@ -61,6 +64,7 @@ double atom_neon_sh_u(sh_grid_t const* grid, int ir, int il, int m) __attribute_
 double atom_neon_sh_dudz(sh_grid_t const* grid, int ir, int il, int m) __attribute__((pure));
 
 static atom_t const atom_neon = {
+	.Z = 10,
 	.ne = 5,
 	.m = (int[]){0,0,-1,0,1},
 	.l = (int[]){0,0, 1,1,1},

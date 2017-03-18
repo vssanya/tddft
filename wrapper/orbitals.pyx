@@ -6,6 +6,7 @@ cimport mpi4py.MPI
 cimport mpi4py.libmpi
 
 from types cimport cdouble
+from abs_pot cimport mask_core
 from grid cimport ShGrid, SpGrid
 from wavefunc cimport sh_wavefunc_norm, swavefunc_from_point
 from sphere_harmonics cimport YlmCache
@@ -29,7 +30,7 @@ cdef class SOrbitals:
         cdef np.ndarray[np.double_t, ndim=2, mode='c'] n_local = np.ndarray(grid.shape, dtype=np.double)
         cdef double* n_ptr = NULL
 
-        if not self.is_mpi() or self._data.mpi_rank == 0:
+        if self.is_root():
             n = np.ndarray(grid.shape, dtype=np.double)
             n_ptr = <double*>n.data
 
@@ -37,8 +38,26 @@ cdef class SOrbitals:
 
         return n
 
-    def norm(self):
-        return orbitals_norm(self._data)
+    def norm(self, masked=False):
+        if masked:
+            return orbitals_norm(self._data, mask_core)
+        else:
+            return orbitals_norm(self._data, NULL)
+
+    def norm_ne(self, np.ndarray[double, ndim=1, mode='c'] norm = None, masked=False):
+        cdef double* res_ptr = NULL
+        if self.is_root():
+            if norm is None:
+                norm = np.ndarray(self._data.ne, dtype=np.double)
+            res_ptr = <double*>res.data
+
+        if masked:
+            orbitals_norm_ne(self._data, res_ptr, mask_core)
+        else:
+            orbitals_norm_ne(self._data, res_ptr, NULL)
+
+        return norm
+
 
     def normalize(self):
         orbitals_normalize(self._data)
@@ -59,12 +78,8 @@ cdef class SOrbitals:
     def is_mpi(self) -> bool:
         return self._data.mpi_comm != mpi4py.libmpi.MPI_COMM_NULL
 
-    def norm_ne(self):
-        cdef np.ndarray[np.double_t, ndim=1, mode='c'] res = np.ndarray(self._data.ne, dtype=np.double)
-        for i in range(self._data.ne):
-            res[i] = sh_wavefunc_norm(self._data.wf[i])
-
-        return res
+    def is_root(self) -> bool:
+        return not self.is_mpi() or self._data.mpi_rank == 0
 
     def load(self, file):
         pass

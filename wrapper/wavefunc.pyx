@@ -2,6 +2,7 @@ import numpy as np
 cimport numpy as np
 
 from types cimport cdouble
+from abs_pot cimport mask_core
 from grid cimport ShGrid, SpGrid
 from sphere_harmonics cimport YlmCache
 
@@ -29,8 +30,11 @@ cdef class SWavefunc:
 
         return n
 
-    def norm(self):
-        return sh_wavefunc_norm(self.data)
+    def norm(self, masked=False):
+        if masked:
+            return sh_wavefunc_norm(self.data, mask_core)
+        else:
+            return sh_wavefunc_norm(self.data, NULL)
 
     def normalize(self):
         sh_wavefunc_normalize(self.data)

@@ -31,34 +31,38 @@ void atom_neon_ort(orbitals_t* orbs) {
 	sh_wavefunc_ort_l(0, 2, orbs->wf);
 }
 
-double atom_argon_sh_u(sh_grid_t const* grid, int ir, int il, int m) {
+inline double sh_u_c(int z, sh_grid_t const* grid, int ir) {
     double const r = sh_grid_r(grid, ir);
-	return -18.0/r;
+	return -z/r;
+}
+
+inline double sh_dudz_c(int z, sh_grid_t const* grid, int ir) {
+    double const r = sh_grid_r(grid, ir);
+	return z/pow(r,2);
+}
+
+double atom_argon_sh_u(sh_grid_t const* grid, int ir, int il, int m) {
+	return sh_u_c(18, grid, ir);
 }
 
 double atom_argon_sh_dudz(sh_grid_t const* grid, int ir, int il, int m) {
-    double const r = sh_grid_r(grid, ir);
-    return 18.0/pow(r, 2);
+	return sh_dudz_c(18, grid, ir);
 }
 
 double atom_neon_sh_u(sh_grid_t const* grid, int ir, int il, int m) {
-    double const r = sh_grid_r(grid, ir);
-	return -10.0/r;
+	return sh_u_c(10, grid, ir);
 }
 
 double atom_neon_sh_dudz(sh_grid_t const* grid, int ir, int il, int m) {
-    double const r = sh_grid_r(grid, ir);
-    return 10.0/pow(r, 2);
+	return sh_dudz_c(10, grid, ir);
 }
 
 double atom_hydrogen_sh_u(sh_grid_t const* grid, int ir, int il, int m) {
-    double const r = sh_grid_r(grid, ir);
-	return -1.0/r;
+	return sh_u_c(1, grid, ir);
 }
 
 double atom_hydrogen_sh_dudz(sh_grid_t const* grid, int ir, int il, int m) {
-    double const r = sh_grid_r(grid, ir);
-    return 1.0/pow(r, 2);
+	return sh_dudz_c(1, grid, ir);
 }
 
 void atom_hydrogen_ground(sh_wavefunc_t* wf) {

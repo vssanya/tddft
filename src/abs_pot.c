@@ -13,3 +13,11 @@ double Uabs(sh_grid_t const* grid, int ir, int il, int im) {
 double uabs_zero(sh_grid_t const* grid, int ir, int il, int im) {
 	return 0.0;
 }
+
+double mask_core(sh_grid_t const* grid, int ir, int il, int im) {
+	double const r = sh_grid_r(grid, ir);
+	double const r_core = 10.0;
+	double const dr = 2.0;
+	return smoothstep(r_core + dr - r, 0.0, dr);  
+}
+

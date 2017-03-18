@@ -11,7 +11,6 @@ from atom cimport atom_t
 cdef extern from "sh_workspace.h":
     ctypedef struct sh_workspace_t:
         sh_grid_t* grid
-        sh_f U
         sh_f Uabs
         cdouble* alpha
         cdouble* betta
@@ -29,7 +28,6 @@ cdef extern from "sh_workspace.h":
 
     sh_workspace_t* sh_workspace_alloc(
             sh_grid_t* sh_grid,
-            sh_f U,
             sh_f Uabs,
             int num_threads
             )
@@ -61,6 +59,7 @@ cdef extern from "sh_workspace.h":
     void sh_workspace_prop(
             sh_workspace_t* ws,
             sh_wavefunc_t* wf,
+            atom_t* atom,
             field_t E,
             double t,
             double dt
@@ -69,6 +68,7 @@ cdef extern from "sh_workspace.h":
     void sh_workspace_prop_img(
             sh_workspace_t* ws,
             sh_wavefunc_t* wf,
+            atom_t* atom,
             double dt
             )
 
@@ -90,7 +90,6 @@ cdef extern from "sh_workspace.h":
     sh_orbs_workspace_t* sh_orbs_workspace_alloc(
             sh_grid_t* sh_grid,
             sp_grid_t* sp_grid,
-            sh_f U,
             sh_f Uabs,
             ylm_cache_t* ylm_cache,
             int num_threads

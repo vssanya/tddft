@@ -10,14 +10,13 @@
 
 sh_workspace_t* sh_workspace_alloc(
 		sh_grid_t const* grid,
-		sh_f U, sh_f Uabs,
+		sh_f Uabs,
 		int num_threads
 ) {
 	sh_workspace_t* ws = malloc(sizeof(sh_workspace_t));
 
 	ws->grid = grid;
 
-	ws->U = U;
 	ws->Uabs = Uabs;
 
 #ifdef _OPENMP
@@ -242,12 +241,19 @@ void _sh_workspace_prop(
 	}
 }
 
-void sh_workspace_prop(sh_workspace_t* ws, sh_wavefunc_t* wf, field_t field, double t, double dt) {
+void sh_workspace_prop(
+		sh_workspace_t* ws,
+		sh_wavefunc_t* wf,
+		atom_t const* atom,
+		field_t field,
+		double t,
+		double dt
+) {
 	double Et = field_E(field, t + dt/2);
 
 	double Ul0(sh_grid_t const* grid, int ir, int l, int m) {
 		double const r = sh_grid_r(grid, ir);
-		return l*(l+1)/(2*r*r) + ws->U(grid, ir, l, m);
+		return l*(l+1)/(2*r*r) + atom->u(grid, ir, l, m);
 	}
 
 	double Ul1(sh_grid_t const* grid, int ir, int l, int m) {
@@ -255,26 +261,26 @@ void sh_workspace_prop(sh_workspace_t* ws, sh_wavefunc_t* wf, field_t field, dou
 		return r*Et*clm(l,m);
 	}
 
-	_sh_workspace_prop(ws,  wf, dt, 2, (sh_f[3]){Ul0, Ul1}, ws->Uabs, 1);
+	_sh_workspace_prop(ws,  wf, dt, 2, (sh_f[3]){Ul0, Ul1}, ws->Uabs, atom->Z);
 }
 
 void sh_workspace_prop_img(
 		sh_workspace_t* ws,
 		sh_wavefunc_t* wf,
+		atom_t const* atom,
 		double dt
 ) {
 	double Ul0(sh_grid_t const* grid, int ir, int l, int m) {
 		double const r = sh_grid_r(grid, ir);
-		return l*(l+1)/(2*r*r) + ws->U(grid, ir, l, m);
+		return l*(l+1)/(2*r*r) + atom->u(grid, ir, l, m);
 	}
 
-	_sh_workspace_prop(ws,  wf, -I*dt, 1, (sh_f[3]){Ul0}, uabs_zero, 1);
+	_sh_workspace_prop(ws,  wf, -I*dt, 1, (sh_f[3]){Ul0}, uabs_zero, atom->Z);
 }
 
 sh_orbs_workspace_t* sh_orbs_workspace_alloc(
 		sh_grid_t const* sh_grid,
 		sp_grid_t const* sp_grid,
-		sh_f U,
 		sh_f Uabs,
 		ylm_cache_t const* ylm_cache,
 		int num_threads
@@ -285,7 +291,7 @@ sh_orbs_workspace_t* sh_orbs_workspace_alloc(
 	ws->sp_grid = sp_grid;
 	ws->ylm_cache = ylm_cache;
 
-	ws->wf_ws = sh_workspace_alloc(sh_grid, U, Uabs, num_threads);
+	ws->wf_ws = sh_workspace_alloc(sh_grid, Uabs, num_threads);
 
 	ws->Uh = malloc(sizeof(double)*sh_grid->n[iR]*3);
 	ws->Uh_local = malloc(sizeof(double)*sh_grid->n[iR]);
@@ -366,7 +372,7 @@ void sh_orbs_workspace_prop(
 
 	double Ul0(sh_grid_t const* grid, int ir, int l, int m) {
 		double const r = sh_grid_r(grid, ir);
-		return l*(l+1)/(2*r*r) + ws->wf_ws->U(grid, ir, l, m) + ws->Uh[ir] + ws->Uxc[ir];
+		return l*(l+1)/(2*r*r) + atom->u(grid, ir, l, m) + ws->Uh[ir] + ws->Uxc[ir]/sqrt(2*M_PI);
 	}
 
 	double Ul1(sh_grid_t const* grid, int ir, int l, int m) {
@@ -380,12 +386,12 @@ void sh_orbs_workspace_prop(
 
 #ifdef _MPI
 	if (orbs->mpi_comm != MPI_COMM_NULL) {
-		_sh_workspace_prop(ws->wf_ws, orbs->mpi_wf, dt, 2, (sh_f[3]){Ul0, Ul1, Ul2}, ws->wf_ws->Uabs, 2*atom->ne);
+		_sh_workspace_prop(ws->wf_ws, orbs->mpi_wf, dt, 2, (sh_f[3]){Ul0, Ul1, Ul2}, ws->wf_ws->Uabs, atom->Z);
 	} else
 #endif
 	{
 		for (int ie = 0; ie < orbs->ne; ++ie) {
-			_sh_workspace_prop(ws->wf_ws, orbs->wf[ie], dt, 2, (sh_f[3]){Ul0, Ul1, Ul2}, ws->wf_ws->Uabs, 2*atom->ne);
+			_sh_workspace_prop(ws->wf_ws, orbs->wf[ie], dt, 2, (sh_f[3]){Ul0, Ul1, Ul2}, ws->wf_ws->Uabs, atom->Z);
 		}
 	}
 }
@@ -406,7 +412,7 @@ void sh_orbs_workspace_prop_img(
 
 	double Ul0(sh_grid_t const* grid, int ir, int l, int m) {
 		double const r = sh_grid_r(grid, ir);
-		return l*(l+1)/(2*r*r) + ws->wf_ws->U(grid, ir, l, m) + ws->Uh[ir] + ws->Uxc[ir]/sqrt(2*M_PI);// + plm(l,m)*ws->Uh[ir + 2*grid->n[iR]];
+		return l*(l+1)/(2*r*r) + atom->u(grid, ir, l, m) + ws->Uh[ir] + ws->Uxc[ir]/sqrt(2*M_PI);// + plm(l,m)*ws->Uh[ir + 2*grid->n[iR]];
 	}
 
 	double Ul1(sh_grid_t const* grid, int ir, int l, int m) {
@@ -419,12 +425,12 @@ void sh_orbs_workspace_prop_img(
 
 #ifdef _MPI
 	if (orbs->mpi_comm != MPI_COMM_NULL) {
-		_sh_workspace_prop(ws->wf_ws, orbs->mpi_wf, -I*dt, 1, (sh_f[3]){Ul0, Ul1, Ul2}, uabs_zero, 2*atom->ne);
+		_sh_workspace_prop(ws->wf_ws, orbs->mpi_wf, -I*dt, 1, (sh_f[3]){Ul0, Ul1, Ul2}, uabs_zero, atom->Z);
 	} else
 #endif
 	{
 		for (int ie = 0; ie < orbs->ne; ++ie) {
-			_sh_workspace_prop(ws->wf_ws, orbs->wf[ie], -I*dt, 1, (sh_f[3]){Ul0, Ul1, Ul2}, uabs_zero, 2*atom->ne);
+			_sh_workspace_prop(ws->wf_ws, orbs->wf[ie], -I*dt, 1, (sh_f[3]){Ul0, Ul1, Ul2}, uabs_zero, atom->Z);
 		}
 	}
 }

@@ -13,7 +13,6 @@
 typedef struct {
 	sh_grid_t const* grid;
 
-	sh_f U;
 	sh_f Uabs;
 
 	cdouble* alpha;
@@ -25,7 +24,6 @@ typedef struct {
 sh_workspace_t*
 sh_workspace_alloc(
 		sh_grid_t const* grid,
-		sh_f U,
 		sh_f Uabs,
 		int num_threads);
 
@@ -64,6 +62,7 @@ void sh_workspace_prop_at_v2(
 void sh_workspace_prop(
 		sh_workspace_t* ws,
 		sh_wavefunc_t* wf,
+		atom_t const* atom,
 		field_t field,
 		double t,
 		double dt
@@ -72,6 +71,7 @@ void sh_workspace_prop(
 void sh_workspace_prop_img(
 		sh_workspace_t* ws,
 		sh_wavefunc_t* wf,
+		atom_t const* atom,
 		double dt
 );
 
@@ -92,7 +92,6 @@ sh_orbs_workspace_t*
 sh_orbs_workspace_alloc(
 		sh_grid_t const* sh_grid,
 		sp_grid_t const* sp_grid,
-		sh_f U,
 		sh_f Uabs,
 		ylm_cache_t const* ylm_cache,
 		int num_threads
