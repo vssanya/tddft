@@ -49,7 +49,7 @@ cdef class SOrbitals:
         if self.is_root():
             if norm is None:
                 norm = np.ndarray(self._data.ne, dtype=np.double)
-            res_ptr = <double*>res.data
+            res_ptr = <double*>norm.data
 
         if masked:
             orbitals_norm_ne(self._data, res_ptr, mask_core)
