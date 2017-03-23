@@ -155,6 +155,8 @@ void sh_workspace_prop_at_v2(
 	d2[1] = -2.0/(dr*dr);
 	d2[2] =  1.0/(dr*dr);
 
+	cdouble U[3];
+
 	const double d2_11 = d2[1]*(1.0 - Z*dr/(12.0 - 10.0*Z*dr));
 
 	double M2[3];
@@ -170,32 +172,45 @@ void sh_workspace_prop_at_v2(
 		cdouble* alpha = &ws->alpha[tid*ws->grid->n[iR]];
 		cdouble* betta = &ws->betta[tid*ws->grid->n[iR]];
 
-        cdouble U = Ul(ws->grid, 0, l, wf->m) - I*Uabs(ws->grid, 0, l, wf->m);
-
 		cdouble al[3];
 		cdouble ar[3];
 		cdouble f;
 
 		cdouble* psi = &wf->data[l*Nr];
 
-		al[0] = M2[0] + 0.5*I*dt*(-0.5*d2[0]);
-		al[1] = M2_11 + 0.5*I*dt*(-0.5*d2_11 + U);
-		al[2] = M2[2] + 0.5*I*dt*(-0.5*d2[2]);
+		cdouble const idt_2 = 0.5*I*dt;
 
-		ar[0] = M2[0] - 0.5*I*dt*(-0.5*d2[0]);
-		ar[1] = M2_11 - 0.5*I*dt*(-0.5*d2_11 + U);
-		ar[2] = M2[2] - 0.5*I*dt*(-0.5*d2[2]);
+		{
+			int ir = 0;
 
-		f = ar[1]*psi[0] + ar[2]*psi[1];
+			U[1] = Ul(ws->grid, ir, l, wf->m) - I*Uabs(ws->grid, ir, l, wf->m);
+			U[2] = Ul(ws->grid, ir+1, l, wf->m) - I*Uabs(ws->grid, ir+1, l, wf->m);
 
-		alpha[0] = -al[2]/al[1];
-		betta[0] = f/al[1];
+			for (int i = 1; i < 3; ++i) {
+				al[i] = M2[i]*(1.0 + idt_2*U[i]) - 0.5*idt_2*d2[i];
+				ar[i] = M2[i]*(1.0 - idt_2*U[i]) + 0.5*idt_2*d2[i];
+			}
+
+			if (l == 0) {
+				al[1] = M2_11*(1.0 + idt_2*U[1]) - 0.5*idt_2*d2_11;
+				ar[1] = M2_11*(1.0 - idt_2*U[1]) + 0.5*idt_2*d2_11;
+			}
+
+			f = ar[1]*psi[ir] + ar[2]*psi[ir+1];
+
+			alpha[0] = -al[2]/al[1];
+			betta[0] = f/al[1];
+		}
 
 		for (int ir = 1; ir < ws->grid->n[iR] - 1; ++ir) {
-            U = Ul(ws->grid, ir, l, wf->m) - I*Uabs(ws->grid, ir, l, wf->m);
+			U[0] = U[1];
+			U[1] = U[2];
+            U[2] = Ul(ws->grid, ir+1, l, wf->m) - I*Uabs(ws->grid, ir+1, l, wf->m);
 
-			al[1] = M2[1] + 0.5*I*dt*(-0.5*d2[1] + U);
-			ar[1] = M2[1] - 0.5*I*dt*(-0.5*d2[1] + U);
+			for (int i = 0; i < 3; ++i) {
+				al[i] = M2[i]*(1.0 + idt_2*U[i]) - 0.5*idt_2*d2[i];
+				ar[i] = M2[i]*(1.0 - idt_2*U[i]) + 0.5*idt_2*d2[i];
+			}
 			
 			cdouble c = al[1] + al[0]*alpha[ir-1];
 			f = ar[0]*psi[ir-1] + ar[1]*psi[ir] + ar[2]*psi[ir+1];
@@ -206,10 +221,14 @@ void sh_workspace_prop_at_v2(
 
 		{
 			int ir = ws->grid->n[iR];
-            U = Ul(ws->grid, ir, l, wf->m) - I*Uabs(ws->grid, ir, l, wf->m);
 
-			al[1] = M2[1] + 0.5*I*dt*(-0.5*d2[1] + U);
-			ar[1] = M2[1] - 0.5*I*dt*(-0.5*d2[1] + U);
+			U[0] = U[1];
+			U[1] = U[2];
+
+			for (int i = 0; i < 2; ++i) {
+				al[i] = M2[i]*(1.0 + idt_2*U[i]) - 0.5*idt_2*d2[i];
+				ar[i] = M2[i]*(1.0 - idt_2*U[i]) + 0.5*idt_2*d2[i];
+			}
 			
 			cdouble c = al[1] + al[0]*alpha[ir-1];
 			f = ar[0]*psi[ir-1] + ar[1]*psi[ir];
@@ -419,16 +438,16 @@ void sh_orbs_workspace_prop_img(
 		double dt
 ) {
 	for (int l=0; l<1; ++l) {
-		ux_lda(l, orbs, &ws->Uxc[l*ws->sh_grid->n[iR]], ws->sp_grid, ws->n_sp, ws->n_sp_local, ws->ylm_cache);
+		// ux_lda(l, orbs, &ws->Uxc[l*ws->sh_grid->n[iR]], ws->sp_grid, ws->n_sp, ws->n_sp_local, ws->ylm_cache);
 	}
 
-	hartree_potential_l0(orbs, &ws->Uh[0*ws->sh_grid->n[iR]], ws->Uh_local, ws->uh_tmp);
+//  hartree_potential_l0(orbs, &ws->Uh[0*ws->sh_grid->n[iR]], ws->Uh_local, ws->uh_tmp);
 //	hartree_potential_l1(orbs, &ws->Uh[1*ws->sh_grid->n[iR]], ws->uh_tmp);
 //	hartree_potential_l2(orbs, &ws->Uh[2*ws->sh_grid->n[iR]], ws->uh_tmp);
 
 	double Ul0(sh_grid_t const* grid, int ir, int l, int m) {
 		double const r = sh_grid_r(grid, ir);
-		return l*(l+1)/(2*r*r) + atom->u(grid, ir, l, m) + ws->Uh[ir] + ws->Uxc[ir]/sqrt(2*M_PI);// + plm(l,m)*ws->Uh[ir + 2*grid->n[iR]];
+		return l*(l+1)/(2*r*r) + atom->u(grid, ir, l, m);// + ws->Uh[ir] + ws->Uxc[ir]/sqrt(2*M_PI);// + plm(l,m)*ws->Uh[ir + 2*grid->n[iR]];
 	}
 
 	double Ul1(sh_grid_t const* grid, int ir, int l, int m) {
