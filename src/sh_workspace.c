@@ -166,6 +166,7 @@ void sh_workspace_prop_at_v2(
 #pragma omp for
 	for (int l = 0; l < ws->grid->n[iL]; ++l) {
 		int tid = omp_get_thread_num();
+
 		cdouble* alpha = &ws->alpha[tid*ws->grid->n[iR]];
 		cdouble* betta = &ws->betta[tid*ws->grid->n[iR]];
 
@@ -190,7 +191,7 @@ void sh_workspace_prop_at_v2(
 		alpha[0] = -al[2]/al[1];
 		betta[0] = f/al[1];
 
-		for (int ir = 1; ir < ws->grid->n[iR]; ++ir) {
+		for (int ir = 1; ir < ws->grid->n[iR] - 1; ++ir) {
             U = Ul(ws->grid, ir, l, wf->m) - I*Uabs(ws->grid, ir, l, wf->m);
 
 			al[1] = M2[1] + 0.5*I*dt*(-0.5*d2[1] + U);
@@ -203,7 +204,22 @@ void sh_workspace_prop_at_v2(
 			betta[ir] = (f - al[0]*betta[ir-1]) / c;
 		}
 
-		psi[Nr-1] = 0;//betta[Nr-1]/(1 - alpha[Nr-1]);
+		{
+			int ir = ws->grid->n[iR];
+            U = Ul(ws->grid, ir, l, wf->m) - I*Uabs(ws->grid, ir, l, wf->m);
+
+			al[1] = M2[1] + 0.5*I*dt*(-0.5*d2[1] + U);
+			ar[1] = M2[1] - 0.5*I*dt*(-0.5*d2[1] + U);
+			
+			cdouble c = al[1] + al[0]*alpha[ir-1];
+			f = ar[0]*psi[ir-1] + ar[1]*psi[ir];
+
+			alpha[ir] = - al[2] / c;
+			betta[ir] = (f - al[0]*betta[ir-1]) / c;
+		}
+
+		//psi[Nr-1] = 0;//betta[Nr-1]/(1 - alpha[Nr-1]);
+		psi[Nr-1] = betta[Nr-1]/(1 - alpha[Nr-1]);
 		for (int ir = ws->grid->n[iR]-2; ir >= 0; --ir) {
 			psi[ir] = alpha[ir]*psi[ir+1] + betta[ir];
 		}
