@@ -5,8 +5,8 @@ import matplotlib.animation as animation
 import tdse
 
 dt = 0.032
-dr = 0.001
-r_max = 100
+dr = 0.02
+r_max = 200
 Nr=r_max/dr
 Nl=32
 
@@ -15,7 +15,7 @@ sh_grid = tdse.grid.ShGrid(Nr=Nr, Nl=Nl, r_max=r_max)
 sp_grid = tdse.grid.SpGrid(Nr=Nr, Nc=Nl, Np=1, r_max=r_max)
 ylm_cache = tdse.sphere_harmonics.YlmCache(Nl, sp_grid)
 ws = tdse.workspace.SOrbsWorkspace(sh_grid, sp_grid, ylm_cache)
-orbs = atom.get_ground_state(grid=sh_grid, filename='./ar_gs_dr_0.001.npy')
+orbs = atom.get_ground_state(grid=sh_grid, filename='./ar_gs_dr_0.02.npy')
 orbs.normalize()
 
 f = tdse.field.TwoColorPulseField(E0 = 0.0, alpha = 0.0)

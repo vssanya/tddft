@@ -150,21 +150,24 @@ void sh_workspace_prop_at_v2(
 
 	int Nr = ws->grid->n[iR];
 
+	cdouble U[3];
+
 	double d2[3];
 	d2[0] =  1.0/(dr*dr);
 	d2[1] = -2.0/(dr*dr);
 	d2[2] =  1.0/(dr*dr);
 
-	cdouble U[3];
-
-	const double d2_11 = d2[1]*(1.0 - Z*dr/(12.0 - 10.0*Z*dr));
+	const double d2_l0_11 = d2[1]*(1.0 - Z*dr/(12.0 - 10.0*Z*dr));
+	const double d2_l1_11 = -1.0/(dr*dr);
 
 	double M2[3];
 	M2[0] = 1.0/12.0;
 	M2[1] = 10.0/12.0;
 	M2[2] = 1.0/12.0;
 
-	const double M2_11 = 1.0 + d2_11*(dr*dr)/12.0;
+	const double M2_l0_11 = 1.0 + d2_l0_11*(dr*dr)/12.0;
+	const double M2_l1_11 = 11.0/12.0;
+
 #pragma omp for
 	for (int l = 0; l < ws->grid->n[iL]; ++l) {
 		int tid = omp_get_thread_num();
@@ -186,14 +189,17 @@ void sh_workspace_prop_at_v2(
 			U[1] = Ul(ws->grid, ir, l, wf->m) - I*Uabs(ws->grid, ir, l, wf->m);
 			U[2] = Ul(ws->grid, ir+1, l, wf->m) - I*Uabs(ws->grid, ir+1, l, wf->m);
 
-			for (int i = 1; i < 3; ++i) {
+			for (int i = 2; i < 3; ++i) {
 				al[i] = M2[i]*(1.0 + idt_2*U[i]) - 0.5*idt_2*d2[i];
 				ar[i] = M2[i]*(1.0 - idt_2*U[i]) + 0.5*idt_2*d2[i];
 			}
 
 			if (l == 0) {
-				al[1] = M2_11*(1.0 + idt_2*U[1]) - 0.5*idt_2*d2_11;
-				ar[1] = M2_11*(1.0 - idt_2*U[1]) + 0.5*idt_2*d2_11;
+				al[1] = M2_l0_11*(1.0 + idt_2*U[1]) - 0.5*idt_2*d2_l0_11;
+				ar[1] = M2_l0_11*(1.0 - idt_2*U[1]) + 0.5*idt_2*d2_l0_11;
+			} else {
+				al[1] = M2_l1_11*(1.0 + idt_2*U[1]) - 0.5*idt_2*d2_l1_11;
+				ar[1] = M2_l1_11*(1.0 - idt_2*U[1]) + 0.5*idt_2*d2_l1_11;
 			}
 
 			f = ar[1]*psi[ir] + ar[2]*psi[ir+1];
