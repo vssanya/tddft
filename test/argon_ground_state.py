@@ -4,9 +4,9 @@ import matplotlib.animation as animation
 
 import tdse
 
-dt = 0.008
-dr = 0.001
-r_max = 100
+dt = 0.001
+dr = 0.02
+r_max = 200
 Nr=r_max/dr
 Nl = 2
 
@@ -15,7 +15,7 @@ g = tdse.grid.ShGrid(Nr=Nr, Nl=Nl, r_max=r_max)
 sp_grid = tdse.grid.SpGrid(Nr=Nr, Nc=32, Np=1, r_max=r_max)
 ylm_cache = tdse.sphere_harmonics.YlmCache(Nl, sp_grid)
 ws = tdse.workspace.SOrbsWorkspace(g, sp_grid, ylm_cache)
-orbs = Ar.get_ground_state(grid=g, filename='./ar_gs_dr_0.001.npy')
+orbs = Ar.get_ground_state(grid=g, filename='./ar_gs_dr_0.02.npy')
 
 r = np.linspace(dr,r_max,Nr) + 1.0
 

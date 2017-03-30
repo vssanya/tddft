@@ -1,3 +1,5 @@
+import numpy as np
+
 cdef class Field:
     def __dealloc__(self):
         field_free(self.data)

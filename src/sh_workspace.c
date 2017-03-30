@@ -158,7 +158,6 @@ void sh_workspace_prop_at_v2(
 	d2[2] =  1.0/(dr*dr);
 
 	const double d2_l0_11 = d2[1]*(1.0 - Z*dr/(12.0 - 10.0*Z*dr));
-	const double d2_l1_11 = -1.0/(dr*dr);
 
 	double M2[3];
 	M2[0] = 1.0/12.0;
@@ -166,7 +165,6 @@ void sh_workspace_prop_at_v2(
 	M2[2] = 1.0/12.0;
 
 	const double M2_l0_11 = 1.0 + d2_l0_11*(dr*dr)/12.0;
-	const double M2_l1_11 = 11.0/12.0;
 
 #pragma omp for
 	for (int l = 0; l < ws->grid->n[iL]; ++l) {
@@ -189,7 +187,7 @@ void sh_workspace_prop_at_v2(
 			U[1] = Ul(ws->grid, ir, l, wf->m) - I*Uabs(ws->grid, ir, l, wf->m);
 			U[2] = Ul(ws->grid, ir+1, l, wf->m) - I*Uabs(ws->grid, ir+1, l, wf->m);
 
-			for (int i = 2; i < 3; ++i) {
+			for (int i = 1; i < 3; ++i) {
 				al[i] = M2[i]*(1.0 + idt_2*U[i]) - 0.5*idt_2*d2[i];
 				ar[i] = M2[i]*(1.0 - idt_2*U[i]) + 0.5*idt_2*d2[i];
 			}
@@ -197,9 +195,6 @@ void sh_workspace_prop_at_v2(
 			if (l == 0) {
 				al[1] = M2_l0_11*(1.0 + idt_2*U[1]) - 0.5*idt_2*d2_l0_11;
 				ar[1] = M2_l0_11*(1.0 - idt_2*U[1]) + 0.5*idt_2*d2_l0_11;
-			} else {
-				al[1] = M2_l1_11*(1.0 + idt_2*U[1]) - 0.5*idt_2*d2_l1_11;
-				ar[1] = M2_l1_11*(1.0 - idt_2*U[1]) + 0.5*idt_2*d2_l1_11;
 			}
 
 			f = ar[1]*psi[ir] + ar[2]*psi[ir+1];
@@ -226,7 +221,7 @@ void sh_workspace_prop_at_v2(
 		}
 
 		{
-			int ir = ws->grid->n[iR];
+			int ir = ws->grid->n[iR] - 1;
 
 			U[0] = U[1];
 			U[1] = U[2];
@@ -243,7 +238,6 @@ void sh_workspace_prop_at_v2(
 			betta[ir] = (f - al[0]*betta[ir-1]) / c;
 		}
 
-		//psi[Nr-1] = 0;//betta[Nr-1]/(1 - alpha[Nr-1]);
 		psi[Nr-1] = betta[Nr-1]/(1 - alpha[Nr-1]);
 		for (int ir = ws->grid->n[iR]-2; ir >= 0; --ir) {
 			psi[ir] = alpha[ir]*psi[ir+1] + betta[ir];

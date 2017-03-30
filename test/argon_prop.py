@@ -4,7 +4,7 @@ import matplotlib.animation as animation
 
 import tdse
 
-dt = 0.032
+dt = 0.008
 dr = 0.02
 r_max = 200
 Nr=r_max/dr
@@ -18,7 +18,13 @@ ws = tdse.workspace.SOrbsWorkspace(sh_grid, sp_grid, ylm_cache)
 orbs = atom.get_ground_state(grid=sh_grid, filename='./ar_gs_dr_0.02.npy')
 orbs.normalize()
 
-f = tdse.field.TwoColorPulseField(E0 = 0.0, alpha = 0.0)
+T = 2*np.pi / 5.7e-2
+
+f = tdse.field.SinField(
+        E0=tdse.utils.I_to_E(2e14),
+        alpha=0.0,
+        tp=20*T
+        )
 
 r = np.linspace(dr,r_max,Nr)
 
@@ -28,6 +34,7 @@ def data_gen():
     for i in range(t.size):
         ws.prop(orbs, atom, f, t[i], dt)
         print(t[i])
+        print(f.E(t[i]))
         yield i
 
 fig = plt.figure()
@@ -44,6 +51,9 @@ ax.set_ylim(1e-12, 1e3)
 ax.set_yscale('log')
 
 n = np.zeros((t.size, 9))
+orbs.norm_ne(n[0,:], True)
+print(n[0,:])
+
 line_n, = ax_n.plot(t, n[:,0])
 ax_n.set_ylim(1-1e-5, 1+1e-5)
 ax_n.set_yscale('log')
