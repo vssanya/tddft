@@ -384,7 +384,7 @@ void sh_orbs_workspace_free(sh_orbs_workspace_t* ws) {
 //		return qlm(l, m)*(ws->Uh[ir + 2*grid->n[iR]] + ws->Uxc[ir + 2*grid->n[iR]]);
 //	}
 //
-//	for (int ie = 0; ie < orbs->ne; ++ie) {
+//	for (int ie = 0; ie < orbs->atom->n_orbs; ++ie) {
 //        _sh_workspace_prop(ws->wf_ws[0], orbs->wf[ie], dt, 3, (sh_f[3]){Ul0, Ul1, Ul2}, ws->wf_ws[0]->Uabs);
 //	}
 //}
@@ -425,7 +425,7 @@ void sh_orbs_workspace_prop(
 	} else
 #endif
 	{
-		for (int ie = 0; ie < orbs->ne; ++ie) {
+		for (int ie = 0; ie < orbs->atom->n_orbs; ++ie) {
 			_sh_workspace_prop(ws->wf_ws, orbs->wf[ie], dt, 2, (sh_f[3]){Ul0, Ul1, Ul2}, ws->wf_ws->Uabs, atom->Z);
 		}
 	}
@@ -464,7 +464,7 @@ void sh_orbs_workspace_prop_img(
 	} else
 #endif
 	{
-		for (int ie = 0; ie < orbs->ne; ++ie) {
+		for (int ie = 0; ie < orbs->atom->n_orbs; ++ie) {
 			_sh_workspace_prop(ws->wf_ws, orbs->wf[ie], -I*dt, 1, (sh_f[3]){Ul0, Ul1, Ul2}, uabs_zero, atom->Z);
 		}
 	}

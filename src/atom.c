@@ -1,23 +1,8 @@
 #include "atom.h"
+#include "orbitals.h"
+
 #include <mpi/mpi.h>
 
-
-void atom_init(atom_t const* atom, orbitals_t* orbs) {
-	assert(orbs->ne == atom->ne);
-
-#ifdef _MPI
-	if (orbs->mpi_comm != MPI_COMM_NULL) {
-		orbs->mpi_wf->m = atom->m[orbs->mpi_rank];
-		sh_wavefunc_random_l(orbs->mpi_wf, atom->l[orbs->mpi_rank]);
-	} else
-#endif
-	{
-		for (int ie = 0; ie < orbs->ne; ++ie) {
-			orbs->wf[ie]->m = atom->m[ie];
-			sh_wavefunc_random_l(orbs->wf[ie], atom->l[ie]);
-		}
-	}
-}
 
 void atom_argon_ort(orbitals_t* orbs) {
 	sh_wavefunc_ort_l(0, 3, orbs->wf);

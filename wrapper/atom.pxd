@@ -7,14 +7,13 @@ cdef extern from "atom.h":
     ctypedef void (*atom_ort_f)(orbitals_t* orbs)
     ctypedef struct atom_t:
         int Z
-        int ne
+        int n_orbs
         int* m
         int* l
+        int* n_e
         atom_ort_f ort
         sh_f u
         sh_f dudz
-
-    void atom_init(atom_t* atom, orbitals_t* orbs)
 
     double atom_hydrogen_sh_u(sh_grid_t* grid, int ir, int il, int m)
     double atom_hydrogen_sh_dudz(sh_grid_t* grid, int ir, int il, int m)

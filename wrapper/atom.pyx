@@ -20,17 +20,12 @@ cdef class Atom:
         else:
             assert(False, 'Atom {} is not exist'.format(id))
 
-    def get_init_orbs(self, ShGrid grid):
-        orbs = SOrbitals(self._data.ne, grid)
-        atom_init(self._data, orbs._data)
-        return orbs
-
     def get_ground_state(self, ShGrid grid, filename, comm = None):
         """
         [MPI support]
         """
 
-        orbs = SOrbitals(self._data.ne, grid, comm)
+        orbs = SOrbitals(self._data.n_orbs, grid, comm)
 
         arr = orbs.asarray()
         arr[:] = 0.0

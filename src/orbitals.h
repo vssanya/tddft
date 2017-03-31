@@ -1,6 +1,7 @@
 #pragma once
 
 #include "sh_wavefunc.h"
+#include "atom.h"
 
 #include <mpi/mpi.h>
 
@@ -8,8 +9,8 @@
 /*!
  * \brief Орбитали Кона-Шэма
  * */
-typedef struct {
-	int ne; //!< число орбиталей Кона-Шэма
+typedef struct orbitals_s {
+	atom_t const* atom;
 	sh_grid_t const* grid;
 	sh_wavefunc_t** wf; //!< волновые функции орбиталей
 	cdouble* data; //!< raw data[ir + il*nr + ie*nr*nl]
@@ -21,8 +22,10 @@ typedef struct {
 #endif
 } orbitals_t;
 
-orbitals_t* orbials_new(int ne, sh_grid_t const* grid, MPI_Comm mpi_comm);
+orbitals_t* orbials_new(atom_t const* atom, sh_grid_t const* grid, MPI_Comm mpi_comm);
 void orbitals_del(orbitals_t* orbs);
+
+void orbitals_init(orbitals_t* orbs);
 
 /*!
  *  \brief Init state [MPI support]
@@ -34,7 +37,7 @@ void orbitals_set_init_state(orbitals_t* orbs, cdouble* data, int l_max);
  * \brief [MPI support]
  */
 double orbitals_norm(orbitals_t const* orbs, sh_f mask);
-void orbitals_norm_ne(orbitals_t const* orbs, double n[orbs->ne], sh_f mask);
+void orbitals_norm_ne(orbitals_t const* orbs, double n[orbs->atom->n_orbs], sh_f mask);
 /*!
  * \brief [MPI support]
  */

@@ -16,7 +16,7 @@ double calc_wf_ionization_prob(sh_wavefunc_t const* wf) {
 }
 
 double calc_orbs_ionization_prob(orbitals_t const* orbs) {
-	return 2*orbs->ne - orbitals_norm(orbs, mask_core);
+	return 2*orbs->atom->n_orbs - orbitals_norm(orbs, mask_core);
 }
 
 double calc_wf_jrcd(
