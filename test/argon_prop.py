@@ -19,22 +19,22 @@ orbs = atom.get_ground_state(grid=sh_grid, filename='./ar_gs_dr_0.02.npy')
 orbs.normalize()
 
 T = 2*np.pi / 5.7e-2
+tp = T
 
 f = tdse.field.SinField(
-        E0=tdse.utils.I_to_E(2e14),
+        E0=tdse.utils.I_to_E(2e15),
         alpha=0.0,
-        tp=20*T
+        tp=tp
         )
 
 r = np.linspace(dr,r_max,Nr)
 
-t = np.linspace(0, dt*10000, 10000)
+t = np.arange(0, tp, dt)
 
 def data_gen():
     for i in range(t.size):
         ws.prop(orbs, atom, f, t[i], dt)
-        print(t[i])
-        print(f.E(t[i]))
+        print("t = {}, E = {}".format(t[i], f.E(t[i])))
         yield i
 
 fig = plt.figure()
@@ -51,12 +51,12 @@ ax.set_ylim(1e-12, 1e3)
 ax.set_yscale('log')
 
 n = np.zeros((t.size, 9))
+az = np.zeros(t.size)
 orbs.norm_ne(n[0,:], True)
 print(n[0,:])
 
-line_n, = ax_n.plot(t, n[:,0])
-ax_n.set_ylim(1-1e-5, 1+1e-5)
-ax_n.set_yscale('log')
+line_n, = ax_n.plot(t, az)
+ax_n.set_ylim(-1, 1)
 lines.append(line_n)
 
 def run(data):
@@ -67,7 +67,8 @@ def run(data):
         lines[ie].set_ydata(np.sum(np.abs(arr[ie])**2, axis=0))
 
     orbs.norm_ne(n[i,:], True)
-    line_n.set_ydata(n[:,0])
+    az[i] = tdse.calc.az(orbs, atom, f, t[i])
+    line_n.set_ydata(az)
     ax_n.set_xlim(0, t[i])
     print(n[i,:])
     return lines,

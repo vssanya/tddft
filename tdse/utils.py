@@ -1,5 +1,8 @@
 import numpy as np
+import numpy.fft as fft
+
 from . import const
+
 
 UNIT = {
         'au': 1.0, # atomic unit
@@ -41,3 +44,6 @@ def I_to_E(I):
 def E_to_I(E):
     a = 1e14 / (5.34e-2)**2
     return a * E**2
+
+def spectral_density(az: np.ndarray) -> np.ndarray:
+    return 2/(3*np.pi*const.C**3)*np.abs(fft.rfft(az))**2
