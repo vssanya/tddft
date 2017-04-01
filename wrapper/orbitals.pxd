@@ -4,7 +4,12 @@ from atom cimport atom_t
 from wavefunc cimport sh_wavefunc_t
 from sphere_harmonics cimport ylm_cache_t
 
+from atom cimport Atom
+from grid cimport ShGrid
+
+cimport mpi4py.MPI
 cimport mpi4py.libmpi as mpi
+
 
 cdef extern from "orbitals.h":
     ctypedef struct orbitals_t:
@@ -28,3 +33,6 @@ cdef extern from "orbitals.h":
 
 cdef class SOrbitals:
     cdef orbitals_t* _data
+    cdef Atom atom
+    cdef mpi4py.MPI.Comm mpi_comm
+    cdef ShGrid grid

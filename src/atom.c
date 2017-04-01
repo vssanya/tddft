@@ -4,12 +4,21 @@
 #include <mpi/mpi.h>
 
 
+int atom_get_count_electrons(atom_t const* atom) {
+	int count = 0;
+	for (int i=0; i<atom->n_orbs; ++i) {
+		count += atom->n_e[i];
+	}
+
+	return count;
+}
+
 void atom_argon_ort(orbitals_t* orbs) {
 	sh_wavefunc_ort_l(0, 3, orbs->wf);
 
 	sh_wavefunc_ort_l(1, 2, &orbs->wf[3]);
 	sh_wavefunc_ort_l(1, 2, &orbs->wf[5]);
-	sh_wavefunc_ort_l(1, 2, &orbs->wf[7]);
+	//sh_wavefunc_ort_l(1, 2, &orbs->wf[7]);
 }
 
 void atom_neon_ort(orbitals_t* orbs) {

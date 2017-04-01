@@ -15,7 +15,8 @@ class OrbitalsFunc:
 
         self.grid = tdse.grid.ShGrid(Nr, Nl, r_max)
         self.atom = tdse.atom.Atom('Ar')
-        self.orbs = self.atom.get_init_orbs(self.grid)
+        self.orbs = tdse.orbitals.SOrbitals(self.atom, self.grid)
+        self.orbs.init()
         self.field = tdse.field.SinField()
 
     def time_norm(self):
@@ -44,7 +45,8 @@ class OrbitalsPropagate:
         self.ylm_cache = tdse.sphere_harmonics.YlmCache(Nl, self.sp_grid)
 
         self.atom = tdse.atom.Atom('Ar')
-        self.orbs = self.atom.get_init_orbs(self.grid)
+        self.orbs = tdse.orbitals.SOrbitals(self.atom, self.grid)
+        self.orbs.init()
         self.uh = np.ndarray(Nr)
         self.ws = tdse.workspace.SOrbsWorkspace(self.grid, self.sp_grid, ylm_cache=self.ylm_cache)
         self.field = tdse.field.SinField()

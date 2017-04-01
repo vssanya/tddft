@@ -20,6 +20,8 @@ typedef struct atom_s {
 	sh_f dudz;
 } atom_t;
 
+int atom_get_count_electrons(atom_t const* atom);
+
 // Potential
 double atom_hydrogen_sh_u(sh_grid_t const* grid, int ir, int il, int m) __attribute__((pure));
 double atom_hydrogen_sh_dudz(sh_grid_t const* grid, int ir, int il, int m) __attribute__((pure));

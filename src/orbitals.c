@@ -203,7 +203,7 @@ double orbitals_n(orbitals_t const* orbs, sp_grid_t const* grid, int i[2], ylm_c
 
 	for (int ie = 0; ie < orbs->atom->n_orbs; ++ie) {
 		cdouble const psi = swf_get_sp(orbs->wf[ie], grid, (int[3]){i[0], i[1], 0}, ylm_cache);
-		res += pow(creal(psi), 2) + pow(cimag(psi), 2)*orbs->atom->n_e[ie];
+		res += (pow(creal(psi), 2) + pow(cimag(psi), 2))*orbs->atom->n_e[ie];
 	}
 
 	return res;

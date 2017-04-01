@@ -4,11 +4,11 @@
 
 
 double calc_wf_az(sh_wavefunc_t const* wf, atom_t const* atom, field_t field, double t) {
-    return - field_E(field, t) - sh_wavefunc_cos(wf, atom->dudz);
+    return - field_E(field, t)*sh_wavefunc_norm(wf, NULL) - sh_wavefunc_cos(wf, atom->dudz);
 }
 
 double calc_orbs_az(orbitals_t const* orbs, atom_t const* atom, field_t field, double t) {
-	return - field_E(field, t) - orbitals_cos(orbs, atom->dudz);
+	return - field_E(field, t)*orbitals_norm(orbs, NULL) - orbitals_cos(orbs, atom->dudz);
 }
 
 double calc_wf_ionization_prob(sh_wavefunc_t const* wf) {
@@ -16,7 +16,7 @@ double calc_wf_ionization_prob(sh_wavefunc_t const* wf) {
 }
 
 double calc_orbs_ionization_prob(orbitals_t const* orbs) {
-	return 2*orbs->atom->n_orbs - orbitals_norm(orbs, mask_core);
+	return atom_get_count_electrons(orbs->atom) - orbitals_norm(orbs, mask_core);
 }
 
 double calc_wf_jrcd(

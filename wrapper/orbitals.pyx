@@ -20,12 +20,38 @@ cdef class SOrbitals:
 
         self._data = orbials_new(atom._data, grid.data, comm.ob_mpi)
 
+        self.mpi_comm = comm
+        self.grid = grid
+        self.atom = atom
+
     def __dealloc__(self):
         if self._data != NULL:
             orbitals_del(self._data)
 
     def init(self):
         orbitals_init(self._data)
+
+    def ort(self):
+        self._data.atom.ort(self._data)
+
+    def load(self, filename):
+        arr = self.asarray()
+        arr[:] = 0.0
+
+        cdef np.ndarray[np.complex_t, ndim=3] data
+        cdef cdouble* data_ptr = NULL
+
+        if not self.is_mpi() or self._data.mpi_rank == 0:
+            data = np.load(filename)
+            l_max = data.shape[1]
+            data_ptr = <cdouble*>data.data
+        else:
+            l_max = None
+
+        if self.is_mpi():
+            l_max = self.mpi_comm.bcast(l_max)
+
+        orbitals_set_init_state(self._data, data_ptr, l_max)
     
     def n(self, SpGrid grid, YlmCache ylm_cache, int ir, int ic):
         return orbitals_n(self._data, grid.data, [ir, ic], ylm_cache._data)

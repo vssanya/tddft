@@ -25,7 +25,8 @@ def calc_wf_az_t():
     r = np.linspace(dr, r_max, r_max/dr)
     g = tdse.grid.ShGrid(Nr=r_max/dr, Nl=20, r_max=r_max)
 
-    orbs = a.get_init_orbs(g)
+    orbs = tdse.orbitals.SOrbitals(a, g)
+    orbs.init()
     orbs.normalize()
     wf = orbs.get_wf(0)
     ws = tdse.workspace.SKnWorkspace(grid=g)
