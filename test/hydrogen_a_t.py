@@ -9,34 +9,34 @@ def calc_wf_az_t():
     freq = tdse.utils.length_to_freq(800, 'nm')
     T = 2*np.pi/freq
 
-    I = 1e12
+    I = 1e14
     E0 = tdse.utils.I_to_E(I)
 
     tp = tdse.utils.t_fwhm(2.05, 'fs')
     t0 = 1.5*T
 
-    f = tdse.field.TwoColorPulseField(E0=0.0, alpha=0.0)
+    f = tdse.field.TwoColorPulseField(E0=E0, freq=freq, alpha=0.0, tp=tp, t0=t0)
 
-    dt = 0.004
-    dr = 0.02
-    r_max = 60
+    dt = 0.025
+    dr = 0.125
+    r_max = 100
 
-    a = tdse.atom.Atom('Ar')
+    a = tdse.atom.Atom('H')
     r = np.linspace(dr, r_max, r_max/dr)
-    g = tdse.grid.ShGrid(Nr=r_max/dr, Nl=20, r_max=r_max)
+    g = tdse.grid.ShGrid(Nr=r_max/dr, Nl=32, r_max=r_max)
 
     orbs = tdse.orbitals.SOrbitals(a, g)
     orbs.init()
     orbs.normalize()
     wf = orbs.get_wf(0)
-    ws = tdse.workspace.SKnWorkspace(grid=g)
+    ws = tdse.workspace.SKnWorkspace(grid=g, num_threads=2)
 
     for i in range(1000):
-        ws.prop_img(wf, a, 0.001)
+        ws.prop_img(wf, a, dt)
         wf.normalize()
 
     arr1 = np.array(wf.asarray())
-    #plt.plot(np.abs(arr1)[0])
+    print(arr1)
     ws.prop(wf, a, f, 0.0, dt)
     arr2 = np.array(wf.asarray())
     plt.plot(np.abs(arr2)[0] - np.abs(arr1)[0])
@@ -49,10 +49,10 @@ def calc_wf_az_t():
     z    = np.zeros(t.size)
 
     def data_gen():
-        for it in range(int(t.size/100)):
-            yield it, tdse.calc.az(wf, a, f, t[it])
-            for i in range(100):
-                ws.prop(wf, a, f, t[it*100 + i], dt)
+        for i in range(t.size):
+            print(f.E(t[i]))
+            yield i, tdse.calc.az(wf, a, f, t[i])
+            ws.prop(wf, a, f, t[i], dt)
 
     fig = plt.figure()
 
@@ -62,8 +62,8 @@ def calc_wf_az_t():
 
     ax2 = plt.subplot(222)
     #ax2.set_xlim(r[0], r[-1])
-    ax2.set_xlim(0, 20)
-    ax2.set_ylim(1e-12,1e2)
+    ax2.set_xlim(0, 200)
+    ax2.set_ylim(1e-16,1e2)
     ax2.set_yscale('log')
 
     ax3 = plt.subplot(223)
@@ -85,9 +85,8 @@ def calc_wf_az_t():
     def run(data):
         it = data[0]
         az[it] = data[1]
-        prob[it] = tdse.calc.ionization_prob(orbs)
-        print(t[it*100])
-        z[it] = wf.z()
+        prob[it] = wf.norm()#tdse.calc.ionization_prob(orbs)
+        #z[it] = wf.z()
 
         ax1.set_xlim(t[0], t[it])
         ax4.set_xlim(t[0], t[it])
@@ -95,14 +94,14 @@ def calc_wf_az_t():
         it = it+1
         #ax1.set_ylim(np.min(az[0:it]), np.max(az[0:it]))
         ax1.set_ylim(np.min(prob[0:it]), np.max(prob[0:it]))
-        ax4.set_ylim(np.min(z[0:it]), np.max(z[0:it]))
+        ax4.set_ylim(np.min(az[0:it]), np.max(az[0:it]))
 
-        #line1.set_ydata(az)
+        line6.set_ydata(az)
         line1.set_ydata(prob)
-        line6.set_ydata(z)
+        #line6.set_ydata(z)
 
         line3.set_ydata(np.sum(np.abs(wf.asarray()), axis=0))
-        line5.set_data([t[it*100],],[E[it],])
+        line5.set_data([t[it],],[E[it],])
 
         return (line1, line3, line5, line6),
 

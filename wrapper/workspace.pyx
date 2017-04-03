@@ -1,5 +1,4 @@
 from atom cimport Atom
-from abs_pot cimport Uabs, uabs_zero
 from grid cimport ShGrid, SpGrid
 from wavefunc cimport SWavefunc
 from field cimport Field
@@ -8,12 +7,13 @@ from sphere_harmonics cimport YlmCache
 
 
 cdef class SKnWorkspace:
-    def __cinit__(self, ShGrid grid, int num_threads = -1):
+    def __cinit__(self, ShGrid grid, Uabs uabs, int num_threads = -1):
         self.data = sh_workspace_alloc(
             grid.data,
-            Uabs,
+            uabs.cdata,
             num_threads
         )
+        self.uabs = uabs
 
     def __dealloc__(self):
         if self.data != NULL:
@@ -27,8 +27,9 @@ cdef class SKnWorkspace:
 
 
 cdef class SOrbsWorkspace:
-    def __cinit__(self, ShGrid sh_grid, SpGrid sp_grid, YlmCache ylm_cache, int num_threads=-1):
-        self._data = sh_orbs_workspace_alloc(sh_grid.data, sp_grid.data, Uabs, ylm_cache._data, num_threads)
+    def __cinit__(self, ShGrid sh_grid, SpGrid sp_grid, Uabs uabs, YlmCache ylm_cache, int num_threads=-1):
+        self._data = sh_orbs_workspace_alloc(sh_grid.data, sp_grid.data, uabs.cdata, ylm_cache._data, num_threads)
+        self.uabs = uabs
 
     def __dealloc__(self):
         if self._data != NULL:

@@ -16,10 +16,11 @@ class TestOrbitals(unittest.TestCase):
         self.ylm_cache = tdse.sphere_harmonics.YlmCache(Nl, self.sp_grid)
 
         self.atom = tdse.atom.Atom('Ar')
+        self.uabs = tdse.abs_pot.UabsMultiHump(0.1, 20)
         self.orbs = tdse.orbitals.SOrbitals(self.atom, self.grid)
         self.orbs.init()
         self.field = tdse.field.SinField()
-        self.ws = tdse.workspace.SOrbsWorkspace(self.grid, self.sp_grid, ylm_cache=self.ylm_cache)
+        self.ws = tdse.workspace.SOrbsWorkspace(self.grid, self.sp_grid, self.uabs, ylm_cache=self.ylm_cache)
 
     # def test_norm(self):
         # self.orbs.norm()

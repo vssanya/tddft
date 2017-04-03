@@ -15,7 +15,8 @@ sh_grid = tdse.grid.ShGrid(Nr=Nr, Nl=Nl, r_max=r_max)
 sp_grid = tdse.grid.SpGrid(Nr=Nr, Nc=Nl, Np=1, r_max=r_max)
 ylm_cache = tdse.sphere_harmonics.YlmCache(Nl, sp_grid)
 ws = tdse.workspace.SOrbsWorkspace(sh_grid, sp_grid, ylm_cache)
-orbs = atom.get_ground_state(grid=sh_grid, filename='./ar_gs_dr_0.02.npy')
+orbs = tdse.orbitals.SOrbitals(atom, sh_grid)
+orbs.load('./ar_gs_dr_0.02.npy')
 orbs.normalize()
 
 T = 2*np.pi / 5.7e-2
@@ -42,7 +43,7 @@ ax = plt.subplot(121)
 ax_n = plt.subplot(122)
 
 lines = []
-for ie in range(9):
+for ie in range(7):
     line, = ax.plot(r, np.abs(orbs.asarray()[0,0])**2, label="n = {}".format(ie))
     lines.append(line)
 
@@ -50,7 +51,7 @@ ax.grid()
 ax.set_ylim(1e-12, 1e3)
 ax.set_yscale('log')
 
-n = np.zeros((t.size, 9))
+n = np.zeros((t.size, 7))
 az = np.zeros(t.size)
 orbs.norm_ne(n[0,:], True)
 print(n[0,:])
@@ -63,7 +64,7 @@ def run(data):
     i = data
 
     arr = orbs.asarray()
-    for ie in range(9):
+    for ie in range(7):
         lines[ie].set_ydata(np.sum(np.abs(arr[ie])**2, axis=0))
 
     orbs.norm_ne(n[i,:], True)

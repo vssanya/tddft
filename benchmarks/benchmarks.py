@@ -48,7 +48,8 @@ class OrbitalsPropagate:
         self.orbs = tdse.orbitals.SOrbitals(self.atom, self.grid)
         self.orbs.init()
         self.uh = np.ndarray(Nr)
-        self.ws = tdse.workspace.SOrbsWorkspace(self.grid, self.sp_grid, ylm_cache=self.ylm_cache)
+        self.uabs = tdse.abs_pot.UabsMultiHump(0.1, 10)
+        self.ws = tdse.workspace.SOrbsWorkspace(self.grid, self.sp_grid, self.uabs, ylm_cache=self.ylm_cache)
         self.field = tdse.field.SinField()
 
     def time_hartree_potential_l0(self):
@@ -79,7 +80,8 @@ class WavefuncPropagate:
         self.atom = tdse.atom.Atom('H')
         self.n = np.ndarray((Nr, 32))
         self.wf = tdse.atom.ground_state(self.grid)
-        self.ws = tdse.workspace.SKnWorkspace(grid=self.grid)
+        self.uabs = tdse.abs_pot.UabsMultiHump(0.1, 10)
+        self.ws = tdse.workspace.SKnWorkspace(grid=self.grid, uabs=self.uabs)
         self.field = tdse.field.SinField()
 
     def time_propagate(self):

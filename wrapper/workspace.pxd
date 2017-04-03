@@ -1,6 +1,7 @@
 from types cimport cdouble, sh_f
 
 from grid cimport sh_grid_t, sp_grid_t
+from abs_pot cimport uabs_sh_t, Uabs
 from wavefunc cimport sh_wavefunc_t
 
 from field cimport field_t
@@ -11,7 +12,7 @@ from atom cimport atom_t
 cdef extern from "sh_workspace.h":
     ctypedef struct sh_workspace_t:
         sh_grid_t* grid
-        sh_f Uabs
+        uabs_sh_t* uabs
         cdouble* alpha
         cdouble* betta
         int num_threads
@@ -28,7 +29,7 @@ cdef extern from "sh_workspace.h":
 
     sh_workspace_t* sh_workspace_alloc(
             sh_grid_t* sh_grid,
-            sh_f Uabs,
+            uabs_sh_t* uabs,
             int num_threads
             )
 
@@ -45,7 +46,7 @@ cdef extern from "sh_workspace.h":
             sh_wavefunc_t* wf,
             cdouble dt,
             sh_f Ul,
-            sh_f Uabs
+            uabs_sh_t* uabs
             )
 
     void sh_workspace_prop_at_v2(
@@ -53,7 +54,7 @@ cdef extern from "sh_workspace.h":
             sh_wavefunc_t* wf,
             cdouble dt,
             sh_f Ul,
-            sh_f Uabs
+            uabs_sh_t* uabs
             )
 
     void sh_workspace_prop(
@@ -90,7 +91,7 @@ cdef extern from "sh_workspace.h":
     sh_orbs_workspace_t* sh_orbs_workspace_alloc(
             sh_grid_t* sh_grid,
             sp_grid_t* sp_grid,
-            sh_f Uabs,
+            uabs_sh_t* uabs,
             ylm_cache_t* ylm_cache,
             int num_threads
             )
@@ -100,7 +101,9 @@ cdef extern from "sh_workspace.h":
 cdef class SKnWorkspace:
     cdef:
         sh_workspace_t* data
+        Uabs uabs
 
 cdef class SOrbsWorkspace:
     cdef:
         sh_orbs_workspace_t* _data
+        Uabs uabs

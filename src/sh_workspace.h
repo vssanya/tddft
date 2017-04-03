@@ -5,6 +5,7 @@
 #include "grid.h"
 #include "sh_wavefunc.h"
 #include "orbitals.h"
+#include "abs_pot.h"
 #include "atom.h"
 
 #include "utils.h"
@@ -12,8 +13,7 @@
 
 typedef struct {
 	sh_grid_t const* grid;
-
-	sh_f Uabs;
+	uabs_sh_t const* uabs;
 
 	cdouble* alpha;
 	cdouble* betta;
@@ -24,7 +24,7 @@ typedef struct {
 sh_workspace_t*
 sh_workspace_alloc(
 		sh_grid_t const* grid,
-		sh_f Uabs,
+		uabs_sh_t const* uabs,
 		int num_threads);
 
 void sh_workspace_free(sh_workspace_t* ws);
@@ -41,21 +41,13 @@ void sh_workspace_prop_ang(
 		double dt,
 		int l, double E);
 
-// exp(-iΔtHat(l,m, t+Δt/2))
-void sh_workspace_prop_at(
-		sh_workspace_t* ws,
-		sh_wavefunc_t* wf,
-		double dt,
-		sh_f Ul,
-		sh_f Uabs);
-
 // O(dr^4)
-void sh_workspace_prop_at_v2(
+void sh_workspace_prop_at(
 		sh_workspace_t* ws,
 		sh_wavefunc_t* wf,
 		cdouble dt,
 		sh_f Ul,
-		sh_f Uabs,
+		uabs_sh_t const* uabs,
 		int Z
 );
 
@@ -92,7 +84,7 @@ sh_orbs_workspace_t*
 sh_orbs_workspace_alloc(
 		sh_grid_t const* sh_grid,
 		sp_grid_t const* sp_grid,
-		sh_f Uabs,
+		uabs_sh_t const* uabs,
 		ylm_cache_t const* ylm_cache,
 		int num_threads
 );
