@@ -19,11 +19,19 @@ double calc_wf_az(
 		field_t field,
 		double t
 );
+
 double calc_orbs_az(
 		orbitals_t const* orbs,
 		atom_t const* atom,
 		field_t field,
 		double t
+);
+
+void calc_orbs_az_ne(
+		orbitals_t const* orbs,
+		field_t field,
+		double t,
+		double az[orbs->atom->n_orbs]
 );
 
 double calc_wf_jrcd(

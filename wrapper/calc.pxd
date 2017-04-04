@@ -10,6 +10,7 @@ cdef extern from "calc.h":
     double calc_orbs_ionization_prob(orbitals_t* orbs)
     double calc_wf_az(sh_wavefunc_t* wf, atom_t* atom, field_t field, double t)
     double calc_orbs_az(orbitals_t* orbs, atom_t* atom, field_t field, double t)
+    void calc_orbs_az_ne(orbitals_t* orbs, field_t field, double t, double* az)
     void calc_wf_az_t(
             int Nt, double* a,
             sh_workspace_t* ws,

@@ -28,6 +28,17 @@ def az(WF wf, Atom atom, Field field, double t):
     else:
         return calc_wf_az(wf.data, atom._data, field.data, t)
 
+def az_ne(SOrbitals orbs, Field field, double t, np.ndarray[double, ndim=1, mode='c'] az = None):
+    cdef double* res_ptr = NULL
+    if orbs.is_root():
+        if az is None:
+            az = np.ndarray(orbs._data.atom.n_orbs, dtype=np.double)
+        res_ptr = <double*>az.data
+
+    calc_orbs_az_ne(orbs._data, field.data, t, res_ptr)
+
+    return az
+
 def jrcd(Atom atom, WS ws, WF wf, Field field, int Nt, double dt, double t_smooth):
     if WF is SOrbitals and WS is SOrbsWorkspace:
         return calc_orbs_jrcd(ws._data, wf._data, atom._data, field.data, Nt, dt, t_smooth)
