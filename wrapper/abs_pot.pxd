@@ -19,5 +19,8 @@ cdef extern from "abs_pot.h":
     uabs_multi_hump_t* uabs_multi_hump_new(double lambda_min, double lambda_max)
     double uabs_multi_hump_func(uabs_multi_hump_t* self, sh_grid_t* grid, int ir, int il, int im)
 
+    uabs_sh_t uabs_zero;
+
 cdef class Uabs:
     cdef uabs_sh_t* cdata
+    cdef bint _dealloc

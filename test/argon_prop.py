@@ -8,22 +8,24 @@ dt = 0.008
 dr = 0.02
 r_max = 200
 Nr=r_max/dr
-Nl=32
+Nl=2
 
 atom = tdse.atom.Atom('Ar')
 sh_grid = tdse.grid.ShGrid(Nr=Nr, Nl=Nl, r_max=r_max)
-sp_grid = tdse.grid.SpGrid(Nr=Nr, Nc=Nl, Np=1, r_max=r_max)
+sp_grid = tdse.grid.SpGrid(Nr=Nr, Nc=32+1, Np=1, r_max=r_max)
 ylm_cache = tdse.sphere_harmonics.YlmCache(Nl, sp_grid)
-ws = tdse.workspace.SOrbsWorkspace(sh_grid, sp_grid, ylm_cache)
+#uabs = tdse.abs_pot.UabsMultiHump(10*dr, r_max/8)
+uabs = tdse.abs_pot.UabsZero()
+ws = tdse.workspace.SOrbsWorkspace(sh_grid, sp_grid, uabs, ylm_cache)
 orbs = tdse.orbitals.SOrbitals(atom, sh_grid)
-orbs.load('./ar_gs_dr_0.02.npy')
+orbs.load('./ar_gs_dr_0.02_lda.npy')
 orbs.normalize()
 
 T = 2*np.pi / 5.7e-2
 tp = T
 
 f = tdse.field.SinField(
-        E0=tdse.utils.I_to_E(2e15),
+        E0=0,#tdse.utils.I_to_E(2e14),
         alpha=0.0,
         tp=tp
         )
@@ -57,7 +59,7 @@ orbs.norm_ne(n[0,:], True)
 print(n[0,:])
 
 line_n, = ax_n.plot(t, az)
-ax_n.set_ylim(-1, 1)
+ax_n.set_ylim(-1e-6, 1e-6)
 lines.append(line_n)
 
 def run(data):
@@ -69,6 +71,7 @@ def run(data):
 
     orbs.norm_ne(n[i,:], True)
     az[i] = tdse.calc.az(orbs, atom, f, t[i])
+    print("az = ", az[i])
     line_n.set_ydata(az)
     ax_n.set_xlim(0, t[i])
     print(n[i,:])

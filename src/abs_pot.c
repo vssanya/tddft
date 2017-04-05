@@ -32,7 +32,7 @@ typedef double (*func_t) (double);
 
 uabs_multi_hump_t* uabs_multi_hump_new(double lambda_min, double lambda_max) {
 	static func_t const f_e_opt[3] = {uabs_func_cos_e_opt, uabs_func_pt_e_opt, uabs_func_pt_e_opt};
-	static int const N = 2;
+	static int const N = 3;
 
 	uabs_multi_hump_t* self = malloc(sizeof(uabs_multi_hump_t));
 	self->func = uabs_multi_hump_func;
@@ -40,6 +40,8 @@ uabs_multi_hump_t* uabs_multi_hump_new(double lambda_min, double lambda_max) {
 	for (int i = 0; i < N; ++i) {
 		self->l[i] = lambda_max*pow(lambda_min/lambda_max, i/(double)(N-1));
 		self->u[i] = f_e_opt[i](1.0) / (self->l[i]*self->l[i]);
+		printf("l = %f\n", self->l[i]);
+		printf("u = %f\n", self->u[i]);
 	}
 
 	return self;

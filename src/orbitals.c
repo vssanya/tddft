@@ -146,7 +146,6 @@ double orbitals_cos(orbitals_t const* orbs, sh_f U) {
 	} else
 #endif
 	{
-#pragma omp parallel for reduction(+:res)
 		for (int ie=0; ie<orbs->atom->n_orbs; ++ie) {
 			res += sh_wavefunc_cos(orbs->wf[ie], U)*orbs->atom->n_e[ie];
 		}

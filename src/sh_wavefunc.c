@@ -85,11 +85,13 @@ double sh_wavefunc_norm(sh_wavefunc_t const* wf, sh_f mask) {
 	double norm = 0.0;
 
 	if (mask == NULL) {
+#pragma omp parallel for reduction(+:norm)
 		for (int i = 0; i < grid2_size(wf->grid); ++i) {
 			cdouble value = wf->data[i];
 			norm += pow(creal(value), 2) + pow(cimag(value), 2);
 		}
 	} else {
+#pragma omp parallel for reduction(+:norm) collapse(2)
 		for (int il = 0; il < wf->grid->n[iL]; ++il) {
 			for (int ir = 0; ir < wf->grid->n[iR]; ++ir) {
 				norm += swf_get_abs_2(wf, ir, il)*mask(wf->grid, ir, il, wf->m);
@@ -102,6 +104,7 @@ double sh_wavefunc_norm(sh_wavefunc_t const* wf, sh_f mask) {
 
 void sh_wavefunc_normalize(sh_wavefunc_t* wf) {
 	double norm = sh_wavefunc_norm(wf, NULL);
+#pragma omp parallel for
 	for (int i = 0; i < grid2_size(wf->grid); ++i) {
 		wf->data[i] /= sqrt(norm);
 	}
@@ -123,6 +126,7 @@ void sh_wavefunc_print(sh_wavefunc_t const* wf) {
 double sh_wavefunc_cos(sh_wavefunc_t const* wf, sh_f U) {
 	double res = 0.0;
 
+#pragma omp parallel for reduction(+:res)
 	for (int il = 0; il < wf->grid->n[iL]-1; ++il) {
 		double res_l = 0.0;
 		for (int ir = 0; ir < wf->grid->n[iR]; ++ir) {

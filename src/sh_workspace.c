@@ -347,7 +347,7 @@ void sh_orbs_workspace_prop(
 
 	double Ul0(sh_grid_t const* grid, int ir, int l, int m) {
 		double const r = sh_grid_r(grid, ir);
-		return l*(l+1)/(2*r*r) + atom->u(grid, ir, l, m) + ws->Uh[ir] + ws->Uxc[ir]/sqrt(2*M_PI);
+		return l*(l+1)/(2*r*r) + atom->u(grid, ir, l, m) + ws->Uxc[ir]/sqrt(2*M_PI) + ws->Uh[ir];
 	}
 
 	double Ul1(sh_grid_t const* grid, int ir, int l, int m) {
@@ -365,7 +365,7 @@ void sh_orbs_workspace_prop(
 	} else
 #endif
 	{
-		for (int ie = 0; ie < orbs->atom->n_orbs; ++ie) {
+		for (int ie = 2; ie < orbs->atom->n_orbs; ++ie) {
 			_sh_workspace_prop(ws->wf_ws, orbs->wf[ie], dt, 2, (sh_f[3]){Ul0, Ul1, Ul2}, ws->wf_ws->uabs, atom->Z);
 		}
 	}
@@ -387,7 +387,7 @@ void sh_orbs_workspace_prop_img(
 
 	double Ul0(sh_grid_t const* grid, int ir, int l, int m) {
 		double const r = sh_grid_r(grid, ir);
-		return l*(l+1)/(2*r*r) + atom->u(grid, ir, l, m) + ws->Uh[ir] + ws->Uxc[ir]/sqrt(2*M_PI);// + plm(l,m)*ws->Uh[ir + 2*grid->n[iR]];
+		return l*(l+1)/(2*r*r) + atom->u(grid, ir, l, m)  + ws->Uxc[ir]/sqrt(2*M_PI) + ws->Uh[ir];//+ plm(l,m)*ws->Uh[ir + 2*grid->n[iR]];
 	}
 
 	double Ul1(sh_grid_t const* grid, int ir, int l, int m) {

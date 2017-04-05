@@ -4,27 +4,32 @@ import matplotlib.animation as animation
 
 import tdse
 
-dt = 0.001
+dt = 0.008
 dr = 0.02
 r_max = 200
 Nr=r_max/dr
 Nl = 2
 
-Ar = tdse.atom.Atom('Ar')
+atom = tdse.atom.Atom('Ar')
 g = tdse.grid.ShGrid(Nr=Nr, Nl=Nl, r_max=r_max)
-sp_grid = tdse.grid.SpGrid(Nr=Nr, Nc=32, Np=1, r_max=r_max)
+sp_grid = tdse.grid.SpGrid(Nr=Nr, Nc=32+1, Np=1, r_max=r_max)
 ylm_cache = tdse.sphere_harmonics.YlmCache(Nl, sp_grid)
-ws = tdse.workspace.SOrbsWorkspace(g, sp_grid, ylm_cache)
-orbs = Ar.get_ground_state(grid=g, filename='./ar_gs_dr_0.02.npy')
+uabs = tdse.abs_pot.UabsZero()
+ws = tdse.workspace.SOrbsWorkspace(g, sp_grid, uabs, ylm_cache)
+
+orbs = tdse.orbitals.SOrbitals(atom, g)
+#orbs.init()
+orbs.load('./ar_gs_dr_0.02_lda.npy')
+orbs.normalize()
 
 r = np.linspace(dr,r_max,Nr) + 1.0
 
 def data_gen():
     while True:
         #for i in range(10):
-        Ar.ort(orbs)
+        orbs.ort()
         orbs.normalize()
-        ws.prop_img(orbs, Ar, dt)
+        ws.prop_img(orbs, atom, dt)
 
         n = np.sqrt(orbs.norm_ne())
         print(2/dt*(1-n)/(1+n))
@@ -36,7 +41,7 @@ def data_gen():
 
 fig, ax = plt.subplots()
 lines = []
-for ie in range(9):
+for ie in range(7):
     line, = ax.plot(r, np.abs(orbs.asarray()[0,0])**2, label="n = {}".format(ie))
     lines.append(line)
 
@@ -46,11 +51,11 @@ ax.set_yscale('log')
 
 def run(data):
     arr = orbs.asarray()
-    for ie in range(9):
+    for ie in range(7):
         lines[ie].set_ydata(np.sum(np.abs(arr[ie]/r)**2, axis=0))
     return lines,
 
 ani = animation.FuncAnimation(fig, run, data_gen, blit=False, interval=1, repeat=False)
 plt.show()
 
-np.save('ar_gs_dr_0.02_not_lda.npy', orbs.asarray())
+np.save('ar_gs_dr_0.02_lda.npy', orbs.asarray())

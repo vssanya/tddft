@@ -57,6 +57,7 @@ class OrbitalsPropagate:
 
     def time_lda(self):
         tdse.hartree_potential.lda(0, self.orbs, self.sp_grid, self.ylm_cache, self.uh)
+
     def time_lda_n(self):
         self.orbs.n_sp(self.sp_grid, self.ylm_cache, self.n)
         tdse.hartree_potential.lda_n(0, self.n, self.sp_grid, self.ylm_cache, uxc=self.uh)
@@ -69,7 +70,7 @@ class WavefuncPropagate:
     timer = time.time
 
     def setup(self):
-        dr = 0.002
+        dr = 0.02
         r_max = 200
         Nr = int(r_max/dr)
         Nl = 64
@@ -89,6 +90,9 @@ class WavefuncPropagate:
 
     def time_z(self):
         self.wf.z()
+
+    def time_az(self):
+        tdse.calc.az(self.wf, self.atom, self.field, 0.0)
 
     def time_n_sp(self):
         self.wf.n_sp(self.sp_grid, self.ylm_cache, self.n)
