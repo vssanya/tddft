@@ -29,7 +29,12 @@ double F_next(double F[2], int l, int ir, sh_grid_t const* grid, double f[grid->
 	return (F[0] + F[1])*dr;
 }
 
-void hartree_potential_l0(orbitals_t const* orbs, double U[orbs->grid->n[iR]], double U_local[orbs->grid->n[iR]], double f[orbs->grid->n[iR]]) {
+void hartree_potential_l0(
+		orbitals_t const* orbs,
+		double U[orbs->grid->n[iR]],
+		double U_local[orbs->grid->n[iR]],
+		double f[orbs->grid->n[iR]]
+) {
 	sh_grid_t const* grid = orbs->grid;
 
 	for (int ir = 0; ir < grid->n[iR]; ++ir) {
@@ -192,17 +197,20 @@ void hartree_potential_l1(orbitals_t const* orbs, double U[orbs->grid->n[iR]], d
 void hartree_potential_l2(
 		orbitals_t const* orbs,
 		double U[orbs->grid->n[iR]],
+		double U_local[orbs->grid->n[iR]],
 		double f[orbs->grid->n[iR]]
-		) {
+) {
 	sh_grid_t const* grid = orbs->grid;
 
 	for (int ir = 0; ir < grid->n[iR]; ++ir) {
 		f[ir] = 0.0;
 	}
 
-	for (int ie = 0; ie < orbs->atom->n_orbs; ++ie) {
-		sh_wavefunc_t const* wf = orbs->wf[ie];
-		int const n_e = orbs->atom->n_e[ie];
+#ifdef _MPI
+	if (orbs->mpi_comm != MPI_COMM_NULL) {
+		sh_wavefunc_t const* wf = orbs->mpi_wf;
+		int const n_e = orbs->atom->n_e[orbs->mpi_rank];
+
 		for (int il = 0; il < 2; ++il) {
 			for (int ir = 0; ir < grid->n[iR]; ++ir) {
 				f[ir] += n_e*swf_get(wf, ir, il) * (
@@ -228,13 +236,61 @@ void hartree_potential_l2(
 						);
 			}
 		}
+	} else
+#endif
+	{
+		for (int ie = 0; ie < orbs->atom->n_orbs; ++ie) {
+			sh_wavefunc_t const* wf = orbs->wf[ie];
+			int const n_e = orbs->atom->n_e[ie];
+			for (int il = 0; il < 2; ++il) {
+				for (int ir = 0; ir < grid->n[iR]; ++ir) {
+					f[ir] += n_e*swf_get(wf, ir, il) * (
+							plm(il, wf->m)*conj(swf_get(wf, ir, il)) +
+							qlm(il, wf->m)*conj(swf_get(wf, ir, il+2))
+							);
+				}
+			}
+			for (int il = 2; il < grid->n[iL]-2; ++il) {
+				for (int ir = 0; ir < grid->n[iR]; ++ir) {
+					f[ir] += n_e*swf_get(wf, ir, il) * (
+							plm(il, wf->m)*conj(swf_get(wf, ir, il)) +
+							qlm(il, wf->m)*conj(swf_get(wf, ir, il+2)) +
+							qlm(il-2, wf->m)*conj(swf_get(wf, ir, il-2))
+							);
+				}
+			}
+			for (int il = grid->n[iL]-2; il < grid->n[iL]; ++il) {
+				for (int ir = 0; ir < grid->n[iR]; ++ir) {
+					f[ir] += n_e*swf_get(wf, ir, il) * (
+							plm(il, wf->m)*conj(swf_get(wf, ir, il)) +
+							qlm(il-2, wf->m)*conj(swf_get(wf, ir, il-2))
+							);
+				}
+			}
+		}
+	}
+
+	double* U_calc;
+#ifdef _MPI
+	if (orbs->mpi_comm != MPI_COMM_NULL) {
+		U_calc = U_local;
+	} else
+#endif
+	{
+		U_calc = U;
 	}
 
 	double F[2];
-	U[0] = F_first(F, 0, orbs->grid, f);
-	for (int ir = 0; ir < grid->n[iR]; ++ir) {
-		U[ir] = F_next(F, 0, ir, orbs->grid, f);
+	U_calc[0] = F_first(F, 0, grid, f);
+    for (int ir = 0; ir < grid->n[iR]; ++ir) {
+		U_calc[ir] = F_next(F, 0, ir, grid, f);
 	}
+
+#ifdef _MPI
+	if (orbs->mpi_comm != MPI_COMM_NULL) {
+		MPI_Allreduce(U_local, U, grid->n[iR], MPI_DOUBLE, MPI_SUM, orbs->mpi_comm);
+	}
+#endif
 }
 
 void ux_lda(

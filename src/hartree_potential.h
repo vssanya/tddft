@@ -30,7 +30,7 @@ void hartree_potential_l1(orbitals_t const* orbs, double U[orbs->grid->n[iR]], d
 /*!
  * U2(r,t) = \int L2(r',t) r<^2 / r>^3 dr'
  * */
-void hartree_potential_l2(orbitals_t const* orbs, double U[orbs->grid->n[iR]], double f[orbs->grid->n[iR]]);
+void hartree_potential_l2(orbitals_t const* orbs, double U[orbs->grid->n[iR]], double U_local[orbs->grid->n[iR]], double f[orbs->grid->n[iR]]);
 
 /*!
  * Обменное взаимодействие приближение локальной плотности

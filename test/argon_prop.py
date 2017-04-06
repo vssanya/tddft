@@ -25,7 +25,7 @@ T = 2*np.pi / 5.7e-2
 tp = T
 
 f = tdse.field.SinField(
-        E0=tdse.utils.I_to_E(2e14),
+        E0=0.0,#tdse.utils.I_to_E(2e14),
         alpha=0.0,
         tp=tp
         )
