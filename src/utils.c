@@ -11,7 +11,7 @@ double qlm(int l, int m) {
 }
 
 double plm(int l, int m) {
-	return (l*(l+1) - 3*pow(m, 2))/(double)((2*l + 1)*(2*l + 3));
+	return (l*(l+1) - 3*m*m)/(double)((2*l + 1)*(2*l + 3));
 }
 
 double min(double a, double b) {

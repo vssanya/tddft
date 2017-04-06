@@ -21,7 +21,7 @@ orbitals_t* orbials_new(atom_t const* atom, sh_grid_t const* grid, MPI_Comm mpi_
 		orbs->data = malloc(grid2_size(grid)*sizeof(cdouble));
 		for (int ie = 0; ie < atom->n_orbs; ++ie) {
 			if (ie == orbs->mpi_rank) {
-				orbs->wf[ie] = sh_wavefunc_new_from(orbs->data, grid, 0);
+				orbs->wf[ie] = sh_wavefunc_new_from(orbs->data, grid, atom->m[ie]);
 				orbs->mpi_wf = orbs->wf[ie];
 			} else {
 				orbs->wf[ie] = NULL;
@@ -32,7 +32,7 @@ orbitals_t* orbials_new(atom_t const* atom, sh_grid_t const* grid, MPI_Comm mpi_
 	{
 		orbs->data = malloc(grid2_size(grid)*atom->n_orbs*sizeof(cdouble));
 		for (int ie = 0; ie < atom->n_orbs; ++ie) {
-			orbs->wf[ie] = sh_wavefunc_new_from(&orbs->data[grid2_size(grid)*ie], grid, 0);
+			orbs->wf[ie] = sh_wavefunc_new_from(&orbs->data[grid2_size(grid)*ie], grid, atom->m[ie]);
 		}
 	}
 	
