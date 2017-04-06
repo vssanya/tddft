@@ -342,6 +342,7 @@ void sh_orbs_workspace_prop(
 	}
 
 	hartree_potential_l0(orbs, &ws->Uh[0*ws->sh_grid->n[iR]], ws->Uh_local, ws->uh_tmp);
+	hartree_potential_l1(orbs, &ws->Uh[1*ws->sh_grid->n[iR]], ws->Uh_local, ws->uh_tmp);
 
 	double Et = field_E(field, t + dt/2);
 
@@ -352,7 +353,7 @@ void sh_orbs_workspace_prop(
 
 	double Ul1(sh_grid_t const* grid, int ir, int l, int m) {
 		double const r = sh_grid_r(grid, ir);
-		return clm(l, m)*r*Et;
+		return clm(l, m)*(r*Et + ws->Uh[ir + grid->n[iR]]);
 	}
 
 	double Ul2(sh_grid_t const* grid, int ir, int l, int m) {
@@ -365,7 +366,7 @@ void sh_orbs_workspace_prop(
 	} else
 #endif
 	{
-		for (int ie = 2; ie < orbs->atom->n_orbs; ++ie) {
+		for (int ie = 0; ie < orbs->atom->n_orbs; ++ie) {
 			_sh_workspace_prop(ws->wf_ws, orbs->wf[ie], dt, 2, (sh_f[3]){Ul0, Ul1, Ul2}, ws->wf_ws->uabs, atom->Z);
 		}
 	}
