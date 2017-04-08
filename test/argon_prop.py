@@ -6,16 +6,16 @@ import tdse
 
 dt = 0.008
 dr = 0.02
-r_max = 200
+r_max = 50
 Nr=r_max/dr
-Nl=32
+Nl=4
 
 atom = tdse.atom.Atom('Ar')
 sh_grid = tdse.grid.ShGrid(Nr=Nr, Nl=Nl, r_max=r_max)
 sp_grid = tdse.grid.SpGrid(Nr=Nr, Nc=32+1, Np=1, r_max=r_max)
 ylm_cache = tdse.sphere_harmonics.YlmCache(Nl, sp_grid)
-#uabs = tdse.abs_pot.UabsMultiHump(10*dr, r_max/8)
-uabs = tdse.abs_pot.UabsZero()
+uabs = tdse.abs_pot.UabsMultiHump(10*dr, r_max/8)
+#uabs = tdse.abs_pot.UabsZero()
 ws = tdse.workspace.SOrbsWorkspace(sh_grid, sp_grid, uabs, ylm_cache)
 orbs = tdse.orbitals.SOrbitals(atom, sh_grid)
 orbs.load('./ar_gs_dr_0.02.npy')
@@ -25,7 +25,7 @@ T = 2*np.pi / 5.7e-2
 tp = T
 
 f = tdse.field.SinField(
-        E0=0.0,#tdse.utils.I_to_E(2e14),
+        E0=tdse.utils.I_to_E(2e14),
         alpha=0.0,
         tp=tp
         )
@@ -37,8 +37,9 @@ t = np.arange(0, tp, dt)
 def data_gen():
     for i in range(t.size):
         ws.prop(orbs, atom, f, t[i], dt)
-        print("t = {}, E = {}".format(t[i], f.E(t[i])))
-        yield i
+        if i % 20 == 0:
+            print("t = {}, E = {}".format(t[i], f.E(t[i])))
+            yield i
 
 fig = plt.figure()
 ax = plt.subplot(121)
@@ -50,7 +51,7 @@ for ie in range(7):
     lines.append(line)
 
 ax.grid()
-ax.set_ylim(1e-12, 1e3)
+ax.set_ylim(1e-16, 1e3)
 ax.set_yscale('log')
 
 n = np.zeros((t.size, 7))

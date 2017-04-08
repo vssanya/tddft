@@ -349,16 +349,16 @@ void sh_orbs_workspace_prop(
 
 	double Ul0(sh_grid_t const* grid, int ir, int l, int m) {
 		double const r = sh_grid_r(grid, ir);
-		return l*(l+1)/(2*r*r) + atom->u(grid, ir, l, m) + ws->Uxc[ir]/sqrt(2*M_PI) + ws->Uh[ir] + plm(l,m)*ws->Uh[ir + 2*grid->n[iR]];
+		return l*(l+1)/(2*r*r) + atom->u(grid, ir, l, m) + ws->Uxc[ir]/sqrt(4*M_PI) + ws->Uh[ir] + plm(l,m)*(ws->Uh[ir + 2*grid->n[iR]]);// + sqrt(5)*ws->Uxc[ir + 2*grid->n[iR]]/sqrt(4*M_PI));
 	}
 
 	double Ul1(sh_grid_t const* grid, int ir, int l, int m) {
 		double const r = sh_grid_r(grid, ir);
-		return clm(l, m)*(r*Et + ws->Uh[ir + grid->n[iR]]);
+		return clm(l, m)*(r*Et + ws->Uh[ir + grid->n[iR]]);// + sqrt(3)*ws->Uxc[ir + grid->n[iR]]/sqrt(4*M_PI));
 	}
 
 	double Ul2(sh_grid_t const* grid, int ir, int l, int m) {
-		return qlm(l, m)*ws->Uh[ir + 2*grid->n[iR]];
+		return qlm(l, m)*(ws->Uh[ir + 2*grid->n[iR]]);// + sqrt(5)*ws->Uxc[ir + 2*grid->n[iR]]/sqrt(4*M_PI));
 	}
 
 #ifdef _MPI
@@ -384,30 +384,20 @@ void sh_orbs_workspace_prop_img(
 	}
 
 	hartree_potential_l0(orbs, &ws->Uh[0*ws->sh_grid->n[iR]], ws->Uh_local, ws->uh_tmp);
-//	hartree_potential_l1(orbs, &ws->Uh[1*ws->sh_grid->n[iR]], ws->uh_tmp);
-//	hartree_potential_l2(orbs, &ws->Uh[2*ws->sh_grid->n[iR]], ws->uh_tmp);
 
 	double Ul0(sh_grid_t const* grid, int ir, int l, int m) {
 		double const r = sh_grid_r(grid, ir);
-		return l*(l+1)/(2*r*r) + atom->u(grid, ir, l, m)  + ws->Uxc[ir]/sqrt(2*M_PI) + ws->Uh[ir];//+ plm(l,m)*ws->Uh[ir + 2*grid->n[iR]];
-	}
-
-	double Ul1(sh_grid_t const* grid, int ir, int l, int m) {
-		return clm(l, m)*ws->Uh[ir + grid->n[iR]];
-	}
-
-	double Ul2(sh_grid_t const* grid, int ir, int l, int m) {
-		return qlm(l, m)*ws->Uh[ir + 2*grid->n[iR]];
+		return l*(l+1)/(2*r*r) + atom->u(grid, ir, l, m)  + ws->Uxc[ir]/sqrt(4*M_PI) + ws->Uh[ir];
 	}
 
 #ifdef _MPI
 	if (orbs->mpi_comm != MPI_COMM_NULL) {
-		_sh_workspace_prop(ws->wf_ws, orbs->mpi_wf, -I*dt, 1, (sh_f[3]){Ul0, Ul1, Ul2}, &uabs_zero, atom->Z);
+		_sh_workspace_prop(ws->wf_ws, orbs->mpi_wf, -I*dt, 1, (sh_f[1]){Ul0}, &uabs_zero, atom->Z);
 	} else
 #endif
 	{
 		for (int ie = 0; ie < orbs->atom->n_orbs; ++ie) {
-			_sh_workspace_prop(ws->wf_ws, orbs->wf[ie], -I*dt, 1, (sh_f[3]){Ul0, Ul1, Ul2}, &uabs_zero, atom->Z);
+			_sh_workspace_prop(ws->wf_ws, orbs->wf[ie], -I*dt, 1, (sh_f[1]){Ul0}, &uabs_zero, atom->Z);
 		}
 	}
 }

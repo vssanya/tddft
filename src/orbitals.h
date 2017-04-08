@@ -31,7 +31,7 @@ void orbitals_init(orbitals_t* orbs);
  *  \brief Init state [MPI support]
  *  \param data[in] is array[Ne, Nr, l_max] only for root
  */
-void orbitals_set_init_state(orbitals_t* orbs, cdouble* data, int l_max);
+void orbitals_set_init_state(orbitals_t* orbs, cdouble* data, int n_r, int n_l);
 
 /*!
  * \brief [MPI support]
@@ -42,6 +42,11 @@ void orbitals_norm_ne(orbitals_t const* orbs, double n[orbs->atom->n_orbs], sh_f
  * \brief [MPI support]
  */
 void orbitals_normalize(orbitals_t* orbs);
+
+/*!
+ * \brief [MPI support]
+ */
+double orbitals_z(orbitals_t const* orbs);
 
 /*!
  * Электронная плотность

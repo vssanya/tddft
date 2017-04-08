@@ -4,12 +4,15 @@ double F_first(double F[2], int l, sh_grid_t const* grid, double f[grid->n[iR]])
     double const dr = grid->d[iR];
 
     F[0] = 0.0;
-    F[1] = 0.0;
 
+	double res = 0.0;
+#pragma omp parallel for reduction(+:res)
 	for (int ir = 0; ir < grid->n[iR]; ++ir) {
         double const r = sh_grid_r(grid, ir);
-		F[1] += f[ir]*pow(dr/r, l)/r;
+		res += f[ir]*pow(dr/r, l)/r;
 	}
+
+	F[1] = res;
 
 	return (F[0] + F[1])*dr;
 }

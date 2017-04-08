@@ -54,16 +54,27 @@ void orbitals_init(orbitals_t* orbs) {
 	}
 }
 
-void orbitals_set_init_state(orbitals_t* orbs, cdouble* data, int l_max) {
-	int const size = l_max*orbs->grid->n[iR];
+void orbitals_set_init_state(orbitals_t* orbs, cdouble* data, int n_r, int n_l) {
+	assert(orbs->grid->n[iR] <= n_r);
+
+	int const size = n_l*orbs->grid->n[iR];
 #ifdef _MPI
 	if (orbs->mpi_comm != MPI_COMM_NULL) {
+		assert(orbs->grid->n[iR] == n_r);
 		MPI_Scatter(data, size, MPI_C_DOUBLE_COMPLEX, orbs->mpi_wf->data, size, MPI_C_DOUBLE_COMPLEX, 0, orbs->mpi_comm);
 	} else
 #endif
 	{
-		for (int ie = 0; ie < orbs->atom->n_orbs; ++ie) {
-			memcpy(orbs->wf[ie]->data, &data[ie*size], size*sizeof(cdouble));
+		if (n_r == orbs->grid->n[iR]) {
+			for (int ie = 0; ie < orbs->atom->n_orbs; ++ie) {
+				memcpy(orbs->wf[ie]->data, &data[ie*n_r*n_l], size*sizeof(cdouble));
+			}
+		} else {
+			for (int ie = 0; ie < orbs->atom->n_orbs; ++ie) {
+				for (int il = 0; il < n_l; ++il) {
+					memcpy(&orbs->wf[ie]->data[il*orbs->grid->n[iR]], &data[il*n_r + ie*n_r*n_l], size*sizeof(cdouble));
+				}
+			}
 		}
 	}
 }
@@ -102,18 +113,36 @@ double orbitals_norm(orbitals_t const* orbs, sh_f mask) {
 	return res;
 }
 
+double orbitals_z(orbitals_t const* orbs) {
+	double res = 0.0;
+
+#ifdef _MPI
+	if (orbs->mpi_comm != MPI_COMM_NULL) {
+		double local_res = sh_wavefunc_z(orbs->mpi_wf)*orbs->atom->n_e[orbs->mpi_rank];
+		MPI_Reduce(&local_res, &res, 1, MPI_DOUBLE, MPI_SUM, 0, orbs->mpi_comm);
+	} else
+#endif
+	{
+		for (int ie=0; ie<orbs->atom->n_orbs; ++ie) {
+			res += sh_wavefunc_z(orbs->wf[ie])*orbs->atom->n_e[ie];
+		}
+	}
+
+	return res;
+}
+
 void orbitals_norm_ne(orbitals_t const* orbs, double n[orbs->atom->n_orbs], sh_f mask) {
 	assert(orbs != NULL);
 
 #ifdef _MPI
 	if (orbs->mpi_comm != MPI_COMM_NULL) {
-		double n_local = sh_wavefunc_norm(orbs->mpi_wf, mask);
+		double n_local = sh_wavefunc_norm(orbs->mpi_wf, mask)*orbs->atom->n_e[orbs->mpi_rank];
 		MPI_Gather(&n_local, 1, MPI_DOUBLE, n, 1, MPI_DOUBLE, 0, orbs->mpi_comm);
 	} else
 #endif
 	{
 		for (int ie=0; ie<orbs->atom->n_orbs; ++ie) {
-			n[ie] = sh_wavefunc_norm(orbs->wf[ie], mask);
+			n[ie] = sh_wavefunc_norm(orbs->wf[ie], mask);//*orbs->atom->n_e[ie];
 		}
 	}
 }

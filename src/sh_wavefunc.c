@@ -7,6 +7,8 @@
 #include <omp.h>
 
 #include "utils.h"
+#include "integrate.h"
+
 
 sh_wavefunc_t* _sh_wavefunc_new(cdouble* data, bool data_own, sh_grid_t const* grid, int const m) {
 	sh_wavefunc_t* wf = malloc(sizeof(sh_wavefunc_t));
@@ -126,18 +128,16 @@ void sh_wavefunc_print(sh_wavefunc_t const* wf) {
 double sh_wavefunc_cos(sh_wavefunc_t const* wf, sh_f U) {
 	double res = 0.0;
 
-#pragma omp parallel for reduction(+:res)
-	for (int il = 0; il < wf->grid->n[iL]-1; ++il) {
-		double res_l = 0.0;
-		for (int ir = 0; ir < wf->grid->n[iR]; ++ir) {
-            res_l += creal(swf_get(wf, ir, il)*conj(swf_get(wf, ir, il+1)))*U(wf->grid, ir, il, wf->m);
-		}
-		int const l = sh_grid_l(wf->grid, il);
-		res += res_l*clm(l, wf->m);
+	double func(int il, int ir) {
+		return creal(swf_get(wf, ir, il)*conj(swf_get(wf, ir, il+1)))*U(wf->grid, ir, il, wf->m);
 	}
 
-	res *= 2*wf->grid->d[iR];
-	return res;
+#pragma omp parallel for reduction(+:res)
+	for (int il = 0; il < wf->grid->n[iL]-1; ++il) {
+		res += clm(il, wf->m)*integrate_data_1d(func, il, wf->grid->n[iR], wf->grid->d[iR]);
+	}
+
+	return res*2;
 }
 
 double sh_wavefunc_z(sh_wavefunc_t const* wf) {

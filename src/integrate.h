@@ -7,6 +7,7 @@
 #include <assert.h>
 
 typedef double (*func_1d_t)(int i);
+typedef double (*func_1d_data_t)(void* data, int i);
 typedef double (*func_2d_t)(int ix, int iy);
 typedef double (*func_3d_t)(int ix, int iy, int iz);
 /*!
@@ -39,4 +40,20 @@ inline double integrate_1d(func_1d_t f, int nx, double dx) {
 	}
 
 	return res*dx/3;
+}
+
+inline double integrate_data_1d(func_1d_data_t f, void* data, int nx, double dx) {
+	assert(nx > 1);
+
+	double res = 0.0;
+	for (int ix = 1; ix < nx-2; ix+=2) {
+		res += f(data, ix-1) + 4*f(data, ix) + f(data, ix);
+	}
+	res *= dx/3;
+
+	if (nx % 2 == 0) {
+		res += (f(data, nx-2) + f(data, nx-1))*dx*0.5;
+	}
+
+	return res;
 }

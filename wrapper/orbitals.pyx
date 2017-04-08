@@ -43,18 +43,21 @@ cdef class SOrbitals:
 
         if not self.is_mpi() or self._data.mpi_rank == 0:
             data = np.load(filename)
-            l_max = data.shape[1]
+            shape = [data.shape[1], data.shape[2]]
             data_ptr = <cdouble*>data.data
         else:
-            l_max = None
+            shape = None
 
         if self.is_mpi():
-            l_max = self.mpi_comm.bcast(l_max)
+            shape = self.mpi_comm.bcast(shape)
 
-        orbitals_set_init_state(self._data, data_ptr, l_max)
+        orbitals_set_init_state(self._data, data_ptr, shape[1], shape[0])
     
     def n(self, SpGrid grid, YlmCache ylm_cache, int ir, int ic):
         return orbitals_n(self._data, grid.data, [ir, ic], ylm_cache._data)
+
+    def z(self):
+        return orbitals_z(self._data)
 
     def n_sp(self, SpGrid grid, YlmCache ylm_cache, np.ndarray[np.double_t, ndim=2] n = None):
         cdef np.ndarray[np.double_t, ndim=2, mode='c'] n_local = np.ndarray(grid.shape, dtype=np.double)
