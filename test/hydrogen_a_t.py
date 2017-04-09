@@ -12,38 +12,37 @@ def calc_wf_az_t():
     I = 1e14
     E0 = tdse.utils.I_to_E(I)
 
-    tp = tdse.utils.t_fwhm(2.05, 'fs')
-    t0 = 1.5*T
+    # tp = tdse.utils.t_fwhm(2.05, 'fs')
+    # t0 = 1.5*T
 
-    f = tdse.field.TwoColorPulseField(E0=E0, freq=freq, alpha=0.0, tp=tp, t0=t0)
+    # f = tdse.field.TwoColorPulseField(E0=E0, freq=freq, alpha=0.0, tp=tp, t0=t0)
 
-    dt = 0.025
-    dr = 0.125
-    r_max = 100
+    tp = 20*T
+    f = tdse.field.SinField(
+            E0=tdse.utils.I_to_E(2e14),
+            alpha=0.0,
+            tp=tp
+            )
 
-    a = tdse.atom.Atom('H')
+    dt = 0.001
+    dr = 0.005
+    r_max = 50
+
+    a = tdse.atom.Atom('Ne')
     r = np.linspace(dr, r_max, r_max/dr)
-    g = tdse.grid.ShGrid(Nr=r_max/dr, Nl=32, r_max=r_max)
+    g = tdse.grid.ShGrid(Nr=r_max/dr, Nl=8, r_max=r_max)
 
     orbs = tdse.orbitals.SOrbitals(a, g)
     orbs.init()
     orbs.normalize()
     wf = orbs.get_wf(0)
-    ws = tdse.workspace.SKnWorkspace(grid=g, num_threads=2)
+    ws = tdse.workspace.SKnWorkspace(grid=g, uabs=tdse.abs_pot.UabsMultiHump(E0/freq, r_max/4), num_threads=2)
 
-    for i in range(1000):
+    for i in range(10000):
         ws.prop_img(wf, a, dt)
         wf.normalize()
 
-    arr1 = np.array(wf.asarray())
-    print(arr1)
-    ws.prop(wf, a, f, 0.0, dt)
-    arr2 = np.array(wf.asarray())
-    plt.plot(np.abs(arr2)[0] - np.abs(arr1)[0])
-    plt.plot(np.abs(arr2)[1] - np.abs(arr1)[1])
-    plt.show()
-
-    t = np.arange(0, 2*t0, dt)
+    t = np.arange(0, tp, dt)
     az    = np.zeros(t.size)
     prob = np.zeros(t.size)
     z    = np.zeros(t.size)
@@ -71,8 +70,12 @@ def calc_wf_az_t():
 
     ax4 = plt.subplot(224)
 
-    line1,  = ax1.plot(t, az)
-    line3, = ax2.plot(r, np.sum(np.abs(wf.asarray()), axis=0))
+    line1,  = ax1.plot(t, az, label="az")
+    line6, = ax1.plot(t[1:-1], np.diff(z,2)/dt**2, label="z")
+
+    line3, = ax2.plot(r, np.sum(np.abs(wf.asarray()), axis=0), label='Num')
+    ax2.plot(r, np.abs(-2*10**1.5*r*np.exp(-r*10)), label='Anal')
+    ax2.legend()
 
     E = np.zeros(t.size)
     for i in range(t.size):
@@ -80,24 +83,24 @@ def calc_wf_az_t():
     line4, = ax3.plot(t, E)
     line5, = ax3.plot([0,], [E[0],], '.')
 
-    line6, = ax4.plot(t, z)
 
     def run(data):
         it = data[0]
         az[it] = data[1]
-        prob[it] = wf.norm()#tdse.calc.ionization_prob(orbs)
-        #z[it] = wf.z()
+        #prob[it] = wf.norm()#tdse.calc.ionization_prob(orbs)
+        z[it] = wf.z()
 
         ax1.set_xlim(t[0], t[it])
         ax4.set_xlim(t[0], t[it])
 
         it = it+1
         #ax1.set_ylim(np.min(az[0:it]), np.max(az[0:it]))
-        ax1.set_ylim(np.min(prob[0:it]), np.max(prob[0:it]))
+        ax1.set_ylim(np.min(az[0:it]), np.max(az[0:it]))
+        #ax1.set_ylim(np.min(prob[0:it]), np.max(prob[0:it]))
         ax4.set_ylim(np.min(az[0:it]), np.max(az[0:it]))
 
-        line6.set_ydata(az)
-        line1.set_ydata(prob)
+        line1.set_ydata(az)
+        line6.set_ydata(np.diff(z, 2)/dt**2)
         #line6.set_ydata(z)
 
         line3.set_ydata(np.sum(np.abs(wf.asarray()), axis=0))
@@ -107,6 +110,7 @@ def calc_wf_az_t():
 
     ani = animation.FuncAnimation(fig, run, data_gen, blit=False,
             interval=10, repeat=False)
+    plt.legend()
     plt.show()
     return az
 
