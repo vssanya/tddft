@@ -49,11 +49,11 @@ inline double integrate_1d(func_1d_t f, int nx, double dx) {
 	for (int ix = 1; ix < nx-1; ix+=2) {
 		res += f(ix-1) + 4*f(ix) + f(ix+1);
 	}
-	res *= 2*dx/6;
+	res *= dx/3;
 
-//	if (nx % 2 == 0) {
-//		res += (f(nx-2) + f(nx-1))*dx*0.5;
-//	}
+	if (nx % 2 == 0) {
+		res += (f(nx-2) + f(nx-1))*dx*0.5;
+	}
 
 	return res;
 }
@@ -65,11 +65,11 @@ inline double integrate_data_1d(func_1d_data_t f, void* data, int nx, double dx)
 	for (int ix = 1; ix < nx-1; ix+=2) {
 		res += f(data, ix-1) + 4*f(data, ix) + f(data, ix+1);
 	}
-	res *= 2*dx/6;
+	res *= dx/3;
 
-//	if (nx % 2 == 0) {
-//		res += (f(data, nx-2) + f(data, nx-1))*dx*0.5;
-//	}
+	if (nx % 2 == 0) {
+		res += (f(data, nx-2) + f(data, nx-1))*dx*0.5;
+	}
 
 	return res;
 }
