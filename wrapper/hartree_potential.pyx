@@ -49,17 +49,6 @@ def lda(int l, SOrbitals orbs, SpGrid grid, YlmCache ylm_cache, np.ndarray[np.do
     else:
         assert(uxc.size == orbs._data.wf[0].grid.n[0])
 
-    ux_lda(l, orbs._data, &uxc[0], grid.data, NULL, NULL, ylm_cache._data)
+    uxc_lb(l, orbs._data, &uxc[0], grid.data, NULL, NULL, ylm_cache._data)
 
     return uxc
-
-def lda_n(int l, np.ndarray[np.double_t, ndim=2] n, SpGrid grid, YlmCache ylm_cache, np.ndarray[np.double_t, ndim=1] uxc = None):
-    if uxc is None:
-        uxc = np.ndarray((grid.data.n[0]), np.double)
-    else:
-        assert(uxc.size == grid.data.n[0])
-
-    ux_lda_n(l, grid.data, &n[0,0], &uxc[0], ylm_cache._data)
-
-    return uxc
-

@@ -41,23 +41,29 @@ void sh_wavefunc_del(sh_wavefunc_t* wf) {
 typedef double (*func_wf_t)(sh_wavefunc_t const* wf, int ir, int il);
 inline double sh_wavefunc_integrate(sh_wavefunc_t const* wf, func_wf_t func, int l_max) {
 	double res = 0.0;
-#pragma omp parallel for reduction(+:res)
 	for (int il = 0; il < l_max; ++il) {
-		int ir = 0;
-		{
-			int ir = 0;
-			res += 0.0 + 4*func(wf, ir, il) + func(wf, ir+1, il);
-		}
-		for (ir = 2; ir < wf->grid->n[iR]-1; ir+=2) {
-			res += func(wf, ir-1, il) + 4*func(wf, ir, il) + func(wf, ir+1, il);
-		}
-
-		if (ir != wf->grid->n[iR]-2) {
-			ir = wf->grid->n[iR]-2;
-			res += (func(wf, ir, il) + func(wf, ir+1, il))*3*0.5;
+		for (int ir = 0; ir < wf->grid->n[iR]; ++ir) {
+			res += func(wf, ir, il);
 		}
 	}
-	return res*wf->grid->d[iR]/3;
+	return res*wf->grid->d[iR];
+//#pragma omp parallel for reduction(+:res)
+//	for (int il = 0; il < l_max; ++il) {
+//		int ir = 0;
+//		{
+//			int ir = 0;
+//			res += 0.0 + 4*func(wf, ir, il) + func(wf, ir+1, il);
+//		}
+//		for (ir = 2; ir < wf->grid->n[iR]-1; ir+=2) {
+//			res += func(wf, ir-1, il) + 4*func(wf, ir, il) + func(wf, ir+1, il);
+//		}
+//
+//		if (ir != wf->grid->n[iR]-2) {
+//			ir = wf->grid->n[iR]-2;
+//			res += (func(wf, ir, il) + func(wf, ir+1, il))*3*0.5;
+//		}
+//	}
+//	return res*wf->grid->d[iR]/3;
 //	for (int il = 0; il < l_max; ++il) {
 //		int ir = 0;
 //		{
@@ -159,13 +165,19 @@ void sh_wavefunc_print(sh_wavefunc_t const* wf) {
 
 // <psi|U(r)cos(\theta)|psi>
 double sh_wavefunc_cos(sh_wavefunc_t const* wf, sh_f U) {
-	double res = 0.0;
-
 	double func(sh_wavefunc_t const* wf, int ir, int il) {
 		return clm(il, wf->m)*creal(swf_get(wf, ir, il)*conj(swf_get(wf, ir, il+1)))*U(wf->grid, ir, il, wf->m);
 	}
-
 	return 2*sh_wavefunc_integrate(wf, func, wf->grid->n[iL]-1);
+}
+
+void sh_wavefunc_cos_r(sh_wavefunc_t const* wf, sh_f U, double res[wf->grid->n[iR]]) {
+	for (int ir = 0; ir < wf->grid->n[iR]; ++ir) {
+		res[ir] = 0.0;
+		for (int il = 0; il < wf->grid->n[iL]-1; ++il) {
+			res[ir] += 2*clm(il, wf->m)*creal(swf_get(wf, ir, il)*conj(swf_get(wf, ir, il+1)))*U(wf->grid, ir, il, wf->m);
+		}
+	}
 }
 
 double sh_wavefunc_z(sh_wavefunc_t const* wf) {

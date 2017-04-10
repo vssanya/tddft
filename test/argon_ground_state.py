@@ -4,8 +4,8 @@ import matplotlib.animation as animation
 
 import tdse
 
-dt = 0.004
-dr = 0.01
+dt = 0.008
+dr = 0.005
 r_max = 50
 Nr=r_max/dr
 Nl = 2
@@ -18,8 +18,7 @@ uabs = tdse.abs_pot.UabsZero()
 ws = tdse.workspace.SOrbsWorkspace(g, sp_grid, uabs, ylm_cache)
 
 orbs = tdse.orbitals.SOrbitals(atom, g)
-orbs.init()
-#orbs.load('./ar_gs_dr_0.005.npy')
+orbs.load('./ar_gs_dr_0.005.npy')
 orbs.normalize()
 
 r = np.linspace(dr,r_max,Nr) + 1.0
@@ -46,7 +45,7 @@ for ie in range(7):
     lines.append(line)
 
 ax.grid()
-ax.set_ylim(1e-12, 100)
+ax.set_ylim(1e-16, 100)
 ax.set_yscale('log')
 
 def run(data):

@@ -9,7 +9,7 @@ from types cimport cdouble
 from abs_pot cimport mask_core
 from grid cimport ShGrid, SpGrid
 from atom cimport Atom
-from wavefunc cimport sh_wavefunc_norm, swavefunc_from_point
+from wavefunc cimport sh_wavefunc_norm, swavefunc_from_point, sh_wavefunc_cos_r
 from sphere_harmonics cimport YlmCache
 
 
@@ -134,3 +134,10 @@ cdef class SOrbitals:
 
     def __str__(self):
         return "Orbitals MPI, wf.m = {}".format(self._data.mpi_wf.m)
+
+    def grad_u(self, ie=0):
+        cdef np.ndarray[np.double_t, ndim=1] res = np.ndarray(self._data.grid.n[0], np.double)
+
+        sh_wavefunc_cos_r(self._data.wf[ie], self.atom._data.dudz, <double*>res.data)
+        return res
+

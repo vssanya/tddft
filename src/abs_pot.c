@@ -39,7 +39,7 @@ uabs_multi_hump_t* uabs_multi_hump_new(double lambda_min, double lambda_max) {
 
 	for (int i = 0; i < N; ++i) {
 		self->l[i] = lambda_max*pow(lambda_min/lambda_max, i/(double)(N-1));
-		self->u[i] = f_e_opt[i](1.0) / (self->l[i]*self->l[i]);
+		self->u[i] = f_e_opt[i](2*M_PI) / (self->l[i]*self->l[i]);
 	}
 
 	return self;

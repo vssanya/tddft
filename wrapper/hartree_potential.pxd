@@ -8,12 +8,15 @@ cdef extern from "hartree_potential.h":
     void hartree_potential_wf_l0(sh_wavefunc_t* wf, double* U, double* f)
     void hartree_potential_l1(orbitals_t* orbs, double* U, double* U_local, double* f)
     void hartree_potential_l2(orbitals_t* orbs, double* U, double* U_local, double* f)
-    void ux_lda(
+    double mod_grad_n(sp_grid_t* grid, double* n, int ir, int ic)
+    double ux_lda_func(double n)
+    double uc_lda_func(double n)
+    double uxc_lb_func(double n, double x)
+    void uxc_lb(
         int l, orbitals_t* orbs,
         double* U,
         sp_grid_t* grid,
         double* n, # for calc using mpi
         double* n_local, # for calc using mpi
         ylm_cache_t* ylm_cache
-    );
-    void ux_lda_n(int l, sp_grid_t* grid, double* n, double* U, ylm_cache_t* ylm_cache)
+    )
