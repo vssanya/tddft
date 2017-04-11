@@ -19,16 +19,16 @@ def calc_wf_az_t():
 
     tp = 20*T
     f = tdse.field.SinField(
-            E0=0.0,#tdse.utils.I_to_E(2e14),
+            E0=tdse.utils.I_to_E(2e14),
             alpha=0.0,
             tp=tp
             )
 
-    dt = 0.025
-    dr = 0.125
-    r_max = 100
+    dt = 0.008
+    dr = 0.005
+    r_max = 50
 
-    a = tdse.atom.Atom('H')
+    a = tdse.atom.Atom('Ar')
     r = np.linspace(dr, r_max, r_max/dr)
     g = tdse.grid.ShGrid(Nr=r_max/dr, Nl=2, r_max=r_max)
 
@@ -39,11 +39,12 @@ def calc_wf_az_t():
     uabs = tdse.abs_pot.UabsMultiHump(1, r_max/8)
     ws = tdse.workspace.SKnWorkspace(grid=g, uabs=uabs, num_threads=2)
 
-    # for i in range(10000):
-        # ws.prop_img(wf, a, dt)
-        # wf.normalize()
+    for i in range(1000):
+        ws.prop_img(wf, a, dt)
+        wf.normalize()
 
-    wf.asarray()[0,:] = np.exp(-(r-50)**2)*np.exp(10j*r)
+    #wf.asarray()[0,:] = np.exp(-(r-50)**2)*np.exp(10j*r)
+    dt = 0.0002
 
     t = np.arange(0, tp, dt)
     az    = np.zeros(t.size)
@@ -54,7 +55,13 @@ def calc_wf_az_t():
         for i in range(t.size):
             print(f.E(t[i]))
             yield i, tdse.calc.az(wf, a, f, t[i])
+
+            # arr = wf.asarray()
+            # phase = np.angle(arr)
+            # ws.prop(wf, a, f, t[i], dt/100)
+            #dphase = np.angle(arr) - phase
             ws.prop(wf, a, f, t[i], dt)
+            #arr[:] = np.abs(arr)*np.exp(1.0j*(phase + dphase*100))
 
     fig = plt.figure()
 
@@ -64,7 +71,7 @@ def calc_wf_az_t():
 
     ax2 = plt.subplot(222)
     #ax2.set_xlim(r[0], r[-1])
-    ax2.set_xlim(0, 200)
+    ax2.set_xlim(0, r_max)
     ax2.set_ylim(1e-12,1e1)
     ax2.set_yscale('log')
 

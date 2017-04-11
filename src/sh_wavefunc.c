@@ -209,7 +209,7 @@ void sh_wavefunc_random_l(sh_wavefunc_t* wf, int l) {
 		int il = l;
 		for (int ir=0; ir<wf->grid->n[iR]; ++ir) {
 			double const r = sh_grid_r(wf->grid, ir);
-			swf_set(wf, ir, il, (double)rand()/(double)RAND_MAX*exp(-r/(10*l+1)));
+			swf_set(wf, ir, il, (double)rand()/(double)RAND_MAX*exp(-r/(l+1)));
 		}
 	}
 
