@@ -4,7 +4,7 @@
 
 
 double calc_wf_az(sh_wavefunc_t const* wf, atom_t const* atom, field_t field, double t) {
-    return - field_E(field, t) - sh_wavefunc_cos(wf, atom->dudz);
+    return - field_E(field, t) - sh_wavefunc_cos_r2(wf, atom->dudz, atom->Z);
 }
 
 double calc_orbs_az(orbitals_t const* orbs, atom_t const* atom, field_t field, double t) {

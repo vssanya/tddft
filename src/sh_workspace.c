@@ -64,6 +64,37 @@ void sh_workspace_prop_ang_l(sh_workspace_t* ws, sh_wavefunc_t* wf, cdouble dt, 
 	cdouble* psi_l0 = swf_ptr(wf, 0, l);
 	cdouble* psi_l1 = swf_ptr(wf, 0, l+l1);
 
+	cdouble a_const = 0.5*dt*I;
+
+#pragma omp for
+	for (int i = 0; i < Nr; ++i) {
+		cdouble const a = a_const*Ul(ws->grid, i, l, wf->m);
+
+		cdouble x[2] = {psi_l0[i], psi_l1[i]};
+		cdouble xl[2] = {x[0] - x[1],x[0]+x[1]};
+
+		xl[0] *= cexp(a);
+		xl[1] *= cexp(-a);
+
+		psi_l0[i] = (xl[0] + xl[1])/2;
+		psi_l1[i] = (- xl[0] + xl[1])/2;
+	}
+}
+
+void _sh_workspace_prop_ang_l(sh_workspace_t* ws, sh_wavefunc_t* wf, cdouble dt, int l, int l1, sh_f Ul) {
+	/*
+	 * Solve Nr equations:
+	 * psi(l   , t+dt, r) + a*psi(l+l1, t+dt, r) = f0
+	 * psi(l+l1, t+dt, r) + a*psi(l   , t+dt, r) = f1
+	 *
+	 * a(r) = a_const*r
+	 */
+
+	int const Nr = ws->grid->n[iR];
+
+	cdouble* psi_l0 = swf_ptr(wf, 0, l);
+	cdouble* psi_l1 = swf_ptr(wf, 0, l+l1);
+
 	cdouble a_const = 0.25*dt*I;
 
 #pragma omp for

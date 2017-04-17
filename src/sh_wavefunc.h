@@ -80,6 +80,7 @@ double sh_wavefunc_cos(
 		sh_wavefunc_t const* wf,
 		sh_f U
 );
+double sh_wavefunc_cos_r2(sh_wavefunc_t const* wf, sh_f U, int Z);
 void sh_wavefunc_cos_r(sh_wavefunc_t const* wf, sh_f U, double res[wf->grid->n[iR]]);
 
 double sh_wavefunc_z(sh_wavefunc_t const* wf);

@@ -11,6 +11,17 @@
 #include "utils.h"
 #include "types.h"
 
+/*! \file
+ * Split-step method:
+ * \f[ e^{(A + B)dt} = e^\frac{Adt}{2} e^{Bdt} e^\frac{Adt}{2} + \frac{1}{24}\left[A + 2B, [A,B]\right] dt^3 + O(dt^4) \f]
+ *
+ * \f[ C_1 = \left[\frac{d^2}{dr^2}, r\right] = 2\frac{d}{dr} \f]
+ * \f[ C_2 = \left[\frac{d^2}{dr^2} + 2r, C_1\right] = [2r, C_1] = 2(\frac{d}{dr} - 1) \f]
+ *
+ * For \f$A = 1/2 d^2/dr^2\f$ and \f$B = r\cos{\theta}E\f$:
+ * 
+ * */
+
 typedef struct {
 	sh_grid_t const* grid;
 	uabs_sh_t const* uabs;
