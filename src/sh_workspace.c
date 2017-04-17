@@ -382,7 +382,7 @@ void sh_orbs_workspace_prop_img(
 
 	double Ul0(sh_grid_t const* grid, int ir, int l, int m) {
 		double const r = sh_grid_r(grid, ir);
-		return l*(l+1)/(2*r*r) + atom->u(grid, ir, l, m)  + ws->Uxc[ir]/sqrt(4*M_PI) + ws->Uh[ir];
+		return l*(l+1)/(2*r*r) + atom->u(grid, ir, l, m) + ws->Uh[ir]  + ws->Uxc[ir]/sqrt(4*M_PI);
 	}
 
 #ifdef _MPI

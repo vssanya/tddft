@@ -25,7 +25,7 @@ def calc_wf_az_t():
             )
 
     dt = 0.001
-    dr = 0.005
+    dr = 0.02
     r_max = 50
     Nl = 2
 
@@ -42,7 +42,7 @@ def calc_wf_az_t():
     #uabs = tdse.abs_pot.UabsZero()
     ws = tdse.workspace.SKnWorkspace(grid=g, uabs=uabs, num_threads=2)
 
-    for i in range(20000):
+    for i in range(2000):
         ws.prop_img(wf, a, dt)
         wf.normalize()
 

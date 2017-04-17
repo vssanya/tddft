@@ -58,10 +58,6 @@ class OrbitalsPropagate:
     def time_lda(self):
         tdse.hartree_potential.lda(0, self.orbs, self.sp_grid, self.ylm_cache, self.uh)
 
-    def time_lda_n(self):
-        self.orbs.n_sp(self.sp_grid, self.ylm_cache, self.n)
-        tdse.hartree_potential.lda_n(0, self.n, self.sp_grid, self.ylm_cache, uxc=self.uh)
-
     def time_orbitals_propagate(self):
         self.ws.prop(self.orbs, self.atom, self.field, 0.0, 0.1)
 

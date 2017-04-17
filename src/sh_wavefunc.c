@@ -38,6 +38,12 @@ void sh_wavefunc_del(sh_wavefunc_t* wf) {
 	free(wf);
 }
 
+double swf_get_abs_2(sh_wavefunc_t const* wf, int ir, int il) {
+	cdouble const value = swf_get(wf, ir, il);
+	return pow(creal(value), 2) + pow(cimag(value), 2);
+}
+
+
 typedef double (*func_wf_t)(sh_wavefunc_t const* wf, int ir, int il);
 inline double sh_wavefunc_integrate(sh_wavefunc_t const* wf, func_wf_t func, int l_max) {
 	double res = 0.0;
@@ -47,7 +53,7 @@ inline double sh_wavefunc_integrate(sh_wavefunc_t const* wf, func_wf_t func, int
 //		}
 //	}
 //	return res*wf->grid->d[iR];
-//#pragma omp parallel for reduction(+:res)
+#pragma omp parallel for reduction(+:res)
 	for (int il = 0; il < l_max; ++il) {
 		int ir = 0;
 		{
@@ -85,6 +91,7 @@ inline double sh_wavefunc_integrate(sh_wavefunc_t const* wf, func_wf_t func, int
 inline double sh_wavefunc_integrate_r2(sh_wavefunc_t const* wf, func_wf_t func, int l_max, int Z) {
 	double res = 0.0;
 
+#pragma omp parallel for reduction(+:res)
 	for (int il = 0; il < l_max; ++il) {
 		int ir = 0;
 		{
@@ -125,7 +132,7 @@ void sh_wavefunc_ort_l(int l, int n, sh_wavefunc_t* wfs[n]) {
 	sh_grid_t const* grid = wfs[0]->grid;
 
 	cdouble proj[n];
-	cdouble norm[n];
+	double norm[n];
 
 	for (int in=0; in<n; ++in) {
 		for (int ip=0; ip<in; ++ip) {
@@ -233,7 +240,7 @@ cdouble swf_get_sp(sh_wavefunc_t const* wf, sp_grid_t const* grid, int i[3], ylm
 void sh_wavefunc_random_l(sh_wavefunc_t* wf, int l) {
 	assert(l >= 0 && l < wf->grid->n[iL]);
 
-	for (int il=0; il<l; ++il) {
+	for (int il=0; il<wf->grid->n[iL]; ++il) {
 		for (int ir=0; ir<wf->grid->n[iR]; ++ir) {
 			swf_set(wf, ir, il, 0.0);
 		}
@@ -241,16 +248,17 @@ void sh_wavefunc_random_l(sh_wavefunc_t* wf, int l) {
 
 	{
 		int il = l;
+		cdouble* psi = swf_ptr(wf, 0, il);
+
 		for (int ir=0; ir<wf->grid->n[iR]; ++ir) {
 			double const r = sh_grid_r(wf->grid, ir);
-			//swf_set(wf, ir, il, (double)rand()/(double)RAND_MAX*exp(-r/(l+1)));
-			swf_set(wf, ir, il, r*exp(-r*18));
+			psi[ir] = (double)rand()/(double)RAND_MAX*r*exp(-r/(2*l+1));
 		}
-	}
 
-	for (int il=l+1; il<wf->grid->n[iL]; ++il) {
-		for (int ir=0; ir<wf->grid->n[iR]; ++ir) {
-			swf_set(wf, ir, il, 0.0);
+		for (int i=0; i<10; ++i) {
+			for (int ir=1; ir<wf->grid->n[iR]-1; ++ir) {
+				psi[ir] = (psi[ir-1] + psi[ir] + psi[ir+1])/3.0;
+			}
 		}
 	}
 }

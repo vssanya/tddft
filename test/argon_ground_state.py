@@ -4,9 +4,9 @@ import matplotlib.animation as animation
 
 import tdse
 
-dt = 0.008
-dr = 0.02
-r_max = 200
+dt = 0.001
+dr = 0.005
+r_max = 100
 Nr=r_max/dr
 Nl = 2
 
@@ -19,10 +19,9 @@ ws = tdse.workspace.SOrbsWorkspace(g, sp_grid, uabs, ylm_cache)
 
 orbs = tdse.orbitals.SOrbitals(atom, g)
 orbs.init()
-#orbs.load('./ar_gs_dr_0.02.npy')
 orbs.normalize()
 
-r = np.linspace(dr,r_max,Nr) + 1.0
+r = np.linspace(dr,r_max,Nr)
 
 def data_gen():
     while True:
@@ -57,5 +56,3 @@ def run(data):
 
 ani = animation.FuncAnimation(fig, run, data_gen, blit=False, interval=1, repeat=False)
 plt.show()
-
-np.save('ar_gs_dr_0.02.npy', orbs.asarray())

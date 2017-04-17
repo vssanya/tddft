@@ -58,10 +58,7 @@ void sh_wavefunc_ort_l(int l, int n, sh_wavefunc_t* wfs[n]);
  * */
 cdouble swf_get_sp(sh_wavefunc_t const* wf, sp_grid_t const* grid, int i[3], ylm_cache_t const* ylm_cache);
 
-inline double swf_get_abs_2(sh_wavefunc_t const* wf, int ir, int il) {
-	cdouble const value = swf_get(wf, ir, il);
-	return pow(creal(value), 2) + pow(cimag(value), 2);
-}
+double swf_get_abs_2(sh_wavefunc_t const* wf, int ir, int il);
 
 void   sh_wavefunc_del(sh_wavefunc_t* wf);
 
