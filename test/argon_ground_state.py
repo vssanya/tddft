@@ -4,9 +4,9 @@ import matplotlib.animation as animation
 
 import tdse
 
-dt = 0.001
-dr = 0.005
-r_max = 100
+dt = 0.008
+dr = 0.03
+r_max = 50
 Nr=r_max/dr
 Nl = 2
 

@@ -24,12 +24,12 @@ def calc_wf_az_t():
             tp=tp
             )
 
-    dt = 0.001
-    dr = 0.02
+    dt = 0.004
+    dr = 0.01
     r_max = 50
     Nl = 2
 
-    a = tdse.atom.Atom('Ar')
+    a = tdse.atom.Atom('H')
     r = np.linspace(dr, r_max, r_max/dr)
     g = tdse.grid.ShGrid(Nr=r_max/dr, Nl=2, r_max=r_max)
 
@@ -38,7 +38,7 @@ def calc_wf_az_t():
     orbs.normalize()
     wf = orbs.get_wf(0)
     data = wf.asarray()
-    uabs = tdse.abs_pot.UabsMultiHump(1, r_max/8)
+    uabs = tdse.abs_pot.UabsMultiHump(dr*10, r_max/8)
     #uabs = tdse.abs_pot.UabsZero()
     ws = tdse.workspace.SKnWorkspace(grid=g, uabs=uabs, num_threads=2)
 
@@ -46,10 +46,11 @@ def calc_wf_az_t():
         ws.prop_img(wf, a, dt)
         wf.normalize()
 
-    #data[1,:] = r**2*np.exp(-r*18)
+    # data[:] = 0.0
+    # data[1,:] = np.exp(-20*(r-25)**2)*np.exp(20j*r)
 
     #wf.asarray()[0,:] = np.exp(-(r-50)**2)*np.exp(10j*r)
-    dt = 0.0005
+    dt = 0.004
 
     t = np.arange(0, tp, dt)
     az    = np.zeros(t.size)
@@ -80,9 +81,9 @@ def calc_wf_az_t():
     ax2 = plt.subplot(222)
     #ax2.set_xlim(r[0], r[-1])
     ax2.set_xlim(r[0], r_max)
-    ax2.set_ylim(1e-16,1e1)
+    ax2.set_ylim(1e-20,1e1)
     ax2.set_yscale('log')
-    ax2.set_xscale('log')
+    #ax2.set_xscale('log')
 
     ax3 = plt.subplot(223)
     ax3.set_xlim(t[0], t[-1])
@@ -91,7 +92,7 @@ def calc_wf_az_t():
     ax4.set_xlim(r[0], r_max)
     #line7, = ax4.plot(r, orbs.grad_u(0), '.')
     line7, = ax4.plot(r, dphase)
-    ax4.set_xscale('log')
+    #ax4.set_xscale('log')
     ax4.set_ylim(1e-6, 100)
     ax4.set_yscale('log')
 
@@ -124,13 +125,13 @@ def calc_wf_az_t():
         diff = np.abs(np.diff(z, 2)/dt**2 - az[1:-1])/E[1:-1]
         #diff = np.diff(z, 2)/dt**2
 
-        line1.set_ydata(az)
+        #line1.set_ydata(az)
         line6.set_ydata(diff)
 
-        ax1.set_ylim(np.min(diff[0:it]), np.max(diff[0:it]))
+        #ax1.set_ylim(np.min(diff[0:it]), np.max(diff[0:it]))
         #ax1.set_ylim(np.min(az[0:it]), np.max(az[0:it]))
-        ax1.set_yscale('log')
-        ax1.set_xscale('log')
+        #ax1.set_yscale('log')
+        #ax1.set_xscale('log')
 
         #data = orbs.grad_u(0)
         #line7.set_ydata(data)

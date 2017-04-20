@@ -311,9 +311,8 @@ void uxc_lb(
 #endif
 		{
 			double func(int ir, int ic) {
-				//double x = mod_grad_n(grid, n, ir, ic);
-				//return uxc_lb_func(n[ir + ic*grid->n[iR]], x);
-				return ux_lda_func(n[ir + ic*grid->n[iR]]);
+				double x = mod_grad_n(grid, n, ir, ic);
+				return uxc_lb_func(n[ir + ic*grid->n[iR]], x);
 			}
 
 			sh_series(func, l, 0, grid, U, ylm_cache);

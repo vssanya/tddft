@@ -58,7 +58,6 @@ void sh_workspace_prop_at(
 		sh_wavefunc_t* wf,
 		cdouble dt,
 		sh_f Ul,
-		uabs_sh_t const* uabs,
 		int Z
 );
 

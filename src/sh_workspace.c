@@ -115,39 +115,35 @@ void sh_workspace_prop_at(
 		sh_wavefunc_t* wf,
 		cdouble dt,
 		sh_f Ul,
-		uabs_sh_t const* uabs,
 		int Z // nuclear charge
 ) {
-	double dr = ws->grid->d[iR];
+	double const dr = ws->grid->d[iR];
+	double const dr2 = dr*dr;
 
-	int Nr = ws->grid->n[iR];
+	int const Nr = ws->grid->n[iR];
 
-	cdouble U[3];
+	double const d2[3] = {1.0, -2.0, 1.0};
+	double const d2_l0_11 = d2[1]*(1.0 - Z*dr/(12.0 - 10.0*Z*dr));
 
-	double d2[3];
-	d2[0] =  1.0/(dr*dr);
-	d2[1] = -2.0/(dr*dr);
-	d2[2] =  1.0/(dr*dr);
+	double const M2[3] = {
+		1.0/12.0*dr2,
+		10.0/12.0*dr2,
+		1.0/12.0*dr2
+	};
 
-	const double d2_l0_11 = d2[1]*(1.0 - Z*dr/(12.0 - 10.0*Z*dr));
+	const double M2_l0_11 = (1.0 + d2_l0_11/12.0)*dr2;
 
-	double M2[3];
-	M2[0] = 1.0/12.0;
-	M2[1] = 10.0/12.0;
-	M2[2] = 1.0/12.0;
+	double U[3];
+	cdouble al[3];
+	cdouble ar[3];
+	cdouble f;
 
-	const double M2_l0_11 = 1.0 + d2_l0_11*(dr*dr)/12.0;
-
-#pragma omp for
+#pragma omp for private(U, al, ar, f)
 	for (int l = 0; l < ws->grid->n[iL]; ++l) {
 		int tid = omp_get_thread_num();
 
 		cdouble* alpha = &ws->alpha[tid*ws->grid->n[iR]];
 		cdouble* betta = &ws->betta[tid*ws->grid->n[iR]];
-
-		cdouble al[3];
-		cdouble ar[3];
-		cdouble f;
 
 		cdouble* psi = &wf->data[l*Nr];
 
@@ -156,8 +152,8 @@ void sh_workspace_prop_at(
 		{
 			int ir = 0;
 
-			U[1] = Ul(ws->grid, ir, l, wf->m) - I*uabs_get(uabs, ws->grid, ir, l, wf->m);
-			U[2] = Ul(ws->grid, ir+1, l, wf->m) - I*uabs_get(uabs, ws->grid, ir+1, l, wf->m);
+			U[1] = Ul(ws->grid, ir, l, wf->m);
+			U[2] = Ul(ws->grid, ir+1, l, wf->m);
 
 			for (int i = 1; i < 3; ++i) {
 				al[i] = M2[i]*(1.0 + idt_2*U[i]) - 0.5*idt_2*d2[i];
@@ -178,7 +174,7 @@ void sh_workspace_prop_at(
 		for (int ir = 1; ir < ws->grid->n[iR] - 1; ++ir) {
 			U[0] = U[1];
 			U[1] = U[2];
-            U[2] = Ul(ws->grid, ir+1, l, wf->m) - I*uabs_get(uabs, ws->grid, ir+1, l, wf->m);
+            U[2] = Ul(ws->grid, ir+1, l, wf->m);
 
 			for (int i = 0; i < 3; ++i) {
 				al[i] = M2[i]*(1.0 + idt_2*U[i]) - 0.5*idt_2*d2[i];
@@ -237,11 +233,18 @@ void _sh_workspace_prop(
 			}
 		}
 
-		sh_workspace_prop_at(ws, wf, dt, Ul[0], uabs, Z);
+		sh_workspace_prop_at(ws, wf, dt, Ul[0], Z);
 
 		for (int l1 = l_max-1; l1 > 0; --l1) {
 			for (int il = ws->grid->n[iL] - 1 - l1; il >= 0; --il) {
 				sh_workspace_prop_ang_l(ws, wf, dt, il, l1, Ul[l1]);
+			}
+		}
+
+#pragma omp for collapse(2)
+		for (int il = 0; il < ws->grid->n[iL]; ++il) {
+			for (int ir = 0; ir < ws->grid->n[iR]; ++ir) {
+				wf->data[ir + il*ws->grid->n[iR]]*=exp(-uabs_get(uabs, ws->grid, ir, il, wf->m)*dt);
 			}
 		}
 	}
