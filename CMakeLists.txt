@@ -2,7 +2,7 @@ project(tdse C)
 
 cmake_minimum_required(VERSION 2.8)
 
-set(CMAKE_BUILD_TYPE Release)
+set(CMAKE_BUILD_TYPE Debug)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS "ON")
 
@@ -22,6 +22,8 @@ endif()
 set(CMAKE_EXPORT_COMPILE_COMMANDS 1)
 
 find_package(GSL)
+
+find_package(LAPACK)
 
 if ("${CMAKE_C_COMPILER_ID}" STREQUAL "Intel")
 	include_directories(/share/intel/mkl/include)

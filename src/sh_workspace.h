@@ -7,9 +7,35 @@
 #include "orbitals.h"
 #include "abs_pot.h"
 #include "atom.h"
+#include "eigen.h"
 
 #include "utils.h"
 #include "types.h"
+
+typedef struct {
+	sh_grid_t const* grid;
+	atom_t const* atom;
+
+	double dt;
+	double e_max; // maximum energy
+
+	cdouble* s; // propogation matrix shape = (Nl,Nr,n_evec)
+	int n_evec; // number of eigenvec for prop
+
+	sh_wavefunc_t* prop_wf;
+} gps_ws_t;
+
+gps_ws_t* gps_ws_alloc(sh_grid_t const* grid, atom_t const* atom, double dt, double e_max);
+void gps_ws_free(gps_ws_t* ws);
+void gps_ws_calc_s(gps_ws_t* ws, eigen_ws_t const* eigen);
+void gps_ws_prop(gps_ws_t const* ws, sh_wavefunc_t* wf);
+void gps_ws_prop_common(
+		gps_ws_t* ws,
+		sh_wavefunc_t* wf,
+		uabs_sh_t const* uabs,
+		field_t field,
+		double t
+);
 
 /*! \file
  * Split-step method:
@@ -114,3 +140,5 @@ void sh_orbs_workspace_prop_img(
 		atom_t const* atom,
 		double dt
 );
+
+void prop_ang_l(sh_wavefunc_t* wf, cdouble dt, int l, int l1, sh_f Ul);

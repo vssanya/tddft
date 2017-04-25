@@ -35,6 +35,8 @@ sh_wavefunc_t* sh_wavefunc_new_from(
 		int const m
 );
 
+void sh_wavefunc_copy(sh_wavefunc_t const* wf_src, sh_wavefunc_t const* wf_dest);
+
 inline cdouble* swf_ptr(sh_wavefunc_t const* wf, int ir, int il) {
 	return &wf->data[grid2_index(wf->grid, (int[2]){ir, il})];
 }

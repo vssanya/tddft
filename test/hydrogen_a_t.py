@@ -12,28 +12,28 @@ def calc_wf_az_t():
     I = 1e14
     E0 = tdse.utils.I_to_E(I)
 
-    # tp = tdse.utils.t_fwhm(2.05, 'fs')
-    # t0 = 10*T
+    tp = tdse.utils.t_fwhm(2.05, 'fs')
+    t0 = 1.5*T
 
-    # f = tdse.field.TwoColorPulseField(E0=E0, freq=freq, alpha=0.0, tp=tp, t0=t0)
+    #f = tdse.field.TwoColorPulseField(E0=0.0377, freq=freq, alpha=0.0, tp=tp, t0=t0)
 
     tp = T
     f = tdse.field.SinField(
-            E0=tdse.utils.I_to_E(2e14),
+            E0=tdse.utils.I_to_E(1e14),
             alpha=0.0,
             tp=tp
             )
 
-    dt = 0.004
-    dr = 0.01
-    r_max = 50
+    dt = 0.025
+    dr = 0.125
+    r_max = 100
     Nl = 2
 
-    a = tdse.atom.Atom('H')
+    atom = tdse.atom.Atom('H')
     r = np.linspace(dr, r_max, r_max/dr)
-    g = tdse.grid.ShGrid(Nr=r_max/dr, Nl=2, r_max=r_max)
+    g = tdse.grid.ShGrid(Nr=r_max/dr, Nl=Nl, r_max=r_max)
 
-    orbs = tdse.orbitals.SOrbitals(a, g)
+    orbs = tdse.orbitals.SOrbitals(atom, g)
     orbs.init()
     orbs.normalize()
     wf = orbs.get_wf(0)
@@ -42,15 +42,27 @@ def calc_wf_az_t():
     #uabs = tdse.abs_pot.UabsZero()
     ws = tdse.workspace.SKnWorkspace(grid=g, uabs=uabs, num_threads=2)
 
-    for i in range(2000):
-        ws.prop_img(wf, a, dt)
+    #eigen = tdse.workspace.Eigen(g)
+    #eigen.calc(atom)
+    #eigen.save("./eigen.npy")
+    #eigen.load("./eigen.npy")
+
+    #gps_ws = tdse.workspace.GPSWorkspace(g, atom, dt, 2)
+    #gps_ws.calc_s(eigen)
+
+    #psi = wf.asarray()
+    #psi[:] = 0.0
+    #psi[0,:] = -eigen.get_evec()[0,:,0]/np.sqrt(dr)
+
+    for i in range(10000):
+        ws.prop_img(wf, atom, dt)
         wf.normalize()
 
     # data[:] = 0.0
     # data[1,:] = np.exp(-20*(r-25)**2)*np.exp(20j*r)
 
     #wf.asarray()[0,:] = np.exp(-(r-50)**2)*np.exp(10j*r)
-    dt = 0.004
+    #dt = 0.004
 
     t = np.arange(0, tp, dt)
     az    = np.zeros(t.size)
@@ -62,13 +74,13 @@ def calc_wf_az_t():
     def data_gen():
         for i in range(t.size):
             print(f.E(t[i]+dt/2))
-            yield i, tdse.calc.az(wf, a, f, t[i])
+            yield i, tdse.calc.az(wf, atom, f, t[i])
 
-            arr = wf.asarray()
-            # ws.prop(wf, a, f, t[i], dt/100)
-            phase = np.angle(arr)
-            ws.prop(wf, a, f, t[i], dt)
-            dphase[:] = np.abs(np.angle(arr) - phase)[1]
+            # ws.prop(wf, atom, f, t[i], dt/100)
+            phase = np.angle(data)
+            ws.prop(wf, atom, f, t[i], dt)
+            #gps_ws.prop_comm(wf, uabs, f, t[i])
+            dphase[:] = np.abs(np.angle(data) - phase)[0]
             #arr[:] = np.abs(arr)*np.exp(1.0j*(phase + dphase*100))
 
     fig = plt.figure()
@@ -81,7 +93,7 @@ def calc_wf_az_t():
     ax2 = plt.subplot(222)
     #ax2.set_xlim(r[0], r[-1])
     ax2.set_xlim(r[0], r_max)
-    ax2.set_ylim(1e-20,1e1)
+    ax2.set_ylim(1e-60,1e1)
     ax2.set_yscale('log')
     #ax2.set_xscale('log')
 
@@ -98,9 +110,11 @@ def calc_wf_az_t():
 
     line1,  = ax1.plot(t, az, label="az")
     line6, = ax1.plot(t[1:-1], np.abs(np.diff(z,2)/dt**2 - az[1:-1]), label="z")
+    ax1.legend()
 
     line3, = ax2.plot(r, np.sum(np.abs(wf.asarray()), axis=0), label='Num')
-    ax2.plot(r, np.abs(-2*18**1.5*r*np.exp(-r*18)), label='Anal')
+    Z = 18
+    ax2.plot(r, np.abs(-2*Z**1.5*r*np.exp(-r*Z)), label='Anal')
     ax2.legend()
 
     E = np.zeros(t.size)
@@ -117,19 +131,21 @@ def calc_wf_az_t():
         az[it] = data[1]
         #prob[it] = wf.norm()#tdse.calc.ionization_prob(orbs)
         z[it] = wf.z()
+        print("Z = ", z[it])
+        print("Z = ", az[it])
 
         ax1.set_xlim(t[0], t[it])
 
         it = it+1
 
-        diff = np.abs(np.diff(z, 2)/dt**2 - az[1:-1])/E[1:-1]
-        #diff = np.diff(z, 2)/dt**2
+        #diff = np.abs(np.diff(z, 2)/dt**2 - az[1:-1])/E[1:-1]
+        diff = np.diff(z, 2)/dt**2
 
-        #line1.set_ydata(az)
+        line1.set_ydata(az)
         line6.set_ydata(diff)
 
-        #ax1.set_ylim(np.min(diff[0:it]), np.max(diff[0:it]))
-        #ax1.set_ylim(np.min(az[0:it]), np.max(az[0:it]))
+        #ax1.set_ylim(-np.max(diff[0:it]), np.max(diff[0:it]))
+        ax1.set_ylim(-np.max(az[0:it]), np.max(az[0:it]))
         #ax1.set_yscale('log')
         #ax1.set_xscale('log')
 
@@ -142,7 +158,7 @@ def calc_wf_az_t():
         #line6.set_ydata(z)
 
         #line3.set_ydata(np.sum(np.abs(wf.asarray()), axis=0))
-        line3.set_ydata(np.abs(wf.asarray()[1]))
+        line3.set_ydata(np.abs(wf.asarray()[0]))
         #line5.set_data([t[it],],[E[it],])
 
         return (line3, line5, line6, line7),

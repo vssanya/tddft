@@ -49,3 +49,11 @@ def jrcd(Atom atom, WS ws, WF wf, Field field, int Nt, double dt, double t_smoot
 
 def smstep(double x, double x0, double x1):
     return smoothstep(x, x0, x1)
+
+def tdm_inv(double a0, double a, double b, double c, int N):
+    cdef np.ndarray[double, ndim=2] inv = np.ndarray((N,N))
+    linalg_tdm_inv(a0, [b, a, c], N, <double*>inv.data)
+    return inv
+
+def m_dot_tdm(np.ndarray[double, ndim=2] m, double a0, double a, double b, double c):
+    linalg_m_dot_tdm(m.shape[0], <double*>m.data, a0, [b, a, c])

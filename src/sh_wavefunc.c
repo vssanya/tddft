@@ -31,6 +31,12 @@ sh_wavefunc_t* sh_wavefunc_new_from(cdouble* data, sh_grid_t const* grid, int co
 	return _sh_wavefunc_new(data, false, grid, m);
 }
 
+void sh_wavefunc_copy(sh_wavefunc_t const* wf_src, sh_wavefunc_t const* wf_dest) {
+	for (int i = 0; i < grid2_size(wf_src->grid); ++i) {
+		wf_dest->data[i] = wf_src->data[i];
+	}
+}
+
 void sh_wavefunc_del(sh_wavefunc_t* wf) {
 	if (wf->data_own) {
 		free(wf->data);

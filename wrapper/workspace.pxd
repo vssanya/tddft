@@ -9,7 +9,37 @@ from orbitals cimport orbitals_t
 from sphere_harmonics cimport ylm_cache_t
 from atom cimport atom_t
 
+cdef extern from "eigen.h":
+    ctypedef struct eigen_ws_t:
+        sh_grid_t* grid
+        double* evec
+        double* eval
+
+    eigen_ws_t* eigen_ws_alloc(sh_grid_t* grid)
+    void eigen_ws_free(eigen_ws_t* ws)
+    void eigen_calc(eigen_ws_t* ws, sh_f u, int Z)
+    void eigen_calc_for_atom(eigen_ws_t* ws, atom_t* atom)
+    int eigen_get_n_with_energy(eigen_ws_t* ws, double energy);
+
 cdef extern from "sh_workspace.h":
+    ctypedef struct gps_ws_t:
+        sh_grid_t* grid;
+        atom_t* atom;
+
+        double dt;
+        double e_max;
+
+        cdouble* s;
+        int n_evec;
+
+        sh_wavefunc_t* prop_wf;
+
+    gps_ws_t* gps_ws_alloc(sh_grid_t* grid, atom_t* atom, double dt, double e_max);
+    void gps_ws_free(gps_ws_t* ws);
+    void gps_ws_calc_s(gps_ws_t* ws, eigen_ws_t* eigen);
+    void gps_ws_prop(gps_ws_t* ws, sh_wavefunc_t* wf);
+    void gps_ws_prop_common(gps_ws_t* ws, sh_wavefunc_t* wf, uabs_sh_t* uabs, field_t field, double t);
+
     ctypedef struct sh_workspace_t:
         sh_grid_t* grid
         uabs_sh_t* uabs
@@ -107,3 +137,11 @@ cdef class SOrbsWorkspace:
     cdef:
         sh_orbs_workspace_t* _data
         Uabs uabs
+
+cdef class GPSWorkspace:
+    cdef:
+        gps_ws_t* cdata
+
+cdef class Eigen:
+    cdef:
+        eigen_ws_t* cdata
