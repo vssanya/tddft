@@ -48,6 +48,10 @@ void field_free(field_t field) {
 
 __attribute__((pure))
 double field_sin_E(double t, two_color_pulse_field_t const* data) {
+  if (t < 0 && t > data->tp) {
+    return 0.0;
+  }
+
 	double const tau = data->freq*(t - data->t0);
 	return data->E0*(cos(tau) + data->alpha*cos(2*tau + data->phase))* // fill
 		   pow(sin(M_PI*(t - data->t0)/data->tp), 2); // env

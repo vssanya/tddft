@@ -101,7 +101,6 @@ inline double sh_wavefunc_integrate_r2(sh_wavefunc_t const* wf, func_wf_t func, 
 	for (int il = 0; il < l_max; ++il) {
 		int ir = 0;
 		{
-			int ir = 0;
 			if (il == 0) {
 				double c = -Z*4*wf->grid->d[iR];
 				res += ((16*c + 6)*func(wf, ir, il) + 2*c*func(wf, ir+1, il))/(1+3*c);

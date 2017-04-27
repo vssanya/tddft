@@ -141,20 +141,7 @@ void sh_workspace_free(sh_workspace_t* ws) {
 	free(ws);
 }
 
-/* 
- * [1 + 0.5iΔtH(t+Δt/2)] Ψ(r, t+Δt) = [1 - 0.5iΔtH(t+Δt/2)] Ψ(r, t)
- * */
-
-// exp(-0.5iΔtHang(l,m, t+Δt/2))
-// @param E = E(t+dt/2)
 void prop_ang_l(sh_wavefunc_t* wf, cdouble dt, int l, int l1, sh_f Ul) {
-	/*
-	 * Solve Nr equations:
-	 * psi(l   , t+dt, r) + a*psi(l+l1, t+dt, r) = f0
-	 * psi(l+l1, t+dt, r) + a*psi(l   , t+dt, r) = f1
-	 *
-	 * a(r) = a_const*r
-	 */
 
 	int const Nr = wf->grid->n[iR];
 
@@ -205,6 +192,15 @@ void _sh_workspace_prop_ang_l(sh_workspace_t* ws, sh_wavefunc_t* wf, cdouble dt,
 }
 
 // O(dr^4)
+/*
+ * \brief Расчет функции \f[\psi(t+dt) = exp(-iH_{at}dt)\psi(t)\f]
+ *
+ * \f[H_{at} = -0.5\frac{d^2}{dr^2} + U(r, l)\f]
+ * \f[exp(iAdt) = \frac{1 - iA}{1 + iA} + O(dt^3)\f]
+ *
+ * \param[in,out] wf
+ *
+ */
 void sh_workspace_prop_at(
 		sh_workspace_t* ws,
 		sh_wavefunc_t* wf,
@@ -275,7 +271,7 @@ void sh_workspace_prop_at(
 				al[i] = M2[i]*(1.0 + idt_2*U[i]) - 0.5*idt_2*d2[i];
 				ar[i] = M2[i]*(1.0 - idt_2*U[i]) + 0.5*idt_2*d2[i];
 			}
-			
+
 			cdouble c = al[1] + al[0]*alpha[ir-1];
 			f = ar[0]*psi[ir-1] + ar[1]*psi[ir] + ar[2]*psi[ir+1];
 
@@ -293,7 +289,7 @@ void sh_workspace_prop_at(
 				al[i] = M2[i]*(1.0 + idt_2*U[i]) - 0.5*idt_2*d2[i];
 				ar[i] = M2[i]*(1.0 - idt_2*U[i]) + 0.5*idt_2*d2[i];
 			}
-			
+
 			cdouble c = al[1] + al[0]*alpha[ir-1];
 			f = ar[0]*psi[ir-1] + ar[1]*psi[ir];
 

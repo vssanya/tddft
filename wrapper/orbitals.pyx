@@ -1,10 +1,6 @@
 import numpy as np
 cimport numpy as np
 
-import mpi4py.MPI
-cimport mpi4py.MPI
-cimport mpi4py.libmpi
-
 from types cimport cdouble
 from abs_pot cimport mask_core
 from grid cimport ShGrid, SpGrid
@@ -13,10 +9,14 @@ from wavefunc cimport sh_wavefunc_norm, swavefunc_from_point, sh_wavefunc_cos_r
 from sphere_harmonics cimport YlmCache
 
 
+from mpi4py.libmpi cimport MPI_COMM_NULL, MPI_Gather, MPI_C_DOUBLE_COMPLEX
+from mpi4py.MPI import COMM_NULL
+
+
 cdef class SOrbitals:
-    def __cinit__(self, Atom atom, ShGrid grid, mpi4py.MPI.Comm comm = None):
+    def __cinit__(self, Atom atom, ShGrid grid, Comm comm = None):
         if comm is None:
-            comm = mpi4py.MPI.COMM_NULL
+            comm = COMM_NULL
 
         self._data = orbials_new(atom._data, grid.data, comm.ob_mpi)
 
@@ -52,7 +52,7 @@ cdef class SOrbitals:
             shape = self.mpi_comm.bcast(shape)
 
         orbitals_set_init_state(self._data, data_ptr, shape[1], shape[0])
-    
+
     def n(self, SpGrid grid, YlmCache ylm_cache, int ir, int ic):
         return orbitals_n(self._data, grid.data, [ir, ic], ylm_cache._data)
 
@@ -109,7 +109,7 @@ cdef class SOrbitals:
         return np.asarray(array)
 
     def is_mpi(self) -> bool:
-        return self._data.mpi_comm != mpi4py.libmpi.MPI_COMM_NULL
+        return self._data.mpi_comm != MPI_COMM_NULL
 
     def is_root(self) -> bool:
         return not self.is_mpi() or self._data.mpi_rank == 0
@@ -126,7 +126,7 @@ cdef class SOrbitals:
             if self._data.mpi_rank == 0:
                 arr = np.ndarray((self._data.atom.n_orbs, self._data.grid.n[1], self._data.grid.n[0]), dtype=np.complex)
                 arr_ptr = <cdouble*>arr.data
-            mpi4py.libmpi.MPI_Gather(self._data.data, size, mpi4py.libmpi.MPI_C_DOUBLE_COMPLEX, arr_ptr, size, mpi4py.libmpi.MPI_C_DOUBLE_COMPLEX, 0, self._data.mpi_comm)
+            MPI_Gather(self._data.data, size, MPI_C_DOUBLE_COMPLEX, arr_ptr, size, MPI_C_DOUBLE_COMPLEX, 0, self._data.mpi_comm)
             if self._data.mpi_rank == 0:
                 np.save(file, self.asarray())
         else:

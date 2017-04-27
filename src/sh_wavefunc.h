@@ -14,12 +14,12 @@
  *
  * */
 typedef struct {
-    sh_grid_t const* grid;           
+  sh_grid_t const* grid;
 
-    cdouble* data; //!< data[i + l*grid->Nr] = \f$\Theta_{lm}(r_i)\f$
-	bool data_own;      //!< кто выделил данные
+  cdouble* data; //!< data[i + l*grid->Nr] = \f$\Theta_{lm}(r_i)\f$
+  bool data_own; //!< кто выделил данные
 
-    int m;         //!< is magnetic quantum number
+  int m;         //!< is magnetic quantum number
 } sh_wavefunc_t;
 
 sh_wavefunc_t* sh_wavefunc_new(

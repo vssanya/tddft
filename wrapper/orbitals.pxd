@@ -7,8 +7,8 @@ from sphere_harmonics cimport ylm_cache_t
 from atom cimport Atom
 from grid cimport ShGrid
 
-cimport mpi4py.MPI
-cimport mpi4py.libmpi as mpi
+from mpi4py.MPI cimport Comm
+from mpi4py.libmpi cimport MPI_Comm
 
 
 cdef extern from "orbitals.h":
@@ -17,11 +17,11 @@ cdef extern from "orbitals.h":
         sh_grid_t* grid
         sh_wavefunc_t** wf
         cdouble* data
-        mpi.MPI_Comm mpi_comm
+        MPI_Comm mpi_comm
         int mpi_rank
         sh_wavefunc_t* mpi_wf
 
-    orbitals_t* orbials_new(atom_t* atom, sh_grid_t* grid, mpi.MPI_Comm mpi_comm)
+    orbitals_t* orbials_new(atom_t* atom, sh_grid_t* grid, MPI_Comm mpi_comm)
     void orbitals_del(orbitals_t* orbs)
     void orbitals_init(orbitals_t* orbs)
     double orbitals_norm(orbitals_t* orbs, sh_f mask)
@@ -35,5 +35,5 @@ cdef extern from "orbitals.h":
 cdef class SOrbitals:
     cdef orbitals_t* _data
     cdef Atom atom
-    cdef mpi4py.MPI.Comm mpi_comm
+    cdef Comm mpi_comm
     cdef ShGrid grid
