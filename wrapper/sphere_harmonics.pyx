@@ -5,15 +5,15 @@ from grid cimport SpGrid
 
 cdef class YlmCache:
     def __cinit__(self, int l_max, SpGrid grid):
-        self._data = ylm_cache_new(l_max, grid.data)
+        self.cdata = ylm_cache_new(l_max, grid.data)
 
     def __dealloc__(self):
-        if self._data != NULL:
-            ylm_cache_del(self._data)
+        if self.cdata != NULL:
+            ylm_cache_del(self.cdata)
 
     @np.vectorize
     def get(self, int l, int m, int ic):
-        return ylm_cache_get(self._data, l, m, ic)
+        return ylm_cache_get(self.cdata, l, m, ic)
 
 cdef object func_2d = None
 
@@ -25,7 +25,7 @@ def series(func, int l, int m, SpGrid grid, YlmCache cache):
 
     func_2d = func
     cdef np.ndarray[np.double_t, ndim=1, mode='c'] res = np.ndarray(grid.data.n[0], dtype=np.double)
-    sh_series(func_2d_wrapper, l, m, grid.data, &res[0], cache._data)
+    sh_series(func_2d_wrapper, l, m, grid.data, &res[0], cache.cdata)
     return res
 
 @np.vectorize

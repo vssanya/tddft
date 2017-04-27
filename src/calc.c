@@ -3,15 +3,15 @@
 #include "abs_pot.h"
 
 
-double calc_wf_az(sh_wavefunc_t const* wf, atom_t const* atom, field_t field, double t) {
+double calc_wf_az(sh_wavefunc_t const* wf, atom_t const* atom, field_t const* field, double t) {
     return - field_E(field, t) - sh_wavefunc_cos_r2(wf, atom->dudz, atom->Z);
 }
 
-double calc_orbs_az(orbitals_t const* orbs, atom_t const* atom, field_t field, double t) {
+double calc_orbs_az(orbitals_t const* orbs, atom_t const* atom, field_t const* field, double t) {
 	return - field_E(field, t)*atom_get_count_electrons(atom) - orbitals_cos(orbs, atom->dudz);
 }
 
-void calc_orbs_az_ne(orbitals_t const* orbs, field_t field, double t, double az[orbs->atom->n_orbs]) {
+void calc_orbs_az_ne(orbitals_t const* orbs, field_t const* field, double t, double az[orbs->atom->n_orbs]) {
 #ifdef _MPI
 	if (orbs->mpi_comm != MPI_COMM_NULL) {
 		double az_local = - (field_E(field, t) + sh_wavefunc_cos(orbs->mpi_wf, orbs->atom->dudz))*orbs->atom->n_e[orbs->mpi_rank];
@@ -37,7 +37,7 @@ double calc_wf_jrcd(
 		sh_workspace_t* ws,
 		sh_wavefunc_t* wf,
 		atom_t const* atom,
-		field_t field,
+		field_t const* field,
 		int Nt, 
 		double dt,
 		double t_smooth
@@ -59,7 +59,7 @@ double calc_orbs_jrcd(
 		sh_orbs_workspace_t* ws,
 		orbitals_t* orbs,
 		atom_t const* atom,
-		field_t field,
+		field_t const* field,
 		int Nt, 
 		double dt,
 		double t_smooth

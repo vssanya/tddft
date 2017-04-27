@@ -28,4 +28,4 @@ cdef extern from "atom.h":
     atom_t atom_neon
 
 cdef class Atom:
-    cdef atom_t* _data
+    cdef atom_t* cdata

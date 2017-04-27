@@ -33,7 +33,7 @@ cdef extern from "orbitals.h":
     void orbitals_set_init_state(orbitals_t* orbs, cdouble* data, int n_r, int n_l)
 
 cdef class SOrbitals:
-    cdef orbitals_t* _data
+    cdef orbitals_t* cdata
     cdef Atom atom
     cdef Comm mpi_comm
     cdef ShGrid grid

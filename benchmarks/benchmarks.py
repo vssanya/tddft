@@ -17,7 +17,7 @@ class OrbitalsFunc:
         self.atom = tdse.atom.Atom('Ar')
         self.orbs = tdse.orbitals.SOrbitals(self.atom, self.grid)
         self.orbs.init()
-        self.field = tdse.field.SinField()
+        self.field = tdse.field.TwoColorSinField()
 
     def time_norm(self):
         self.orbs.norm()
@@ -50,7 +50,7 @@ class OrbitalsPropagate:
         self.uh = np.ndarray(Nr)
         self.uabs = tdse.abs_pot.UabsMultiHump(0.1, 10)
         self.ws = tdse.workspace.SOrbsWorkspace(self.grid, self.sp_grid, self.uabs, ylm_cache=self.ylm_cache)
-        self.field = tdse.field.SinField()
+        self.field = tdse.field.TwoColorSinField()
 
     def time_hartree_potential_l0(self):
         tdse.hartree_potential.l0(self.orbs, self.uh)
@@ -79,7 +79,7 @@ class WavefuncPropagate:
         self.wf = tdse.atom.ground_state(self.grid)
         self.uabs = tdse.abs_pot.UabsMultiHump(0.1, 10)
         self.ws = tdse.workspace.SKnWorkspace(grid=self.grid, uabs=self.uabs)
-        self.field = tdse.field.SinField()
+        self.field = tdse.field.TwoColorSinField()
 
     def time_propagate(self):
         self.ws.prop(self.wf, self.atom, self.field, 0.0, 0.1)

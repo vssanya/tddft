@@ -16,20 +16,20 @@ double calc_orbs_ionization_prob(orbitals_t const* orbs);
 double calc_wf_az(
 		sh_wavefunc_t const* wf,
 		atom_t const* atom,
-		field_t field,
+		field_t const* field,
 		double t
 );
 
 double calc_orbs_az(
 		orbitals_t const* orbs,
 		atom_t const* atom,
-		field_t field,
+		field_t const* field,
 		double t
 );
 
 void calc_orbs_az_ne(
 		orbitals_t const* orbs,
-		field_t field,
+		field_t const* field,
 		double t,
 		double az[orbs->atom->n_orbs]
 );
@@ -38,7 +38,7 @@ double calc_wf_jrcd(
 		sh_workspace_t* ws,
 		sh_wavefunc_t* wf,
 		atom_t const* atom,
-		field_t field,
+		field_t const* field,
 		int Nt, 
 		double dt,
 		double t_smooth
@@ -48,7 +48,7 @@ double calc_orbs_jrcd(
 		sh_orbs_workspace_t* ws,
 		orbitals_t* orbs,
 		atom_t const* atom,
-		field_t field,
+		field_t const* field,
 		int Nt, 
 		double dt,
 		double t_smooth

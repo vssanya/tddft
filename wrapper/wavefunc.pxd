@@ -30,7 +30,7 @@ cdef extern from "sh_wavefunc.h":
     cdouble swf_get_sp(sh_wavefunc_t* wf, sp_grid_t* grid, int i[3], ylm_cache_t* ylm_cache)
 
 cdef class SWavefunc:
-    cdef sh_wavefunc_t* data
+    cdef sh_wavefunc_t* cdata
     cdef bint dealloc
 
     cdef _set_data(self, sh_wavefunc_t* data)

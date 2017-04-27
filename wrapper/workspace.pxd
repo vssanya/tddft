@@ -38,7 +38,7 @@ cdef extern from "sh_workspace.h":
     void gps_ws_free(gps_ws_t* ws);
     void gps_ws_calc_s(gps_ws_t* ws, eigen_ws_t* eigen);
     void gps_ws_prop(gps_ws_t* ws, sh_wavefunc_t* wf);
-    void gps_ws_prop_common(gps_ws_t* ws, sh_wavefunc_t* wf, uabs_sh_t* uabs, field_t field, double t);
+    void gps_ws_prop_common(gps_ws_t* ws, sh_wavefunc_t* wf, uabs_sh_t* uabs, field_t* field, double t);
 
     ctypedef struct sh_workspace_t:
         sh_grid_t* grid
@@ -91,7 +91,7 @@ cdef extern from "sh_workspace.h":
             sh_workspace_t* ws,
             sh_wavefunc_t* wf,
             atom_t* atom,
-            field_t E,
+            field_t* E,
             double t,
             double dt
             )
@@ -107,7 +107,7 @@ cdef extern from "sh_workspace.h":
             sh_orbs_workspace_t* ws,
             orbitals_t* orbs,
             atom_t* atom,
-            field_t field,
+            field_t* field,
             double t,
             double dt
             )
@@ -130,12 +130,12 @@ cdef extern from "sh_workspace.h":
 
 cdef class SKnWorkspace:
     cdef:
-        sh_workspace_t* data
+        sh_workspace_t* cdata
         Uabs uabs
 
 cdef class SOrbsWorkspace:
     cdef:
-        sh_orbs_workspace_t* _data
+        sh_orbs_workspace_t* cdata
         Uabs uabs
 
 cdef class GPSWorkspace:

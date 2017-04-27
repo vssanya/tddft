@@ -19,4 +19,4 @@ cdef extern from "sphere_harmonics.h":
     void sh_series(func_2d_t func, int l, int m, sp_grid_t* grid, double* series, ylm_cache_t* ylm_cache);
 
 cdef class YlmCache:
-    cdef ylm_cache_t* _data
+    cdef ylm_cache_t* cdata

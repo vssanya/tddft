@@ -12,21 +12,21 @@ cdef extern from "linalg.h":
 cdef extern from "calc.h":
     double calc_wf_ionization_prob(sh_wavefunc_t* wf)
     double calc_orbs_ionization_prob(orbitals_t* orbs)
-    double calc_wf_az(sh_wavefunc_t* wf, atom_t* atom, field_t field, double t)
-    double calc_orbs_az(orbitals_t* orbs, atom_t* atom, field_t field, double t)
-    void calc_orbs_az_ne(orbitals_t* orbs, field_t field, double t, double* az)
+    double calc_wf_az(sh_wavefunc_t* wf, atom_t* atom, field_t* field, double t)
+    double calc_orbs_az(orbitals_t* orbs, atom_t* atom, field_t* field, double t)
+    void calc_orbs_az_ne(orbitals_t* orbs, field_t* field, double t, double* az)
     void calc_wf_az_t(
             int Nt, double* a,
             sh_workspace_t* ws,
             sh_wavefunc_t* wf,
-            field_t field,
+            field_t* field,
             double dt);
 
     double calc_wf_jrcd(
             sh_workspace_t* ws,
             sh_wavefunc_t* wf,
             atom_t* atom,
-            field_t field,
+            field_t* field,
             int Nt, 
             double dt,
             double t_smooth
@@ -36,7 +36,7 @@ cdef extern from "calc.h":
             sh_orbs_workspace_t* ws,
             orbitals_t* orbs,
             atom_t* atom,
-            field_t field,
+            field_t* field,
             int Nt, 
             double dt,
             double t_smooth

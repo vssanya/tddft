@@ -76,7 +76,7 @@ void gps_ws_prop_common(
 		gps_ws_t* ws,
 		sh_wavefunc_t* wf,
 		uabs_sh_t const* uabs,
-		field_t field,
+		field_t const* field,
 		double t
 ) {
 	double Et = field_E(field, t + ws->dt/2);
@@ -345,7 +345,7 @@ void sh_workspace_prop(
 		sh_workspace_t* ws,
 		sh_wavefunc_t* wf,
 		atom_t const* atom,
-		field_t field,
+		field_t const* field,
 		double t,
 		double dt
 ) {
@@ -422,7 +422,7 @@ void sh_orbs_workspace_prop(
 		sh_orbs_workspace_t* ws,
 		orbitals_t* orbs,
 		atom_t const* atom,
-		field_t field,
+		field_t const* field,
 		double t,
 		double dt
 ) {
