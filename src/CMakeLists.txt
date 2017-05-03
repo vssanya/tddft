@@ -15,6 +15,8 @@ set( LIB_SOURCES
 	eigen.c
 	linalg.c
 	"sfa/anal.c"
+  "hartree_potential/hp_o3.c"
+  "hartree_potential/hp_o5.c"
 	)
 
 set( LIB_HEADERS
@@ -37,6 +39,7 @@ set( LIB_HEADERS
   eigen.h
   linalg.h
   "sfa/anal.h"
+  "hartree_potential/hp_o5.h"
   )
 
 add_library( tdse SHARED ${LIB_SOURCES} ${LIB_HEADERS} )

@@ -1,42 +1,13 @@
 #include "hartree_potential.h"
+#include "hartree_potential/hp.h"
 
-double F_first(double F[2], int l, sh_grid_t const* grid, double f[grid->n[iR]]) {
-    double const dr = grid->d[iR];
-
-    F[0] = 0.0;
-
-	double res = 0.0;
-#pragma omp parallel for reduction(+:res)
-	for (int ir = 0; ir < grid->n[iR]; ++ir) {
-        double const r = sh_grid_r(grid, ir);
-		res += f[ir]*pow(dr/r, l)/r;
-	}
-
-	F[1] = res;
-
-	return (F[0] + F[1])*dr;
-}
-
-/*!\fn
- * \brief \f[F_l(r, f) = \int dr' \frac{r_<^l}{r_>^{l+1}} f(r')\f]
- * \param[in,out] F
- * */
-double F_next(double F[2], int l, int ir, sh_grid_t const* grid, double f[grid->n[iR]]) {
-    double const dr = grid->d[iR];
-    double const r = sh_grid_r(grid, ir);
-	double const r_dr = r + dr;
-
-	F[0] = pow(r/r_dr, l+1)*(F[0] + f[ir]/r);
-	F[1] = pow(r_dr/r, l  )*(F[1] - f[ir]/r);
-
-	return (F[0] + F[1])*dr;
-}
 
 void hartree_potential_l0(
 		orbitals_t const* orbs,
 		double U[orbs->grid->n[iR]],
 		double U_local[orbs->grid->n[iR]],
-		double f[orbs->grid->n[iR]]
+		double f[orbs->grid->n[iR]],
+    int order
 ) {
 	sh_grid_t const* grid = orbs->grid;
 
@@ -74,11 +45,11 @@ void hartree_potential_l0(
 		U_calc = U;
 	}
 
-	double F[2];
-	U_calc[0] = F_first(F, 0, grid, f);
-    for (int ir = 0; ir < grid->n[iR]; ++ir) {
-		U_calc[ir] = F_next(F, 0, ir, grid, f);
-	}
+  if (order == 3) {
+    integrate_rmin_rmax_o3(0, grid, f, U_calc);
+  } else {
+    integrate_rmin_rmax_o5(0, grid, f, U_calc);
+  }
 
 #ifdef _MPI
 	if (orbs->mpi_comm != MPI_COMM_NULL) {

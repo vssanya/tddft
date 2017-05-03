@@ -3,6 +3,8 @@
 #include <stdlib.h>
 #include <math.h>
 
+#include "utils.h"
+
 
 typedef struct {
   field_func_t func;
@@ -33,6 +35,8 @@ double sin_env(double tp, double t) {
 
 __attribute__((pure))
 double tr_env(double tp, double t0, double t) {
+  return smoothpulse(t, t0, tp-2*t0);
+  /*
   if (t < 0 || t > tp) {
     return 0.0;
   } else if (t < t0) {
@@ -42,6 +46,7 @@ double tr_env(double tp, double t0, double t) {
   } else {
     return 1.0;
   }
+  */
 }
 
 __attribute__((pure))

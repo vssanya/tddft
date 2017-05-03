@@ -430,7 +430,7 @@ void sh_orbs_workspace_prop(
 		uxc_lb(l, orbs, &ws->Uxc[l*ws->sh_grid->n[iR]], ws->sp_grid, ws->n_sp, ws->n_sp_local, ws->ylm_cache);
 	}
 
-	hartree_potential_l0(orbs, &ws->Uh[0*ws->sh_grid->n[iR]], ws->Uh_local, ws->uh_tmp);
+	hartree_potential_l0(orbs, &ws->Uh[0*ws->sh_grid->n[iR]], ws->Uh_local, ws->uh_tmp, 3);
 	hartree_potential_l1(orbs, &ws->Uh[1*ws->sh_grid->n[iR]], ws->Uh_local, ws->uh_tmp);
 	hartree_potential_l2(orbs, &ws->Uh[2*ws->sh_grid->n[iR]], ws->Uh_local, ws->uh_tmp);
 
@@ -472,7 +472,7 @@ void sh_orbs_workspace_prop_img(
 		uxc_lb(l, orbs, &ws->Uxc[l*ws->sh_grid->n[iR]], ws->sp_grid, ws->n_sp, ws->n_sp_local, ws->ylm_cache);
 	}
 
-	hartree_potential_l0(orbs, &ws->Uh[0*ws->sh_grid->n[iR]], ws->Uh_local, ws->uh_tmp);
+	hartree_potential_l0(orbs, &ws->Uh[0*ws->sh_grid->n[iR]], ws->Uh_local, ws->uh_tmp, 3);
 
 	double Ul0(sh_grid_t const* grid, int ir, int l, int m) {
 		double const r = sh_grid_r(grid, ir);
