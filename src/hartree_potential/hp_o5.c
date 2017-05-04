@@ -14,7 +14,7 @@ double Dn_0(int n, sh_grid_t const* grid, double const f[grid->n[iR]]) {
   double func(int irl) {
     return Dn_func(n, grid, 0, irl, f);
   }
-  return (0.0 + func(0))*grid->d[iR]*0.5;
+  return (5/4*0.0 + 2*func(0) - func(1)/4)*grid->d[iR]*0.5;
 }
 
 double Dn_1(int n, sh_grid_t const* grid, double const f[grid->n[iR]]) {
@@ -36,10 +36,19 @@ double Dn_next(int n, double F[2], int ir, sh_grid_t const* grid, double const f
   }
 
   double func(int irl) {
+    if (irl > grid->n[iR]-1) {
+      return 0.0;
+    }
+
     return Dn_func(n, grid, ir, irl, f);
   }
 
-  double res = pow((ir-2)/(double)ir, n+1)*F[0] + (func(ir-2) + 4*func(ir-1) + func(ir))*grid->d[iR]/3;
+  double res;
+  if (ir % 2 == 0) {
+    res = pow((ir-1)/(double)(ir+1), n+1)*F[0] + (func(ir-2) + 4*func(ir-1) + func(ir))*grid->d[iR]/3;
+  } else {
+    res = pow(    ir/(double)(ir+1), n+1)*F[1] + (5*func(ir-1)/4 + 2*func(ir) - func(ir+1)/4)*grid->d[iR]/3;
+  }
 
   F[0] = F[1];
   F[1] = res;
@@ -74,10 +83,19 @@ double Un_next(int n, double F[2], int ir, sh_grid_t const* grid, double const f
   }
 
   double func(int irl) {
+    if (irl < 0) {
+      return 0.0;
+    }
+
     return Un_func(n, grid, ir, irl, f);
   }
 
-  double res = pow((ir)/(double)(ir+2), n)*F[0] + (func(ir) + 4*func(ir+1) + func(ir+2))*grid->d[iR]/3;
+  double res;
+  if (ir % 2 == 0) {
+    res = pow((ir+1)/(double)(ir+3), n)*F[0] + (func(ir) + 4*func(ir+1) + func(ir+2))*grid->d[iR]/3;
+  } else {
+    res = pow((ir+1)/(double)(ir+2), n)*F[1] + (-func(ir-1)/4 + 2*func(ir) + 5*func(ir+1)/4)*grid->d[iR]/3;
+  }
 
   F[0] = F[1];
   F[1] = res;

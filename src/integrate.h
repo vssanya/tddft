@@ -29,6 +29,19 @@ inline double integrate_trapezoid_1d(func_1d_t f, int nx, double dx) {
 	return res*dx;
 }
 
+inline double integrate_trapezoid_1d_2(func_1d_t f, int ix0, int ix1, double dx) {
+	assert((ix1 - ix0) > 1);
+
+	double res = 0.5*f(ix0);
+	for (int ix = ix0+1; ix < ix1-1; ++ix) {
+		res += f(ix);
+	}
+	res += 0.5*f(ix1-1);
+
+	return res*dx;
+}
+
+
 inline double integrate_trapezoid_data_1d(func_1d_data_t f, void* data, int nx, double dx) {
 	assert(nx > 1);
 

@@ -63,9 +63,8 @@ inline double sh_wavefunc_integrate(sh_wavefunc_t const* wf, func_wf_t func, int
 	for (int il = 0; il < l_max; ++il) {
 		int ir = 0;
 		{
-			int ir = 0;
-			res += 6*func(wf, ir, il);
-			//res += func(wf, ir-1, il) + 4*func(wf, ir, il) + func(wf, ir+1, il);
+			//res += 6*func(wf, ir, il);
+			res += 4*func(wf, ir, il) + func(wf, ir+1, il);
 		}
 		for (ir = 2; ir < wf->grid->n[iR]-1; ir+=2) {
 			res += func(wf, ir-1, il) + 4*func(wf, ir, il) + func(wf, ir+1, il);

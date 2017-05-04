@@ -1,37 +1,6 @@
 #include "hp.h"
+#include "../integrate.h"
 
-
-double F_first(double F[2], int l, sh_grid_t const* grid, double f[grid->n[iR]]) {
-  double const dr = grid->d[iR];
-
-  F[0] = 0.0;
-
-	double res = 0.0;
-#pragma omp parallel for reduction(+:res)
-	for (int ir = 0; ir < grid->n[iR]; ++ir) {
-    double const r = sh_grid_r(grid, ir);
-		res += f[ir]*pow(dr/r, l)/r;
-	}
-
-	F[1] = res;
-
-	return (F[0] + F[1])*dr;
-}
-
-/*!\fn
- * \brief \f[F_l(r, f) = \int dr' \frac{r_<^l}{r_>^{l+1}} f(r')\f]
- * \param[in,out] F
- * */
-double F_next(double F[2], int l, int ir, sh_grid_t const* grid, double const f[grid->n[iR]]) {
-  double const dr = grid->d[iR];
-  double const r = sh_grid_r(grid, ir);
-	double const r_dr = r + dr;
-
-	F[0] = pow(r/r_dr, l+1)*(F[0] + f[ir]/r);
-	F[1] = pow(r_dr/r, l  )*(F[1] - f[ir]/r);
-
-	return (F[0] + F[1])*dr;
-}
 
 double Dn_func_o3(int n, sh_grid_t const* grid, int ir, int irl, double const f[grid->n[iR]]) {
   return pow(sh_grid_r(grid, irl), n)/pow(sh_grid_r(grid, ir), n+1)*f[irl];
@@ -57,7 +26,7 @@ double Dn_next_o3(int n, double F[1], int ir, sh_grid_t const* grid, double cons
     return Dn_func_o3(n, grid, ir, irl, f);
   }
 
-  double res = pow((ir-1)/(double)ir, n+1)*F[0] + (func(ir-1) + func(ir))*grid->d[iR]*0.5;
+  double res = pow(ir/(double)(ir+1), n+1)*F[0] + (func(ir-1) + func(ir))*grid->d[iR]*0.5;
 
   F[0] = res;
   return res;
@@ -84,7 +53,7 @@ double Un_next_o3(int n, double F[1], int ir, sh_grid_t const* grid, double cons
     return Un_func_o3(n, grid, ir, irl, f);
   }
 
-  double res = pow((ir)/(double)(ir+1), n)*F[0] + (func(ir) + func(ir+1))*grid->d[iR]*0.5;
+  double res = pow((ir+1)/(double)(ir+2), n)*F[0] + (func(ir) + func(ir+1))*grid->d[iR]*0.5;
 
   F[0] = res;
 
