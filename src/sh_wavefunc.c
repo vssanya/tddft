@@ -53,29 +53,30 @@ double swf_get_abs_2(sh_wavefunc_t const* wf, int ir, int il) {
 typedef double (*func_wf_t)(sh_wavefunc_t const* wf, int ir, int il);
 inline double sh_wavefunc_integrate(sh_wavefunc_t const* wf, func_wf_t func, int l_max) {
 	double res = 0.0;
-//	for (int il = 0; il < l_max; ++il) {
-//		for (int ir = 0; ir < wf->grid->n[iR]; ++ir) {
-//			res += func(wf, ir, il);
-//		}
-//	}
-//	return res*wf->grid->d[iR];
-#pragma omp parallel for reduction(+:res)
+#pragma omp parallel for reduction(+:res) collapse(2)
 	for (int il = 0; il < l_max; ++il) {
-		int ir = 0;
-		{
-			//res += 6*func(wf, ir, il);
-			res += 4*func(wf, ir, il) + func(wf, ir+1, il);
-		}
-		for (ir = 2; ir < wf->grid->n[iR]-1; ir+=2) {
-			res += func(wf, ir-1, il) + 4*func(wf, ir, il) + func(wf, ir+1, il);
-		}
-
-		if (ir != wf->grid->n[iR]-2) {
-			ir = wf->grid->n[iR]-2;
-			res += (func(wf, ir, il) + func(wf, ir+1, il))*3*0.5;
+		for (int ir = 0; ir < wf->grid->n[iR]; ++ir) {
+			res += func(wf, ir, il);
 		}
 	}
-	return res*wf->grid->d[iR]/3;
+	return res*wf->grid->d[iR];
+//#pragma omp parallel for reduction(+:res)
+//	for (int il = 0; il < l_max; ++il) {
+//		int ir = 0;
+//		{
+//			//res += 6*func(wf, ir, il);
+//			res += 4*func(wf, ir, il) + func(wf, ir+1, il);
+//		}
+//		for (ir = 2; ir < wf->grid->n[iR]-1; ir+=2) {
+//			res += func(wf, ir-1, il) + 4*func(wf, ir, il) + func(wf, ir+1, il);
+//		}
+//
+//		if (ir != wf->grid->n[iR]-2) {
+//			ir = wf->grid->n[iR]-2;
+//			res += (func(wf, ir, il) + func(wf, ir+1, il))*3*0.5;
+//		}
+//	}
+//	return res*wf->grid->d[iR]/3;
 //	for (int il = 0; il < l_max; ++il) {
 //		int ir = 0;
 //		{

@@ -71,6 +71,22 @@ inline double integrate_1d(func_1d_t f, int nx, double dx) {
 	return res;
 }
 
+inline double integrate_1d_2(func_1d_t f, int ix0, int ix1, double dx) {
+	assert((ix1-ix0) > 1);
+
+	double res = 0.0;
+	for (int ix = ix0+1; ix < ix1-1; ix+=2) {
+		res += f(ix-1) + 4*f(ix) + f(ix+1);
+	}
+	res *= dx/3;
+
+	if ((ix1-ix0) % 2 == 0) {
+		res += (f(ix1-2) + f(ix1-1))*dx*0.5;
+	}
+
+	return res;
+}
+
 inline double integrate_data_1d(func_1d_data_t f, void* data, int nx, double dx) {
 	assert(nx > 1);
 

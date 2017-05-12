@@ -426,28 +426,28 @@ void sh_orbs_workspace_prop(
 		double t,
 		double dt
 ) {
-	for (int l=0; l<1; ++l) {
+	for (int l=0; l<3; ++l) {
 		uxc_lb(l, orbs, &ws->Uxc[l*ws->sh_grid->n[iR]], ws->sp_grid, ws->n_sp, ws->n_sp_local, ws->ylm_cache);
 	}
 
   for (int l=0; l<3; ++l) {
-    hartree_potential(orbs, l, &ws->Uh[l*ws->sh_grid->n[iR]], ws->Uh_local, ws->uh_tmp, 3);
+	hartree_potential(orbs, l, &ws->Uh[l*ws->sh_grid->n[iR]], ws->Uh_local, ws->uh_tmp, 3);
   }
 
 	double Et = field_E(field, t + dt/2);
 
 	double Ul0(sh_grid_t const* grid, int ir, int l, int m) {
 		double const r = sh_grid_r(grid, ir);
-		return l*(l+1)/(2*r*r) + atom->u(grid, ir, l, m) + ws->Uxc[ir]/sqrt(4*M_PI) + ws->Uh[ir] + plm(l,m)*(ws->Uh[ir + 2*grid->n[iR]]);// + sqrt(5)*ws->Uxc[ir + 2*grid->n[iR]]/sqrt(4*M_PI));
+		return l*(l+1)/(2*r*r) + atom->u(grid, ir, l, m) + ws->Uxc[ir]/sqrt(4*M_PI) + ws->Uh[ir] + plm(l,m)*(ws->Uh[ir + 2*grid->n[iR]]) + sqrt(5)*ws->Uxc[ir + 2*grid->n[iR]]/sqrt(4*M_PI);
 	}
 
 	double Ul1(sh_grid_t const* grid, int ir, int l, int m) {
 		double const r = sh_grid_r(grid, ir);
-		return clm(l, m)*(r*Et + ws->Uh[ir + grid->n[iR]]);// + sqrt(3)*ws->Uxc[ir + grid->n[iR]]/sqrt(4*M_PI));
+		return clm(l, m)*(r*Et + ws->Uh[ir + grid->n[iR]]) + sqrt(3)*ws->Uxc[ir + grid->n[iR]]/sqrt(4*M_PI);
 	}
 
 	double Ul2(sh_grid_t const* grid, int ir, int l, int m) {
-		return qlm(l, m)*(ws->Uh[ir + 2*grid->n[iR]]);// + sqrt(5)*ws->Uxc[ir + 2*grid->n[iR]]/sqrt(4*M_PI));
+		return qlm(l, m)*(ws->Uh[ir + 2*grid->n[iR]]) + sqrt(5)*ws->Uxc[ir + 2*grid->n[iR]]/sqrt(4*M_PI);
 	}
 
 #ifdef _MPI
@@ -472,13 +472,13 @@ void sh_orbs_workspace_prop_img(
 		uxc_lb(l, orbs, &ws->Uxc[l*ws->sh_grid->n[iR]], ws->sp_grid, ws->n_sp, ws->n_sp_local, ws->ylm_cache);
 	}
 
-  for (int l=0; l<1; ++l) {
-    hartree_potential(orbs, l, &ws->Uh[l*ws->sh_grid->n[iR]], ws->Uh_local, ws->uh_tmp, 3);
-  }
+	for (int l=0; l<1; ++l) {
+		hartree_potential(orbs, l, &ws->Uh[l*ws->sh_grid->n[iR]], ws->Uh_local, ws->uh_tmp, 3);
+	}
 
 	double Ul0(sh_grid_t const* grid, int ir, int l, int m) {
 		double const r = sh_grid_r(grid, ir);
-		return l*(l+1)/(2*r*r) + atom->u(grid, ir, l, m) + ws->Uh[ir]  + ws->Uxc[ir]/sqrt(4*M_PI);
+		return l*(l+1)/(2*r*r) + atom->u(grid, ir, l, m) + ws->Uxc[ir]/sqrt(4*M_PI) + ws->Uh[ir];
 	}
 
 #ifdef _MPI

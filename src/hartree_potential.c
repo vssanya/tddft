@@ -167,11 +167,11 @@ calc_func_t const calc_funcs[3] = {
 
 void hartree_potential(
 		orbitals_t const* orbs,
-    int l,
+		int l,
 		double U[orbs->grid->n[iR]],
 		double U_local[orbs->grid->n[iR]],
 		double f[orbs->grid->n[iR]],
-    int order
+		int order
 ) {
   assert(l >= 0 && l <= 2);
 
@@ -181,7 +181,7 @@ void hartree_potential(
 		f[ir] = 0.0;
 	}
 
-  calc_funcs[l](orbs, f);
+	calc_funcs[l](orbs, f);
 
 	double* U_calc;
 #ifdef _MPI
@@ -194,9 +194,9 @@ void hartree_potential(
 	}
 
   if (order == 3) {
-    integrate_rmin_rmax_o3(0, grid, f, U_calc);
+    integrate_rmin_rmax_o3(l, grid, f, U_calc);
   } else {
-    integrate_rmin_rmax_o5(0, grid, f, U_calc);
+    integrate_rmin_rmax_o5(l, grid, f, U_calc);
   }
 
 #ifdef _MPI

@@ -19,20 +19,16 @@ class TestOrbitals(unittest.TestCase):
         self.uabs = tdse.abs_pot.UabsMultiHump(0.1, 20)
         self.orbs = tdse.orbitals.SOrbitals(self.atom, self.grid)
         self.orbs.init()
-        self.field = tdse.field.SinField()
+        self.field = tdse.field.TwoColorSinField()
         self.ws = tdse.workspace.SOrbsWorkspace(self.grid, self.sp_grid, self.uabs, ylm_cache=self.ylm_cache)
-
-    # def test_norm(self):
-        # self.orbs.norm()
-        # print("Test Norm")
 
     def test_prop(self):
         self.ws.prop(self.orbs, self.atom, self.field, 0.0, 0.1)
 
-    def test_lda(self):
-        n = self.orbs.n_sp(self.sp_grid, self.ylm_cache)
-        ulda_1 = tdse.hartree_potential.lda(0, self.orbs, self.sp_grid, self.ylm_cache)
-        self.assertAlmostEqual(np.sum(ulda_1 - ulda_2), 0.0)
+    # def test_lda(self):
+    #     n = self.orbs.n_sp(self.sp_grid, self.ylm_cache)
+    #     ulda_1 = tdse.hartree_potential.lda(0, self.orbs, self.sp_grid, self.ylm_cache)
+    #     self.assertAlmostEqual(np.sum(ulda_1 - ulda_2), 0.0)
 
     def test_az(self):
         tdse.calc.az(self.orbs, self.atom, self.field, 0.0)
