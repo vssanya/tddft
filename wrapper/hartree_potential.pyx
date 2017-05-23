@@ -7,6 +7,10 @@ from grid cimport SpGrid
 from sphere_harmonics cimport YlmCache
 
 
+@np.vectorize
+def uc_lda(double n):
+    return uc_lda_func(n)
+
 def potential(SOrbitals orbs, int l = 0, np.ndarray[np.double_t, ndim=1] uh = None, int order=3) -> np.ndarray:
     if uh is None:
         uh = np.ndarray((orbs.cdata.wf[0].grid.n[0]), np.double)

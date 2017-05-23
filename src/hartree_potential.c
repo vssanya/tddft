@@ -265,8 +265,8 @@ double uc_lda_func(double n) {
 	double const a = (M_LN2 - 1)/(2*M_PI*M_PI);
 	double const b = 20.4562557;
 
-	double rs = pow(3*n/(4*M_PI), 1.0/3.0);
-	double drs_dn = rs / (3*n);
+	double rs = pow(3/(4*M_PI*n), 1.0/3.0);
+	double drs_dn = - rs / (3*n);
 	double c1 = 1.0 + b*(1.0/rs + 1.0/(rs*rs));
 
 	return a*log(c1) - n*a/c1*(b*(1.0/pow(rs, 2) + 2.0/pow(rs, 3)))*drs_dn;
