@@ -9,7 +9,7 @@ import os
 os.environ['CC'] = 'mpicc'
 
 ext = Extension("*", ["wrapper/*.pyx"],
-                libraries=["tdse", "mpi", "lapack"],
+                libraries=["tdse", "lapack"],
                 library_dirs=[
                     'build/src',
                 ],

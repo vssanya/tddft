@@ -9,6 +9,11 @@
 typedef struct orbitals_s orbitals_t;
 typedef void (*atom_ort_f)(orbitals_t* orbs);
 
+typedef enum {
+  POTENTIAL_SMOOTH,
+  POTENTIAL_COULOMB
+} potential_type_e;
+
 typedef struct atom_s {
 	int Z; //!< nuclear charge
 	int n_orbs; //!< orbitals count
@@ -18,6 +23,7 @@ typedef struct atom_s {
 	atom_ort_f ort;
 	sh_f u;
 	sh_f dudz;
+  potential_type_e u_type;
 } atom_t;
 
 int atom_get_count_electrons(atom_t const* atom);
@@ -25,6 +31,10 @@ int atom_get_count_electrons(atom_t const* atom);
 // Potential
 double atom_hydrogen_sh_u(sh_grid_t const* grid, int ir, int il, int m) __attribute__((pure));
 double atom_hydrogen_sh_dudz(sh_grid_t const* grid, int ir, int il, int m) __attribute__((pure));
+
+double atom_hydrogen_sh_u_smooth(sh_grid_t const* grid, int ir, int il, int m) __attribute__((pure));
+double atom_hydrogen_sh_dudz_smooth(sh_grid_t const* grid, int ir, int il, int m) __attribute__((pure));
+
 void atom_hydrogen_ground(sh_wavefunc_t* wf);
 
 static atom_t const atom_hydrogen = {
@@ -35,7 +45,20 @@ static atom_t const atom_hydrogen = {
 	.n_e = (int[]){1},
 	.ort  = NULL,
 	.u    = atom_hydrogen_sh_u,
-	.dudz = atom_hydrogen_sh_dudz
+	.dudz = atom_hydrogen_sh_dudz,
+  .u_type = POTENTIAL_COULOMB,
+};
+
+static atom_t const atom_hydrogen_smooth = {
+	.Z = 1,
+	.n_orbs = 1,
+	.m = (int[]){0},
+	.l = (int[]){0},
+	.n_e = (int[]){1},
+	.ort  = NULL,
+	.u    = atom_hydrogen_sh_u_smooth,
+	.dudz = atom_hydrogen_sh_dudz_smooth,
+  .u_type = POTENTIAL_SMOOTH,
 };
 
 // I_p = 0.5791 au
@@ -59,7 +82,8 @@ static atom_t const atom_argon = {
 	.n_e = (int[]){2,2,2,2,2,4,4},
 	.ort  = atom_argon_ort,
 	.u    = atom_argon_sh_u,
-	.dudz = atom_argon_sh_dudz
+	.dudz = atom_argon_sh_dudz,
+  .u_type = POTENTIAL_COULOMB,
 };
 
 // I_p = 0.5791 au
@@ -78,5 +102,6 @@ static atom_t const atom_neon = {
 	.n_e = (int[]){2,2,2,2,2},
 	.ort  = atom_neon_ort,
 	.u    = atom_neon_sh_u,
-	.dudz = atom_neon_sh_dudz
+	.dudz = atom_neon_sh_dudz,
+  .u_type = POTENTIAL_COULOMB,
 };

@@ -12,6 +12,8 @@ cdef class Atom:
     def __cinit__(self, id):
         if id == 'H':
             self.cdata = &atom_hydrogen
+        elif id == 'H_smooth':
+            self.cdata = &atom_hydrogen_smooth
         elif id == 'Ne':
             self.cdata = &atom_neon
         elif id == 'Ar':

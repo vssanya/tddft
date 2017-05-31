@@ -15,7 +15,7 @@ endif()
 
 find_package(MPI)
 if (MPI_FOUND)
-	include_directories(${MPI_INCLUDE_DIR})
+	include_directories(${MPI_C_INCLUDE_PATH})
 	add_definitions(-D_MPI)
 endif()
 
@@ -24,6 +24,9 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS 1)
 find_package(GSL)
 
 find_package(LAPACK)
+if (LAPACK_FOUND)
+	include_directories(${LAPACK_C_INCLUDE_PATH})
+endif()
 
 if ("${CMAKE_C_COMPILER_ID}" STREQUAL "Intel")
 	include_directories(/share/intel/mkl/include)

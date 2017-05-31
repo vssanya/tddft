@@ -25,38 +25,59 @@ void atom_neon_ort(orbitals_t* orbs) {
 	sh_wavefunc_ort_l(0, 2, orbs->wf);
 }
 
-inline double sh_u_c(int z, sh_grid_t const* grid, int ir) {
+inline double sh_u_coulomb(int z, sh_grid_t const* grid, int ir) {
     double const r = sh_grid_r(grid, ir);
 	return -z/r;
 }
 
-inline double sh_dudz_c(int z, sh_grid_t const* grid, int ir) {
-    double const r = sh_grid_r(grid, ir);
+inline double sh_dudz_coulomb(int z, sh_grid_t const* grid, int ir) {
+  double const r = sh_grid_r(grid, ir);
 	return z/pow(r,2);
 }
 
+inline double sh_u_smooth(int z, double a, double alpha, sh_grid_t const* grid, int ir) {
+  double const r = sh_grid_r(grid, ir);
+	return -alpha*pow(cosh(r/a), -2) - tanh(r/a)/r;
+}
+
+inline double sh_dudz_smooth(int z, double a, double alpha, sh_grid_t const* grid, int ir) {
+  double const r = sh_grid_r(grid, ir);
+  double const t = tanh(r/a);
+  double const s = pow(cosh(r/a), -2);
+
+  return 2.0*alpha*t*s/a + t/pow(r, 2) - s/(a*r);
+}
+
 double atom_argon_sh_u(sh_grid_t const* grid, int ir, int il, int m) {
-	return sh_u_c(18, grid, ir);
+	return sh_u_coulomb(18, grid, ir);
 }
 
 double atom_argon_sh_dudz(sh_grid_t const* grid, int ir, int il, int m) {
-	return sh_dudz_c(18, grid, ir);
+	return sh_dudz_coulomb(18, grid, ir);
 }
 
 double atom_neon_sh_u(sh_grid_t const* grid, int ir, int il, int m) {
-	return sh_u_c(10, grid, ir);
+	return sh_u_coulomb(10, grid, ir);
 }
 
 double atom_neon_sh_dudz(sh_grid_t const* grid, int ir, int il, int m) {
-	return sh_dudz_c(10, grid, ir);
+	return sh_dudz_coulomb(10, grid, ir);
 }
 
 double atom_hydrogen_sh_u(sh_grid_t const* grid, int ir, int il, int m) {
-	return sh_u_c(1, grid, ir);
+	return sh_u_coulomb(1, grid, ir);
 }
 
 double atom_hydrogen_sh_dudz(sh_grid_t const* grid, int ir, int il, int m) {
-	return sh_dudz_c(1, grid, ir);
+	return sh_dudz_coulomb(1, grid, ir);
+}
+
+double atom_hydrogen_sh_u_smooth(sh_grid_t const* grid, int ir, int il, int m) {
+	return sh_u_smooth(1, 0.3, 2.17, grid, ir);
+}
+
+double atom_hydrogen_sh_dudz_smooth(sh_grid_t const* grid, int ir, int il, int m) {
+	return sh_dudz_smooth(1, 0.3, 2.17, grid, ir);
 }
 
 void atom_hydrogen_ground(sh_wavefunc_t* wf) {

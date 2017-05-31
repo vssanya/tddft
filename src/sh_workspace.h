@@ -84,7 +84,8 @@ void sh_workspace_prop_at(
 		sh_wavefunc_t* wf,
 		cdouble dt,
 		sh_f Ul,
-		int Z
+		int Z,
+    potential_type_e u_type
 );
 
 void sh_workspace_prop(

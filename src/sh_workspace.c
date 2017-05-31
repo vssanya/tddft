@@ -206,7 +206,8 @@ void sh_workspace_prop_at(
 		sh_wavefunc_t* wf,
 		cdouble dt,
 		sh_f Ul,
-		int Z // nuclear charge
+		int Z, // nuclear charge
+    potential_type_e u_type
 ) {
 	double const dr = ws->grid->d[iR];
 	double const dr2 = dr*dr;
@@ -251,7 +252,7 @@ void sh_workspace_prop_at(
 				ar[i] = M2[i]*(1.0 - idt_2*U[i]) + 0.5*idt_2*d2[i];
 			}
 
-			if (l == 0) {
+			if (l == 0 && u_type == POTENTIAL_COULOMB) {
 				al[1] = M2_l0_11*(1.0 + idt_2*U[1]) - 0.5*idt_2*d2_l0_11;
 				ar[1] = M2_l0_11*(1.0 - idt_2*U[1]) + 0.5*idt_2*d2_l0_11;
 			}
@@ -314,7 +315,8 @@ void _sh_workspace_prop(
 		int l_max,
 		sh_f Ul[l_max],
 		uabs_sh_t const* uabs,
-		int Z
+		int Z,
+    potential_type_e u_type
 ) {
 #pragma omp parallel num_threads(ws->num_threads)
 	{
@@ -324,7 +326,7 @@ void _sh_workspace_prop(
 			}
 		}
 
-		sh_workspace_prop_at(ws, wf, dt, Ul[0], Z);
+		sh_workspace_prop_at(ws, wf, dt, Ul[0], Z, u_type);
 
 		for (int l1 = l_max-1; l1 > 0; --l1) {
 			for (int il = ws->grid->n[iL] - 1 - l1; il >= 0; --il) {
@@ -361,7 +363,7 @@ void sh_workspace_prop(
 		return r*Et*clm(l,m);
 	}
 
-	_sh_workspace_prop(ws,  wf, dt, 2, (sh_f[3]){Ul0, Ul1}, ws->uabs, atom->Z);
+	_sh_workspace_prop(ws,  wf, dt, 2, (sh_f[3]){Ul0, Ul1}, ws->uabs, atom->Z, atom->u_type);
 }
 
 void sh_workspace_prop_img(
@@ -375,7 +377,7 @@ void sh_workspace_prop_img(
 		return l*(l+1)/(2*r*r) + atom->u(grid, ir, l, m);
 	}
 
-	_sh_workspace_prop(ws,  wf, -I*dt, 1, (sh_f[3]){Ul0}, &uabs_zero, atom->Z);
+	_sh_workspace_prop(ws,  wf, -I*dt, 1, (sh_f[3]){Ul0}, &uabs_zero, atom->Z, atom->u_type);
 }
 
 sh_orbs_workspace_t* sh_orbs_workspace_alloc(
@@ -452,12 +454,12 @@ void sh_orbs_workspace_prop(
 
 #ifdef _MPI
 	if (orbs->mpi_comm != MPI_COMM_NULL) {
-		_sh_workspace_prop(ws->wf_ws, orbs->mpi_wf, dt, 3, (sh_f[3]){Ul0, Ul1, Ul2}, ws->wf_ws->uabs, atom->Z);
+		_sh_workspace_prop(ws->wf_ws, orbs->mpi_wf, dt, 3, (sh_f[3]){Ul0, Ul1, Ul2}, ws->wf_ws->uabs, atom->Z, atom->u_type);
 	} else
 #endif
 	{
 		for (int ie = 0; ie < orbs->atom->n_orbs; ++ie) {
-			_sh_workspace_prop(ws->wf_ws, orbs->wf[ie], dt, 3, (sh_f[3]){Ul0, Ul1, Ul2}, ws->wf_ws->uabs, atom->Z);
+			_sh_workspace_prop(ws->wf_ws, orbs->wf[ie], dt, 3, (sh_f[3]){Ul0, Ul1, Ul2}, ws->wf_ws->uabs, atom->Z, atom->u_type);
 		}
 	}
 }
@@ -483,12 +485,12 @@ void sh_orbs_workspace_prop_img(
 
 #ifdef _MPI
 	if (orbs->mpi_comm != MPI_COMM_NULL) {
-		_sh_workspace_prop(ws->wf_ws, orbs->mpi_wf, -I*dt, 1, (sh_f[1]){Ul0}, &uabs_zero, atom->Z);
+		_sh_workspace_prop(ws->wf_ws, orbs->mpi_wf, -I*dt, 1, (sh_f[1]){Ul0}, &uabs_zero, atom->Z, atom->u_type);
 	} else
 #endif
 	{
 		for (int ie = 0; ie < orbs->atom->n_orbs; ++ie) {
-			_sh_workspace_prop(ws->wf_ws, orbs->wf[ie], -I*dt, 1, (sh_f[1]){Ul0}, &uabs_zero, atom->Z);
+			_sh_workspace_prop(ws->wf_ws, orbs->wf[ie], -I*dt, 1, (sh_f[1]){Ul0}, &uabs_zero, atom->Z, atom->u_type);
 		}
 	}
 }
