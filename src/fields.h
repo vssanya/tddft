@@ -6,6 +6,15 @@ typedef struct field_s {
 	field_func_t func;
 } field_t;
 
+typedef struct {
+  field_func_t func;
+
+	double E0, alpha;
+	double freq, phase;
+
+	double tp, t0;
+} field_base_t;
+
 inline double field_E(field_t const* field, double t) {
 	return field->func(field, t);
 }

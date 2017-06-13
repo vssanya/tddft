@@ -1,7 +1,18 @@
 cdef extern from "fields.h":
     ctypedef double (*field_func_t)(void* self, double t)
+
     ctypedef struct field_t:
         field_func_t func
+
+    ctypedef struct field_base_t:
+        field_func_t func
+        double E0
+        double alpha
+        double freq
+        double phase
+        double tp
+        double t0
+
     field_t* two_color_gauss_field_alloc(
             double E0,
             double alpha,

@@ -6,15 +6,6 @@
 #include "utils.h"
 
 
-typedef struct {
-  field_func_t func;
-
-	double E0, alpha;
-	double freq, phase;
-
-	double tp, t0;
-} field_base_t;
-
 __attribute__((pure))
 double two_color_fill(double E, double alpha, double phase, double tau) {
 	return E*(cos(tau) + alpha*cos(2*tau + phase));

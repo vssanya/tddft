@@ -201,7 +201,7 @@ void hartree_potential(
 
 #ifdef _MPI
 	if (orbs->mpi_comm != MPI_COMM_NULL) {
-		MPI_Allreduce(U_local, U, grid->n[iR], MPI_DOUBLE, MPI_SUM, orbs->mpi_comm);
+		MPI_Reduce(U_local, U, grid->n[iR], MPI_DOUBLE, MPI_SUM, 0, orbs->mpi_comm);
 	}
 #endif
 }
@@ -251,13 +251,6 @@ void uxc_lb(
 			}
 
 			sh_series(func, l, 0, grid, U, ylm_cache);
-		}
-
-#ifdef _MPI
-		if (orbs->mpi_comm != MPI_COMM_NULL)
-#endif
-		{
-			MPI_Bcast(U, orbs->grid->n[iR], MPI_DOUBLE, 0, orbs->mpi_comm);
 		}
 }
 

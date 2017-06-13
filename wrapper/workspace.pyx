@@ -80,8 +80,11 @@ cdef class SKnWorkspace:
 
 
 cdef class SOrbsWorkspace:
-    def __cinit__(self, ShGrid sh_grid, SpGrid sp_grid, Uabs uabs, YlmCache ylm_cache, int num_threads=-1):
-        self.cdata = sh_orbs_workspace_alloc(sh_grid.data, sp_grid.data, uabs.cdata, ylm_cache.cdata, num_threads)
+    def __cinit__(self, ShGrid sh_grid, SpGrid sp_grid, Uabs uabs, YlmCache ylm_cache, int Uxc_lmax = 3, int Uh_lmax = 3, int num_threads=-1):
+        assert(Uxc_lmax >= 0 and Uxc_lmax <= 3)
+        assert(Uh_lmax >= 0 and Uh_lmax <= 3)
+
+        self.cdata = sh_orbs_workspace_alloc(sh_grid.data, sp_grid.data, uabs.cdata, ylm_cache.cdata, Uh_lmax, Uxc_lmax, num_threads)
         self.uabs = uabs
 
     def __dealloc__(self):

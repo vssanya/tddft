@@ -51,11 +51,13 @@ cdef extern from "sh_workspace.h":
         sh_workspace_t* wf_ws
         double* Uh
         double* Uxc
-        sh_grid_t* sh_grid;
-        sp_grid_t* sp_grid;
+        sh_grid_t* sh_grid
+        sp_grid_t* sp_grid
         double* uh_tmp
         double* n_sp
-        ylm_cache_t* ylm_cache;
+        ylm_cache_t* ylm_cache
+        int Uh_lmax
+        int Uxc_lmax
 
     sh_workspace_t* sh_workspace_alloc(
             sh_grid_t* sh_grid,
@@ -111,20 +113,24 @@ cdef extern from "sh_workspace.h":
             double t,
             double dt
             )
+
     void sh_orbs_workspace_prop_img(
-            sh_orbs_workspace_t* ws,
-            orbitals_t* orbs,
-            atom_t* atom,
-            double dt
-            )
+        sh_orbs_workspace_t* ws,
+        orbitals_t* orbs,
+        atom_t* atom,
+        double dt
+    )
 
     sh_orbs_workspace_t* sh_orbs_workspace_alloc(
-            sh_grid_t* sh_grid,
-            sp_grid_t* sp_grid,
-            uabs_sh_t* uabs,
-            ylm_cache_t* ylm_cache,
-            int num_threads
-            )
+        sh_grid_t* sh_grid,
+        sp_grid_t* sp_grid,
+        uabs_sh_t* uabs,
+        ylm_cache_t* ylm_cache,
+        int Uh_lmax,
+        int Uxc_lmax,
+        int num_threads
+    )
+
     void sh_orbs_workspace_free(sh_orbs_workspace_t* ws)
 
 

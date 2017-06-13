@@ -385,6 +385,8 @@ sh_orbs_workspace_t* sh_orbs_workspace_alloc(
 		sp_grid_t const* sp_grid,
 		uabs_sh_t const* uabs,
 		ylm_cache_t const* ylm_cache,
+    int Uh_lmax,
+    int Uxc_lmax,
 		int num_threads
 ) {	
 	sh_orbs_workspace_t* ws = malloc(sizeof(sh_orbs_workspace_t));
@@ -395,10 +397,16 @@ sh_orbs_workspace_t* sh_orbs_workspace_alloc(
 
 	ws->wf_ws = sh_workspace_alloc(sh_grid, uabs, num_threads);
 
-	ws->Uh = malloc(sizeof(double)*sh_grid->n[iR]*3);
+  ws->Uh_lmax = Uh_lmax;
+  ws->Uxc_lmax = Uxc_lmax;
+
+  ws->lmax = MAX(Uh_lmax, Uxc_lmax);
+  ws->lmax = MAX(ws->lmax, 2);
+
+	ws->Uh = malloc(sizeof(double)*sh_grid->n[iR]);
 	ws->Uh_local = malloc(sizeof(double)*sh_grid->n[iR]);
 
-	ws->Uxc = malloc(sizeof(double)*sh_grid->n[iR]*3);
+	ws->Uxc = malloc(sizeof(double)*sh_grid->n[iR]);
 
 	ws->uh_tmp = malloc(sizeof(double)*sh_grid->n[iR]);
 
@@ -420,6 +428,60 @@ void sh_orbs_workspace_free(sh_orbs_workspace_t* ws) {
 	free(ws);
 }
 
+void sh_orbs_workspace_calc_Uee(sh_orbs_workspace_t* ws,
+                                orbitals_t const* orbs,
+                                int Uxc_lmax,
+                                int Uh_lmax) {
+  double const UXC_NORM_L[] = {sqrt(1.0/(4.0*M_PI)), sqrt(3.0/(4*M_PI)), sqrt(5.0/(4*M_PI))};
+
+#ifdef _MPI
+  if (orbs->mpi_comm == MPI_COMM_NULL || orbs->mpi_rank == 0)
+#endif
+    {
+#pragma omp parallel for collapse(2)
+      for (int il=0; il<ws->lmax; ++il) {
+        for (int ir=0; ir<ws->sh_grid->n[iR]; ++ir) {
+          ws->Uee[ir + il*ws->sh_grid->n[iR]] = 0.0;
+        }
+      }
+    }
+
+	for (int il=0; il<Uxc_lmax; ++il) {
+		uxc_lb(il, orbs, ws->Uxc, ws->sp_grid, ws->n_sp, ws->n_sp_local, ws->ylm_cache);
+
+#ifdef _MPI
+    if (orbs->mpi_comm == MPI_COMM_NULL || orbs->mpi_rank == 0)
+#endif
+    {
+#pragma omp parallel for
+      for (int ir=0; ir<ws->sh_grid->n[iR]; ++ir) {
+        ws->Uee[ir + il*ws->sh_grid->n[iR]] += ws->Uxc[ir]*UXC_NORM_L[il];
+      }
+    }
+  }
+
+  for (int il=0; il<Uh_lmax; ++il) {
+    hartree_potential(orbs, il, ws->Uh, ws->Uh_local, ws->uh_tmp, 3);
+
+#ifdef _MPI
+    if (orbs->mpi_comm == MPI_COMM_NULL || orbs->mpi_rank == 0)
+#endif
+      {
+#pragma omp parallel for
+        for (int ir=0; ir<ws->sh_grid->n[iR]; ++ir) {
+          ws->Uee[ir + il*ws->sh_grid->n[iR]] += ws->Uh[ir];
+        }
+      }
+  }
+
+  #ifdef _MPI
+  if (orbs->mpi_comm != MPI_COMM_NULL) {
+    MPI_Bcast(ws->Uee, orbs->grid->n[iR]*ws->lmax, MPI_DOUBLE, 0, orbs->mpi_comm);
+  }
+  #endif
+
+}
+
 void sh_orbs_workspace_prop(
 		sh_orbs_workspace_t* ws,
 		orbitals_t* orbs,
@@ -428,38 +490,32 @@ void sh_orbs_workspace_prop(
 		double t,
 		double dt
 ) {
-	for (int l=0; l<3; ++l) {
-		uxc_lb(l, orbs, &ws->Uxc[l*ws->sh_grid->n[iR]], ws->sp_grid, ws->n_sp, ws->n_sp_local, ws->ylm_cache);
-	}
-
-  for (int l=0; l<3; ++l) {
-	hartree_potential(orbs, l, &ws->Uh[l*ws->sh_grid->n[iR]], ws->Uh_local, ws->uh_tmp, 3);
-  }
-
 	double Et = field_E(field, t + dt/2);
+
+  sh_orbs_workspace_calc_Uee(ws, orbs, ws->Uxc_lmax, ws->Uh_lmax);
 
 	double Ul0(sh_grid_t const* grid, int ir, int l, int m) {
 		double const r = sh_grid_r(grid, ir);
-		return l*(l+1)/(2*r*r) + atom->u(grid, ir, l, m) + ws->Uxc[ir]/sqrt(4*M_PI) + ws->Uh[ir] + plm(l,m)*(ws->Uh[ir + 2*grid->n[iR]]) + sqrt(5)*ws->Uxc[ir + 2*grid->n[iR]]/sqrt(4*M_PI);
+		return l*(l+1)/(2*r*r) + atom->u(grid, ir, l, m) + ws->Uee[ir] + plm(l,m)*ws->Uee[ir + 2*grid->n[iR]];
 	}
 
 	double Ul1(sh_grid_t const* grid, int ir, int l, int m) {
 		double const r = sh_grid_r(grid, ir);
-		return clm(l, m)*(r*Et + ws->Uh[ir + grid->n[iR]]) + sqrt(3)*ws->Uxc[ir + grid->n[iR]]/sqrt(4*M_PI);
+		return clm(l, m)*(r*Et + ws->Uee[ir + grid->n[iR]]);
 	}
 
 	double Ul2(sh_grid_t const* grid, int ir, int l, int m) {
-		return qlm(l, m)*(ws->Uh[ir + 2*grid->n[iR]]) + sqrt(5)*ws->Uxc[ir + 2*grid->n[iR]]/sqrt(4*M_PI);
+		return qlm(l, m)*ws->Uee[ir + 2*grid->n[iR]];
 	}
 
 #ifdef _MPI
 	if (orbs->mpi_comm != MPI_COMM_NULL) {
-		_sh_workspace_prop(ws->wf_ws, orbs->mpi_wf, dt, 3, (sh_f[3]){Ul0, Ul1, Ul2}, ws->wf_ws->uabs, atom->Z, atom->u_type);
+		_sh_workspace_prop(ws->wf_ws, orbs->mpi_wf, dt, ws->lmax, (sh_f[3]){Ul0, Ul1, Ul2}, ws->wf_ws->uabs, atom->Z, atom->u_type);
 	} else
 #endif
 	{
 		for (int ie = 0; ie < orbs->atom->n_orbs; ++ie) {
-			_sh_workspace_prop(ws->wf_ws, orbs->wf[ie], dt, 3, (sh_f[3]){Ul0, Ul1, Ul2}, ws->wf_ws->uabs, atom->Z, atom->u_type);
+			_sh_workspace_prop(ws->wf_ws, orbs->wf[ie], dt, ws->lmax, (sh_f[3]){Ul0, Ul1, Ul2}, ws->wf_ws->uabs, atom->Z, atom->u_type);
 		}
 	}
 }
@@ -470,17 +526,11 @@ void sh_orbs_workspace_prop_img(
 		atom_t const* atom,
 		double dt
 ) {
-	for (int l=0; l<1; ++l) {
-		uxc_lb(l, orbs, &ws->Uxc[l*ws->sh_grid->n[iR]], ws->sp_grid, ws->n_sp, ws->n_sp_local, ws->ylm_cache);
-	}
-
-	for (int l=0; l<1; ++l) {
-		hartree_potential(orbs, l, &ws->Uh[l*ws->sh_grid->n[iR]], ws->Uh_local, ws->uh_tmp, 3);
-	}
+  sh_orbs_workspace_calc_Uee(ws, orbs, MIN(1, ws->Uxc_lmax), MIN(1, ws->Uh_lmax));
 
 	double Ul0(sh_grid_t const* grid, int ir, int l, int m) {
 		double const r = sh_grid_r(grid, ir);
-		return l*(l+1)/(2*r*r) + atom->u(grid, ir, l, m) + ws->Uxc[ir]/sqrt(4*M_PI) + ws->Uh[ir];
+		return l*(l+1)/(2*r*r) + atom->u(grid, ir, l, m) + ws->Uee[ir];
 	}
 
 #ifdef _MPI
