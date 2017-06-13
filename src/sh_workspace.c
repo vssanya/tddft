@@ -410,6 +410,8 @@ sh_orbs_workspace_t* sh_orbs_workspace_alloc(
 
 	ws->uh_tmp = malloc(sizeof(double)*sh_grid->n[iR]);
 
+  ws->Uee = malloc(sizeof(double)*sh_grid->n[iR]*ws->lmax);
+
 	ws->n_sp = malloc(sizeof(double)*ws->sp_grid->n[iR]*ws->sp_grid->n[iC]);
 	ws->n_sp_local = malloc(sizeof(double)*ws->sp_grid->n[iR]*ws->sp_grid->n[iC]);
 
@@ -422,6 +424,7 @@ void sh_orbs_workspace_free(sh_orbs_workspace_t* ws) {
 	free(ws->uh_tmp);
 	free(ws->Uxc);
 	free(ws->Uh);
+  free(ws->Uee);
 
 	sh_workspace_free(ws->wf_ws);
 
