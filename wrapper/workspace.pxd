@@ -8,6 +8,7 @@ from field cimport field_t
 from orbitals cimport orbitals_t
 from sphere_harmonics cimport ylm_cache_t
 from atom cimport atom_t
+from hartree_potential cimport potential_xc_f
 
 cdef extern from "eigen.h":
     ctypedef struct eigen_ws_t:
@@ -128,6 +129,7 @@ cdef extern from "sh_workspace.h":
         ylm_cache_t* ylm_cache,
         int Uh_lmax,
         int Uxc_lmax,
+        potential_xc_f uxc,
         int num_threads
     )
 

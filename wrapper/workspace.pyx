@@ -7,6 +7,8 @@ from wavefunc cimport SWavefunc
 from field cimport Field
 from orbitals cimport SOrbitals
 from sphere_harmonics cimport YlmCache
+from hartree_potential cimport Uxc
+from hartree_potential import UXC_LB
 
 
 cdef class Eigen:
@@ -80,11 +82,11 @@ cdef class SKnWorkspace:
 
 
 cdef class SOrbsWorkspace:
-    def __cinit__(self, ShGrid sh_grid, SpGrid sp_grid, Uabs uabs, YlmCache ylm_cache, int Uxc_lmax = 3, int Uh_lmax = 3, int num_threads=-1):
+    def __cinit__(self, ShGrid sh_grid, SpGrid sp_grid, Uabs uabs, YlmCache ylm_cache, int Uxc_lmax = 3, int Uh_lmax = 3, Uxc uxc = UXC_LB, int num_threads=-1):
         assert(Uxc_lmax >= 0 and Uxc_lmax <= 3)
         assert(Uh_lmax >= 0 and Uh_lmax <= 3)
 
-        self.cdata = sh_orbs_workspace_alloc(sh_grid.data, sp_grid.data, uabs.cdata, ylm_cache.cdata, Uh_lmax, Uxc_lmax, num_threads)
+        self.cdata = sh_orbs_workspace_alloc(sh_grid.data, sp_grid.data, uabs.cdata, ylm_cache.cdata, Uh_lmax, Uxc_lmax, uxc.cdata, num_threads)
         self.uabs = uabs
 
     def __dealloc__(self):

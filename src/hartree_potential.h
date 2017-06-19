@@ -25,7 +25,12 @@ void hartree_potential_wf_l0(sh_wavefunc_t const* wf, double U[wf->grid->n[iR]],
 double mod_grad_n(sp_grid_t const* grid, double n[grid->n[iR]*grid->n[iC]], int ir, int ic);
 double ux_lda_func(double n);
 double uc_lda_func(double n);
-double uxc_lb_func(double n, double x);
+
+double uxc_lb(double n, double x);
+double uxc_lda(double n, double x);
+double uxc_lda_x(double n, double x);
+
+typedef double (*potential_xc_f)(double n, double x);
 /*!
  * Обменное взаимодействие приближение локальной плотности
  * \param l[in]
@@ -33,7 +38,8 @@ double uxc_lb_func(double n, double x);
  * \param wf[in] is wavefunction of Kohn's orbitals
  * \param Ux[out] is amplitude \f$Y_l^0\f$ component of \f$U_{x} = - \left(\frac{3}{\pi}\right)^{1/3} n(\vec{r})^{1/3}\f$
  * */
-void uxc_lb(
+void uxc_calc_l(
+		potential_xc_f uxc,
 		int l, orbitals_t const* orbs,
 		double U[orbs->grid->n[iR]],
 		sp_grid_t const* grid,

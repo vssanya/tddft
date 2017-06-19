@@ -231,7 +231,8 @@ void hartree_potential_wf_l0(
   }
 }
 
-void uxc_lb(
+void uxc_calc_l(
+		potential_xc_f uxc,
 		int l, orbitals_t const* orbs,
 		double U[orbs->grid->n[iR]],
 		sp_grid_t const* grid,
@@ -247,7 +248,7 @@ void uxc_lb(
 		{
 			double func(int ir, int ic) {
 				double x = mod_grad_n(grid, n, ir, ic);
-				return uxc_lb_func(n[ir + ic*grid->n[iR]], x);
+				return uxc(n[ir + ic*grid->n[iR]], x);
 			}
 
 			sh_series(func, l, 0, grid, U, ylm_cache);
@@ -269,9 +270,17 @@ double ux_lda_func(double n) {
 	return - pow(3.0*n/M_PI, 1.0/3.0);
 }
 
-double uxc_lb_func(double n, double x) {
+double uxc_lb(double n, double x) {
 	double const betta = 0.05;
 	return ux_lda_func(n) + uc_lda_func(n) - betta*x*x*pow(n, 1.0/3.0)/(1.0 + 3.0*betta*x*log(x + sqrt(x*x + 1.0)));
+}
+
+double uxc_lda(double n, double x) {
+	return ux_lda_func(n) + uc_lda_func(n);
+}
+
+double uxc_lda_x(double n, double x) {
+	return ux_lda_func(n);
 }
 
 double mod_grad_n(sp_grid_t const* grid, double n[grid->n[iR]*grid->n[iC]], int ir, int ic) {

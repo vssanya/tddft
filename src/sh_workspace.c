@@ -387,6 +387,7 @@ sh_orbs_workspace_t* sh_orbs_workspace_alloc(
 		ylm_cache_t const* ylm_cache,
     int Uh_lmax,
     int Uxc_lmax,
+	potential_xc_f Uxc,
 		int num_threads
 ) {	
 	sh_orbs_workspace_t* ws = malloc(sizeof(sh_orbs_workspace_t));
@@ -403,10 +404,10 @@ sh_orbs_workspace_t* sh_orbs_workspace_alloc(
   ws->lmax = MAX(Uh_lmax, Uxc_lmax);
   ws->lmax = MAX(ws->lmax, 2);
 
-	ws->Uh = malloc(sizeof(double)*sh_grid->n[iR]);
-	ws->Uh_local = malloc(sizeof(double)*sh_grid->n[iR]);
+  ws->Uxc = Uxc;
 
-	ws->Uxc = malloc(sizeof(double)*sh_grid->n[iR]);
+	ws->Utmp = malloc(sizeof(double)*sh_grid->n[iR]);
+	ws->Utmp_local = malloc(sizeof(double)*sh_grid->n[iR]);
 
 	ws->uh_tmp = malloc(sizeof(double)*sh_grid->n[iR]);
 
@@ -422,9 +423,11 @@ void sh_orbs_workspace_free(sh_orbs_workspace_t* ws) {
 	free(ws->n_sp_local);
 	free(ws->n_sp);
 	free(ws->uh_tmp);
-	free(ws->Uxc);
-	free(ws->Uh);
-  free(ws->Uee);
+
+	free(ws->Utmp);
+	free(ws->Utmp_local);
+
+	free(ws->Uee);
 
 	sh_workspace_free(ws->wf_ws);
 
@@ -450,7 +453,7 @@ void sh_orbs_workspace_calc_Uee(sh_orbs_workspace_t* ws,
     }
 
 	for (int il=0; il<Uxc_lmax; ++il) {
-		uxc_lb(il, orbs, ws->Uxc, ws->sp_grid, ws->n_sp, ws->n_sp_local, ws->ylm_cache);
+		uxc_calc_l(ws->Uxc, il, orbs, ws->Utmp, ws->sp_grid, ws->n_sp, ws->n_sp_local, ws->ylm_cache);
 
 #ifdef _MPI
     if (orbs->mpi_comm == MPI_COMM_NULL || orbs->mpi_rank == 0)
@@ -458,13 +461,13 @@ void sh_orbs_workspace_calc_Uee(sh_orbs_workspace_t* ws,
     {
 #pragma omp parallel for
       for (int ir=0; ir<ws->sh_grid->n[iR]; ++ir) {
-        ws->Uee[ir + il*ws->sh_grid->n[iR]] += ws->Uxc[ir]*UXC_NORM_L[il];
+        ws->Uee[ir + il*ws->sh_grid->n[iR]] += ws->Utmp[ir]*UXC_NORM_L[il];
       }
     }
   }
 
   for (int il=0; il<Uh_lmax; ++il) {
-    hartree_potential(orbs, il, ws->Uh, ws->Uh_local, ws->uh_tmp, 3);
+    hartree_potential(orbs, il, ws->Utmp, ws->Utmp_local, ws->uh_tmp, 3);
 
 #ifdef _MPI
     if (orbs->mpi_comm == MPI_COMM_NULL || orbs->mpi_rank == 0)
@@ -472,7 +475,7 @@ void sh_orbs_workspace_calc_Uee(sh_orbs_workspace_t* ws,
       {
 #pragma omp parallel for
         for (int ir=0; ir<ws->sh_grid->n[iR]; ++ir) {
-          ws->Uee[ir + il*ws->sh_grid->n[iR]] += ws->Uh[ir];
+          ws->Uee[ir + il*ws->sh_grid->n[iR]] += ws->Utmp[ir];
         }
       }
   }
