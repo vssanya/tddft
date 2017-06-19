@@ -18,6 +18,8 @@ cdef class Atom:
             self.cdata = &atom_neon
         elif id == 'Ar':
             self.cdata = &atom_argon
+        elif id == 'Ar_gs':
+            self.cdata = &atom_argon_gs
         else:
             assert(False, 'Atom {} is not exist'.format(id))
 

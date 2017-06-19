@@ -30,6 +30,7 @@ cdef extern from "atom.h":
     double atom_argon_sh_u(sh_grid_t* grid, int ir, int il, int m)
     double atom_argon_sh_dudz(sh_grid_t* grid, int ir, int il, int m)
     atom_t atom_argon
+    atom_t atom_argon_gs
 
     double atom_neon_sh_u(sh_grid_t* grid, int ir, int il, int m)
     double atom_neon_sh_dudz(sh_grid_t* grid, int ir, int il, int m)

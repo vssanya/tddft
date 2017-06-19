@@ -86,6 +86,18 @@ static atom_t const atom_argon = {
   .u_type = POTENTIAL_COULOMB,
 };
 
+static atom_t const atom_argon_gs = {
+	.Z = 18,
+	.n_orbs = 5,
+	.m = (int[]){0,0,0,0,0},
+	.l = (int[]){0,0,0,1,1},
+	.n_e = (int[]){2,2,2,6,6},
+	.ort  = atom_argon_ort,
+	.u    = atom_argon_sh_u,
+	.dudz = atom_argon_sh_dudz,
+	.u_type = POTENTIAL_COULOMB,
+};
+
 // I_p = 0.5791 au
 // 1s 2s 2p
 // 2  2  6
