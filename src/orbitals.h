@@ -61,3 +61,5 @@ double orbitals_n(orbitals_t const* orbs, sp_grid_t const* grid, int i[2], ylm_c
 void orbitals_n_sp(orbitals_t const* orbs, sp_grid_t const* grid, double n[grid->n[iR]*grid->n[iC]], double n_tmp[grid->n[iR]*grid->n[iC]], ylm_cache_t const* ylm_cache);
 
 double orbitals_cos(orbitals_t const* orbs, sh_f U);
+
+void orbitals_ort(orbitals_t* orbs);

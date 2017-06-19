@@ -3,8 +3,6 @@ from grid cimport sh_grid_t
 from types cimport sh_f
 
 cdef extern from "atom.h":
-    ctypedef void (*atom_ort_f)(void* orbs)
-
     ctypedef enum potential_type_e:
         POTENTIAL_SMOOTH, POTENTIAL_COULOMB
 
@@ -14,7 +12,6 @@ cdef extern from "atom.h":
         int* m
         int* l
         int* e_n
-        atom_ort_f ort
         sh_f u
         sh_f dudz
         potential_type_e u_type

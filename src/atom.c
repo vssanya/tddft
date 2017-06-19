@@ -13,16 +13,18 @@ int atom_get_count_electrons(atom_t const* atom) {
 	return count;
 }
 
-void atom_argon_ort(orbitals_t* orbs) {
-	sh_wavefunc_ort_l(0, 3, orbs->wf);
+int atom_get_number_ort(atom_t const* atom, int ie) {
+  if (ie == atom->n_orbs) {
+    return 1;
+  }
 
-	sh_wavefunc_ort_l(1, 2, &orbs->wf[3]);
-	sh_wavefunc_ort_l(1, 2, &orbs->wf[5]);
-	//sh_wavefunc_ort_l(1, 2, &orbs->wf[7]);
-}
+  for (int i=ie+1; i<atom->n_orbs; ++i) {
+    if (atom->l[ie] != atom->l[i] || atom->m[ie] != atom->m[i]) {
+      return i - ie;
+    }
+  }
 
-void atom_neon_ort(orbitals_t* orbs) {
-	sh_wavefunc_ort_l(0, 2, orbs->wf);
+  return atom->n_orbs - ie;
 }
 
 inline double sh_u_coulomb(int z, sh_grid_t const* grid, int ir) {

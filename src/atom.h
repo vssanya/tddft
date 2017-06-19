@@ -6,9 +6,6 @@
 #include "types.h"
 
 
-typedef struct orbitals_s orbitals_t;
-typedef void (*atom_ort_f)(orbitals_t* orbs);
-
 typedef enum {
   POTENTIAL_SMOOTH,
   POTENTIAL_COULOMB
@@ -20,13 +17,13 @@ typedef struct atom_s {
 	int* m; //!< z component momentum of orbital
 	int* l; //!< full orbital momentum of orbital
 	int* n_e; //!< electrons count for each orbital
-	atom_ort_f ort;
 	sh_f u;
 	sh_f dudz;
   potential_type_e u_type;
 } atom_t;
 
 int atom_get_count_electrons(atom_t const* atom);
+int atom_get_number_ort(atom_t const* atom, int ie);
 
 // Potential
 double atom_hydrogen_sh_u(sh_grid_t const* grid, int ir, int il, int m) __attribute__((pure));
@@ -43,7 +40,6 @@ static atom_t const atom_hydrogen = {
 	.m = (int[]){0},
 	.l = (int[]){0},
 	.n_e = (int[]){1},
-	.ort  = NULL,
 	.u    = atom_hydrogen_sh_u,
 	.dudz = atom_hydrogen_sh_dudz,
   .u_type = POTENTIAL_COULOMB,
@@ -55,7 +51,6 @@ static atom_t const atom_hydrogen_smooth = {
 	.m = (int[]){0},
 	.l = (int[]){0},
 	.n_e = (int[]){1},
-	.ort  = NULL,
 	.u    = atom_hydrogen_sh_u_smooth,
 	.dudz = atom_hydrogen_sh_dudz_smooth,
   .u_type = POTENTIAL_SMOOTH,
@@ -64,8 +59,6 @@ static atom_t const atom_hydrogen_smooth = {
 // I_p = 0.5791 au
 // 1s 2s 2p 3s 3p
 // 2  2  6  2  6
-void atom_argon_ort(orbitals_t* orbs);
-
 double atom_argon_sh_u(sh_grid_t const* grid, int ir, int il, int m) __attribute__((pure));
 double atom_argon_sh_dudz(sh_grid_t const* grid, int ir, int il, int m) __attribute__((pure));
 
@@ -80,7 +73,6 @@ static atom_t const atom_argon = {
 	.m   = (int[]){0,0,0,0,0,1,1},
 	.l   = (int[]){0,0,0,1,1,1,1},
 	.n_e = (int[]){2,2,2,2,2,4,4},
-	.ort  = atom_argon_ort,
 	.u    = atom_argon_sh_u,
 	.dudz = atom_argon_sh_dudz,
   .u_type = POTENTIAL_COULOMB,
@@ -92,7 +84,6 @@ static atom_t const atom_argon_gs = {
 	.m = (int[]){0,0,0,0,0},
 	.l = (int[]){0,0,0,1,1},
 	.n_e = (int[]){2,2,2,6,6},
-	.ort  = atom_argon_ort,
 	.u    = atom_argon_sh_u,
 	.dudz = atom_argon_sh_dudz,
 	.u_type = POTENTIAL_COULOMB,
@@ -101,8 +92,6 @@ static atom_t const atom_argon_gs = {
 // I_p = 0.5791 au
 // 1s 2s 2p
 // 2  2  6
-void atom_neon_ort(orbitals_t* orbs);
-
 double atom_neon_sh_u(sh_grid_t const* grid, int ir, int il, int m) __attribute__((pure));
 double atom_neon_sh_dudz(sh_grid_t const* grid, int ir, int il, int m) __attribute__((pure));
 
@@ -112,7 +101,6 @@ static atom_t const atom_neon = {
 	.m = (int[]){0,0,-1,0,1},
 	.l = (int[]){0,0, 1,1,1},
 	.n_e = (int[]){2,2,2,2,2},
-	.ort  = atom_neon_ort,
 	.u    = atom_neon_sh_u,
 	.dudz = atom_neon_sh_dudz,
   .u_type = POTENTIAL_COULOMB,

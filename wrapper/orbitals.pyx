@@ -32,7 +32,7 @@ cdef class SOrbitals:
         orbitals_init(self.cdata)
 
     def ort(self):
-        self.cdata.atom.ort(self.cdata)
+        orbitals_ort(self.cdata)
 
     def load(self, filename):
         arr = self.asarray()

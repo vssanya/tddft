@@ -236,3 +236,17 @@ double orbitals_n(orbitals_t const* orbs, sp_grid_t const* grid, int i[2], ylm_c
 
 	return res;
 }
+
+void orbitals_ort(orbitals_t* orbs) {
+  int ie = 0;
+
+  while (ie < orbs->atom->n_orbs) {
+    int ne = atom_get_number_ort(orbs->atom, ie);
+
+    if (ne > 1) {
+      sh_wavefunc_ort_l(orbs->atom->l[ie], ne, &orbs->wf[ie]);
+    }
+
+    ie += ne;
+  }
+}
