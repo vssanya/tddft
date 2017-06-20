@@ -256,14 +256,13 @@ void uxc_calc_l(
 }
 
 double uc_lda_func(double n) {
-	double const a = (M_LN2 - 1)/(2*M_PI*M_PI);
+	double const a = (M_LN2 - 1.0)/(2.0*M_PI*M_PI);
 	double const b = 20.4562557;
 
-	double rs = pow(3/(4*M_PI*n), 1.0/3.0);
-	double drs_dn = - rs / (3*n);
-	double c1 = 1.0 + b*(1.0/rs + 1.0/(rs*rs));
+	double m_1_rs = pow(4.0*M_PI*n/3.0, 1.0/3.0);
+	double c1 = 1.0 + b*(m_1_rs + pow(m_1_rs, 2));
 
-	return a*log(c1) - n*a/c1*(b*(1.0/pow(rs, 2) + 2.0/pow(rs, 3)))*drs_dn;
+	return a*log(c1) + a/c1*b*(m_1_rs + 2.0*pow(m_1_rs, 2))/3.0;
 }
 
 double ux_lda_func(double n) {
