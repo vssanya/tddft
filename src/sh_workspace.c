@@ -411,7 +411,7 @@ sh_orbs_workspace_t* sh_orbs_workspace_alloc(
 
 	ws->uh_tmp = malloc(sizeof(double)*sh_grid->n[iR]);
 
-  ws->Uee = malloc(sizeof(double)*sh_grid->n[iR]*ws->lmax);
+	ws->Uee = calloc(3*sh_grid->n[iR], sizeof(double));
 
 	ws->n_sp = malloc(sizeof(double)*ws->sp_grid->n[iR]*ws->sp_grid->n[iC]);
 	ws->n_sp_local = malloc(sizeof(double)*ws->sp_grid->n[iR]*ws->sp_grid->n[iC]);
@@ -494,11 +494,14 @@ void sh_orbs_workspace_prop(
 		atom_t const* atom,
 		field_t const* field,
 		double t,
-		double dt
+		double dt,
+		bool calc_uee
 ) {
 	double Et = field_E(field, t + dt/2);
 
-  sh_orbs_workspace_calc_Uee(ws, orbs, ws->Uxc_lmax, ws->Uh_lmax);
+	if (calc_uee) {
+		sh_orbs_workspace_calc_Uee(ws, orbs, ws->Uxc_lmax, ws->Uh_lmax);
+	}
 
 	double Ul0(sh_grid_t const* grid, int ir, int l, int m) {
 		double const r = sh_grid_r(grid, ir);

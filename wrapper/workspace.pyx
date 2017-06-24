@@ -96,5 +96,14 @@ cdef class SOrbsWorkspace:
     def prop_img(self, SOrbitals orbs, Atom atom, double dt):
         sh_orbs_workspace_prop_img(self.cdata, orbs.cdata, atom.cdata, dt)
 
-    def prop(self, SOrbitals orbs, Atom atom, Field field, double t, double dt):
-        sh_orbs_workspace_prop(self.cdata, orbs.cdata, atom.cdata, field.cdata, t, dt)
+    def prop(self, SOrbitals orbs, Atom atom, Field field, double t, double dt, bint calc_uee=True):
+        sh_orbs_workspace_prop(self.cdata, orbs.cdata, atom.cdata, field.cdata, t, dt, calc_uee)
+
+    def calc_uee(self, SOrbitals orbs, int Uxc_lmax=None, int Uh_lmax=None):
+        if Uxc_lmax is None:
+            Uxc_lmax = self.cdata.Uxc_lmax
+
+        if Uh_lmax is None:
+            Uh_lmax = self.cdata.Uh_lmax
+
+        sh_orbs_workspace_calc_Uee(self.cdata, orbs.cdata, Uxc_lmax, Uh_lmax)

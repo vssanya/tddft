@@ -146,7 +146,8 @@ void sh_orbs_workspace_prop(
 		atom_t const* atom,
 		field_t const* field,
 		double t,
-		double dt
+		double dt,
+		bool calc_uee
 );
 void sh_orbs_workspace_prop_img(
 		sh_orbs_workspace_t* ws,
@@ -154,5 +155,7 @@ void sh_orbs_workspace_prop_img(
 		atom_t const* atom,
 		double dt
 );
+
+void sh_orbs_workspace_calc_Uee(sh_orbs_workspace_t* ws, orbitals_t const* orbs, int Uxc_lmax, int Uh_lmax);
 
 void prop_ang_l(sh_wavefunc_t* wf, cdouble dt, int l, int l1, sh_f Ul);

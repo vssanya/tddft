@@ -112,7 +112,8 @@ cdef extern from "sh_workspace.h":
             atom_t* atom,
             field_t* field,
             double t,
-            double dt
+            double dt,
+            bint calc_uee
             )
 
     void sh_orbs_workspace_prop_img(
@@ -134,6 +135,8 @@ cdef extern from "sh_workspace.h":
     )
 
     void sh_orbs_workspace_free(sh_orbs_workspace_t* ws)
+
+    void sh_orbs_workspace_calc_Uee(sh_orbs_workspace_t* ws, orbitals_t* orbs, int Uxc_lmax, int Uh_lmax)
 
 
 cdef class SKnWorkspace:
