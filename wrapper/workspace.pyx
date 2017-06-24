@@ -99,7 +99,7 @@ cdef class SOrbsWorkspace:
     def prop(self, SOrbitals orbs, Atom atom, Field field, double t, double dt, bint calc_uee=True):
         sh_orbs_workspace_prop(self.cdata, orbs.cdata, atom.cdata, field.cdata, t, dt, calc_uee)
 
-    def calc_uee(self, SOrbitals orbs, int Uxc_lmax=None, int Uh_lmax=None):
+    def calc_uee(self, SOrbitals orbs, Uxc_lmax=None, Uh_lmax=None):
         if Uxc_lmax is None:
             Uxc_lmax = self.cdata.Uxc_lmax
 
