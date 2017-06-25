@@ -30,6 +30,7 @@ cdef extern from "orbitals.h":
     double orbitals_z(orbitals_t* orbs)
     double orbitals_n(orbitals_t* orbs, sp_grid_t* grid, int i[2], ylm_cache_t* ylm_cache)
     void orbitals_n_sp(orbitals_t* orbs, sp_grid_t* grid, double* n, double* n_tmp, ylm_cache_t* ylm_cache)
+    void orbitals_n_sh(orbitals_t* orbs, double* n, double* n_tmp)
     void orbitals_set_init_state(orbitals_t* orbs, cdouble* data, int n_r, int n_l)
     void orbitals_ort(orbitals_t* orbs)
 

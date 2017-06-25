@@ -234,11 +234,12 @@ double sh_wavefunc_z(sh_wavefunc_t const* wf) {
 
 cdouble swf_get_sp(sh_wavefunc_t const* wf, sp_grid_t const* grid, int i[3], ylm_cache_t const* ylm_cache) {
 	cdouble res = 0.0;
-	double r = sh_grid_r(wf->grid, i[iR]);
 	for (int il = 0; il < wf->grid->n[iL]; ++il) {
 		int const l = sh_grid_l(wf->grid, il);
 		res += swf_get(wf, i[iR], il)*ylm_cache_get(ylm_cache, l, wf->m, i[iC]);
 	}
+
+	double r = sh_grid_r(wf->grid, i[iR]);
 	return res/r;
 }
 

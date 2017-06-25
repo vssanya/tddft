@@ -205,17 +205,42 @@ void orbitals_n_sp(orbitals_t const* orbs, sp_grid_t const* grid, double n[grid-
 			for (int ic = 0; ic < grid->n[iC]; ++ic) {
 				for (int ir = 0; ir < grid->n[iR]; ++ir) {
 					n[ir + ic*grid->n[iR]] = 0.0;
-				}
-			}
-
-#pragma omp for collapse(2)
-			for (int ic = 0; ic < grid->n[iC]; ++ic) {
-				for (int ir = 0; ir < grid->n[iR]; ++ir) {
 					for (int ie = 0; ie < orbs->atom->n_orbs; ++ie) {
 						cdouble const psi = swf_get_sp(orbs->wf[ie], grid, (int[3]){ir, ic, 0}, ylm_cache);
 						n[ir + ic*grid->n[iR]] += (pow(creal(psi), 2) + pow(cimag(psi), 2))*orbs->atom->n_e[ie];
 					}
 				}
+			}
+		}
+	}
+}
+
+void orbitals_n_sh(orbitals_t const* orbs, double n[orbs->grid->n[iR]], double n_tmp[orbs->grid->n[iR]]) {
+	assert(orbs != NULL && n != NULL);
+#ifdef _MPI
+	if (orbs->mpi_comm != MPI_COMM_NULL) {
+#pragma omp parallel for
+		for (int ir = 0; ir < orbs->grid->n[iR]; ++ir) {
+			n_tmp[ir] = 0;
+			for (int il = 0; il < orbs->grid->n[iL]; ++il) {
+				n_tmp[ir] = swf_get_abs_2(orbs->mpi_wf, ir, il);
+			}
+			n_tmp[ir] *= orbs->atom->n_e[orbs->mpi_rank] / (pow(sh_grid_r(orbs->grid, ir), 2)*4*M_PI);
+		}
+
+		MPI_Reduce(n_tmp, n, orbs->grid->n[iR], MPI_DOUBLE, MPI_SUM, 0, orbs->mpi_comm);
+	} else
+#endif
+	{
+#pragma omp parallel for
+		for (int ir = 0; ir < orbs->grid->n[iR]; ++ir) {
+			n[ir] = 0.0;
+			for (int ie = 0; ie < orbs->atom->n_orbs; ++ie) {
+				double res = 0.0;
+				for (int il = 0; il < orbs->grid->n[iL]; ++il) {
+					res += swf_get_abs_2(orbs->wf[ie], ir, il);
+				}
+				n[ir] += res*orbs->atom->n_e[ie] / (pow(sh_grid_r(orbs->grid, ir), 2)*4*M_PI);
 			}
 		}
 	}
