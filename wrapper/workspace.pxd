@@ -56,6 +56,7 @@ cdef extern from "sh_workspace.h":
         sp_grid_t* sp_grid
         double* uh_tmp
         double* n_sp
+        double* Uee
         ylm_cache_t* ylm_cache
         int Uh_lmax
         int Uxc_lmax

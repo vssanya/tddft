@@ -107,3 +107,8 @@ cdef class SOrbsWorkspace:
             Uh_lmax = self.cdata.Uh_lmax
 
         sh_orbs_workspace_calc_Uee(self.cdata, orbs.cdata, Uxc_lmax, Uh_lmax)
+
+    @property
+    def uee(self):
+        cdef double[:,::1] res = <double[:3,:self.cdata.sh_grid.n[0]]>self.cdata.Uee
+        return np.asarray(res)

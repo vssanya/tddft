@@ -25,12 +25,19 @@ ylm_cache_t* ylm_cache_new(int l_max, sp_grid_t const* grid) {
 	cache->l_max = l_max;
 	cache->grid = grid;
 	cache->size = gsl_sf_legendre_array_n(l_max);
+	cache->data = malloc(sizeof(double)*2*(cache->l_max+1)*grid->n[iC]);
 
-	cache->data = malloc(sizeof(double)*cache->size*grid->n[iC]);
+	double* tmp = malloc(sizeof(double)*cache->size);
 	for (int ic=0; ic<grid->n[iC]; ++ic) {
 		double x = sp_grid_c(grid, ic);
-		gsl_sf_legendre_array(GSL_SF_LEGENDRE_SPHARM, l_max, x, &cache->data[cache->size*ic]);
+		gsl_sf_legendre_array(GSL_SF_LEGENDRE_SPHARM, l_max, x, tmp);
+		for (int m=0; m<2; ++m) {
+			for (int l=0; l<=cache->l_max; ++l) {
+				cache->data[l + ic*(cache->l_max+1) + m*(cache->l_max+1)*grid->n[iC]] = tmp[gsl_sf_legendre_array_index(l, m)];
+			}
+		}
 	}
+	free(tmp);
 
 	return cache;
 }
@@ -44,7 +51,7 @@ double ylm_cache_get(ylm_cache_t const* cache, int l, int m, int ic) {
 	assert(cache->data != NULL);
 	assert(l <= cache->l_max);
 
-	return cache->data[gsl_sf_legendre_array_index(l, m) + ic*cache->size];
+	return cache->data[l + ic*(cache->l_max+1) + m*(cache->l_max+1)*cache->grid->n[iC]];
 }
 
 double sh_series_r(func_2d_t f, int ir, int l, int m, sp_grid_t const* grid, ylm_cache_t const* ylm_cache) {
