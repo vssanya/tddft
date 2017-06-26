@@ -112,3 +112,8 @@ cdef class SOrbsWorkspace:
     def uee(self):
         cdef double[:,::1] res = <double[:3,:self.cdata.sh_grid.n[0]]>self.cdata.Uee
         return np.asarray(res)
+
+    @property
+    def n_sp(self):
+        cdef double[:,::1] res = <double[:self.cdata.sp_grid.n[1],:self.cdata.sp_grid.n[0]]>self.cdata.n_sp
+        return np.asarray(res)
