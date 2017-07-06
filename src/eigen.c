@@ -74,7 +74,7 @@ void eigen_calc_dr4(eigen_ws_t* ws, sh_f u, int Z) {
 void eigen_calc_for_atom(eigen_ws_t* ws, atom_t const* atom) {
 	double u(sh_grid_t const* grid, int ir, int l, int m) {
 		double const r = sh_grid_r(grid, ir);
-		return l*(l+1)/(2*r*r) + atom->u(grid, ir, l, m);
+		return l*(l+1)/(2*r*r) + atom->u(atom, grid, ir);
 	}
 
 	eigen_calc_dr4(ws, u, atom->Z);

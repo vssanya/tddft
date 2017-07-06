@@ -16,22 +16,22 @@ cdef extern from "atom.h":
         sh_f dudz
         potential_type_e u_type
 
-    double atom_hydrogen_sh_u(sh_grid_t* grid, int ir, int il, int m)
-    double atom_hydrogen_sh_dudz(sh_grid_t* grid, int ir, int il, int m)
-    double atom_hydrogen_sh_u_smooth(sh_grid_t* grid, int ir, int il, int m)
-    double atom_hydrogen_sh_dudz_smooth(sh_grid_t* grid, int ir, int il, int m)
+    double atom_u_coulomb(atom_t* atom, sh_grid_t* grid, int ir)
+    double atom_dudz_coulomb(atom_t* atom, sh_grid_t* grid, int ir)
+    double atom_u_smooth(atom_t* atom, sh_grid_t* grid, int ir)
+    double atom_dudz_smooth(atom_t* atom, sh_grid_t* grid, int ir)
+
     void atom_hydrogen_ground(sh_wavefunc_t* wf)
+
     atom_t atom_hydrogen
     atom_t atom_hydrogen_smooth
 
-    double atom_argon_sh_u(sh_grid_t* grid, int ir, int il, int m)
-    double atom_argon_sh_dudz(sh_grid_t* grid, int ir, int il, int m)
     atom_t atom_argon
-    atom_t atom_argon_gs
+    atom_t atom_argon_ion
 
-    double atom_neon_sh_u(sh_grid_t* grid, int ir, int il, int m)
-    double atom_neon_sh_dudz(sh_grid_t* grid, int ir, int il, int m)
     atom_t atom_neon
 
 cdef class Atom:
     cdef atom_t* cdata
+    @staticmethod
+    cdef Atom from_c(atom_t* atom)

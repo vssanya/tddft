@@ -9,19 +9,17 @@ from grid cimport ShGrid
 
 
 cdef class Atom:
-    def __cinit__(self, id):
-        if id == 'H':
-            self.cdata = &atom_hydrogen
-        elif id == 'H_smooth':
-            self.cdata = &atom_hydrogen_smooth
-        elif id == 'Ne':
-            self.cdata = &atom_neon
-        elif id == 'Ar':
-            self.cdata = &atom_argon
-        elif id == 'Ar_gs':
-            self.cdata = &atom_argon_gs
-        else:
-            assert(False, 'Atom {} is not exist'.format(id))
+    @staticmethod
+    cdef Atom from_c(atom_t* atom):
+        obj = <Atom>Atom.__new__(Atom)
+        obj.cdata = atom
+        return obj
+
+H        = Atom.from_c(&atom_hydrogen)
+H_smooth = Atom.from_c(&atom_hydrogen_smooth)
+Ne       = Atom.from_c(&atom_neon)
+Ar       = Atom.from_c(&atom_argon)
+Ar_ion   = Atom.from_c(&atom_argon_ion)
 
 def ground_state(ShGrid grid) -> SWavefunc:
     wf = SWavefunc(grid)

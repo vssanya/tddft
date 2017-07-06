@@ -272,6 +272,7 @@ double ux_lda_func(double n) {
 double uxc_lb(double n, double x) {
 	double const betta = 0.05;
 	return ux_lda_func(n) + uc_lda_func(n) - betta*x*x*pow(n, 1.0/3.0)/(1.0 + 3.0*betta*x*log(x + sqrt(x*x + 1.0)));
+	//return ux_lda_func(n) + uc_lda_func(n) - betta*x*x/(pow(n, 7.0/3.0) + 3.0*betta*x*n*(log(x + sqrt(x*x + pow(n, 8.0/3.0))) - 4.0*log(n)/3.0));
 }
 
 double uxc_lda(double n, double x) {
@@ -294,13 +295,13 @@ double mod_grad_n(sp_grid_t const* grid, double n[grid->n[iR]*grid->n[iC]], int 
 		dn_dr = (n[ir-1 + ic*grid->n[iR]] - n[ir+1 + ic*grid->n[iR]])/(2*grid->d[iR]);
 	}
 
-	if (ic == 0) {
-		dn_dc = (n[ir + (ic+1)*grid->n[iR]] - n[ir +     ic*grid->n[iR]])/grid->d[iC];
-	} else if (ic == grid->n[iC] - 1) {
-		dn_dc = (n[ir +     ic*grid->n[iR]] - n[ir + (ic-1)*grid->n[iR]])/grid->d[iC];
-	} else {
-		dn_dc = (n[ir + (ic-1)*grid->n[iR]] - n[ir + (ic+1)*grid->n[iR]])/(2*grid->d[iC]);
-	}
+//	if (ic == 0) {
+//		dn_dc = (n[ir + (ic+1)*grid->n[iR]] - n[ir +     ic*grid->n[iR]])/grid->d[iC];
+//	} else if (ic == grid->n[iC] - 1) {
+//		dn_dc = (n[ir +     ic*grid->n[iR]] - n[ir + (ic-1)*grid->n[iR]])/grid->d[iC];
+//	} else {
+//		dn_dc = (n[ir + (ic-1)*grid->n[iR]] - n[ir + (ic+1)*grid->n[iR]])/(2*grid->d[iC]);
+//	}
 
 	double c = sp_grid_c(grid, ic);
 	double r = sp_grid_r(grid, ir);

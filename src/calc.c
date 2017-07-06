@@ -4,23 +4,26 @@
 
 
 double calc_wf_az(sh_wavefunc_t const* wf, atom_t const* atom, field_t const* field, double t) {
-    return - field_E(field, t) - sh_wavefunc_cos_r2(wf, atom->dudz, atom->Z);
+	double func(sh_grid_t const* grid, int ir, int il, int m) { return atom->dudz(atom, grid, ir); }
+    return - field_E(field, t) - sh_wavefunc_cos_r2(wf, func, atom->Z);
 }
 
 double calc_orbs_az(orbitals_t const* orbs, atom_t const* atom, field_t const* field, double t) {
-	return - field_E(field, t)*atom_get_count_electrons(atom) - orbitals_cos(orbs, atom->dudz);
+	double func(sh_grid_t const* grid, int ir, int il, int m) { return atom->dudz(atom, grid, ir); }
+	return - field_E(field, t)*atom_get_count_electrons(atom) - orbitals_cos(orbs, func);
 }
 
 void calc_orbs_az_ne(orbitals_t const* orbs, field_t const* field, double t, double az[orbs->atom->n_orbs]) {
+	double func(sh_grid_t const* grid, int ir, int il, int m) { return orbs->atom->dudz(orbs->atom, grid, ir); }
 #ifdef _MPI
 	if (orbs->mpi_comm != MPI_COMM_NULL) {
-		double az_local = - (field_E(field, t) + sh_wavefunc_cos(orbs->mpi_wf, orbs->atom->dudz))*orbs->atom->n_e[orbs->mpi_rank];
+		double az_local = - (field_E(field, t) + sh_wavefunc_cos(orbs->mpi_wf, func))*orbs->atom->n_e[orbs->mpi_rank];
 		MPI_Gather(&az_local, 1, MPI_DOUBLE, az, 1, MPI_DOUBLE, 0, orbs->mpi_comm);
 	} else
 #endif
 	{
 		for (int ie=0; ie<orbs->atom->n_orbs; ++ie) {
-			az[ie] = - (field_E(field, t) + sh_wavefunc_cos(orbs->wf[ie], orbs->atom->dudz))*orbs->atom->n_e[ie];
+			az[ie] = - (field_E(field, t) + sh_wavefunc_cos(orbs->wf[ie], func))*orbs->atom->n_e[ie];
 		}
 	}
 }

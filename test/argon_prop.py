@@ -6,7 +6,7 @@ import tdse
 
 dt = 0.008
 dr = 0.02
-r_max = 240
+r_max = 30
 Nr=r_max/dr
 Nl=2
 
@@ -16,9 +16,9 @@ sp_grid = tdse.grid.SpGrid(Nr=Nr, Nc=33, Np=1, r_max=r_max)
 ylm_cache = tdse.sphere_harmonics.YlmCache(Nl, sp_grid)
 #uabs = tdse.abs_pot.UabsMultiHump(1.0, r_max/8)
 uabs = tdse.abs_pot.UabsZero()
-ws = tdse.workspace.SOrbsWorkspace(sh_grid, sp_grid, uabs, ylm_cache)
+ws = tdse.workspace.SOrbsWorkspace(sh_grid, sp_grid, uabs, ylm_cache, Uh_lmax=1, Uxc_lmax=3)
 orbs = tdse.orbitals.SOrbitals(atom, sh_grid)
-orbs.load('res/gs/argon_dr_0.02.npy')
+orbs.load('ar_gs.npy')
 #orbs.normalize()
 
 T = 2*np.pi / 5.7e-2

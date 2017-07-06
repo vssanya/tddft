@@ -355,7 +355,7 @@ void sh_workspace_prop(
 
 	double Ul0(sh_grid_t const* grid, int ir, int l, int m) {
 		double const r = sh_grid_r(grid, ir);
-		return l*(l+1)/(2*r*r) + atom->u(grid, ir, l, m);
+		return l*(l+1)/(2*r*r) + atom->u(atom, grid, ir);
 	}
 
 	double Ul1(sh_grid_t const* grid, int ir, int l, int m) {
@@ -374,7 +374,7 @@ void sh_workspace_prop_img(
 ) {
 	double Ul0(sh_grid_t const* grid, int ir, int l, int m) {
 		double const r = sh_grid_r(grid, ir);
-		return l*(l+1)/(2*r*r) + atom->u(grid, ir, l, m);
+		return l*(l+1)/(2*r*r) + atom->u(atom, grid, ir);
 	}
 
 	_sh_workspace_prop(ws,  wf, -I*dt, 1, (sh_f[3]){Ul0}, &uabs_zero, atom->Z, atom->u_type);
@@ -505,7 +505,7 @@ void sh_orbs_workspace_prop(
 
 	double Ul0(sh_grid_t const* grid, int ir, int l, int m) {
 		double const r = sh_grid_r(grid, ir);
-		return l*(l+1)/(2*r*r) + atom->u(grid, ir, l, m) + ws->Uee[ir] + plm(l,m)*ws->Uee[ir + 2*grid->n[iR]];
+		return l*(l+1)/(2*r*r) + atom->u(atom, grid, ir) + ws->Uee[ir] + plm(l,m)*ws->Uee[ir + 2*grid->n[iR]];
 	}
 
 	double Ul1(sh_grid_t const* grid, int ir, int l, int m) {
@@ -539,7 +539,7 @@ void sh_orbs_workspace_prop_img(
 
 	double Ul0(sh_grid_t const* grid, int ir, int l, int m) {
 		double const r = sh_grid_r(grid, ir);
-		return l*(l+1)/(2*r*r) + atom->u(grid, ir, l, m) + ws->Uee[ir];
+		return l*(l+1)/(2*r*r) + atom->u(atom, grid, ir) + ws->Uee[ir];
 	}
 
 #ifdef _MPI
