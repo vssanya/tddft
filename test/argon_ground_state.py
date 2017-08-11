@@ -10,12 +10,14 @@ r_max = 30
 Nr=r_max/dr
 Nl = 2
 
-atom = tdse.atom.Atom('Ar')
+ne = 1
+
+atom = tdse.atom.Ar_ion
 g = tdse.grid.ShGrid(Nr=Nr, Nl=Nl, r_max=r_max)
 sp_grid = tdse.grid.SpGrid(Nr=Nr, Nc=33, Np=1, r_max=r_max)
 ylm_cache = tdse.sphere_harmonics.YlmCache(Nl, sp_grid)
 uabs = tdse.abs_pot.UabsZero()
-ws = tdse.workspace.SOrbsWorkspace(g, sp_grid, uabs, ylm_cache)
+ws = tdse.workspace.SOrbsWorkspace(g, sp_grid, uabs, ylm_cache, Uxc_lmax=1, Uh_lmax=1, uxc=tdse.hartree_potential.UXC_LB)
 
 orbs = tdse.orbitals.SOrbitals(atom, g)
 orbs.init()
@@ -41,7 +43,7 @@ def data_gen():
 
 fig, ax = plt.subplots()
 lines = []
-for ie in range(7):
+for ie in range(ne):
     line, = ax.plot(r, np.abs(orbs.asarray()[0,0])**2, label="n = {}".format(ie))
     lines.append(line)
 
@@ -51,7 +53,7 @@ ax.set_yscale('log')
 
 def run(data):
     arr = orbs.asarray()
-    for ie in range(7):
+    for ie in range(ne):
         lines[ie].set_ydata(np.sum(np.abs(arr[ie]/r)**2, axis=0))
     return lines,
 

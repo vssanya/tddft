@@ -207,10 +207,10 @@ void hartree_potential(
 }
 
 void hartree_potential_wf_l0(
-    sh_wavefunc_t const* wf,
+		sh_wavefunc_t const* wf,
 		double U[wf->grid->n[iR]],
 		double f[wf->grid->n[iR]],
-    int order
+		int order
 ) {
 	sh_grid_t const* grid = wf->grid;
 
@@ -255,6 +255,39 @@ void uxc_calc_l(
 		}
 }
 
+void uxc_calc_l0(
+		potential_xc_f uxc,
+		int l, orbitals_t const* orbs,
+		double U[orbs->grid->n[iR]],
+		sp_grid_t const* grid,
+		double n[grid->n[iR]], // for calc using mpi
+		double n_tmp[grid->n[iR]], // for calc using mpi
+		ylm_cache_t const* ylm_cache
+		) {
+	if (l==0) {
+		orbitals_n_l0(orbs, n, n_tmp);
+
+#ifdef _MPI
+		if (orbs->mpi_rank == 0 || orbs->mpi_comm == MPI_COMM_NULL)
+#endif
+		{
+			for (int ir=0; ir<grid->n[iR]; ++ir) {
+				double x = mod_dndr(grid, n, ir);
+				U[ir] = uxc(n[ir], x);
+			}
+		}
+	} else {
+#ifdef _MPI
+		if (orbs->mpi_rank == 0 || orbs->mpi_comm == MPI_COMM_NULL)
+#endif
+		{
+			for (int ir=0; ir<grid->n[iR]; ++ir) {
+				U[ir] = 0.0;
+			}
+		}
+	}
+}
+
 double uc_lda_func(double n) {
 	double const a = (M_LN2 - 1.0)/(2.0*M_PI*M_PI);
 	double const b = 20.4562557;
@@ -271,6 +304,9 @@ double ux_lda_func(double n) {
 
 double uxc_lb(double n, double x) {
 	double const betta = 0.05;
+	if (n < 1e-10) {
+		return 0.0;
+	}
 	return ux_lda_func(n) + uc_lda_func(n) - betta*x*x*pow(n, 1.0/3.0)/(1.0 + 3.0*betta*x*log(x + sqrt(x*x + 1.0)));
 	//return ux_lda_func(n) + uc_lda_func(n) - betta*x*x/(pow(n, 7.0/3.0) + 3.0*betta*x*n*(log(x + sqrt(x*x + pow(n, 8.0/3.0))) - 4.0*log(n)/3.0));
 }
@@ -295,16 +331,30 @@ double mod_grad_n(sp_grid_t const* grid, double n[grid->n[iR]*grid->n[iC]], int 
 		dn_dr = (n[ir-1 + ic*grid->n[iR]] - n[ir+1 + ic*grid->n[iR]])/(2*grid->d[iR]);
 	}
 
-//	if (ic == 0) {
-//		dn_dc = (n[ir + (ic+1)*grid->n[iR]] - n[ir +     ic*grid->n[iR]])/grid->d[iC];
-//	} else if (ic == grid->n[iC] - 1) {
-//		dn_dc = (n[ir +     ic*grid->n[iR]] - n[ir + (ic-1)*grid->n[iR]])/grid->d[iC];
-//	} else {
-//		dn_dc = (n[ir + (ic-1)*grid->n[iR]] - n[ir + (ic+1)*grid->n[iR]])/(2*grid->d[iC]);
-//	}
+	if (ic == 0) {
+		dn_dc = (n[ir + (ic+1)*grid->n[iR]] - n[ir +     ic*grid->n[iR]])/grid->d[iC];
+	} else if (ic == grid->n[iC] - 1) {
+		dn_dc = (n[ir +     ic*grid->n[iR]] - n[ir + (ic-1)*grid->n[iR]])/grid->d[iC];
+	} else {
+		dn_dc = (n[ir + (ic-1)*grid->n[iR]] - n[ir + (ic+1)*grid->n[iR]])/(2*grid->d[iC]);
+	}
 
 	double c = sp_grid_c(grid, ic);
 	double r = sp_grid_r(grid, ir);
 
 	return sqrt(pow(dn_dr,2) + pow(dn_dc/r,2)*(1.0 - c*c))/pow(n[ir + ic*grid->n[iR]], 4.0/3.0);
+}
+
+double mod_dndr(sp_grid_t const* grid, double n[grid->n[iR]], int ir) {
+	double dn_dr = 0.0;
+
+	if (ir == 0) {
+		dn_dr = (n[ir+1] - n[ir])/grid->d[iR];
+	} else if (ir == grid->n[iR] - 1) {
+		dn_dr = (n[ir] - n[ir-1])/grid->d[iR];
+	} else {
+		dn_dr = (n[ir-1] - n[ir+1])/(2*grid->d[iR]);
+	}
+
+	return abs(dn_dr)/pow(n[ir], 4.0/3.0);
 }

@@ -453,7 +453,7 @@ void sh_orbs_workspace_calc_Uee(sh_orbs_workspace_t* ws,
     }
 
 	for (int il=0; il<Uxc_lmax; ++il) {
-		uxc_calc_l(ws->Uxc, il, orbs, ws->Utmp, ws->sp_grid, ws->n_sp, ws->n_sp_local, ws->ylm_cache);
+		uxc_calc_l0(ws->Uxc, il, orbs, ws->Utmp, ws->sp_grid, ws->n_sp, ws->n_sp_local, ws->ylm_cache);
 
 #ifdef _MPI
     if (orbs->mpi_comm == MPI_COMM_NULL || orbs->mpi_rank == 0)

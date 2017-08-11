@@ -22,6 +22,7 @@ void hartree_potential(orbitals_t const* orbs, int l, double U[orbs->grid->n[iR]
 
 void hartree_potential_wf_l0(sh_wavefunc_t const* wf, double U[wf->grid->n[iR]], double f[wf->grid->n[iR]], int order);
 
+double mod_dndr(sp_grid_t const* grid, double n[grid->n[iR]], int ir);
 double mod_grad_n(sp_grid_t const* grid, double n[grid->n[iR]*grid->n[iC]], int ir, int ic);
 double ux_lda_func(double n);
 double uc_lda_func(double n);
@@ -39,6 +40,16 @@ typedef double (*potential_xc_f)(double n, double x);
  * \param Ux[out] is amplitude \f$Y_l^0\f$ component of \f$U_{x} = - \left(\frac{3}{\pi}\right)^{1/3} n(\vec{r})^{1/3}\f$
  * */
 void uxc_calc_l(
+		potential_xc_f uxc,
+		int l, orbitals_t const* orbs,
+		double U[orbs->grid->n[iR]],
+		sp_grid_t const* grid,
+		double n[grid->n[iR]*grid->n[iC]], // for calc using mpi
+		double n_tmp[grid->n[iR]*grid->n[iC]], // for calc using mpi
+		ylm_cache_t const* ylm_cache
+);
+
+void uxc_calc_l0(
 		potential_xc_f uxc,
 		int l, orbitals_t const* orbs,
 		double U[orbs->grid->n[iR]],

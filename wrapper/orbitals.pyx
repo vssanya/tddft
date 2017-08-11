@@ -71,7 +71,7 @@ cdef class SOrbitals:
 
         return n
 
-    def n_sh(self, np.ndarray[np.double_t, ndim=1] n = None):
+    def n_l0(self, np.ndarray[np.double_t, ndim=1] n = None):
         cdef np.ndarray[np.double_t, ndim=1, mode='c'] n_local = np.ndarray(self.cdata.grid.n[0], dtype=np.double)
         cdef double* n_ptr = NULL
 
@@ -79,7 +79,7 @@ cdef class SOrbitals:
             n = np.ndarray(self.cdata.grid.n[0], dtype=np.double)
             n_ptr = <double*>n.data
 
-        orbitals_n_sh(self.cdata, n_ptr, <double*>n_local.data) 
+        orbitals_n_l0(self.cdata, n_ptr, <double*>n_local.data) 
 
         return n
 
