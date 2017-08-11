@@ -13,13 +13,23 @@ cdef class Uxc:
         obj.cdata = func
         return obj
 
-    def calc_l(self, int l, SOrbitals orbs, SpGrid grid, YlmCache ylm_cache, np.ndarray[np.double_t, ndim=1] uxc = None, np.ndarray[np.double_t, ndim=1] n = None) -> np.ndarray:
+    def calc_l(self, int l, SOrbitals orbs, SpGrid grid, YlmCache ylm_cache, np.ndarray[np.double_t, ndim=1] uxc = None, np.ndarray[np.double_t, ndim=2] n = None) -> np.ndarray:
         if uxc is None:
             uxc = np.ndarray((orbs.cdata.wf[0].grid.n[0]), np.double)
         else:
             assert(uxc.size == orbs.cdata.wf[0].grid.n[0])
 
-        uxc_calc_l(self.cdata, l, orbs.cdata, &uxc[0], grid.data, NULL, NULL, ylm_cache.cdata)
+        uxc_calc_l(self.cdata, l, orbs.cdata, &uxc[0], grid.data, &n[0,0], NULL, ylm_cache.cdata)
+
+        return uxc
+
+    def calc_l0(self, int l, SOrbitals orbs, SpGrid grid, YlmCache ylm_cache, np.ndarray[np.double_t, ndim=1] uxc = None, np.ndarray[np.double_t, ndim=2] n = None) -> np.ndarray:
+        if uxc is None:
+            uxc = np.ndarray((orbs.cdata.wf[0].grid.n[0]), np.double)
+        else:
+            assert(uxc.size == orbs.cdata.wf[0].grid.n[0])
+
+        uxc_calc_l0(self.cdata, l, orbs.cdata, &uxc[0], grid.data, &n[0,0], NULL, ylm_cache.cdata)
 
         return uxc
 

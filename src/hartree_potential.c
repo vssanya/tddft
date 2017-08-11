@@ -273,7 +273,7 @@ void uxc_calc_l0(
 		{
 			for (int ir=0; ir<grid->n[iR]; ++ir) {
 				double x = mod_dndr(grid, n, ir);
-				U[ir] = uxc(n[ir], x);
+				U[ir] = uxc(n[ir], x)*sqrt(4*M_PI);
 			}
 		}
 	} else {
@@ -304,9 +304,9 @@ double ux_lda_func(double n) {
 
 double uxc_lb(double n, double x) {
 	double const betta = 0.05;
-	if (n < 1e-10) {
-		return 0.0;
-	}
+//	if (n < 1e-30) {
+//		return 0.0;
+//	}
 	return ux_lda_func(n) + uc_lda_func(n) - betta*x*x*pow(n, 1.0/3.0)/(1.0 + 3.0*betta*x*log(x + sqrt(x*x + 1.0)));
 	//return ux_lda_func(n) + uc_lda_func(n) - betta*x*x/(pow(n, 7.0/3.0) + 3.0*betta*x*n*(log(x + sqrt(x*x + pow(n, 8.0/3.0))) - 4.0*log(n)/3.0));
 }
@@ -356,5 +356,5 @@ double mod_dndr(sp_grid_t const* grid, double n[grid->n[iR]], int ir) {
 		dn_dr = (n[ir-1] - n[ir+1])/(2*grid->d[iR]);
 	}
 
-	return abs(dn_dr)/pow(n[ir], 4.0/3.0);
+	return sqrt(pow(dn_dr,2))/pow(n[ir], 4.0/3.0);
 }

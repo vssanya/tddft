@@ -22,6 +22,15 @@ cdef extern from "hartree_potential.h":
         double* n_local, # for calc using mpi
         ylm_cache_t* ylm_cache
     )
+    void uxc_calc_l0(
+        potential_xc_f uxc,
+        int l, orbitals_t* orbs,
+        double* U,
+        sp_grid_t* grid,
+        double* n, # for calc using mpi
+        double* n_local, # for calc using mpi
+        ylm_cache_t* ylm_cache
+    )
 
 cdef class Uxc:
     cdef potential_xc_f cdata
