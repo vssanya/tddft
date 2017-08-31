@@ -6,26 +6,26 @@ import tdse
 
 dt = 0.008
 dr = 0.02
-r_max = 30
+r_max = 120
 Nr=r_max/dr
 Nl=6
 
-atom = tdse.atom.Ar_ion
+atom = tdse.atom.Ar
 sh_grid = tdse.grid.ShGrid(Nr=Nr, Nl=Nl, r_max=r_max)
 sp_grid = tdse.grid.SpGrid(Nr=Nr, Nc=33, Np=1, r_max=r_max)
 ylm_cache = tdse.sphere_harmonics.YlmCache(Nl, sp_grid)
-#uabs = tdse.abs_pot.UabsMultiHump(1.0, r_max/8)
+uabs = tdse.abs_pot.UabsMultiHump(20*dr, r_max/8)
 uabs = tdse.abs_pot.UabsZero()
 ws = tdse.workspace.SOrbsWorkspace(sh_grid, sp_grid, uabs, ylm_cache, Uh_lmax=1, Uxc_lmax=3)
 orbs = tdse.orbitals.SOrbitals(atom, sh_grid)
-orbs.load('ar_gs.npy')
+orbs.load('ar_r_120_lb.npy')
 #orbs.normalize()
 
 T = 2*np.pi / 5.7e-2
 tp = 20*T
 
 f = tdse.field.TwoColorSinField(
-        E0=0.0,#tdse.utils.I_to_E(2e14),
+        E0=tdse.utils.I_to_E(2e14),
         alpha=0.0,
         tp=tp
         )
@@ -46,7 +46,7 @@ ax = plt.subplot(121)
 ax_n = plt.subplot(122)
 
 lines = []
-for ie in range(1):
+for ie in range(atom.n_orbs):
     line, = ax.plot(r, np.abs(orbs.asarray()[0,0])**2, label="n = {}".format(ie))
     lines.append(line)
 
@@ -54,7 +54,7 @@ ax.grid()
 ax.set_ylim(1e-20, 1e3)
 ax.set_yscale('log')
 
-n = np.zeros((t.size, 1))
+n = np.zeros((t.size, atom.n_orbs))
 az = np.zeros(t.size)
 z = np.zeros(t.size)
 orbs.norm_ne(n[0,:], True)
@@ -71,7 +71,7 @@ def run(data):
     i = data
 
     arr = orbs.asarray()
-    for ie in range(1):
+    for ie in range(atom.n_orbs):
         lines[ie].set_ydata(np.sum(np.abs(arr[ie])**2, axis=0))
 
     orbs.norm_ne(n[i,:], True)

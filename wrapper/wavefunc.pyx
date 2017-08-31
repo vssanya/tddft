@@ -1,6 +1,9 @@
 import numpy as np
 cimport numpy as np
 
+import matplotlib.pyplot as plt
+from IPython.core.pylabtools import print_figure
+
 from types cimport cdouble
 from abs_pot cimport mask_core
 from grid cimport ShGrid, SpGrid
@@ -8,7 +11,9 @@ from sphere_harmonics cimport YlmCache
 
 cdef class SWavefunc:
     def __cinit__(self, ShGrid grid, int m=0, dealloc=True):
-        if grid is None:
+        self.grid = grid
+
+        if not dealloc:
             self.cdata = NULL
         else:
             self.cdata = sh_wavefunc_new(grid.data, m)
@@ -36,6 +41,10 @@ cdef class SWavefunc:
         else:
             return sh_wavefunc_norm(self.cdata, NULL)
 
+    def norm_l(self):
+        arr = self.asarray()
+        return np.sum(np.abs(arr)**2, axis=1)
+
     def normalize(self):
         sh_wavefunc_normalize(self.cdata)
 
@@ -49,6 +58,24 @@ cdef class SWavefunc:
     def get_sp(self, SpGrid grid, YlmCache ylm_cache, int ir, int ic, int ip):
         return swf_get_sp(self.cdata, grid.data, [ir, ic, ip], ylm_cache.cdata)
 
+    def _figure_data(self, format):
+        fig, ax = plt.subplots()
+        fig.set_size_inches((6,3))
+
+        ax.plot(self.grid.get_r(), np.sum(np.abs(self.asarray())**2,axis=0))
+
+        ax.set_xlabel('r, (a.u.)')
+        ax.set_ylabel(r'$\left|\psi\right|^2$, (a.u.)')
+
+        ax.set_yscale('log')
+
+        data = print_figure(fig, format)
+        plt.close(fig)
+        return data
+
+    def _repr_png_(self):
+        return self._figure_data('png')
+
     @staticmethod
     def random(ShGrid grid, int m=0):
         wf = SWavefunc(grid, m)
@@ -57,7 +84,7 @@ cdef class SWavefunc:
         wf.normalize()
         return wf
 
-cdef SWavefunc swavefunc_from_point(sh_wavefunc_t* data):
-    wf = SWavefunc(grid=None, dealloc=False)
+cdef SWavefunc swavefunc_from_point(sh_wavefunc_t* data, ShGrid grid):
+    wf = SWavefunc(grid=grid, dealloc=False)
     wf._set_data(data)
     return wf

@@ -32,7 +32,8 @@ cdef extern from "sh_wavefunc.h":
 cdef class SWavefunc:
     cdef sh_wavefunc_t* cdata
     cdef bint dealloc
+    cdef public ShGrid grid
 
     cdef _set_data(self, sh_wavefunc_t* data)
 
-cdef SWavefunc swavefunc_from_point(sh_wavefunc_t* data)
+cdef SWavefunc swavefunc_from_point(sh_wavefunc_t* data, ShGrid grid)

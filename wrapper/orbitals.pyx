@@ -109,7 +109,7 @@ cdef class SOrbitals:
 
     def get_wf(self, int ie):
         assert(ie < self.cdata.atom.n_orbs)
-        return swavefunc_from_point(self.cdata.wf[ie])
+        return swavefunc_from_point(self.cdata.wf[ie], self.grid)
 
     def asarray(self):
         cdef cdouble[:, :, ::1] res

@@ -15,6 +15,10 @@ cdef class Atom:
         obj.cdata = atom
         return obj
 
+    @property
+    def n_orbs(self):
+        return self.cdata.n_orbs
+
 H        = Atom.from_c(&atom_hydrogen)
 H_smooth = Atom.from_c(&atom_hydrogen_smooth)
 Ne       = Atom.from_c(&atom_neon)

@@ -43,11 +43,14 @@ cdef extern from "fields.h":
 cdef class Field:
     cdef field_t* cdata
 
-cdef class TwoColorGaussField(Field):
+cdef class TwoColorBaseField(Field):
+    cdef public double t_fwhm
+
+cdef class TwoColorGaussField(TwoColorBaseField):
     pass
 
-cdef class TwoColorSinField(Field):
+cdef class TwoColorSinField(TwoColorBaseField):
     pass
 
-cdef class TwoColorTrField(Field):
+cdef class TwoColorTrField(TwoColorBaseField):
     pass

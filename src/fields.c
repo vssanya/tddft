@@ -13,7 +13,7 @@ double two_color_fill(double E, double alpha, double phase, double tau) {
 
 __attribute__((pure))
 double gauss_env(double tp, double t) {
-  return exp(-pow(t, 2)/pow(tp, 2));
+  return exp(-pow(t/tp, 2));
 }
 
 __attribute__((pure))
@@ -48,7 +48,7 @@ double two_color_gauss_field_E(field_base_t const* data, double t) {
 
 __attribute__((pure))
 double two_color_sin_field_E(field_base_t const* data, double t) {
-	double const tau = data->freq*t;
+	double const tau = data->freq*(t-0.5*data->tp);
 	return two_color_fill(data->E0, data->alpha, data->phase, tau)*sin_env(data->tp, t);
 }
 
@@ -61,7 +61,7 @@ double two_color_tr_field_E(field_base_t const* data, double t) {
 field_t* field_base_alloc(field_func_t func, double E0, double alpha, double freq, double phase, double tp, double t0) {
 	field_base_t* field = malloc(sizeof(field_base_t));
 
-  field->func = func;
+	field->func = func;
 	field->E0 = E0;
 	field->alpha = alpha;
 	field->freq = freq;
@@ -69,19 +69,19 @@ field_t* field_base_alloc(field_func_t func, double E0, double alpha, double fre
 	field->tp = tp;
 	field->t0 = t0;
 
-  return field;
+	return field;
 }
 
 field_t* two_color_gauss_field_alloc(double E0, double alpha, double freq, double phase, double tp, double t0) {
-  return field_base_alloc((field_func_t)two_color_gauss_field_E, E0, alpha, freq, phase, tp, t0);
+	return field_base_alloc((field_func_t)two_color_gauss_field_E, E0, alpha, freq, phase, tp, t0);
 }
 
 field_t* two_color_sin_field_alloc(double E0, double alpha, double freq, double phase, double tp, double t0) {
-  return field_base_alloc((field_func_t)two_color_sin_field_E, E0, alpha, freq, phase, tp, t0);
+	return field_base_alloc((field_func_t)two_color_sin_field_E, E0, alpha, freq, phase, tp, t0);
 }
 
 field_t* two_color_tr_field_alloc(double E0, double alpha, double freq, double phase, double tp, double t0) {
-  return field_base_alloc((field_func_t)two_color_tr_field_E, E0, alpha, freq, phase, tp, t0);
+	return field_base_alloc((field_func_t)two_color_tr_field_E, E0, alpha, freq, phase, tp, t0);
 }
 
 void field_free(field_t* field) {

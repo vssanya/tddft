@@ -223,7 +223,7 @@ void orbitals_n_l0(orbitals_t const* orbs, double n[orbs->grid->n[iR]], double n
 		for (int ir = 0; ir < orbs->grid->n[iR]; ++ir) {
 			n_tmp[ir] = 0;
 			for (int il = 0; il < orbs->grid->n[iL]; ++il) {
-				n_tmp[ir] = swf_get_abs_2(orbs->mpi_wf, ir, il);
+				n_tmp[ir] += swf_get_abs_2(orbs->mpi_wf, ir, il);
 			}
 			n_tmp[ir] *= orbs->atom->n_e[orbs->mpi_rank] / (pow(sh_grid_r(orbs->grid, ir), 2)*4*M_PI);
 		}

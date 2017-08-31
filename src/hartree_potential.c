@@ -1,5 +1,6 @@
 #include "hartree_potential.h"
 #include "hartree_potential/hp.h"
+#include "utils.h"
 
 
 void _hartree_potential_calc_f_l0(orbitals_t const* orbs, double f[orbs->grid->n[iR]]) {
@@ -273,7 +274,9 @@ void uxc_calc_l0(
 		{
 			for (int ir=0; ir<grid->n[iR]; ++ir) {
 				double x = mod_dndr(grid, n, ir);
-				U[ir] = uxc(n[ir], x)*sqrt(4*M_PI);
+				double r = sh_grid_r(orbs->grid, ir);
+				double r_max = sh_grid_r_max(orbs->grid);
+				U[ir] = uxc(n[ir], x)*sqrt(4*M_PI);//*(1.0 - smoothstep(r, 20, 40));
 			}
 		}
 	} else {
@@ -304,9 +307,9 @@ double ux_lda_func(double n) {
 
 double uxc_lb(double n, double x) {
 	double const betta = 0.05;
-//	if (n < 1e-30) {
-//		return 0.0;
-//	}
+	if (n < 1e-120) {
+		return ux_lda_func(n) + uc_lda_func(n);
+	}
 	return ux_lda_func(n) + uc_lda_func(n) - betta*x*x*pow(n, 1.0/3.0)/(1.0 + 3.0*betta*x*log(x + sqrt(x*x + 1.0)));
 	//return ux_lda_func(n) + uc_lda_func(n) - betta*x*x/(pow(n, 7.0/3.0) + 3.0*betta*x*n*(log(x + sqrt(x*x + pow(n, 8.0/3.0))) - 4.0*log(n)/3.0));
 }
