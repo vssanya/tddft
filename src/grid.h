@@ -2,7 +2,6 @@
 
 #include <stdlib.h>
 #include <assert.h>
-#include <gsl/gsl_math.h>
 
 
 /*!

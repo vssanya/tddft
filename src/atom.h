@@ -41,9 +41,9 @@ static atom_t const atom_hydrogen = {
 	.m = (int[]){0},
 	.l = (int[]){0},
 	.n_e = (int[]){1},
-	.u    = atom_u_coulomb,
-	.dudz = atom_dudz_coulomb,
-  .u_type = POTENTIAL_COULOMB,
+	.u    = (pot_f)atom_u_coulomb,
+	.dudz = (pot_f)atom_dudz_coulomb,
+	.u_type = POTENTIAL_COULOMB,
 };
 
 static atom_t const atom_hydrogen_smooth = {
@@ -52,9 +52,9 @@ static atom_t const atom_hydrogen_smooth = {
 	.m = (int[]){0},
 	.l = (int[]){0},
 	.n_e = (int[]){1},
-	.u    = atom_u_smooth,
-	.dudz = atom_dudz_smooth,
-  .u_type = POTENTIAL_SMOOTH,
+	.u    = (pot_f)atom_u_smooth,
+	.dudz = (pot_f)atom_dudz_smooth,
+	.u_type = POTENTIAL_SMOOTH,
 };
 
 // I_p = 0.5791 au
@@ -72,8 +72,8 @@ static atom_t const atom_argon = {
 	.m   = (int[]){0,0,0,0,0,1,1},
 	.l   = (int[]){0,0,0,1,1,1,1},
 	.n_e = (int[]){2,2,2,2,2,4,4},
-	.u    = atom_u_coulomb,
-	.dudz = atom_dudz_coulomb,
+	.u    = (pot_f)atom_u_coulomb,
+	.dudz = (pot_f)atom_dudz_coulomb,
   .u_type = POTENTIAL_COULOMB,
 };
 
@@ -83,8 +83,8 @@ static atom_t const atom_argon_ion = {
 	.m = (int[]){0},
 	.l = (int[]){0},
 	.n_e = (int[]){2},
-	.u    = atom_u_coulomb,
-	.dudz = atom_dudz_coulomb,
+	.u    = (pot_f)atom_u_coulomb,
+	.dudz = (pot_f)atom_dudz_coulomb,
 	.u_type = POTENTIAL_COULOMB,
 };
 
@@ -97,7 +97,7 @@ static atom_t const atom_neon = {
 	.m = (int[]){0,0,-1,0,1},
 	.l = (int[]){0,0, 1,1,1},
 	.n_e = (int[]){2,2,2,2,2},
-	.u    = atom_u_coulomb,
-	.dudz = atom_dudz_coulomb,
+	.u    = (pot_f)atom_u_coulomb,
+	.dudz = (pot_f)atom_dudz_coulomb,
   .u_type = POTENTIAL_COULOMB,
 };

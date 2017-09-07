@@ -1,4 +1,5 @@
 #include "grid.h"
+#include <math.h>
 
 sp_grid_t* sp_grid_new(int n[3], double r_max) {
     sp_grid_t* grid = malloc(sizeof(sp_grid_t));

@@ -1,8 +1,6 @@
 #include "atom.h"
 #include "orbitals.h"
 
-#include <mpi/mpi.h>
-
 
 int atom_get_count_electrons(atom_t const* atom) {
 	int count = 0;
