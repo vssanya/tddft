@@ -9,6 +9,7 @@ from abs_pot cimport mask_core
 from grid cimport ShGrid, SpGrid
 from sphere_harmonics cimport YlmCache
 
+
 cdef class SWavefunc:
     def __cinit__(self, ShGrid grid, int m=0, dealloc=True):
         self.grid = grid

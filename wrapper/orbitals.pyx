@@ -34,6 +34,9 @@ cdef class SOrbitals:
     def ort(self):
         orbitals_ort(self.cdata)
 
+    def is_root_or_not_mpi(self):
+        return not self.is_mpi() or self.cdata.mpi_rank == 0
+
     def load(self, filename):
         arr = self.asarray()
         arr[:] = 0.0
@@ -41,7 +44,7 @@ cdef class SOrbitals:
         cdef np.ndarray[np.complex_t, ndim=3] data
         cdef cdouble* data_ptr = NULL
 
-        if not self.is_mpi() or self.cdata.mpi_rank == 0:
+        if self.is_root_or_not_mpi():
             data = np.load(filename)
             shape = [data.shape[1], data.shape[2]]
             data_ptr = <cdouble*>data.data
@@ -52,6 +55,26 @@ cdef class SOrbitals:
             shape = self.mpi_comm.bcast(shape)
 
         orbitals_set_init_state(self.cdata, data_ptr, shape[1], shape[0])
+
+    @property
+    def shape(self):
+        return (self.cdata.atom.n_orbs, self.cdata.grid.n[1], self.cdata.grid.n[0])
+
+    def save(self, filename):
+        data = self.asarray()
+
+        if self.is_mpi():
+            if self.mpi_rank == 0:
+                data_save = np.zeros(self.shape, np.complex)
+            else:
+                data_save = None
+
+            self.mpi_comm.Gather(data, data_save, root=0)
+        else:
+            data_save = data
+
+        if self.is_root_or_not_mpi():
+            np.save(filename, data_save)
 
     def n(self, SpGrid grid, YlmCache ylm_cache, int ir, int ic):
         return orbitals_n(self.cdata, grid.data, [ir, ic], ylm_cache.cdata)
@@ -126,10 +149,7 @@ cdef class SOrbitals:
     def is_root(self) -> bool:
         return not self.is_mpi() or self.cdata.mpi_rank == 0
 
-    def load(self, file):
-        pass
-
-    def save(self, file):
+    def save(self, filename):
         cdef np.ndarray[np.complex_t, ndim=3, mode='c'] arr = None
         cdef cdouble* arr_ptr = NULL
         cdef int size = self.cdata.grid.n[0]*self.cdata.grid.n[1]
@@ -140,9 +160,9 @@ cdef class SOrbitals:
                 arr_ptr = <cdouble*>arr.data
             MPI_Gather(self.cdata.data, size, MPI_C_DOUBLE_COMPLEX, arr_ptr, size, MPI_C_DOUBLE_COMPLEX, 0, self.cdata.mpi_comm)
             if self.cdata.mpi_rank == 0:
-                np.save(file, self.asarray())
+                np.save(filename, self.asarray())
         else:
-            np.save(file, self.asarray())
+            np.save(filename, self.asarray())
 
     def __str__(self):
         return "Orbitals MPI, wf.m = {}".format(self.cdata.mpi_wf.m)
