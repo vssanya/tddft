@@ -37,6 +37,8 @@ cdef extern from "fields.h":
         double tp,
         double t0
     )
+    field_t* two_color_gauss_dadt_field_alloc(double E0, double alpha, double freq, double phase, double tp, double t0);
+
     void field_free(field_t* field)
     double field_E(field_t* field, double t)
 
@@ -47,6 +49,9 @@ cdef class TwoColorBaseField(Field):
     cdef public double t_fwhm
 
 cdef class TwoColorGaussField(TwoColorBaseField):
+    pass
+
+cdef class TwoColorGaussAField(TwoColorBaseField):
     pass
 
 cdef class TwoColorSinField(TwoColorBaseField):

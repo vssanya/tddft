@@ -46,6 +46,17 @@ double two_color_gauss_field_E(field_base_t const* data, double t) {
 	return two_color_fill(data->E0, data->alpha, data->phase, tau)*gauss_env(data->tp, t - data->t0);
 }
 
+double one_color_gauss_dadt_E(double E, double freq, double t, double phase, double tp) {
+	double tau = t*freq + phase;
+	double tp_2 = pow(tp, 2);
+
+	return E*(4.0*t*sin(tau)/(freq*tp_2) + (-1.0 + 4.0*pow(t, 2)/(pow(freq, 2)*pow(tp_2, 2)) - 2.0/(pow(freq, 2)*tp_2))*cos(tau))*exp(-pow(t/tp, 2));
+}
+
+double two_color_gauss_dadt_field_E(field_base_t const* data, double t) {
+	return one_color_gauss_dadt_E(data->E0, data->freq, t, 0, data->tp) + one_color_gauss_dadt_E(data->alpha*data->E0, 2.0*data->freq, t, data->phase, data->tp);
+}
+
 __attribute__((pure))
 double two_color_sin_field_E(field_base_t const* data, double t) {
 	double const tau = data->freq*(t-0.5*data->tp);
@@ -74,6 +85,10 @@ field_t* field_base_alloc(field_func_t func, double E0, double alpha, double fre
 
 field_t* two_color_gauss_field_alloc(double E0, double alpha, double freq, double phase, double tp, double t0) {
 	return field_base_alloc((field_func_t)two_color_gauss_field_E, E0, alpha, freq, phase, tp, t0);
+}
+
+field_t* two_color_gauss_dadt_field_alloc(double E0, double alpha, double freq, double phase, double tp, double t0) {
+	return field_base_alloc((field_func_t)two_color_gauss_dadt_field_E, E0, alpha, freq, phase, tp, t0);
 }
 
 field_t* two_color_sin_field_alloc(double E0, double alpha, double freq, double phase, double tp, double t0) {

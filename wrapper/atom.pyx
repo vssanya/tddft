@@ -1,8 +1,6 @@
 import numpy as np
 cimport numpy as np
 
-import mpi4py
-
 from types cimport cdouble
 from wavefunc cimport SWavefunc
 from grid cimport ShGrid

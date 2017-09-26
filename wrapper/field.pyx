@@ -91,6 +91,23 @@ cdef class TwoColorGaussField(TwoColorBaseField):
         t0 = -0.5*dur
         return np.arange(t0, t0+dur+self.T*nT, dt)
 
+cdef class TwoColorGaussAField(TwoColorBaseField):
+    def __cinit__(self, double E0=5.34e-2 , double alpha=0.1,
+            double freq=5.6e-2, double phase=0.0,
+            double t_fwhm=2*3.14/5.6e-2, double t0=0.0):
+        self.t_fwhm = t_fwhm
+
+        tp = self.t_fwhm / np.sqrt(2*np.log(2))
+        self.cdata = two_color_gauss_dadt_field_alloc(E0, alpha, freq, phase, tp, t0)
+
+    def duration(self, double dI=1e7):
+        return 2*np.sqrt(0.5*self.t_fwhm**2*np.log(dI))
+
+    def get_t(self, double dt, double dI=1e7, int nT=0):
+        dur = self.duration(dI)
+        t0 = -0.5*dur
+        return np.arange(t0, t0+dur+self.T*nT, dt)
+
 cdef class TwoColorSinField(TwoColorBaseField):
     def __cinit__(self, double E0=5.34e-2 , double alpha=0.1,
             double freq=5.6e-2, double phase=0.0,

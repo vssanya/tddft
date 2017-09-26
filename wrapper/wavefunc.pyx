@@ -44,7 +44,7 @@ cdef class SWavefunc:
 
     def norm_l(self):
         arr = self.asarray()
-        return np.sum(np.abs(arr)**2, axis=1)
+        return np.sum(np.abs(arr)**2, axis=1)*self.grid.data.d[0]
 
     def normalize(self):
         sh_wavefunc_normalize(self.cdata)

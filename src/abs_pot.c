@@ -1,6 +1,7 @@
 #include "abs_pot.h"
 
 #include "utils.h"
+#include <math.h>
 
 
 double uabs_get(uabs_sh_t const* self, sh_grid_t const* grid, int ir, int il, int im) {

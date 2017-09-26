@@ -163,7 +163,7 @@ void prop_ang_l(sh_wavefunc_t* wf, cdouble dt, int l, int l1, sh_f Ul) {
 	}
 }
 
-void _sh_workspace_prop_ang_l(sh_workspace_t* ws, sh_wavefunc_t* wf, cdouble dt, int l, int l1, sh_f Ul) {
+void prop_ang_l_v2(sh_wavefunc_t* wf, cdouble dt, int l, int l1, sh_f Ul) {
 	/*
 	 * Solve Nr equations:
 	 * psi(l   , t+dt, r) + a*psi(l+l1, t+dt, r) = f0
@@ -172,7 +172,7 @@ void _sh_workspace_prop_ang_l(sh_workspace_t* ws, sh_wavefunc_t* wf, cdouble dt,
 	 * a(r) = a_const*r
 	 */
 
-	int const Nr = ws->grid->n[iR];
+	int const Nr = wf->grid->n[iR];
 
 	cdouble* psi_l0 = swf_ptr(wf, 0, l);
 	cdouble* psi_l1 = swf_ptr(wf, 0, l+l1);
@@ -181,7 +181,7 @@ void _sh_workspace_prop_ang_l(sh_workspace_t* ws, sh_wavefunc_t* wf, cdouble dt,
 
 #pragma omp for
 	for (int i = 0; i < Nr; ++i) {
-		cdouble const a = a_const*Ul(ws->grid, i, l, wf->m);
+		cdouble const a = a_const*Ul(wf->grid, i, l, wf->m);
 
 		cdouble const f0 = psi_l0[i] - a*psi_l1[i];
 		cdouble const f1 = psi_l1[i] - a*psi_l0[i];
@@ -322,7 +322,7 @@ void _sh_workspace_prop(
 	{
 		for (int l1 = 1; l1 < l_max; ++l1) {
 			for (int il = 0; il < ws->grid->n[iL] - l1; ++il) {
-				prop_ang_l(wf, dt*0.5, il, l1, Ul[l1]);
+				prop_ang_l(wf, dt, il, l1, Ul[l1]);
 			}
 		}
 
@@ -330,7 +330,7 @@ void _sh_workspace_prop(
 
 		for (int l1 = l_max-1; l1 > 0; --l1) {
 			for (int il = ws->grid->n[iL] - 1 - l1; il >= 0; --il) {
-				prop_ang_l(wf, dt*0.5, il, l1, Ul[l1]);
+				prop_ang_l(wf, dt, il, l1, Ul[l1]);
 			}
 		}
 

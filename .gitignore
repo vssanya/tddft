@@ -1,3 +1,4 @@
+*.npy
 *.dat
 *.pyc
 a.out

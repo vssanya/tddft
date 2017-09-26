@@ -36,13 +36,12 @@ double Dn_next(int n, double F[2], int ir, sh_grid_t const* grid, double const f
     return Dn_func(n, grid, ir, irl, f);
   }
 
-  /* double res; */
-  /* if (ir % 2 == 0) { */
-  /*   res = pow((ir-1)/(double)(ir+1), n+1)*F[0] + (func(ir-2) + 4*func(ir-1) + func(ir))*grid->d[iR]/3; */
-  /* } else { */
-  /*   res = pow(    ir/(double)(ir+1), n+1)*F[1] + (5*func(ir-1)/4 + 2*func(ir) - func(ir+1)/4)*grid->d[iR]/3; */
-  /* } */
-  double res = integrate_1d(func, ir+1, grid->d[iR]);
+  double res;
+  if (ir % 2 == 0) {
+    res = pow((ir-1)/(double)(ir+1), n+1)*F[0] + (func(ir-2) + 4*func(ir-1) + func(ir))*grid->d[iR]/3;
+  } else {
+    res = pow(    ir/(double)(ir+1), n+1)*F[1] + (5*func(ir-1)/4 + 2*func(ir) - func(ir+1)/4)*grid->d[iR]/3;
+  }
 
   F[0] = F[1];
   F[1] = res;
@@ -82,13 +81,12 @@ double Un_next(int n, double F[2], int ir, sh_grid_t const* grid, double const f
     return Un_func(n, grid, ir, irl, f);
   }
 
-  /* double res; */
-  /* if (ir % 2 == 0) { */
-  /*   res = pow((ir+1)/(double)(ir+3), n)*F[0] + (func(ir) + 4*func(ir+1) + func(ir+2))*grid->d[iR]/3; */
-  /* } else { */
-  /*   res = pow((ir+1)/(double)(ir+2), n)*F[1] + (-func(ir-1)/4 + 2*func(ir) + 5*func(ir+1)/4)*grid->d[iR]/3; */
-  /* } */
-  double res = integrate_1d_2(func, ir, grid->n[iR], grid->d[iR]);
+  double res;
+  if (ir % 2 == 0) {
+    res = pow((ir+1)/(double)(ir+3), n)*F[0] + (func(ir) + 4*func(ir+1) + func(ir+2))*grid->d[iR]/3;
+  } else {
+    res = pow((ir+1)/(double)(ir+2), n)*F[1] + (-func(ir-1)/4 + 2*func(ir) + 5*func(ir+1)/4)*grid->d[iR]/3;
+  }
 
   F[0] = F[1];
   F[1] = res;
