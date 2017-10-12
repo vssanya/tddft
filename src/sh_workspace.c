@@ -535,7 +535,7 @@ void sh_orbs_workspace_prop_img(
 		atom_t const* atom,
 		double dt
 ) {
-  sh_orbs_workspace_calc_Uee(ws, orbs, MIN(1, ws->Uxc_lmax), MIN(1, ws->Uh_lmax));
+	sh_orbs_workspace_calc_Uee(ws, orbs, MIN(1, ws->Uxc_lmax), MIN(1, ws->Uh_lmax));
 
 	double Ul0(sh_grid_t const* grid, int ir, int l, int m) {
 		double const r = sh_grid_r(grid, ir);

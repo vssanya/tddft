@@ -32,6 +32,8 @@ double atom_u_coulomb(atom_t const* atom, sh_grid_t const* grid, int ir) __attri
 double atom_dudz_coulomb(atom_t const* atom, sh_grid_t const* grid, int ir) __attribute__((pure));
 double atom_u_smooth(atom_t const* atom, sh_grid_t const* grid, int ir) __attribute__((pure));
 double atom_dudz_smooth(atom_t const* atom, sh_grid_t const* grid, int ir) __attribute__((pure));
+double atom_u_ar_sae(atom_t const* atom, sh_grid_t const* grid, int ir);
+double atom_dudz_ar_sae(atom_t const* atom, sh_grid_t const* grid, int ir);
 
 void atom_hydrogen_ground(sh_wavefunc_t* wf);
 
@@ -75,6 +77,17 @@ static atom_t const atom_argon = {
 	.u    = (pot_f)atom_u_coulomb,
 	.dudz = (pot_f)atom_dudz_coulomb,
   .u_type = POTENTIAL_COULOMB,
+};
+
+static atom_t const atom_argon_sae = {
+	.Z = 18,
+	.n_orbs = 1,
+	.m   = (int[]){0},
+	.l   = (int[]){1},
+	.n_e = (int[]){1},
+	.u    = (pot_f)atom_u_ar_sae,
+	.dudz = (pot_f)atom_dudz_ar_sae,
+	.u_type = POTENTIAL_COULOMB,
 };
 
 static atom_t const atom_argon_ion = {

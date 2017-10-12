@@ -1,6 +1,9 @@
 import numpy as np
-import matplotlib.pyplot as plt
-from IPython.core.pylabtools import print_figure
+
+import tdse.utils
+if tdse.utils.is_jupyter_notebook():
+    import matplotlib.pyplot as plt
+    from IPython.core.pylabtools import print_figure
 
 from libc.stdlib cimport malloc, free
 

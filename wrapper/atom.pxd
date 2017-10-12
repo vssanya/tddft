@@ -28,6 +28,7 @@ cdef extern from "atom.h":
 
     atom_t atom_argon
     atom_t atom_argon_ion
+    atom_t atom_argon_sae
 
     atom_t atom_neon
 

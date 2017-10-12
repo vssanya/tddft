@@ -25,6 +25,27 @@ int atom_get_number_ort(atom_t const* atom, int ie) {
   return atom->n_orbs - ie;
 }
 
+double atom_u_ar_sae(atom_t const* atom, sh_grid_t const* grid, int ir) {
+	static double const A = 5.4;
+	static double const B = 1;
+	static double const C = 3.682;
+
+	double const r = sh_grid_r(grid, ir);
+
+	return - (1.0 + (A*exp(-B*r) + (17 - A)*exp(-C*r)))/r;
+}
+
+double atom_dudz_ar_sae(atom_t const* atom, sh_grid_t const* grid, int ir) {
+	static double const A = 5.4;
+	static double const B = 1;
+	static double const C = 3.682;
+
+	double const r = sh_grid_r(grid, ir);
+
+	return (1.0 + (A*exp(-B*r) + (17 - A)*exp(-C*r)))/(r*r) +
+		   (B*A*exp(-B*r) + C*(17 - A)*exp(-C*r))/r;
+}
+
 double atom_u_coulomb(atom_t const* atom, sh_grid_t const* grid, int ir) {
     double const r = sh_grid_r(grid, ir);
 	return -atom->Z/r;

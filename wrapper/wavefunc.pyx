@@ -1,8 +1,10 @@
 import numpy as np
 cimport numpy as np
 
-import matplotlib.pyplot as plt
-from IPython.core.pylabtools import print_figure
+import tdse.utils
+if tdse.utils.is_jupyter_notebook():
+    import matplotlib.pyplot as plt
+    from IPython.core.pylabtools import print_figure
 
 from types cimport cdouble
 from abs_pot cimport mask_core

@@ -22,6 +22,7 @@ H_smooth = Atom.from_c(&atom_hydrogen_smooth)
 Ne       = Atom.from_c(&atom_neon)
 Ar       = Atom.from_c(&atom_argon)
 Ar_ion   = Atom.from_c(&atom_argon_ion)
+Ar_sae   = Atom.from_c(&atom_argon_sae)
 
 def ground_state(ShGrid grid) -> SWavefunc:
     wf = SWavefunc(grid)

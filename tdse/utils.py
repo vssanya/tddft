@@ -47,3 +47,10 @@ def E_to_I(E):
 
 def spectral_density(az: np.ndarray) -> np.ndarray:
     return 2/(3*np.pi*const.C**3)*np.abs(fft.rfft(az))**2
+
+def is_jupyter_notebook():
+    try:
+        cfg = get_ipython().config
+        return True
+    except Exception as e:
+        return False
