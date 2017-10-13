@@ -11,6 +11,8 @@ from abs_pot cimport mask_core
 from grid cimport ShGrid, SpGrid
 from sphere_harmonics cimport YlmCache
 
+from libc.stdlib cimport malloc, free
+
 
 cdef class SWavefunc:
     def __cinit__(self, ShGrid grid, int m=0, dealloc=True):
@@ -22,6 +24,9 @@ cdef class SWavefunc:
             self.cdata = sh_wavefunc_new(grid.data, m)
 
         self.dealloc = dealloc
+
+    def __init__(self, ShGrid grid, int m=0, dealloc=True):
+        pass
 
     cdef _set_data(self, sh_wavefunc_t* data):
         self.cdata = data
@@ -80,12 +85,22 @@ cdef class SWavefunc:
         return self._figure_data('png')
 
     @staticmethod
-    def random(ShGrid grid, int m=0):
+    def random(ShGrid grid, int l=0, int m=0):
         wf = SWavefunc(grid, m)
         arr = wf.asarray()
-        arr[:] = np.random.rand(*arr.shape)
+        arr[:] = 0.0
+        arr[l,:] = np.random.rand(arr.shape[1])
         wf.normalize()
         return wf
+
+    @staticmethod
+    def ort_l(wfs, int l):
+        cdef sh_wavefunc_t** wf_arr = <sh_wavefunc_t**>malloc(sizeof(sh_wavefunc_t*)*len(wfs))
+        for i in range(len(wfs)):
+            wf_arr[i] = (<SWavefunc>wfs[i]).cdata
+
+        sh_wavefunc_ort_l(l, len(wfs), wf_arr)
+        free(wf_arr)
 
 cdef SWavefunc swavefunc_from_point(sh_wavefunc_t* data, ShGrid grid):
     wf = SWavefunc(grid=grid, dealloc=False)

@@ -106,11 +106,11 @@ static atom_t const atom_argon_ion = {
 // 2  2  6
 static atom_t const atom_neon = {
 	.Z = 10,
-	.n_orbs = 5,
-	.m = (int[]){0,0,-1,0,1},
-	.l = (int[]){0,0, 1,1,1},
-	.n_e = (int[]){2,2,2,2,2},
+	.n_orbs = 4,
+	.m    = (int[]){0,0,0,1},
+	.l    = (int[]){0,0,1,1},
+	.n_e  = (int[]){2,2,2,4},
 	.u    = (pot_f)atom_u_coulomb,
 	.dudz = (pot_f)atom_dudz_coulomb,
-  .u_type = POTENTIAL_COULOMB,
+	.u_type = POTENTIAL_COULOMB,
 };

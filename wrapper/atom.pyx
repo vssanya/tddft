@@ -17,6 +17,14 @@ cdef class Atom:
     def n_orbs(self):
         return self.cdata.n_orbs
 
+    def get_l(self, int i):
+        assert(i<self.cdata.n_orbs)
+        return self.cdata.l[i]
+
+    def get_m(self, int i):
+        assert(i<self.cdata.n_orbs)
+        return self.cdata.m[i]
+
 H        = Atom.from_c(&atom_hydrogen)
 H_smooth = Atom.from_c(&atom_hydrogen_smooth)
 Ne       = Atom.from_c(&atom_neon)

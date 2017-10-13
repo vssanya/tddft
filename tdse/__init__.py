@@ -10,4 +10,6 @@ from . import workspace
 from . import calc
 from . import utils
 
+from . import ground_state
+
 from . import sfa

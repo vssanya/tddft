@@ -70,6 +70,9 @@ cdef class SKnWorkspace:
         )
         self.uabs = uabs
 
+    def __init__(self, ShGrid grid, Uabs uabs, int num_threads = -1):
+        pass
+
     def __dealloc__(self):
         if self.cdata != NULL:
             sh_workspace_free(self.cdata)
@@ -88,6 +91,9 @@ cdef class SOrbsWorkspace:
 
         self.cdata = sh_orbs_workspace_alloc(sh_grid.data, sp_grid.data, uabs.cdata, ylm_cache.cdata, Uh_lmax, Uxc_lmax, uxc.cdata, num_threads)
         self.uabs = uabs
+
+    def __init__(self, ShGrid sh_grid, SpGrid sp_grid, Uabs uabs, YlmCache ylm_cache, int Uxc_lmax = 3, int Uh_lmax = 3, Uxc uxc = UXC_LB, int num_threads=-1):
+        pass
 
     def __dealloc__(self):
         if self.cdata != NULL:

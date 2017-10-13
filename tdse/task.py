@@ -131,9 +131,10 @@ class Task(object):
 class WavefuncTask(Task):
     """
     """
+    state_n = 1 # Номер состояния
 
     def __init__(self, path_res='res', mode=None, **kwargs):
-        super().__init__(path_res, mode, is_mpi=False, kwargs)
+        super().__init__(path_res, mode, is_mpi=False, **kwargs)
 
         self.grid = tdse.grid.ShGrid(Nr=self.r_max/self.dr, Nl=self.Nl, r_max=self.r_max)
 
@@ -146,14 +147,8 @@ class WavefuncTask(Task):
     def calc_init(self):
         super().calc_init()
 
-        self.orbs = tdse.orbitals.SOrbitals(self.atom, self.grid)
-        self.wf = self.orbs.get_wf(0)
-
         self.ws = tdse.workspace.SKnWorkspace(self.grid, self.uabs)
-
-        for i in range(10000):
-            self.ws.prop_img(self.wf, self.atom, self.dt)
-            self.wf.normalize()
+        self.wf = tdse.ground_state.wf(self.atom, self.grid, self.ws, self.dt, 10000, n=self.state_n)
 
         self.t = self.field.get_t(self.dt, nT=self.nT)
 
@@ -165,7 +160,7 @@ class OrbitalsTask(Task):
     """
 
     def __init__(self, path_res='res', mode=None, is_mpi=True, **kwargs):
-        super().__init__(path_res, mode, is_mpi=is_mpi, kwargs)
+        super().__init__(path_res, mode, is_mpi=is_mpi, **kwargs)
 
         self.sh_grid = tdse.grid.ShGrid(Nr=self.r_max/self.dr, Nl=self.Nl, r_max=self.r_max)
         self.sp_grid = tdse.grid.SpGrid(Nr=self.r_max/self.dr, Nc=Nc, Np=1, r_max=self.r_max)

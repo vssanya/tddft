@@ -27,6 +27,7 @@ cdef extern from "sh_wavefunc.h":
     )
     void sh_wavefunc_cos_r(sh_wavefunc_t* wf, sh_f U, double* res)
     double sh_wavefunc_z(sh_wavefunc_t * wf)
+    void sh_wavefunc_ort_l(int l, int n, sh_wavefunc_t** wfs)
     cdouble swf_get_sp(sh_wavefunc_t* wf, sp_grid_t* grid, int i[3], ylm_cache_t* ylm_cache)
 
 cdef class SWavefunc:
