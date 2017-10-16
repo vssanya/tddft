@@ -1,4 +1,4 @@
-let g:neomake_make_maker = {
+let g:neomake_mymake_maker = {
 	\ 'exe': 'make',
 	\ 'errorformat': '%f:%l:%c: %m'
 	\ }

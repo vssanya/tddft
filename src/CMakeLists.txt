@@ -14,6 +14,7 @@ set( LIB_SOURCES
 	atom.c
 	eigen.c
 	linalg.c
+	tdsfm.c
 	"sfa/anal.c"
 	"hartree_potential/hp_o3.c"
 	"hartree_potential/hp_o5.c"
@@ -38,6 +39,7 @@ set( LIB_HEADERS
 	atom.h
 	eigen.h
 	linalg.h
+	tdsfm.h
 	"sfa/anal.h"
 	)
 

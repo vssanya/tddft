@@ -28,7 +28,7 @@ def wf_n(atom, n, grid, ws, dt, Nt):
 def wf(atom, grid, ws, dt, Nt, n=1):
     if n == 1:
         return wf_1(atom, grid, ws, dt, Nt)
-    else 
+    else:
         return wf_n(atom, n, grid, ws, dt, Nt)
 
 

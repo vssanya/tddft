@@ -5,6 +5,15 @@
 
 #include "utils.h"
 
+double field_func_zero(void const* field, double t) {
+	return 0.0;
+}
+
+double field_E_from_A(field_t const* field, double t) {
+	const double dt = 1e-8;
+	return -(field_A(field, t+dt) - field_A(field, t-dt))/(2*dt);
+}
+
 
 __attribute__((pure))
 double two_color_fill(double E, double alpha, double phase, double tau) {
@@ -27,17 +36,6 @@ double sin_env(double tp, double t) {
 __attribute__((pure))
 double tr_env(double tp, double t0, double t) {
   return smoothpulse(t, t0, tp-2*t0);
-  /*
-  if (t < 0 || t > tp) {
-    return 0.0;
-  } else if (t < t0) {
-    return t/t0;
-  } else if (t > tp - t0) {
-    return (tp - t)/t0;
-  } else {
-    return 1.0;
-  }
-  */
 }
 
 __attribute__((pure))
@@ -69,38 +67,108 @@ double two_color_tr_field_E(field_base_t const* data, double t) {
 	return two_color_fill(data->E0, data->alpha, data->phase, tau)*tr_env(data->tp, data->t0, t);
 }
 
-field_t* field_base_alloc(field_func_t func, double E0, double alpha, double freq, double phase, double tp, double t0) {
-	field_base_t* field = malloc(sizeof(field_base_t));
-
-	field->func = func;
-	field->E0 = E0;
-	field->alpha = alpha;
-	field->freq = freq;
-	field->phase = phase;
-	field->tp = tp;
-	field->t0 = t0;
-
-	return field;
+double field_mul_A(field_op_t const* field, double t) {
+	return field_A(field->f1, t)*field_A(field->f2, t);
 }
 
-field_t* two_color_gauss_field_alloc(double E0, double alpha, double freq, double phase, double tp, double t0) {
-	return field_base_alloc((field_func_t)two_color_gauss_field_E, E0, alpha, freq, phase, tp, t0);
+double field_mul_E(field_op_t const* field, double t) {
+	return field_E(field->f1, t)*field_A(field->f2, t) + field_A(field->f1, t)*field_E(field->f2, t);
 }
 
-field_t* two_color_gauss_dadt_field_alloc(double E0, double alpha, double freq, double phase, double tp, double t0) {
-	return field_base_alloc((field_func_t)two_color_gauss_dadt_field_E, E0, alpha, freq, phase, tp, t0);
+double field_op_T(field_op_t const* field) {
+	return max(field_T(field->f1), field_T(field->f2));
 }
 
-field_t* two_color_sin_field_alloc(double E0, double alpha, double freq, double phase, double tp, double t0) {
-	return field_base_alloc((field_func_t)two_color_sin_field_E, E0, alpha, freq, phase, tp, t0);
+double field_sum_A(field_op_t const* field, double t) {
+	return field_A(field->f1, t) + field_A(field->f2, t);
 }
 
-field_t* two_color_tr_field_alloc(double E0, double alpha, double freq, double phase, double tp, double t0) {
-	return field_base_alloc((field_func_t)two_color_tr_field_E, E0, alpha, freq, phase, tp, t0);
+double field_sum_E(field_op_t const* field, double t) {
+	return field_E(field->f1, t) + field_E(field->f2, t);
 }
 
-void field_free(field_t* field) {
-	if (field != NULL) {
-		free(field);
+double field_gauss_env_A(field_gauss_env_t const* field, double t) {
+	t -= field_T((field_t*)field)*0.5;
+	return exp(-pow(t/field->tp, 2));
+}
+
+double field_gauss_env_E(field_gauss_env_t const* field, double t) {
+	t -= field_T((field_t*)field)*0.5;
+	return 2.0*t/pow(field->tp,2)*field_E((field_t*)field, t);
+}
+
+double field_gauss_env_T(field_gauss_env_t const* field) {
+	return 2.0*sqrt(0.5*pow(field->tp,2)*log(field->dI));
+}
+
+double field_sin_env_A(field_sin_env_t const* field, double t) {
+  if (t < 0 || t > field->tp) {
+    return 0.0;
+  }
+  return pow(sin(M_PI*t/field->tp), 2);
+}
+
+double field_sin_env_E(field_sin_env_t const* field, double t) {
+  if (t < 0 || t > field->tp) {
+    return 0.0;
+  }
+  return -2.0*sin(M_PI*t/field->tp)*cos(M_PI*t/field->tp)*M_PI/field->tp;
+}
+
+double field_sin_env_T(field_sin_env_t const* field) {
+	return field->tp;
+}
+
+double field_tr_env_A(field_tr_env_t const* field, double t) {
+  return smoothpulse(t, field->t_smooth, field->t_const);
+}
+
+double field_tr_env_T(field_tr_env_t const* field) {
+	return field->t_const + 2.0*field->t_smooth;
+}
+
+double field_tr_sin_env_A(field_tr_sin_env_t const* field, double t) {
+	if (t < 0.0) {
+		return 0.0;
+	} else if (t < field->t_smooth) {
+		return pow(sin(M_PI*t/(2*field->t_smooth)), 2);
+	} else if (t < (field->t_const - field->t_smooth)) {
+		return 1.0;
+	} else if (t < field->t_const) {
+		return 1.0 - pow(sin(M_PI*(t - field->t_const + field->t_smooth)/(2*field->t_smooth)), 2);
+	} else {
+		return 0.0;
 	}
+}
+
+double field_tr_sin_env_E(field_tr_sin_env_t const* field, double t) {
+	double freq = M_PI/(2*field->t_smooth);
+	if (t < 0.0) {
+		return 0.0;
+	} else if (t < field->t_smooth) {
+		return -2*freq*sin(freq*t)*cos(freq*t);
+	} else if (t < (field->t_const - field->t_smooth)) {
+		return 0.0;
+	} else if (t < field->t_const) {
+		t += - field->t_const + field->t_smooth;
+		return 2*freq*sin(freq*t)*cos(freq*t);
+	} else {
+		return 0.0;
+	}
+}
+
+double field_tr_sin_env_T(field_tr_sin_env_t const* field) {
+	return field->t_const + 2.0*field->t_smooth;
+}
+
+double field_car_A(field_car_t const* field, double t) {
+	return field->E*sin(field->freq*t + field->phase)/field->freq;
+}
+
+double field_car_E(field_car_t const* field, double t) {
+	return -field->E*cos(field->freq*t + field->phase);
+}
+
+double field_car_T(field_car_t const* field) {
+	return 2*M_PI/field->freq;
 }

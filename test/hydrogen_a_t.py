@@ -29,18 +29,16 @@ def calc_wf_az_t():
     r_max = 100
     Nl = 2
 
-    atom = tdse.atom.Atom('H')
+    atom = tdse.atom.Ar_sae
     r = np.linspace(dr, r_max, r_max/dr)
     g = tdse.grid.ShGrid(Nr=r_max/dr, Nl=Nl, r_max=r_max)
 
-    orbs = tdse.orbitals.SOrbitals(atom, g)
-    orbs.init()
-    orbs.normalize()
-    wf = orbs.get_wf(0)
-    data = wf.asarray()
     uabs = tdse.abs_pot.UabsMultiHump(dr*10, r_max/8)
     #uabs = tdse.abs_pot.UabsZero()
     ws = tdse.workspace.SKnWorkspace(grid=g, uabs=uabs, num_threads=2)
+
+    wf = tdse.ground_state.wf(atom, g, ws, dt, Nt=5000, n=2)
+    data = wf.asarray()
 
     #eigen = tdse.workspace.Eigen(g)
     #eigen.calc(atom)
@@ -53,10 +51,6 @@ def calc_wf_az_t():
     #psi = wf.asarray()
     #psi[:] = 0.0
     #psi[0,:] = -eigen.get_evec()[0,:,0]/np.sqrt(dr)
-
-    for i in range(10000):
-        ws.prop_img(wf, atom, dt)
-        wf.normalize()
 
     # data[:] = 0.0
     # data[1,:] = np.exp(-20*(r-25)**2)*np.exp(20j*r)

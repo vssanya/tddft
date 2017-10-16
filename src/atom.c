@@ -42,8 +42,8 @@ double atom_dudz_ar_sae(atom_t const* atom, sh_grid_t const* grid, int ir) {
 
 	double const r = sh_grid_r(grid, ir);
 
-	return (1.0 + (A*exp(-B*r) + (17 - A)*exp(-C*r)))/(r*r) +
-		   (B*A*exp(-B*r) + C*(17 - A)*exp(-C*r))/r;
+	return (1.0 + (  A*exp(-B*r) +   (17 - A)*exp(-C*r)))/(r*r) +
+		          (B*A*exp(-B*r) + C*(17 - A)*exp(-C*r))/r;
 }
 
 double atom_u_coulomb(atom_t const* atom, sh_grid_t const* grid, int ir) {

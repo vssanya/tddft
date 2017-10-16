@@ -9,15 +9,24 @@ from libc.stdlib cimport malloc, free
 
 
 cdef class Field:
-    def __dealloc__(self):
-        field_free(self.cdata)
-
     def E(self, double t):
         return field_E(self.cdata, t)
 
+    def A(self, double t):
+        return field_A(self.cdata, t)
+
+    def __mul__(self, Field other):
+        return MulField(self, other)
+
+    def __add__(self, Field other):
+        return SumField(self, other)
+
     @property
     def T(self):
-        return 2*np.pi/self.freq
+        return field_T(self.cdata)
+
+    def get_t(self, double dt, double dT=0):
+        return np.arange(0, self.T+dT, dt)
 
     def _figure_data(self, format):
         t = self.get_t(self.T/100)
@@ -38,6 +47,15 @@ cdef class Field:
     def _repr_png_(self):
         return self._figure_data('png')
 
+    def _repr_latex_A_(self):
+        return "?"
+
+    def _repr_latex_E_(self):
+        return "?"
+
+    def _repr_latex(self):
+        return r"$\vec{A}(t) = \vec{e}_z \left(" + self._repr_latex_A_() + r"\right)$"
+
 cdef object FIELDS = {}
 
 cdef double field_base_func(void* self, double t):
@@ -45,21 +63,72 @@ cdef double field_base_func(void* self, double t):
 
 cdef class FieldBase(Field):
     def __cinit__(self):
-        self.cdata = <field_t*>malloc(sizeof(field_t))
-        self.cdata.func = field_base_func
+        self.cfield.fE = <field_func_t>field_base_func
+        self.cfield.fA = <field_func_t>field_base_func
+        self.cdata = &self.cfield
+
         FIELDS[<size_t>self.cdata] = self
 
     def _E(self, t):
         return 0.0
 
+cdef class OpField(Field):
+    def __cinit__(self, Field f1, Field f2):
+        self.f1 = f1
+        self.f2 = f2
+
+        self.cfield.f1 = f1.cdata
+        self.cfield.f2 = f2.cdata
+        self.cfield.pT = <field_prop_t>field_op_T
+
+        self.cdata = <field_t*>(&self.cfield)
+
+cdef class MulField(OpField):
+    def __cinit__(self, Field f1, Field f2):
+        super().__init__(f1, f2)
+        self.cfield.fA = <field_func_t>field_mul_A
+        self.cfield.fE = <field_func_t>field_mul_E
+
+    def _repr_latex_A_(self):
+        return r"{} \cdot {}".format(self.f1._repr_latex_A_(), self.f2._repr_latex_A_())
+
+    def _repr_latex_E_(self):
+        return r"{} \cdot {}".format(self.f1._repr_latex_E_(), self.f2._repr_latex_E_())
+
+
+cdef class SumField(OpField):
+    def __cinit__(self, Field f1, Field f2):
+        super().__init__(f1, f2)
+        self.cfield.fA = <field_func_t>field_sum_A
+        self.cfield.fE = <field_func_t>field_sum_E
+
+    def _repr_latex_A_(self):
+        return r"{} + {}".format(self.f1._repr_latex_A_(), self.f2._repr_latex_A_())
+
+    def _repr_latex_E_(self):
+        return r"{} + {}".format(self.f1._repr_latex_E_(), self.f2._repr_latex_E_())
+
 cdef class TwoColorBaseField(Field):
+    def __cinit__(self, double E0=5.34e-2 , double alpha=0.1,
+            double freq=5.6e-2, double phase=0.0,
+            double t_fwhm=2*3.14/5.6e-2, double t0=0.0):
+        self.cfield.E0 = E0
+        self.cfield.alpha = alpha
+        self.cfield.freq = freq
+        self.cfield.phase = phase
+        self.cfield.t0 = t0
+
+        self.t_fwhm = t_fwhm
+
+        self.cdata = <field_t*>(&self.cfield)
+
     @property
     def E0(self):
-        return (<field_base_t*>self.cdata).E0
+        return self.cfield.E0
 
     @property
     def alpha(self):
-        return (<field_base_t*>self.cdata).alpha
+        return self.cfield.alpha
 
     @property
     def E1(self):
@@ -67,24 +136,24 @@ cdef class TwoColorBaseField(Field):
 
     @property
     def freq(self):
-        return (<field_base_t*>self.cdata).freq
+        return self.cfield.freq
 
     @property
     def phase(self):
-        return (<field_base_t*>self.cdata).phase
+        return self.cfield.phase
 
     @property
     def tp(self):
-        return (<field_base_t*>self.cdata).tp
+        return self.cfield.tp
 
 cdef class TwoColorGaussField(TwoColorBaseField):
     def __cinit__(self, double E0=5.34e-2 , double alpha=0.1,
             double freq=5.6e-2, double phase=0.0,
             double t_fwhm=2*3.14/5.6e-2, double t0=0.0):
-        self.t_fwhm = t_fwhm
-
-        tp = self.t_fwhm / np.sqrt(2*np.log(2))
-        self.cdata = two_color_gauss_field_alloc(E0, alpha, freq, phase, tp, t0)
+        super().__init__(E0,alpha,freq,phase,t_fwhm,t0)
+        self.cfield.tp = self.t_fwhm / np.sqrt(2*np.log(2))
+        self.cfield.fA = <field_func_t>field_func_zero
+        self.cfield.fE = <field_func_t>two_color_gauss_field_E
 
     def duration(self, double dI=1e7):
         return 2*np.sqrt(0.5*self.tp**2*np.log(dI))
@@ -95,13 +164,13 @@ cdef class TwoColorGaussField(TwoColorBaseField):
         return np.arange(t0, t0+dur+self.T*nT, dt)
 
 cdef class TwoColorGaussAField(TwoColorBaseField):
-    def __cinit__(self, double E0=5.34e-2 , double alpha=0.1,
+    def __init__(self, double E0=5.34e-2 , double alpha=0.1,
             double freq=5.6e-2, double phase=0.0,
             double t_fwhm=2*3.14/5.6e-2, double t0=0.0):
-        self.t_fwhm = t_fwhm
-
-        tp = self.t_fwhm / np.sqrt(2*np.log(2))
-        self.cdata = two_color_gauss_dadt_field_alloc(E0, alpha, freq, phase, tp, t0)
+        super().__init__(E0,alpha,freq,phase,t_fwhm,t0)
+        self.cfield.tp = self.t_fwhm / np.sqrt(2*np.log(2))
+        self.cfield.fA = <field_func_t>field_func_zero
+        self.cfield.fE = <field_func_t>two_color_gauss_dadt_field_E
 
     def duration(self, double dI=1e7):
         return 2*np.sqrt(0.5*self.t_fwhm**2*np.log(dI))
@@ -115,9 +184,10 @@ cdef class TwoColorSinField(TwoColorBaseField):
     def __cinit__(self, double E0=5.34e-2 , double alpha=0.1,
             double freq=5.6e-2, double phase=0.0,
             double t_fwhm=2*3.14/5.6e-2, double t0=0.0):
-        self.t_fwhm = t_fwhm
-        cdef double tp = t_fwhm/(1.0 - 2.0*np.arcsin(0.5**(1.0/4.0))/np.pi)
-        self.cdata = two_color_sin_field_alloc(E0, alpha, freq, phase, tp, t0)
+        super().__init__(E0,alpha,freq,phase,t_fwhm,t0)
+        self.cfield.tp = t_fwhm/(1.0 - 2.0*np.arcsin(0.5**(1.0/4.0))/np.pi)
+        self.cfield.fA = <field_func_t>field_func_zero
+        self.cfield.fE = <field_func_t>two_color_sin_field_E
 
     def __init__(self, double E0=5.34e-2 , double alpha=0.1,
             double freq=5.6e-2, double phase=0.0,
@@ -131,7 +201,72 @@ cdef class TwoColorTrField(TwoColorBaseField):
     def __cinit__(self, double E0=5.34e-2 , double alpha=0.1,
             double freq=5.6e-2, double phase=0.0,
             double tp=2*3.14/5.6e-2, double t0=0.0):
-        self.cdata = two_color_tr_field_alloc(E0, alpha, freq, phase, tp, t0)
+        super().__init__(E0,alpha,freq,phase,tp,t0)
+        self.cfield.tp = tp
+        self.cfield.fA = <field_func_t>field_func_zero
+        self.cfield.fE = <field_func_t>two_color_tr_field_E
 
     def get_t(self, dt):
         return np.arange(0, self.tp, dt)
+
+cdef class GaussEnvField(Field):
+    def __init__(self, double t_fwhm, double dI):
+        self.cfield.dI = dI
+        self.cfield.tp = self.t_fwhm / np.sqrt(2*np.log(2))
+        self.cfield.fA = <field_func_t>field_gauss_env_A
+        self.cfield.fE = <field_func_t>field_gauss_env_E
+        self.cfield.pT = <field_prop_t>field_gauss_env_T
+
+        self.cdata = <field_t*>(&self.cfield)
+
+    def _repr_latex_A_(self):
+        return r"\exp(-\frac{t^2}{t_p^2})"
+
+cdef class SinEnvField(Field):
+    def __init__(self, double t_fwhm):
+        self.cfield.tp = t_fwhm/(1.0 - 2.0*np.arcsin(0.5**(1.0/4.0))/np.pi)
+        self.cfield.fA = <field_func_t>field_sin_env_A
+        self.cfield.fE = <field_func_t>field_sin_env_E
+        self.cfield.pT = <field_prop_t>field_sin_env_T
+
+        self.cdata = <field_t*>(&self.cfield)
+
+    def _repr_latex_A_(self):
+        return r"\sin(\frac{\pi t}{t_p})^2"
+
+cdef class TrEnvField(Field):
+    def __init__(self, double t_const, double t_smooth):
+        self.cfield.t_const = t_const
+        self.cfield.t_smooth = t_smooth
+        self.cfield.fA = <field_func_t>field_tr_env_A
+        self.cfield.fE = field_E_from_A
+        self.cfield.pT = <field_prop_t>field_tr_env_T
+
+        self.cdata = <field_t*>(&self.cfield)
+
+cdef class TrSinEnvField(Field):
+    def __init__(self, double t_const, double t_smooth):
+        self.cfield.t_const = t_const
+        self.cfield.t_smooth = t_smooth
+        self.cfield.fA = <field_func_t>field_tr_env_A
+        self.cfield.fE = <field_func_t>field_tr_env_E
+        self.cfield.pT = <field_prop_t>field_tr_env_T
+
+        self.cdata = <field_t*>(&self.cfield)
+
+cdef class CarField(Field):
+    def __init__(self, double E, double freq, double phase):
+        self.cfield.E = E
+        self.cfield.freq = freq
+        self.cfield.phase = phase
+        self.cfield.fA = <field_func_t>field_car_A
+        self.cfield.fE = <field_func_t>field_car_E
+        self.cfield.pT = <field_prop_t>field_car_T
+
+        self.cdata = <field_t*>(&self.cfield)
+
+    def _repr_latex_A_(self):
+        return r"E\sin(\omega t + \varphi)"
+
+    def _repr_latex_E_(self):
+        return r"-\frac{E}{\omega}\cos(\omega t + \varphi)"
