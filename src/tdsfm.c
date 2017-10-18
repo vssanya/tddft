@@ -74,9 +74,41 @@ void tdsfm_calc(tdsfm_t* tdsfm, field_t const* field, sh_wavefunc_t const* wf, d
 			double k = sp_grid_r(tdsfm->k_grid, ik);
 			double kz = sp_grid_c(tdsfm->k_grid, ic)*k;
 
+			double S = cexp(0.5*I*(k*k*t + 2*kz*Az + A_2));
+
 			for (int il=0; il<wf->grid->n[iL]; il++) {
-				tdsfm->data[ik+ic*Nk] += r/sqrt(2*M_PI)*cpow(-I, il+1)*cexp(0.5*I*(k*k*t + 2*kz*Az + A_2))*(tdsfm->jl[il+ik*(Nl+1)]*((swf_get(wf, ir+1, il) - swf_get(wf, ir-1, il))/(2*dr)-(il+1)*swf_get(wf, ir, il)/r) + k*swf_get(wf, ir, il)*tdsfm->jl[il+1+ik*(Nl+1)])*ylm_cache_get(tdsfm->ylm, il, wf->m, ic);
+				tdsfm->data[ik+ic*Nk] += r/sqrt(2*M_PI)*cpow(-I, il+1)*S*(tdsfm->jl[il+ik*(Nl+1)]*((swf_get(wf, ir+1, il) - swf_get(wf, ir-1, il))/(2*dr)-(il+1)*swf_get(wf, ir, il)/r) + k*swf_get(wf, ir, il)*tdsfm->jl[il+1+ik*(Nl+1)])*ylm_cache_get(tdsfm->ylm, il, wf->m, ic)*dt;
 			}
+		}
+	}
+}
+
+void tdsfm_calc_inner(tdsfm_t* tdsfm, field_t const* field, sh_wavefunc_t const* wf, double t) {
+	int Nk = tdsfm->k_grid->n[iR];
+
+	double At    = field_A(field, t);
+	double Az  = t*At - tdsfm->int_A;
+	double A_2 = t*pow(At, 2) - 2*At*tdsfm->int_A + tdsfm->int_A2;
+
+#pragma omp parallel for collapse(2)
+	for (int ik=0; ik<Nk; ik++) {
+		for (int ic=0; ic<tdsfm->k_grid->n[iC]; ic++) {
+			double k = sp_grid_r(tdsfm->k_grid, ik);
+			double kz = sp_grid_c(tdsfm->k_grid, ic)*k;
+
+			double S = cexp(0.5*I*(k*k*t + 2*kz*Az + A_2));
+
+			cdouble a_k = 0.0;
+			for (int il=0; il<wf->grid->n[iL]; il++) {
+				cdouble a_kl = 0.0;
+				for (int ir=0; ir<wf->grid->n[iR]; ir++) {
+					double r = sh_grid_r(wf->grid, ir);
+					a_kl += r*swf_get(wf, ir, il)*gsl_sf_bessel_jl(il, k*r);
+				}
+				a_k += a_kl*wf->grid->d[iR]*cpow(-I, il)*ylm_cache_get(tdsfm->ylm, il, wf->m, ic)*S;
+			}
+
+			tdsfm->data[ik+ic*Nk] += a_k*sqrt(2.0/M_PI);
 		}
 	}
 }

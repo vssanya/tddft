@@ -24,6 +24,9 @@ cdef class TDSFM:
     def calc(self, Field field, SWavefunc wf, double t, double dt):
         tdsfm_calc(self.cdata, field.cdata, wf.cdata, t, dt)
 
+    def calc_inner(self, Field field, SWavefunc wf, double t):
+        tdsfm_calc_inner(self.cdata, field.cdata, wf.cdata, t)
+
     def asarray(self):
         cdef cdouble[:, ::1] arr = <cdouble[:self.cdata.k_grid.n[1], :self.cdata.k_grid.n[0]]>self.cdata.data
         return np.asarray(arr)

@@ -19,6 +19,7 @@ cdef extern from "tdsfm.h":
     tdsfm_t* tdsfm_new(sp_grid_t * k_grid, sh_grid_t * r_grid, int ir)
     void tdsfm_del(tdsfm_t* tdsfm)
     void tdsfm_calc(tdsfm_t* tdsfm, field_t * field, sh_wavefunc_t * wf, double t, double dt)
+    void tdsfm_calc_inner(tdsfm_t* tdsfm, field_t* field, sh_wavefunc_t* wf, double t)
 
 
 cdef class TDSFM:
