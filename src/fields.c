@@ -39,6 +39,21 @@ double tr_env(double tp, double t0, double t) {
 }
 
 __attribute__((pure))
+double tr_sin_env(double tp, double t_smooth, double t) {
+	if (t < 0.0) {
+		return 0.0;
+	} else if (t < t_smooth) {
+		return pow(sin(M_PI*t/(2*t_smooth)), 2);
+	} else if (t < (tp - t_smooth)) {
+		return 1.0;
+	} else if (t < tp) {
+		return 1.0 - pow(sin(M_PI*(t - tp + t_smooth)/(2*t_smooth)), 2);
+	} else {
+		return 0.0;
+	}
+}
+
+__attribute__((pure))
 double two_color_gauss_field_E(field_base_t const* data, double t) {
 	double const tau = data->freq*(t - data->t0);
 	return two_color_fill(data->E0, data->alpha, data->phase, tau)*gauss_env(data->tp, t - data->t0);
@@ -123,6 +138,10 @@ double field_tr_env_A(field_tr_env_t const* field, double t) {
   return smoothpulse(t, field->t_smooth, field->t_const);
 }
 
+double field_tr_env_E(field_tr_env_t const* field, double t) {
+  return field_E_from_A((field_t*)field, t);
+}
+
 double field_tr_env_T(field_tr_env_t const* field) {
 	return field->t_const + 2.0*field->t_smooth;
 }
@@ -171,4 +190,20 @@ double field_car_E(field_car_t const* field, double t) {
 
 double field_car_T(field_car_t const* field) {
 	return 2*M_PI/field->freq;
+}
+
+double field_const_env_A(field_const_env_t const* field, double t) {
+	if (t < 0.0 || t > field->tp) {
+		return 0.0;
+	} else {
+		return 1.0;
+	}
+}
+
+double field_const_env_E(field_const_env_t const* field, double t) {
+	return 0.0;
+}
+
+double field_const_env_T(field_const_env_t const* field) {
+	return field->tp;
 }

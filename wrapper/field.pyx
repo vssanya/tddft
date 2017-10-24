@@ -85,7 +85,6 @@ cdef class OpField(Field):
 
 cdef class MulField(OpField):
     def __cinit__(self, Field f1, Field f2):
-        super().__init__(f1, f2)
         self.cfield.fA = <field_func_t>field_mul_A
         self.cfield.fE = <field_func_t>field_mul_E
 
@@ -123,6 +122,10 @@ cdef class TwoColorBaseField(Field):
         self.cdata = <field_t*>(&self.cfield)
 
     @property
+    def T(self):
+        return 2.0*np.pi/self.freq
+
+    @property
     def E0(self):
         return self.cfield.E0
 
@@ -150,7 +153,6 @@ cdef class TwoColorGaussField(TwoColorBaseField):
     def __cinit__(self, double E0=5.34e-2 , double alpha=0.1,
             double freq=5.6e-2, double phase=0.0,
             double t_fwhm=2*3.14/5.6e-2, double t0=0.0):
-        super().__init__(E0,alpha,freq,phase,t_fwhm,t0)
         self.cfield.tp = self.t_fwhm / np.sqrt(2*np.log(2))
         self.cfield.fA = <field_func_t>field_func_zero
         self.cfield.fE = <field_func_t>two_color_gauss_field_E
@@ -167,24 +169,22 @@ cdef class TwoColorGaussAField(TwoColorBaseField):
     def __init__(self, double E0=5.34e-2 , double alpha=0.1,
             double freq=5.6e-2, double phase=0.0,
             double t_fwhm=2*3.14/5.6e-2, double t0=0.0):
-        super().__init__(E0,alpha,freq,phase,t_fwhm,t0)
         self.cfield.tp = self.t_fwhm / np.sqrt(2*np.log(2))
         self.cfield.fA = <field_func_t>field_func_zero
         self.cfield.fE = <field_func_t>two_color_gauss_dadt_field_E
 
-    def duration(self, double dI=1e7):
-        return 2*np.sqrt(0.5*self.t_fwhm**2*np.log(dI))
+    def duration(self, double Emin=1e-7):
+        return 2*self.tp*np.sqrt(np.log(self.E0*(1.0+self.alpha)/Emin))
 
-    def get_t(self, double dt, double dI=1e7, int nT=0):
-        dur = self.duration(dI)
+    def get_t(self, double dt, double Emin=1e-7, double dT=0.0):
+        dur = self.duration(Emin)
         t0 = -0.5*dur
-        return np.arange(t0, t0+dur+self.T*nT, dt)
+        return np.arange(t0, t0+dur+dT, dt)
 
 cdef class TwoColorSinField(TwoColorBaseField):
     def __cinit__(self, double E0=5.34e-2 , double alpha=0.1,
             double freq=5.6e-2, double phase=0.0,
             double t_fwhm=2*3.14/5.6e-2, double t0=0.0):
-        super().__init__(E0,alpha,freq,phase,t_fwhm,t0)
         self.cfield.tp = t_fwhm/(1.0 - 2.0*np.arcsin(0.5**(1.0/4.0))/np.pi)
         self.cfield.fA = <field_func_t>field_func_zero
         self.cfield.fE = <field_func_t>two_color_sin_field_E
@@ -194,14 +194,13 @@ cdef class TwoColorSinField(TwoColorBaseField):
             double t_fwhm=2*3.14/5.6e-2, double t0=0.0):
         pass
 
-    def get_t(self, double dt, int nT=0):
-        return np.arange(0, self.tp+self.T*nT, dt)
+    def get_t(self, double dt, int dT=0):
+        return np.arange(0, self.tp+dT, dt)
 
 cdef class TwoColorTrField(TwoColorBaseField):
     def __cinit__(self, double E0=5.34e-2 , double alpha=0.1,
             double freq=5.6e-2, double phase=0.0,
             double tp=2*3.14/5.6e-2, double t0=0.0):
-        super().__init__(E0,alpha,freq,phase,tp,t0)
         self.cfield.tp = tp
         self.cfield.fA = <field_func_t>field_func_zero
         self.cfield.fE = <field_func_t>two_color_tr_field_E
@@ -254,6 +253,15 @@ cdef class TrSinEnvField(Field):
 
         self.cdata = <field_t*>(&self.cfield)
 
+cdef class ConstEnvField(Field):
+    def __init__(self, double tp):
+        self.cfield.tp = tp 
+        self.cfield.fA = <field_func_t>field_const_env_A
+        self.cfield.fE = <field_func_t>field_const_env_E
+        self.cfield.pT = <field_prop_t>field_const_env_T
+
+        self.cdata = <field_t*>(&self.cfield)
+
 cdef class CarField(Field):
     def __init__(self, double E, double freq, double phase):
         self.cfield.E = E
@@ -270,3 +278,18 @@ cdef class CarField(Field):
 
     def _repr_latex_E_(self):
         return r"-\frac{E}{\omega}\cos(\omega t + \varphi)"
+
+    @property
+    def freq(self):
+        return self.cfield.freq
+
+    @property
+    def E0(self):
+        return self.cfield.E
+
+    @property
+    def phase(self):
+        return self.cfield.phase
+
+def OneColorTrSinField(double E, double freq, double t_const, double t_smooth):
+    return CarField(E, freq, 0.0)*TrSinEnvField(t_const, t_smooth)

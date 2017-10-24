@@ -31,7 +31,8 @@ sh_wavefunc_t* sh_wavefunc_new_from(cdouble* data, sh_grid_t const* grid, int co
 	return _sh_wavefunc_new(data, false, grid, m);
 }
 
-void sh_wavefunc_copy(sh_wavefunc_t const* wf_src, sh_wavefunc_t const* wf_dest) {
+void sh_wavefunc_copy(sh_wavefunc_t const* wf_src, sh_wavefunc_t* wf_dest) {
+#pragma omp parallel for
 	for (int i = 0; i < grid2_size(wf_src->grid); ++i) {
 		wf_dest->data[i] = wf_src->data[i];
 	}
@@ -51,7 +52,7 @@ double swf_get_abs_2(sh_wavefunc_t const* wf, int ir, int il) {
 
 
 typedef double (*func_wf_t)(sh_wavefunc_t const* wf, int ir, int il);
-#define sh_wavefunc_integrate(...) sh_wavefunc_integrate_o3(__VA_ARGS__)
+#define sh_wavefunc_integrate(...) sh_wavefunc_integrate_o2(__VA_ARGS__)
 inline double sh_wavefunc_integrate_o2(sh_wavefunc_t const* wf, func_wf_t func, int l_max) {
 	double res = 0.0;
 #pragma omp parallel for reduction(+:res) collapse(2)

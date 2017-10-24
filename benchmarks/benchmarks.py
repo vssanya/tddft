@@ -14,7 +14,7 @@ class OrbitalsFunc:
         Nl = 60
 
         self.grid = tdse.grid.ShGrid(Nr, Nl, r_max)
-        self.atom = tdse.atom.Atom('Ar')
+        self.atom = tdse.atom.Ar
         self.orbs = tdse.orbitals.SOrbitals(self.atom, self.grid)
         self.orbs.init()
         self.field = tdse.field.TwoColorSinField()
@@ -44,7 +44,7 @@ class OrbitalsPropagate:
 
         self.ylm_cache = tdse.sphere_harmonics.YlmCache(Nl, self.sp_grid)
 
-        self.atom = tdse.atom.Atom('Ar')
+        self.atom = tdse.atom.Ar
         self.orbs = tdse.orbitals.SOrbitals(self.atom, self.grid)
         self.orbs.init()
         self.uh = np.ndarray(Nr)
@@ -69,12 +69,12 @@ class WavefuncPropagate:
         dr = 0.02
         r_max = 200
         Nr = int(r_max/dr)
-        Nl = 64
+        Nl = 128
 
         self.grid = tdse.grid.ShGrid(Nr, Nl, r_max)
         self.sp_grid = tdse.grid.SpGrid(Nr, 32, 1, r_max)
         self.ylm_cache = tdse.sphere_harmonics.YlmCache(Nl, self.sp_grid)
-        self.atom = tdse.atom.Atom('H')
+        self.atom = tdse.atom.H
         self.n = np.ndarray((Nr, 32))
         self.wf = tdse.atom.ground_state(self.grid)
         self.uabs = tdse.abs_pot.UabsMultiHump(0.1, 10)

@@ -101,14 +101,14 @@ void tdsfm_calc_inner(tdsfm_t* tdsfm, field_t const* field, sh_wavefunc_t const*
 			cdouble a_k = 0.0;
 			for (int il=0; il<wf->grid->n[iL]; il++) {
 				cdouble a_kl = 0.0;
-				for (int ir=0; ir<wf->grid->n[iR]; ir++) {
+				for (int ir=0; ir<tdsfm->ir; ir++) {
 					double r = sh_grid_r(wf->grid, ir);
 					a_kl += r*swf_get(wf, ir, il)*gsl_sf_bessel_jl(il, k*r);
 				}
-				a_k += a_kl*wf->grid->d[iR]*cpow(-I, il)*ylm_cache_get(tdsfm->ylm, il, wf->m, ic)*S;
+				a_k += a_kl*cpow(-I, il)*ylm_cache_get(tdsfm->ylm, il, wf->m, ic);
 			}
 
-			tdsfm->data[ik+ic*Nk] += a_k*sqrt(2.0/M_PI);
+			tdsfm->data[ik+ic*Nk] += a_k*sqrt(2.0/M_PI)*wf->grid->d[iR]*S;
 		}
 	}
 }

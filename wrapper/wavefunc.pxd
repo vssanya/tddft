@@ -15,6 +15,7 @@ cdef extern from "sh_wavefunc.h":
 
     sh_wavefunc_t* sh_wavefunc_new(sh_grid_t* grid, int m)
     sh_wavefunc_t* sh_wavefunc_new_from(cdouble* data, sh_grid_t* grid, int m)
+    void sh_wavefunc_copy(sh_wavefunc_t* wf_src, sh_wavefunc_t* wf_dest)
 
     void   sh_wavefunc_del(sh_wavefunc_t* wf)
     void   sh_wavefunc_n_sp(sh_wavefunc_t* wf, sp_grid_t* grid, double* n, ylm_cache_t* ylm_cache)
@@ -29,6 +30,7 @@ cdef extern from "sh_wavefunc.h":
     double sh_wavefunc_z(sh_wavefunc_t * wf)
     void sh_wavefunc_ort_l(int l, int n, sh_wavefunc_t** wfs)
     cdouble swf_get_sp(sh_wavefunc_t* wf, sp_grid_t* grid, int i[3], ylm_cache_t* ylm_cache)
+    cdouble sh_wavefunc_prod(sh_wavefunc_t* wf1, sh_wavefunc_t* wf2)
 
 cdef class SWavefunc:
     cdef sh_wavefunc_t* cdata

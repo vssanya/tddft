@@ -7,13 +7,14 @@ from . import const
 UNIT = {
         'au': 1.0, # atomic unit
 
-        's' : 1 / 2.418884326505e-17,
-        'fs': 1 / 2.418884326505e-2,
+        's' : 1.0 / 2.418884326505e-17,
+        'fs': 1.0 / 2.418884326505e-2,
 
-        'm': 1 / 5.2917721092e-11,
-        'nm': 1 / 5.2917721092e-2,
+        'm' : 1.0 / 5.2917721092e-11,
+        'nm': 1.0 / 5.2917721092e-2,
 
-        'eV': 1.602e-19 / 4.3597e-18
+        'eV': 1.602e-19 / 4.3597e-18,
+        'W/cm2': 1.0 / 3.50944758e16
 }
 
 @np.vectorize
@@ -38,15 +39,10 @@ def r_max(E, alpha, freq):
     E (au)
 """
 def I_to_E(I):
-    a = 1e14 / (5.34e-2)**2
-    return np.sqrt(I/a)
+    return np.sqrt(I*UNIT['W/cm2'])
 
 def E_to_I(E):
-    a = 1e14 / (5.34e-2)**2
-    return a * E**2
-
-def spectral_density(az: np.ndarray) -> np.ndarray:
-    return 2/(3*np.pi*const.C**3)*np.abs(fft.rfft(az))**2
+    return E**2 / UNIT['W/cm2']
 
 def is_jupyter_notebook():
     try:

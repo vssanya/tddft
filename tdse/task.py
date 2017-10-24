@@ -30,7 +30,6 @@ class Task(object):
 
         self.res = {}
         self.mode = mode
-        self.save_path = self._create_save_path(path_res)
 
         self.signal_term = False
 
@@ -59,17 +58,22 @@ class Task(object):
             self.szie = 1
 
         self.is_slurm = os.environ.get('SLURM_JOB_ID', None) is not None
-        if self.is_slurm:
+        if self.is_slurm and self.send_status:
             self.bot_client = BotClient()
 
+        self.save_path = self._create_save_path(path_res)
+
     def calc_init(self):
-        if self.is_slurm:
+        if self.is_slurm and self.send_status:
             self.bot_client.start()
 
     def calc_prop(self, i, t):
         pass
 
     def calc_data(self, i, t):
+        pass
+
+    def calc_finish(self):
         pass
         
     def calc(self, restart_index=0):
@@ -79,6 +83,7 @@ class Task(object):
             self.load()
             self.load_state(restart_index)
 
+        print("Start propogation")
         for i in range(restart_index, self.t.size):
             self.calc_prop(i, self.t[i])
             self.calc_data(i, self.t[i])
@@ -97,15 +102,17 @@ class Task(object):
                     self.save_state(i)
                 break
 
+        self.calc_finish()
+
         self.save()
-        if self.is_slurm:
+        if self.is_slurm and self.send_status:
             self.bot_client.finish()
 
     def _create_save_path(self, path_res):
         script_path = inspect.getfile(self.__class__)
         task_dir = os.path.splitext(os.path.basename(script_path))[0]
         save_path = os.path.join(os.path.dirname(script_path), path_res, task_dir)
-        if not os.path.exists(save_path):
+        if self.rank == 0 and not os.path.exists(save_path):
             os.mkdir(save_path)
         return save_path
 
@@ -148,9 +155,11 @@ class WavefuncTask(Task):
         super().calc_init()
 
         self.ws = tdse.workspace.SKnWorkspace(self.grid, self.uabs)
+
+        print("Start calc ground state")
         self.wf = tdse.ground_state.wf(self.atom, self.grid, self.ws, self.dt, 10000, n=self.state_n)
 
-        self.t = self.field.get_t(self.dt, nT=self.nT)
+        self.t = self.field.get_t(self.dt, dT=self.dT)
 
     def calc_prop(self, i, t):
         self.ws.prop(self.wf, self.atom, self.field, t, self.dt)
@@ -163,7 +172,7 @@ class OrbitalsTask(Task):
         super().__init__(path_res, mode, is_mpi=is_mpi, **kwargs)
 
         self.sh_grid = tdse.grid.ShGrid(Nr=self.r_max/self.dr, Nl=self.Nl, r_max=self.r_max)
-        self.sp_grid = tdse.grid.SpGrid(Nr=self.r_max/self.dr, Nc=Nc, Np=1, r_max=self.r_max)
+        self.sp_grid = tdse.grid.SpGrid(Nr=self.r_max/self.dr, Nc=self.Nc, Np=1, r_max=self.r_max)
         self.ylm_cache = tdse.sphere_harmonics.YlmCache(self.Nl, self.sp_grid)
 
     def _get_state_filename(self, i):
@@ -183,7 +192,7 @@ class OrbitalsTask(Task):
 
         self.ws = tdse.workspace.SOrbsWorkspace(self.sh_grid, self.sp_grid, self.uabs, self.ylm_cache, Uxc_lmax=self.Uxc_lmax, Uh_lmax = self.Uh_lmax, uxc=self.uxc)
 
-        self.t = self.field.get_t(self.dt, nT=self.nT)
+        self.t = self.field.get_t(self.dt, dT=self.dT)
 
     def calc_prop(self, i, t):
         self.ws.prop(self.orbs, self.atom, self.field, t, self.dt)

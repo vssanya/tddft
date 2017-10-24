@@ -3,7 +3,7 @@
 #include "sh_wavefunc.h"
 #include "atom.h"
 
-#include <mpi/mpi.h>
+#include <mpi.h>
 
 
 /*!

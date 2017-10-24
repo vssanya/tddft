@@ -77,6 +77,17 @@ cdef extern from "fields.h":
     double field_tr_sin_env_E(field_tr_sin_env_t* field, double t)
     double field_tr_sin_env_T(field_tr_sin_env_t* field)
 
+    ctypedef struct field_const_env_t:
+        field_func_t fA
+        field_func_t fE
+        field_prop_t pT
+
+        double tp
+
+    double field_const_env_A(field_const_env_t* field, double t)
+    double field_const_env_E(field_const_env_t* field, double t)
+    double field_const_env_T(field_const_env_t* field)
+
     ctypedef struct field_car_t:
             field_func_t fA
             field_func_t fE
@@ -116,8 +127,8 @@ cdef class FieldBase(Field):
 
 cdef class OpField(Field):
     cdef field_op_t cfield
-    cdef Field f1
-    cdef Field f2
+    cdef public Field f1
+    cdef public Field f2
 
 cdef class MulField(OpField):
     pass
@@ -137,6 +148,9 @@ cdef class TrEnvField(Field):
 cdef class TrSinEnvField(Field):
     cdef field_tr_sin_env_t cfield
 
+cdef class ConstEnvField(Field):
+    cdef field_const_env_t cfield
+
 cdef class CarField(Field):
     cdef field_car_t cfield
 
@@ -154,4 +168,7 @@ cdef class TwoColorSinField(TwoColorBaseField):
     pass
 
 cdef class TwoColorTrField(TwoColorBaseField):
+    pass
+
+cdef class TwoColorTrSinField(TwoColorBaseField):
     pass

@@ -322,7 +322,7 @@ void _sh_workspace_prop(
 	{
 		for (int l1 = 1; l1 < l_max; ++l1) {
 			for (int il = 0; il < ws->grid->n[iL] - l1; ++il) {
-				prop_ang_l(wf, dt, il, l1, Ul[l1]);
+				prop_ang_l(wf, 0.5*dt, il, l1, Ul[l1]);
 			}
 		}
 
@@ -330,7 +330,7 @@ void _sh_workspace_prop(
 
 		for (int l1 = l_max-1; l1 > 0; --l1) {
 			for (int il = ws->grid->n[iL] - 1 - l1; il >= 0; --il) {
-				prop_ang_l(wf, dt, il, l1, Ul[l1]);
+				prop_ang_l(wf, 0.5*dt, il, l1, Ul[l1]);
 			}
 		}
 

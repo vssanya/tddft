@@ -92,3 +92,7 @@ FIELD( car,
 		double freq;
 		double phase;
 	 )
+
+FIELD( const_env,
+		double tp;
+	 )

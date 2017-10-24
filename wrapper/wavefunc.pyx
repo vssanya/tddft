@@ -28,6 +28,11 @@ cdef class SWavefunc:
     def __init__(self, ShGrid grid, int m=0, dealloc=True):
         pass
 
+    def copy(self):
+        cdef SWavefunc wf_copy = SWavefunc(self.grid, m=self.cdata.m)
+        sh_wavefunc_copy(self.cdata, wf_copy.cdata)
+        return wf_copy
+
     cdef _set_data(self, sh_wavefunc_t* data):
         self.cdata = data
 
@@ -58,6 +63,9 @@ cdef class SWavefunc:
 
     def z(self):
         return sh_wavefunc_z(self.cdata)
+
+    def __mul__(SWavefunc self, SWavefunc other):
+        return sh_wavefunc_prod(self.cdata, other.cdata)
 
     def asarray(self):
         cdef cdouble[:, ::1] array = <cdouble[:self.cdata.grid.n[1],:self.cdata.grid.n[0]]>self.cdata.data

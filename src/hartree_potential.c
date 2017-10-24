@@ -307,7 +307,7 @@ double ux_lda_func(double n) {
 
 double uxc_lb(double n, double x) {
 	double const betta = 0.05;
-	if (n < 1e-120) {
+	if (n < 1e-20) {
 		return ux_lda_func(n) + uc_lda_func(n);
 	}
 	return ux_lda_func(n) + uc_lda_func(n) - betta*x*x*pow(n, 1.0/3.0)/(1.0 + 3.0*betta*x*log(x + sqrt(x*x + 1.0)));

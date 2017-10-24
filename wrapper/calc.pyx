@@ -1,6 +1,8 @@
 import numpy as np
 cimport numpy as np
 
+import numpy.fft
+
 from wavefunc cimport SWavefunc
 from orbitals cimport SOrbitals
 from workspace cimport SKnWorkspace, SOrbsWorkspace
@@ -57,3 +59,13 @@ def tdm_inv(double a0, double a, double b, double c, int N):
 
 def m_dot_tdm(np.ndarray[double, ndim=2] m, double a0, double a, double b, double c):
     linalg_m_dot_tdm(m.shape[0], <double*>m.data, a0, [b, a, c])
+
+def spectral_density(np.ndarray[double, ndim=1] az, double dt, np.ndarray[double, ndim=1] mask = None, mask_width=0.0) -> np.ndarray:
+    cdef i
+
+    if mask is None:
+        mask = np.ndarray(az.size, dtype=np.double)
+        for i in range(mask.size):
+            mask[i] = 1 - smstep(i, mask.size*(1.0-mask_width), mask.size-1)
+
+    return np.abs(numpy.fft.rfft(az*mask)*dt)**2
