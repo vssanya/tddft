@@ -24,8 +24,10 @@ cdef class TDSFM:
     def calc(self, Field field, SWavefunc wf, double t, double dt):
         tdsfm_calc(self.cdata, field.cdata, wf.cdata, t, dt)
 
-    def calc_inner(self, Field field, SWavefunc wf, double t):
-        tdsfm_calc_inner(self.cdata, field.cdata, wf.cdata, t)
+    def calc_inner(self, Field field, SWavefunc wf, double t, int ir_min = 0, int ir_max = -1):
+        if ir_max == -1:
+            ir_max = self.cdata.ir
+        tdsfm_calc_inner(self.cdata, field.cdata, wf.cdata, t, ir_min, ir_max)
 
     def asarray(self):
         cdef cdouble[:, ::1] arr = <cdouble[:self.cdata.k_grid.n[1], :self.cdata.k_grid.n[0]]>self.cdata.data

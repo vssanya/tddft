@@ -76,14 +76,22 @@ void tdsfm_calc(tdsfm_t* tdsfm, field_t const* field, sh_wavefunc_t const* wf, d
 
 			double S = cexp(0.5*I*(k*k*t + 2*kz*Az + A_2));
 
+			cdouble ak = 0.0;
 			for (int il=0; il<wf->grid->n[iL]; il++) {
-				tdsfm->data[ik+ic*Nk] += r/sqrt(2*M_PI)*cpow(-I, il+1)*S*(tdsfm->jl[il+ik*(Nl+1)]*((swf_get(wf, ir+1, il) - swf_get(wf, ir-1, il))/(2*dr)-(il+1)*swf_get(wf, ir, il)/r) + k*swf_get(wf, ir, il)*tdsfm->jl[il+1+ik*(Nl+1)])*ylm_cache_get(tdsfm->ylm, il, wf->m, ic)*dt;
+				cdouble psi = swf_get(wf, ir, il);
+				cdouble dpsi = (swf_get(wf, ir+1, il) - swf_get(wf, ir-1, il))/(2*dr);
+				ak += cpow(-I, il+1)*(
+						tdsfm->jl[il+ik*(Nl+1)]*(dpsi-(il+1)*psi/r) +
+						k*psi*tdsfm->jl[il+1+ik*(Nl+1)]
+						)*ylm_cache_get(tdsfm->ylm, il, wf->m, ic);
 			}
+
+			tdsfm->data[ik+ic*Nk] += ak*r/sqrt(2.0*M_PI)*S*dt;
 		}
 	}
 }
 
-void tdsfm_calc_inner(tdsfm_t* tdsfm, field_t const* field, sh_wavefunc_t const* wf, double t) {
+void tdsfm_calc_inner(tdsfm_t* tdsfm, field_t const* field, sh_wavefunc_t const* wf, double t, int ir_min, int ir_max) {
 	int Nk = tdsfm->k_grid->n[iR];
 
 	double At    = field_A(field, t);
@@ -101,7 +109,7 @@ void tdsfm_calc_inner(tdsfm_t* tdsfm, field_t const* field, sh_wavefunc_t const*
 			cdouble a_k = 0.0;
 			for (int il=0; il<wf->grid->n[iL]; il++) {
 				cdouble a_kl = 0.0;
-				for (int ir=0; ir<tdsfm->ir; ir++) {
+				for (int ir=ir_min; ir<ir_max; ir++) {
 					double r = sh_grid_r(wf->grid, ir);
 					a_kl += r*swf_get(wf, ir, il)*gsl_sf_bessel_jl(il, k*r);
 				}
