@@ -4,6 +4,10 @@
 
 #include "types.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 typedef double (*pot1d_t)(double x, double t);
 
 typedef struct {
@@ -94,3 +98,7 @@ void kn1d_workspace_prop(kn1d_workspace_t* ws, cdouble* psi, double t) {
 		psi[i] = ws->alpha[i]*psi[i+1] + ws->betta[i];
 	}
 }
+
+#ifdef __cplusplus
+}
+#endif

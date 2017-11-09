@@ -51,5 +51,5 @@ cdef class UabsMultiHump(Uabs):
 
 cdef class UabsZero(Uabs):
     def __cinit__(self):
-        self.cdata = &uabs_zero
+        self.cdata = <uabs_sh_t*>(&uabs_zero)
         self._dealloc = False

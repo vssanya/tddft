@@ -1,5 +1,9 @@
 #pragma once
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /* 
  *
  * Ylm - сферические функции
@@ -23,3 +27,7 @@ double smoothpulse(double x, double dx_smooth, double dx_pulse) __attribute__((p
 
 #define MIN(x, y) (((x) < (y)) ? (x) : (y))
 #define MAX(x, y) (((x) > (y)) ? (x) : (y))
+
+#ifdef __cplusplus
+}
+#endif

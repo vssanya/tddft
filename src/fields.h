@@ -1,5 +1,10 @@
 #pragma once
 
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 typedef double (*field_func_t)(void const* field, double t);
 typedef double (*field_prop_t)(void const* field);
 typedef struct field_t {
@@ -96,3 +101,7 @@ FIELD( car,
 FIELD( const_env,
 		double tp;
 	 )
+
+#ifdef __cplusplus
+}
+#endif

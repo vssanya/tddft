@@ -52,9 +52,23 @@ double swf_get_abs_2(sh_wavefunc_t const* wf, int ir, int il) {
 
 
 typedef double (*func_wf_t)(sh_wavefunc_t const* wf, int ir, int il);
+typedef cdouble (*func_complex_wf_t)(sh_wavefunc_t const* wf, int ir, int il);
 #define sh_wavefunc_integrate(...) sh_wavefunc_integrate_o2(__VA_ARGS__)
+
 inline double sh_wavefunc_integrate_o2(sh_wavefunc_t const* wf, func_wf_t func, int l_max) {
 	double res = 0.0;
+#pragma omp parallel for reduction(+:res) collapse(2)
+	for (int il = 0; il < l_max; ++il) {
+		for (int ir = 0; ir < wf->grid->n[iR]; ++ir) {
+			res += func(wf, ir, il);
+		}
+	}
+	return res*wf->grid->d[iR];
+}
+
+#define sh_wavefunc_integrate_complex(...) sh_wavefunc_integrate_complex_o2(__VA_ARGS__)
+inline cdouble sh_wavefunc_integrate_complex_o2(sh_wavefunc_t const* wf, func_complex_wf_t func, int l_max) {
+	cdouble res = 0.0;
 #pragma omp parallel for reduction(+:res) collapse(2)
 	for (int il = 0; il < l_max; ++il) {
 		for (int ir = 0; ir < wf->grid->n[iR]; ++ir) {
@@ -132,11 +146,11 @@ inline double sh_wavefunc_integrate_r2(sh_wavefunc_t const* wf, func_wf_t func, 
 }
 
 cdouble sh_wavefunc_prod(sh_wavefunc_t const* wf1, sh_wavefunc_t const* wf2) {
-	double func(sh_wavefunc_t const* wf, int ir, int il) {
-		return creal(swf_get(wf2, ir, il)*conj(swf_get(wf1, ir, il)));
+	cdouble func(sh_wavefunc_t const* wf, int ir, int il) {
+		return swf_get(wf2, ir, il)*conj(swf_get(wf1, ir, il));
 	}
 
-	return sh_wavefunc_integrate(wf1, func, wf1->grid->n[iL]);
+	return sh_wavefunc_integrate_complex(wf1, func, min(wf1->grid->n[iL], wf2->grid->n[iL]));
 }
 
 void sh_wavefunc_ort_l(int l, int n, sh_wavefunc_t* wfs[n]) {

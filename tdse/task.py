@@ -61,7 +61,8 @@ class Task(object):
         if self.is_slurm and self.send_status:
             self.bot_client = BotClient()
 
-        self.save_path = self._create_save_path(path_res)
+        if mode is Task.MODE_CALC:
+            self.save_path = self._create_save_path(path_res)
 
     def calc_init(self):
         if self.is_slurm and self.send_status:

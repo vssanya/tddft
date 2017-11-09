@@ -3,6 +3,10 @@
 #include "utils.h"
 #include "orbitals.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /*! \file
  * Разложение кулоновского потенциала по сферическим функциям
  * \f[ \frac{1}{\left|r - r'\right|} = \sum_{l=0}^{\infty} \frac{4\pi}{2l + 1} \frac{r_<^l}{r_>^{l+1}} \sum_{m=-l}^{l} Y_l^{m*}(\Omega') Y_l^{m}(\Omega) \f]
@@ -58,3 +62,7 @@ void uxc_calc_l0(
 		double n_tmp[grid->n[iR]*grid->n[iC]], // for calc using mpi
 		ylm_cache_t const* ylm_cache
 );
+
+#ifdef __cplusplus
+}
+#endif

@@ -31,6 +31,9 @@ cdef class SpGrid:
     def __dealloc__(self):
         sp_grid_del(self.data)
 
+    def get_r(self):
+        return np.linspace(self.data.d[0], self.data.d[0]*self.data.n[0], self.data.n[0])
+
     @property
     def shape(self):
         return (self.data.n[1], self.data.n[0])

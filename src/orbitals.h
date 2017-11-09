@@ -6,6 +6,10 @@
 #include <mpi.h>
 
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /*!
  * \brief Орбитали Кона-Шэма
  * */
@@ -64,3 +68,7 @@ void orbitals_n_l0(orbitals_t const* orbs, double n[orbs->grid->n[iR]], double n
 double orbitals_cos(orbitals_t const* orbs, sh_f U);
 
 void orbitals_ort(orbitals_t* orbs);
+
+#ifdef __cplusplus
+}
+#endif

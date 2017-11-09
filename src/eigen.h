@@ -5,6 +5,10 @@
 #include "atom.h"
 
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 typedef struct {
 	sh_grid_t const* grid;
 	double* evec; // eigenvec shape = (Nl,Nr,Ne)
@@ -27,3 +31,7 @@ inline double eigen_evec(eigen_ws_t const* ws, int il, int ir, int ie) {
 	int const Nr = ws->grid->n[iR];
 	return ws->evec[ie + ir*Nr + il*Nr*Nr];
 }
+
+#ifdef __cplusplus
+}
+#endif

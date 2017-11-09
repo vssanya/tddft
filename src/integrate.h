@@ -6,6 +6,10 @@
 #pragma once
 #include <assert.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 typedef double (*func_1d_t)(int i);
 typedef double (*func_1d_data_t)(void* data, int i);
 typedef double (*func_2d_t)(int ix, int iy);
@@ -126,3 +130,7 @@ inline double integrate_bool_data_1d(func_1d_data_t f, void* data, int nx, doubl
 
 	return res;
 }
+
+#ifdef __cplusplus
+}
+#endif

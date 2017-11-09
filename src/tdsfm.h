@@ -16,12 +16,17 @@
  * =====================================================================================
  */
 
+#pragma once
+
 #include "types.h"
 #include "grid.h"
 #include "fields.h"
 #include "sh_wavefunc.h"
 #include "sphere_harmonics.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 typedef struct {
 	sp_grid_t const* k_grid;
@@ -42,3 +47,7 @@ tdsfm_t* tdsfm_new(sp_grid_t const* k_grid, sh_grid_t const* r_grid, int ir);
 void tdsfm_del(tdsfm_t* tdsfm);
 void tdsfm_calc(tdsfm_t* tdsfm, field_t const* field, sh_wavefunc_t const* wf, double t, double dt);
 void tdsfm_calc_inner(tdsfm_t* tdsfm, field_t const* field, sh_wavefunc_t const* wf, double t, int ir_min, int ir_max);
+
+#ifdef __cplusplus
+}
+#endif

@@ -6,12 +6,16 @@
 #include "types.h"
 
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 typedef enum {
   POTENTIAL_SMOOTH,
   POTENTIAL_COULOMB
 } potential_type_e;
 
-typedef double (*pot_f)(void*, sh_grid_t const*, int);
+typedef double (*pot_f)(void const*, sh_grid_t const*, int);
 
 typedef struct atom_s {
 	int Z; //!< nuclear charge
@@ -114,3 +118,7 @@ static atom_t const atom_neon = {
 	.dudz = (pot_f)atom_dudz_coulomb,
 	.u_type = POTENTIAL_COULOMB,
 };
+
+#ifdef __cplusplus
+}
+#endif

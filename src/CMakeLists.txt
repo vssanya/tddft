@@ -1,7 +1,12 @@
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=gnu11 -Wall -O3")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -O3")
 
 set( LIB_SOURCES
-	sh_workspace.c
+	"workspace/wf.c"
+	"workspace/orbs.c"
+	"workspace/sae.c"
+	"workspace/gps.c"
+	"workspace/common_alg.c"
+
 	sh_wavefunc.c
 	hartree_potential.c
 	utils.c
@@ -14,18 +19,24 @@ set( LIB_SOURCES
 	atom.c
 	eigen.c
 	linalg.c
-	tdsfm.c
+	tdsfm.cpp
 	"sfa/anal.c"
 	"hartree_potential/hp_o3.c"
 	"hartree_potential/hp_o5.c"
 	)
 
 set( LIB_HEADERS
+	workspace.h
+	"workspace/wf.h"
+	"workspace/orbs.h"
+	"workspace/sae.h"
+	"workspace/gps.h"
+	"workspace/common_alg.h"
+
 	fourier.h
 	kn.h
 	prog.h
 	grid.h
-	sh_workspace.h
 	sh_wavefunc.h
 	hartree_potential.h
 	types.h

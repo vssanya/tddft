@@ -4,9 +4,13 @@
 
 #include "sh_wavefunc.h"
 #include "orbitals.h"
-#include "sh_workspace.h"
+#include "workspace.h"
 #include "atom.h"
 
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 double calc_wf_ionization_prob(sh_wavefunc_t const* wf);
 double calc_orbs_ionization_prob(orbitals_t const* orbs);
@@ -35,7 +39,7 @@ void calc_orbs_az_ne(
 );
 
 double calc_wf_jrcd(
-		sh_workspace_t* ws,
+		ws_wf_t* ws,
 		sh_wavefunc_t* wf,
 		atom_t const* atom,
 		field_t const* field,
@@ -45,7 +49,7 @@ double calc_wf_jrcd(
 );
 
 double calc_orbs_jrcd(
-		sh_orbs_workspace_t* ws,
+		ws_orbs_t* ws,
 		orbitals_t* orbs,
 		atom_t const* atom,
 		field_t const* field,
@@ -53,3 +57,7 @@ double calc_orbs_jrcd(
 		double dt,
 		double t_smooth
 );
+
+#ifdef __cplusplus
+}
+#endif

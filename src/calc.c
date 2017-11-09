@@ -37,7 +37,7 @@ double calc_orbs_ionization_prob(orbitals_t const* orbs) {
 }
 
 double calc_wf_jrcd(
-		sh_workspace_t* ws,
+		ws_wf_t* ws,
 		sh_wavefunc_t* wf,
 		atom_t const* atom,
 		field_t const* field,
@@ -51,7 +51,7 @@ double calc_wf_jrcd(
 
 	for (int i = 0; i < Nt; ++i) {
 		res += calc_wf_az(wf, atom, field, t)*smoothstep(t_max - t, 0, t_smooth);
-		sh_workspace_prop(ws, wf, atom, field, t, dt);
+		ws_wf_prop(ws, wf, atom, field, t, dt);
 		t += dt;
 	}
 
@@ -59,7 +59,7 @@ double calc_wf_jrcd(
 }
 
 double calc_orbs_jrcd(
-		sh_orbs_workspace_t* ws,
+		ws_orbs_t* ws,
 		orbitals_t* orbs,
 		atom_t const* atom,
 		field_t const* field,
@@ -73,7 +73,7 @@ double calc_orbs_jrcd(
 
 	for (int i = 0; i < Nt; ++i) {
 		res += calc_orbs_az(orbs, atom, field, t)*smoothstep(t_max - t, 0, t_smooth);
-		sh_orbs_workspace_prop(ws, orbs, atom, field, t, dt, true);
+		ws_orbs_prop(ws, orbs, atom, field, t, dt, true);
 		t += dt;
 	}
 

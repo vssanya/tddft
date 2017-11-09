@@ -3,6 +3,10 @@
 #include "types.h"
 
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 void fourier_update(cdouble* f1, double const f2, double N, double dw, double t, double dt) {
 	double w = 0.0;
 	for (int i = 0; i < N; ++i) {
@@ -10,3 +14,7 @@ void fourier_update(cdouble* f1, double const f2, double N, double dw, double t,
 		w += dw;
 	}
 }
+
+#ifdef __cplusplus
+}
+#endif

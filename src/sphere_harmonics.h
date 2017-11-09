@@ -2,6 +2,10 @@
 
 #include "grid.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /*! \file
  * Свойства сферических функций
  */
@@ -47,4 +51,8 @@ double ylm_cache_get(ylm_cache_t const* cache, int l, int m, int ic);
 /*!
  * \brief Разложение функции по сферическим гармоникам
  * */
-void sh_series(func_2d_t func, int l, int m, sp_grid_t const* grid, double series[grid->n[iR]], ylm_cache_t const* ylm_cache);
+void sh_series(func_2d_t func, int l, int m, sp_grid_t const* grid, double* series, ylm_cache_t const* ylm_cache);
+
+#ifdef __cplusplus
+}
+#endif

@@ -22,8 +22,8 @@ cdef extern from "eigen.h":
     void eigen_calc_for_atom(eigen_ws_t* ws, atom_t* atom)
     int eigen_get_n_with_energy(eigen_ws_t* ws, double energy);
 
-cdef extern from "sh_workspace.h":
-    ctypedef struct gps_ws_t:
+cdef extern from "workspace.h":
+    ctypedef struct ws_gps_t:
         sh_grid_t* grid;
         atom_t* atom;
 
@@ -35,21 +35,21 @@ cdef extern from "sh_workspace.h":
 
         sh_wavefunc_t* prop_wf;
 
-    gps_ws_t* gps_ws_alloc(sh_grid_t* grid, atom_t* atom, double dt, double e_max);
-    void gps_ws_free(gps_ws_t* ws);
-    void gps_ws_calc_s(gps_ws_t* ws, eigen_ws_t* eigen);
-    void gps_ws_prop(gps_ws_t* ws, sh_wavefunc_t* wf);
-    void gps_ws_prop_common(gps_ws_t* ws, sh_wavefunc_t* wf, uabs_sh_t* uabs, field_t* field, double t);
+    ws_gps_t* ws_gps_alloc(sh_grid_t* grid, atom_t* atom, double dt, double e_max);
+    void ws_gps_free(ws_gps_t* ws);
+    void ws_gps_calc_s(ws_gps_t* ws, eigen_ws_t* eigen);
+    void ws_gps_prop(ws_gps_t* ws, sh_wavefunc_t* wf);
+    void ws_gps_prop_common(ws_gps_t* ws, sh_wavefunc_t* wf, uabs_sh_t* uabs, field_t* field, double t);
 
-    ctypedef struct sh_workspace_t:
+    ctypedef struct ws_wf_t:
         sh_grid_t* grid
         uabs_sh_t* uabs
         cdouble* alpha
         cdouble* betta
         int num_threads
 
-    ctypedef struct sh_orbs_workspace_t:
-        sh_workspace_t* wf_ws
+    ctypedef struct ws_orbs_t:
+        ws_wf_t* wf_ws
         double* Uh
         double* Uxc
         sh_grid_t* sh_grid
@@ -61,38 +61,38 @@ cdef extern from "sh_workspace.h":
         int Uh_lmax
         int Uxc_lmax
 
-    sh_workspace_t* sh_workspace_alloc(
+    ws_wf_t* ws_wf_new(
             sh_grid_t* sh_grid,
             uabs_sh_t* uabs,
             int num_threads
             )
 
-    void sh_workspace_free(sh_workspace_t* ws)
+    void ws_wf_del(ws_wf_t* ws)
 
-    void sh_workspace_prop_ang(
-            sh_workspace_t* ws,
+    void ws_wf_prop_ang(
+            ws_wf_t* ws,
             sh_wavefunc_t* wf,
             double dt,
             int l, double E)
 
-    void sh_workspace_prop_at(
-            sh_workspace_t* ws,
+    void ws_wf_prop_at(
+            ws_wf_t* ws,
             sh_wavefunc_t* wf,
             cdouble dt,
             sh_f Ul,
             uabs_sh_t* uabs
             )
 
-    void sh_workspace_prop_at_v2(
-            sh_workspace_t* ws,
+    void ws_wf_prop_at_v2(
+            ws_wf_t* ws,
             sh_wavefunc_t* wf,
             cdouble dt,
             sh_f Ul,
             uabs_sh_t* uabs
             )
 
-    void sh_workspace_prop(
-            sh_workspace_t* ws,
+    void ws_wf_prop(
+            ws_wf_t* ws,
             sh_wavefunc_t* wf,
             atom_t* atom,
             field_t* E,
@@ -100,15 +100,15 @@ cdef extern from "sh_workspace.h":
             double dt
             )
 
-    void sh_workspace_prop_img(
-            sh_workspace_t* ws,
+    void ws_wf_prop_img(
+            ws_wf_t* ws,
             sh_wavefunc_t* wf,
             atom_t* atom,
             double dt
             )
 
-    void sh_orbs_workspace_prop(
-            sh_orbs_workspace_t* ws,
+    void ws_orbs_prop(
+            ws_orbs_t* ws,
             orbitals_t* orbs,
             atom_t* atom,
             field_t* field,
@@ -117,14 +117,14 @@ cdef extern from "sh_workspace.h":
             bint calc_uee
             )
 
-    void sh_orbs_workspace_prop_img(
-        sh_orbs_workspace_t* ws,
+    void ws_orbs_prop_img(
+        ws_orbs_t* ws,
         orbitals_t* orbs,
         atom_t* atom,
         double dt
     )
 
-    sh_orbs_workspace_t* sh_orbs_workspace_alloc(
+    ws_orbs_t* ws_orbs_alloc(
         sh_grid_t* sh_grid,
         sp_grid_t* sp_grid,
         uabs_sh_t* uabs,
@@ -135,24 +135,24 @@ cdef extern from "sh_workspace.h":
         int num_threads
     )
 
-    void sh_orbs_workspace_free(sh_orbs_workspace_t* ws)
+    void ws_orbs_free(ws_orbs_t* ws)
 
-    void sh_orbs_workspace_calc_Uee(sh_orbs_workspace_t* ws, orbitals_t* orbs, int Uxc_lmax, int Uh_lmax)
+    void ws_orbs_calc_Uee(ws_orbs_t* ws, orbitals_t* orbs, int Uxc_lmax, int Uh_lmax)
 
 
 cdef class SKnWorkspace:
     cdef:
-        sh_workspace_t* cdata
+        ws_wf_t* cdata
         Uabs uabs
 
 cdef class SOrbsWorkspace:
     cdef:
-        sh_orbs_workspace_t* cdata
+        ws_orbs_t* cdata
         Uabs uabs
 
 cdef class GPSWorkspace:
     cdef:
-        gps_ws_t* cdata
+        ws_gps_t* cdata
 
 cdef class Eigen:
     cdef:

@@ -7,6 +7,10 @@
 #include "grid.h"
 #include "sphere_harmonics.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /*!
  * \brief Волновая функция представленная в виде разложения по сферическим гармоникам
  *
@@ -38,22 +42,26 @@ sh_wavefunc_t* sh_wavefunc_new_from(
 void sh_wavefunc_copy(sh_wavefunc_t const* wf_src, sh_wavefunc_t* wf_dest);
 
 inline cdouble* swf_ptr(sh_wavefunc_t const* wf, int ir, int il) {
-	return &wf->data[grid2_index(wf->grid, (int[2]){ir, il})];
+	int index[2] = {ir, il};
+	return &wf->data[grid2_index(wf->grid, index)];
 }
 
 inline cdouble const* swf_const_ptr(sh_wavefunc_t const* wf, int ir, int il) {
-	return &wf->data[grid2_index(wf->grid, (int[2]){ir, il})];
+	int index[2] = {ir, il};
+	return &wf->data[grid2_index(wf->grid, index)];
 }
 
 inline cdouble swf_get(sh_wavefunc_t const* wf, int ir, int il) {
-	return wf->data[grid2_index(wf->grid, (int[2]){ir, il})];
+	int index[2] = {ir, il};
+	return wf->data[grid2_index(wf->grid, index)];
 }
 
 inline void swf_set(sh_wavefunc_t* wf, int ir, int il, cdouble value) {
-	wf->data[grid2_index(wf->grid, (int[2]){ir, il})] = value;
+	int index[2] = {ir, il};
+	wf->data[grid2_index(wf->grid, index)] = value;
 }
 
-void sh_wavefunc_ort_l(int l, int n, sh_wavefunc_t* wfs[n]);
+void sh_wavefunc_ort_l(int l, int n, sh_wavefunc_t** wfs);
 
 /*!
  * \return \f$\psi(r, \Omega)\f$
@@ -67,7 +75,7 @@ void   sh_wavefunc_del(sh_wavefunc_t* wf);
 // \return \f$<\psi_1|\psi_2>\f$
 cdouble sh_wavefunc_prod(sh_wavefunc_t const* wf1, sh_wavefunc_t const* wf2);
 
-void sh_wavefunc_n_sp(sh_wavefunc_t const* wf, sp_grid_t const* grid, double n[grid->n[iR]*grid->n[iC]], ylm_cache_t const* ylm_cache);
+void sh_wavefunc_n_sp(sh_wavefunc_t const* wf, sp_grid_t const* grid, double* n, ylm_cache_t const* ylm_cache);
 
 double sh_wavefunc_norm(sh_wavefunc_t const* wf, sh_f mask);
 void   sh_wavefunc_normalize(sh_wavefunc_t* wf);
@@ -80,6 +88,10 @@ double sh_wavefunc_cos(
 		sh_f U
 );
 double sh_wavefunc_cos_r2(sh_wavefunc_t const* wf, sh_f U, int Z);
-void sh_wavefunc_cos_r(sh_wavefunc_t const* wf, sh_f U, double res[wf->grid->n[iR]]);
+void sh_wavefunc_cos_r(sh_wavefunc_t const* wf, sh_f U, double* res);
 
 double sh_wavefunc_z(sh_wavefunc_t const* wf);
+
+#ifdef __cplusplus
+}
+#endif

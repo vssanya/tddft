@@ -1,5 +1,9 @@
 #include <complex.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 typedef double complex cdouble;
 
 
@@ -29,3 +33,7 @@ void prog(cdouble* y, cdouble const* a, cdouble const* b, cdouble const* c, cdou
 	free(alpha);
 	free(betta);
 }
+
+#ifdef __cplusplus
+}
+#endif

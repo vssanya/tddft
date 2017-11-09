@@ -4,6 +4,10 @@
 #include <assert.h>
 
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /*!
  * \brief Grid for 2D space
  * */
@@ -115,3 +119,7 @@ inline int sh_grid_m(sh_grid_t const* grid, int im) {
     assert(im >= -grid->n[iL] && im <= grid->n[iL]);
     return im;
 }
+
+#ifdef __cplusplus
+}
+#endif

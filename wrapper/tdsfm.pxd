@@ -1,8 +1,10 @@
 from types cimport cdouble
 from grid cimport sh_grid_t, sp_grid_t, SpGrid, ShGrid
 from field cimport field_t
-from sphere_harmonics cimport ylm_cache_t
+from sphere_harmonics cimport ylm_cache_t, YlmCache
 from wavefunc cimport sh_wavefunc_t
+
+cimport numpy as np
 
 
 cdef extern from "tdsfm.h":
@@ -26,3 +28,12 @@ cdef class TDSFM:
     cdef tdsfm_t* cdata
     cdef SpGrid k_grid
     cdef ShGrid r_grid
+
+
+cdef class TDSFM_new:
+    cdef tdsfm_t cdata
+    cdef SpGrid k_grid
+    cdef ShGrid r_grid
+    cdef cdouble[:,::1] data
+    cdef double[:,::1] jl
+    cdef YlmCache ylm
