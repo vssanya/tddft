@@ -12,6 +12,10 @@ from wavefunc cimport SWavefunc
 from sphere_harmonics cimport ylm_cache_get
 
 
+def sph_jn(int l, double x):
+    return jn(l, x)
+
+
 cdef class TDSFM:
     def __cinit__(self, SpGrid k_grid, ShGrid r_grid, int ir):
         self.cdata = tdsfm_new(k_grid.data, r_grid.data, ir)

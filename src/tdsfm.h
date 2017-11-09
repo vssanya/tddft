@@ -48,6 +48,8 @@ void tdsfm_del(tdsfm_t* tdsfm);
 void tdsfm_calc(tdsfm_t* tdsfm, field_t const* field, sh_wavefunc_t const* wf, double t, double dt);
 void tdsfm_calc_inner(tdsfm_t* tdsfm, field_t const* field, sh_wavefunc_t const* wf, double t, int ir_min, int ir_max);
 
+double jn(int l, double x);
+
 #ifdef __cplusplus
 }
 #endif

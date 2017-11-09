@@ -123,3 +123,7 @@ void tdsfm_calc_inner(tdsfm_t* tdsfm, field_t const* field, sh_wavefunc_t const*
 		}
 	}
 }
+
+double jn(int l, double x) {
+	return boost::math::sph_bessel(l, x);
+}
