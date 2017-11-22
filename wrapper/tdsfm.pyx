@@ -17,8 +17,8 @@ def sph_jn(int l, double x):
 
 
 cdef class TDSFM:
-    def __cinit__(self, SpGrid k_grid, ShGrid r_grid, int ir):
-        self.cdata = tdsfm_new(k_grid.data, r_grid.data, ir)
+    def __cinit__(self, SpGrid k_grid, ShGrid r_grid, double A_max, int ir):
+        self.cdata = tdsfm_new(k_grid.data, r_grid.data, A_max, ir)
         self.k_grid = k_grid
         self.r_grid = r_grid
 

@@ -13,6 +13,7 @@ cdef extern from "tdsfm.h":
         sh_grid_t* r_grid
         int ir
         cdouble* data
+        sp_grid_t* appr_k_grid
         double* jl
         ylm_cache_t* ylm
         double int_A
@@ -20,7 +21,7 @@ cdef extern from "tdsfm.h":
 
     double jn(int l, double x)
 
-    tdsfm_t* tdsfm_new(sp_grid_t * k_grid, sh_grid_t * r_grid, int ir)
+    tdsfm_t* tdsfm_new(sp_grid_t * k_grid, sh_grid_t * r_grid, double A_max, int ir)
     void tdsfm_del(tdsfm_t* tdsfm)
     void tdsfm_calc(tdsfm_t* tdsfm, field_t * field, sh_wavefunc_t * wf, double t, double dt)
     void tdsfm_calc_inner(tdsfm_t* tdsfm, field_t* field, sh_wavefunc_t* wf, double t, int ir_min, int ir_max)
