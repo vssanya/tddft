@@ -91,9 +91,19 @@ double sp_grid_r(sp_grid_t const* grid, int ir) {
 }
 
 __attribute__((pure)) inline
+int sp_grid_ir(sp_grid_t const* grid, double r) {
+	return (int) (r / grid->d[iR] + 0.5) - 1;
+}
+
+__attribute__((pure)) inline
 double sp_grid_c(sp_grid_t const* grid, int ic) {
     check_index(grid, iC, ic);
     return grid->d[iC]*ic - 1.0;
+}
+
+__attribute__((pure)) inline
+int sp_grid_ic(sp_grid_t const* grid, double c) {
+	return (int) ((c + 1.0) / grid->d[iR] + 0.5);
 }
 
 inline double sp_grid_phi(sp_grid_t const* grid, int ip) {

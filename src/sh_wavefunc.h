@@ -7,29 +7,47 @@
 #include "grid.h"
 #include "sphere_harmonics.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /*!
  * \brief Волновая функция представленная в виде разложения по сферическим гармоникам
  *
  * \f[\psi(\vec{r}) = \frac{1}{r} \sum_{l=0}^{\infty} \Theta_{lm}(r) Y_{lm}(\theta, \phi) \simeq \frac{1}{r} \sum_{l=0}^{N_l - 1} \Theta_{lm}(r) Y_{lm}(\theta, \phi)\f]
  *
  * */
-typedef struct {
+struct sh_wavefunc_t {
   sh_grid_t const* grid;
 
   cdouble* data; //!< data[i + l*grid->Nr] = \f$\Theta_{lm}(r_i)\f$
   bool data_own; //!< кто выделил данные
 
   int m;         //!< is magnetic quantum number
-} sh_wavefunc_t;
+
+#ifdef __cplusplus
+  inline
+  cdouble& operator() (int ir, int il) {
+	  return data[ir + il*grid->n[iR]];
+  }
+
+  inline
+  cdouble operator() (int ir, int il) const {
+	  return data[ir + il*grid->n[iR]];
+  }
+
+  cdouble operator*(sh_wavefunc_t const& other) const;
+#endif
+};
+
+#ifndef __cplusplus
+typedef struct sh_wavefunc_t sh_wavefunc_t;
+#endif
 
 sh_wavefunc_t* sh_wavefunc_new(
 		sh_grid_t const* grid,
 		int const m
 );
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 void sh_wavefunc_random_l(sh_wavefunc_t* wf, int l);
 

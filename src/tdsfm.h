@@ -35,15 +35,16 @@ typedef struct {
 	int ir;
 
 	cdouble* data; //!< data[i + j*grid->Np] = \f$a_{I}(k_{i,j}\f$
-	double* jl; // Precompute regular spherical Bessel function
 
+	sp_grid_t* appr_k_grid;
+	double* jl; // Precompute regular spherical Bessel function
 	ylm_cache_t* ylm;
 
 	double int_A;
 	double int_A2;
 } tdsfm_t;
 
-tdsfm_t* tdsfm_new(sp_grid_t const* k_grid, sh_grid_t const* r_grid, int ir);
+tdsfm_t* tdsfm_new(sp_grid_t const* k_grid, sh_grid_t const* r_grid, double A_max, int ir);
 void tdsfm_del(tdsfm_t* tdsfm);
 void tdsfm_calc(tdsfm_t* tdsfm, field_t const* field, sh_wavefunc_t const* wf, double t, double dt);
 void tdsfm_calc_inner(tdsfm_t* tdsfm, field_t const* field, sh_wavefunc_t const* wf, double t, int ir_min, int ir_max);

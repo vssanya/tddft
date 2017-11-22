@@ -19,17 +19,24 @@
 #pragma once
 
 #include "wf.h"
+#include "../orbitals.h"
 
 #ifdef __cplusplus
-extern "C" {
-#endif
+namespace tdse {
+	namespace workspace {
+		class SAE
+		{
+			public:
+				SAE(sh_grid_t const* grid, uabs_sh_t const* uabs, int num_threads);
+				~SAE();
 
-typedef struct {
-	ws_wf_t* ws_wf;
-} ws_sae_t;
+				void setGroundState(orbitals_t* gs_orbs) { this->gs_orbs = gs_orbs; }
+				void prop(sh_wavefunc_t* wf, atom_t const* atom, field_t const* field, double t, double dt);
 
-ws_sae_t* ws_sae_new(sh_grid_t const* grid, uabs_sh_t const* uabs, int num_threads);
-
-#ifdef __cplusplus
+			private:
+				ws_wf_t* ws_wf;
+				orbitals_t* gs_orbs;
+		};
+	}
 }
 #endif

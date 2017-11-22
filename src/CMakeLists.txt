@@ -3,11 +3,11 @@ set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -O2")
 set( LIB_SOURCES
 	"workspace/wf.c"
 	"workspace/orbs.c"
-	"workspace/sae.c"
+	#"workspace/sae.cpp"
 	"workspace/gps.c"
 	"workspace/common_alg.c"
 
-	sh_wavefunc.c
+	sh_wavefunc.cpp
 	hartree_potential.c
 	utils.c
 	abs_pot.c

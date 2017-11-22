@@ -82,7 +82,7 @@ void ws_wf_prop_common(
 		sh_wavefunc_t* wf,
 		cdouble dt,
 		int l_max,
-		sh_f Ul[l_max],
+		sh_f* Ul,
 		uabs_sh_t const* uabs,
 		int Z,
 		potential_type_e u_type

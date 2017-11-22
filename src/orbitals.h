@@ -41,7 +41,7 @@ void orbitals_set_init_state(orbitals_t* orbs, cdouble* data, int n_r, int n_l);
  * \brief [MPI support]
  */
 double orbitals_norm(orbitals_t const* orbs, sh_f mask);
-void orbitals_norm_ne(orbitals_t const* orbs, double n[orbs->atom->n_orbs], sh_f mask);
+void orbitals_norm_ne(orbitals_t const* orbs, double* n, sh_f mask);
 /*!
  * \brief [MPI support]
  */
@@ -62,8 +62,8 @@ double orbitals_z(orbitals_t const* orbs);
  * \brief [MPI not support]
  */
 double orbitals_n(orbitals_t const* orbs, sp_grid_t const* grid, int i[2], ylm_cache_t const* ylm_cache);
-void orbitals_n_sp(orbitals_t const* orbs, sp_grid_t const* grid, double n[grid->n[iR]*grid->n[iC]], double n_tmp[grid->n[iR]*grid->n[iC]], ylm_cache_t const* ylm_cache);
-void orbitals_n_l0(orbitals_t const* orbs, double n[orbs->grid->n[iR]], double n_tmp[orbs->grid->n[iR]]);
+void orbitals_n_sp(orbitals_t const* orbs, sp_grid_t const* grid, double* n, double* n_tmp, ylm_cache_t const* ylm_cache);
+void orbitals_n_l0(orbitals_t const* orbs, double* n, double* n_tmp);
 
 double orbitals_cos(orbitals_t const* orbs, sh_f U);
 
