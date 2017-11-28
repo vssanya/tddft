@@ -40,14 +40,14 @@ struct sh_wavefunc_t {
 typedef struct sh_wavefunc_t sh_wavefunc_t;
 #endif
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 sh_wavefunc_t* sh_wavefunc_new(
 		sh_grid_t const* grid,
 		int const m
 );
-
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 void sh_wavefunc_random_l(sh_wavefunc_t* wf, int l);
 

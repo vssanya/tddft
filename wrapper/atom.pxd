@@ -32,6 +32,8 @@ cdef extern from "atom.h":
 
     atom_t atom_neon
 
+    atom_t atom_none
+
 cdef class Atom:
     cdef atom_t* cdata
     @staticmethod

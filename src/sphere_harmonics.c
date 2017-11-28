@@ -54,6 +54,12 @@ double ylm_cache_get(ylm_cache_t const* cache, int l, int m, int ic) {
 	return cache->data[l + ic*(cache->l_max+1) + m*(cache->l_max+1)*cache->grid->n[iC]];
 }
 
+double ylm_cache_calc(ylm_cache_t const* cache, int l, int m, double c) {
+	int ic = sp_grid_ic(cache->grid, c);
+	double x = c - sp_grid_c(cache->grid, ic);
+	return ylm_cache_get(cache, l, m, ic)*(1.0 - x) + ylm_cache_get(cache, l, m, ic+1)*x;
+}
+
 double sh_series_r(func_2d_t f, int ir, int l, int m, sp_grid_t const* grid, ylm_cache_t const* ylm_cache) {
 	double func(int ic) {
 		return f(ir, ic)*ylm_cache_get(ylm_cache, l, m, ic);

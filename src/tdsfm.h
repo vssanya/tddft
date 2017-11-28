@@ -24,10 +24,6 @@
 #include "sh_wavefunc.h"
 #include "sphere_harmonics.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 typedef struct {
 	sp_grid_t const* k_grid;
 	sh_grid_t const* r_grid;
@@ -43,6 +39,10 @@ typedef struct {
 	double int_A;
 	double int_A2;
 } tdsfm_t;
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 tdsfm_t* tdsfm_new(sp_grid_t const* k_grid, sh_grid_t const* r_grid, double A_max, int ir);
 void tdsfm_del(tdsfm_t* tdsfm);

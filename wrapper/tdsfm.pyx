@@ -22,7 +22,7 @@ cdef class TDSFM:
         self.k_grid = k_grid
         self.r_grid = r_grid
 
-    def __init__(self, SpGrid k_grid, ShGrid r_grid, int ir):
+    def __init__(self, SpGrid k_grid, ShGrid r_grid, double A_max, int ir):
         pass
 
     def __dealloc__(self):

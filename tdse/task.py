@@ -58,11 +58,12 @@ class Task(object):
             self.szie = 1
 
         self.is_slurm = os.environ.get('SLURM_JOB_ID', None) is not None
+        if mode is Task.MODE_ANALISIS:
+            self.send_status = False
         if self.is_slurm and self.send_status:
             self.bot_client = BotClient()
 
-        if mode is Task.MODE_CALC:
-            self.save_path = self._create_save_path(path_res)
+        self.save_path = self._create_save_path(path_res)
 
     def calc_init(self):
         if self.is_slurm and self.send_status:
@@ -140,6 +141,7 @@ class WavefuncTask(Task):
     """
     """
     state_n = 1 # Номер состояния
+    calc_ground_state = True
 
     def __init__(self, path_res='res', mode=None, **kwargs):
         super().__init__(path_res, mode, is_mpi=False, **kwargs)
@@ -157,8 +159,11 @@ class WavefuncTask(Task):
 
         self.ws = tdse.workspace.SKnWorkspace(self.grid, self.uabs)
 
-        print("Start calc ground state")
-        self.wf = tdse.ground_state.wf(self.atom, self.grid, self.ws, self.dt, 10000, n=self.state_n)
+        if self.calc_ground_state:
+            print("Start calc ground state")
+            self.wf = tdse.ground_state.wf(self.atom, self.grid, self.ws, self.dt, 10000, n=self.state_n)
+        else:
+            self.wf = tdse.wavefunc.SWavefunc(self.grid)
 
         self.t = self.field.get_t(self.dt, dT=self.dT)
 

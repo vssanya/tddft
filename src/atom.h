@@ -119,6 +119,17 @@ static atom_t const atom_neon = {
 	.u_type = POTENTIAL_COULOMB,
 };
 
+static atom_t const atom_none = {
+	.Z = 0,
+	.n_orbs = 1,
+	.m = (int[]){0},
+	.l = (int[]){0},
+	.n_e = (int[]){1},
+	.u = (pot_f)atom_u_coulomb,
+	.dudz = (pot_f)atom_dudz_coulomb,
+	.u_type = POTENTIAL_SMOOTH
+};
+
 #ifdef __cplusplus
 }
 #endif

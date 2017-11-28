@@ -10,8 +10,7 @@ extern "C" {
  * Свойства сферических функций
  */
 
-/*!
- * \brief \f$(-1)^{p}\f$
+/*!  \brief \f$(-1)^{p}\f$
  * */
 int pow_minus_one(int p);
 
@@ -45,6 +44,7 @@ typedef struct {
 ylm_cache_t* ylm_cache_new(int l_max, sp_grid_t const* grid);
 void ylm_cache_del(ylm_cache_t* ylm_cache);
 double ylm_cache_get(ylm_cache_t const* cache, int l, int m, int ic);
+double ylm_cache_calc(ylm_cache_t const* cache, int l, int m, double c);
 
 #include "grid.h"
 #include "integrate.h"

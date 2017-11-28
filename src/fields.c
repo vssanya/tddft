@@ -207,3 +207,7 @@ double field_const_env_E(field_const_env_t const* field, double t) {
 double field_const_env_T(field_const_env_t const* field) {
 	return field->tp;
 }
+
+double field_const_A(field_const_t const* field, double t) {
+	return field->A;
+}

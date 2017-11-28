@@ -15,6 +15,10 @@ cdef class YlmCache:
     def get(self, int l, int m, int ic):
         return ylm_cache_get(self.cdata, l, m, ic)
 
+    @np.vectorize
+    def calc(self, int l, int m, double c):
+        return ylm_cache_calc(self.cdata, l, m, ic)
+
 cdef object func_2d = None
 
 cdef double func_2d_wrapper(int i1, int i2):

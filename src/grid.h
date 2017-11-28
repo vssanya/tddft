@@ -92,7 +92,11 @@ double sp_grid_r(sp_grid_t const* grid, int ir) {
 
 __attribute__((pure)) inline
 int sp_grid_ir(sp_grid_t const* grid, double r) {
-	return (int) (r / grid->d[iR] + 0.5) - 1;
+	if (r < grid->d[iR]) {
+		return 0.0;
+	}
+
+	return (int) (r/grid->d[iR]) - 1;
 }
 
 __attribute__((pure)) inline
@@ -103,7 +107,7 @@ double sp_grid_c(sp_grid_t const* grid, int ic) {
 
 __attribute__((pure)) inline
 int sp_grid_ic(sp_grid_t const* grid, double c) {
-	return (int) ((c + 1.0) / grid->d[iR] + 0.5);
+	return (int) ((c + 1.0) / grid->d[iR]);
 }
 
 inline double sp_grid_phi(sp_grid_t const* grid, int ip) {

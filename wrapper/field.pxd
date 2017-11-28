@@ -101,6 +101,14 @@ cdef extern from "fields.h":
     double field_car_E(field_car_t* field, double t)
     double field_car_T(field_car_t* field)
 
+    ctypedef struct field_const_t:
+            field_func_t fA
+            field_func_t fE
+            field_prop_t pT
+
+            double A
+
+    double field_const_A(field_const_t* field, double t)
 
     ctypedef struct field_base_t:
         field_func_t fE
@@ -153,6 +161,9 @@ cdef class ConstEnvField(Field):
 
 cdef class CarField(Field):
     cdef field_car_t cfield
+
+cdef class ConstField(Field):
+    cdef field_const_t cfield
 
 cdef class TwoColorBaseField(Field):
     cdef field_base_t cfield

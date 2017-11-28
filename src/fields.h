@@ -1,5 +1,7 @@
 #pragma once
 
+#include <stdlib.h>
+
 
 #ifdef __cplusplus
 extern "C" {
@@ -25,7 +27,11 @@ inline double field_A(field_t const* field, double t) {
 }
 
 inline double field_T(field_t const* field) {
-	return field->pT(field);
+	if (field->pT != NULL) {
+		return field->pT(field);
+	}
+
+	return 0.0;
 }
 
 #define FIELD_STRUCT(name, ...)\
@@ -91,6 +97,12 @@ FIELD( tr_sin_env,
 		double t_const;
 		double t_smooth;
 	 )
+
+FIELD_STRUCT( const,
+		double A;
+	 )
+
+double field_const_A(field_const_t const* field, double t);
 
 FIELD( car,
 		double E;

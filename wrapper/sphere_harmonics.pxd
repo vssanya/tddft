@@ -15,6 +15,7 @@ cdef extern from "sphere_harmonics.h":
     ylm_cache_t* ylm_cache_new(int l_max, sp_grid_t* grid)
     void ylm_cache_del(ylm_cache_t* ylm_cache)
     double ylm_cache_get(ylm_cache_t* cache, int l, int m, int ic)
+    double ylm_cache_calc(ylm_cache_t* cache, int l, int m, double c)
 
     void sh_series(func_2d_t func, int l, int m, sp_grid_t* grid, double* series, ylm_cache_t* ylm_cache);
 

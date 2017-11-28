@@ -291,5 +291,20 @@ cdef class CarField(Field):
     def phase(self):
         return self.cfield.phase
 
+cdef class ConstField(Field):
+    def __init__(self, double A):
+        self.cfield.A = A
+        self.cfield.fA = <field_func_t>field_const_A
+        self.cfield.fE = <field_func_t>field_func_zero
+        self.cfield.pT = NULL
+
+        self.cdata = <field_t*>(&self.cfield)
+
+    def _repr_latex_A_(self):
+        return r"A_0"
+
+    def _repr_latex_E_(self):
+        return None
+
 def OneColorTrSinField(double E, double freq, double t_const, double t_smooth):
     return CarField(E, freq, 0.0)*TrSinEnvField(t_const, t_smooth)
