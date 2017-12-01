@@ -2,11 +2,19 @@ from integrate cimport func_2d_t
 from grid cimport sp_grid_t
 
 cdef extern from "sphere_harmonics.h":
-    ctypedef struct ylm_cache_t:
+    cdef cppclass jl_cache_t:
+        jl_cache_t(sp_grid_t* grid, int l_max)
+        double operator()(int ir, int il)
+        double operator()(double r, int il)
+
+    cdef cppclass ylm_cache_t:
         double* data
         int size
         int l_max
         sp_grid_t* grid
+        ylm_cache_t(sp_grid_t* grid, int l_max);
+        double operator()(int l, int m, int ic)
+        double operator()(int l, int m, double c)
 
     int pow_minus_one(int p)
     double clebsch_gordan_coef(int j1, int m1, int j2, int m2, int J, int M)
@@ -21,3 +29,6 @@ cdef extern from "sphere_harmonics.h":
 
 cdef class YlmCache:
     cdef ylm_cache_t* cdata
+
+cdef class JlCache:
+    cdef jl_cache_t* cdata

@@ -2,9 +2,61 @@
 
 #include "grid.h"
 
+
+struct jl_cache_t {
+	double* data;
+
+	int l_max;
+	sp_grid_t const* grid;
+
+#ifdef __cplusplus
+	jl_cache_t(sp_grid_t const* grid, int l_max);
+	~jl_cache_t();
+	
+	inline
+	double operator()(int ir, int il) const {
+		return data[ir + il*grid->n[iR]];
+	}
+	double operator()(double r, int il) const;
+
+	inline
+	double& operator()(int ir, int il) {
+		return data[ir + il*grid->n[iR]];
+	}
+#endif
+};
+
+
+struct ylm_cache_t {
+	double* data;
+	int size;
+	int l_max;
+	sp_grid_t const* grid;
+
+#ifdef __cplusplus
+	ylm_cache_t(sp_grid_t const* grid, int l_max);
+	~ylm_cache_t();
+	
+	inline
+	double operator()(int l, int m, int ic) const {
+		return data[l + ic*(l_max+1) + m*(l_max+1)*grid->n[iC]];
+	}
+	double operator()(int l, int m, double c) const;
+
+	inline
+	double& operator()(int l, int m, int ic) {
+		return data[l + ic*(l_max+1) + m*(l_max+1)*grid->n[iC]];
+	}
+#endif
+};
+
+
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+typedef struct jl_cache_t jl_cache_t;
+typedef struct ylm_cache_t ylm_cache_t;
 
 /*! \file
  * Свойства сферических функций
@@ -28,13 +80,6 @@ double clebsch_gordan_coef(int j1, int m1, int j2, int m2, int J, int M);
  * */
 double y3(int l1, int m1, int l2, int m2, int L, int M);
 
-typedef struct {
-	double* data;
-	int size;
-	int l_max;
-	sp_grid_t const* grid;
-} ylm_cache_t;
-
 /*!
  * \brief [Spherical harmonics](https://en.wikipedia.org/wiki/Spherical_harmonics)\f$Y_l^m(\theta)\f$
  * \param[in] l
@@ -46,12 +91,10 @@ void ylm_cache_del(ylm_cache_t* ylm_cache);
 double ylm_cache_get(ylm_cache_t const* cache, int l, int m, int ic);
 double ylm_cache_calc(ylm_cache_t const* cache, int l, int m, double c);
 
-#include "grid.h"
-#include "integrate.h"
 /*!
  * \brief Разложение функции по сферическим гармоникам
  * */
-void sh_series(func_2d_t func, int l, int m, sp_grid_t const* grid, double* series, ylm_cache_t const* ylm_cache);
+void sh_series(double (*func)(int ix, int iy), int l, int m, sp_grid_t const* grid, double* series, ylm_cache_t const* ylm_cache);
 
 #ifdef __cplusplus
 }

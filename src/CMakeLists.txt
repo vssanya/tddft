@@ -14,7 +14,7 @@ set( LIB_SOURCES
 	grid.c
 	fields.c
 	calc.c
-	sphere_harmonics.c
+	sphere_harmonics.cpp
 	orbitals.c
 	atom.c
 	eigen.c

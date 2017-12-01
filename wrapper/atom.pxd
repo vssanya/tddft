@@ -35,6 +35,6 @@ cdef extern from "atom.h":
     atom_t atom_none
 
 cdef class Atom:
-    cdef atom_t* cdata
+    cdef const atom_t* cdata
     @staticmethod
     cdef Atom from_c(atom_t* atom)

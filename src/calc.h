@@ -35,7 +35,7 @@ void calc_orbs_az_ne(
 		orbitals_t const* orbs,
 		field_t const* field,
 		double t,
-		double az[orbs->atom->n_orbs]
+		double* az
 );
 
 double calc_wf_jrcd(

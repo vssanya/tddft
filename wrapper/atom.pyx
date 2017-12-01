@@ -8,7 +8,7 @@ from grid cimport ShGrid
 
 cdef class Atom:
     @staticmethod
-    cdef Atom from_c(atom_t* atom):
+    cdef Atom from_c(const atom_t* atom):
         obj = <Atom>Atom.__new__(Atom)
         obj.cdata = atom
         return obj

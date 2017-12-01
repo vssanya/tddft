@@ -8,35 +8,18 @@ cimport numpy as np
 
 
 cdef extern from "tdsfm.h":
-    ctypedef struct tdsfm_t:
-        sp_grid_t* k_grid
-        sh_grid_t* r_grid
-        int ir
+    cdef cppclass tdsfm_t:
+        sp_grid_t* k_grid;
+        sh_grid_t* r_grid;
+        int ir;
         cdouble* data
-        sp_grid_t* appr_k_grid
-        double* jl
-        ylm_cache_t* ylm
-        double int_A
-        double int_A2
 
-    double jn(int l, double x)
-
-    tdsfm_t* tdsfm_new(sp_grid_t * k_grid, sh_grid_t * r_grid, double A_max, int ir)
-    void tdsfm_del(tdsfm_t* tdsfm)
-    void tdsfm_calc(tdsfm_t* tdsfm, field_t * field, sh_wavefunc_t * wf, double t, double dt)
-    void tdsfm_calc_inner(tdsfm_t* tdsfm, field_t* field, sh_wavefunc_t* wf, double t, int ir_min, int ir_max)
+        tdsfm_t(sp_grid_t* k_grid, sh_grid_t* r_grid, double A_max, int ir)
+        void calc(field_t* field, sh_wavefunc_t& wf, double t, double dt)
+        void calc_inner(field_t* field, sh_wavefunc_t& wf, double t, int ir_min, int ir_max)
 
 
 cdef class TDSFM:
     cdef tdsfm_t* cdata
     cdef SpGrid k_grid
     cdef ShGrid r_grid
-
-
-cdef class TDSFM_new:
-    cdef tdsfm_t cdata
-    cdef SpGrid k_grid
-    cdef ShGrid r_grid
-    cdef cdouble[:,::1] data
-    cdef double[:,::1] jl
-    cdef YlmCache ylm

@@ -6,10 +6,11 @@ from distutils.extension import Extension
 from Cython.Build import cythonize
 
 import os
-os.environ['CC'] = 'mpicc'
+os.environ['CC'] = 'mpicxx'
+os.environ['CXX'] = 'mpicxx'
 
 ext = Extension("*", ["wrapper/*.pyx"],
-                libraries=["tdse", "lapack", "mpi"],
+                libraries=["tdse", "lapack"],
                 library_dirs=[
                     'build/src',
                 ],
@@ -19,9 +20,11 @@ ext = Extension("*", ["wrapper/*.pyx"],
                     mpi4py.get_include(),
                 ],
                 extra_compile_args=[
-                    '-std=c11',
+                    '-std=c++11',
                     '-D_MPI',
+                    '-g',
                 ],
+                language="c++",
                 )
 setup(
     name = "tdse",

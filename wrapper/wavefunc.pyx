@@ -6,7 +6,7 @@ if tdse.utils.is_jupyter_notebook():
     import matplotlib.pyplot as plt
     from IPython.core.pylabtools import print_figure
 
-from types cimport cdouble
+from types cimport complex_t
 from abs_pot cimport mask_core
 from grid cimport ShGrid, SpGrid
 from sphere_harmonics cimport YlmCache
@@ -65,14 +65,17 @@ cdef class SWavefunc:
         return sh_wavefunc_z(self.cdata)
 
     def __mul__(SWavefunc self, SWavefunc other):
-        return sh_wavefunc_prod(self.cdata, other.cdata)
+        cdef cdouble res = sh_wavefunc_prod(self.cdata, other.cdata)
+        return (<complex_t*>(&res))[0]
+
 
     def asarray(self):
-        cdef cdouble[:, ::1] array = <cdouble[:self.cdata.grid.n[1],:self.cdata.grid.n[0]]>self.cdata.data
+        cdef complex_t[:, ::1] array = <complex_t[:self.cdata.grid.n[1],:self.cdata.grid.n[0]]>(<complex_t*>self.cdata.data)
         return np.asarray(array)
 
     def get_sp(self, SpGrid grid, YlmCache ylm_cache, int ir, int ic, int ip):
-        return swf_get_sp(self.cdata, grid.data, [ir, ic, ip], ylm_cache.cdata)
+        cdef cdouble res =  swf_get_sp(self.cdata, grid.data, [ir, ic, ip], ylm_cache.cdata)
+        return (<complex_t*>(&res))[0]
 
     def _figure_data(self, format):
         fig, ax = plt.subplots()

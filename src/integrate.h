@@ -6,7 +6,27 @@
 #pragma once
 #include <assert.h>
 
+
 #ifdef __cplusplus
+#include <functional>
+
+template<typename T>
+T integrate_1d_cpp(std::function<T(int i)> f, int nx, double dx) {
+	assert(nx > 1);
+
+	T res = 0.0;
+	for (int ix = 1; ix < nx-1; ix+=2) {
+		res += f(ix-1) + 4*f(ix) + f(ix+1);
+	}
+	res *= dx/3;
+
+	if (nx % 2 == 0) {
+		res += (f(nx-2) + f(nx-1))*dx*0.5;
+	}
+
+	return res;
+}
+
 extern "C" {
 #endif
 

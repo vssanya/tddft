@@ -1,7 +1,7 @@
 import numpy as np
 cimport numpy as np
 
-from types cimport cdouble
+from types cimport cdouble, complex_t
 from abs_pot cimport mask_core
 from grid cimport ShGrid, SpGrid
 from atom cimport Atom
@@ -54,7 +54,7 @@ cdef class SOrbitals:
         if self.is_mpi():
             shape = self.mpi_comm.bcast(shape)
 
-        orbitals_set_init_state(self.cdata, data_ptr, shape[1], shape[0])
+        orbitals_set_init_state(self.cdata, <cdouble*>data_ptr, shape[1], shape[0])
 
     @property
     def shape(self):
@@ -135,11 +135,11 @@ cdef class SOrbitals:
         return swavefunc_from_point(self.cdata.wf[ie], self.grid)
 
     def asarray(self):
-        cdef cdouble[:, :, ::1] res
+        cdef complex_t[:, :, ::1] res
         if self.is_mpi():
-            array = <cdouble[:1, :self.cdata.grid.n[1],:self.cdata.grid.n[0]]>self.cdata.data
+            array = <complex_t[:1, :self.cdata.grid.n[1],:self.cdata.grid.n[0]]>(<complex_t*>self.cdata.data)
         else:
-            array = <cdouble[:self.cdata.atom.n_orbs, :self.cdata.grid.n[1],:self.cdata.grid.n[0]]>self.cdata.data
+            array = <complex_t[:self.cdata.atom.n_orbs, :self.cdata.grid.n[1],:self.cdata.grid.n[0]]>(<complex_t*>self.cdata.data)
 
         return np.asarray(array)
 
@@ -170,6 +170,6 @@ cdef class SOrbitals:
     def grad_u(self, ie=0):
         cdef np.ndarray[np.double_t, ndim=1] res = np.ndarray(self.cdata.grid.n[0], np.double)
 
-        sh_wavefunc_cos_r(self.cdata.wf[ie], self.atom.cdata.dudz, <double*>res.data)
+        sh_wavefunc_cos_r(self.cdata.wf[ie], <sh_f>self.atom.cdata.dudz, <double*>res.data)
         return res
 

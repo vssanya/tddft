@@ -238,7 +238,7 @@ cdef class TrEnvField(Field):
         self.cfield.t_const = t_const
         self.cfield.t_smooth = t_smooth
         self.cfield.fA = <field_func_t>field_tr_env_A
-        self.cfield.fE = field_E_from_A
+        self.cfield.fE = <field_func_t>field_E_from_A
         self.cfield.pT = <field_prop_t>field_tr_env_T
 
         self.cdata = <field_t*>(&self.cfield)

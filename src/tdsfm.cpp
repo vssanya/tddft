@@ -16,8 +16,8 @@
  * =====================================================================================
  */
 
-#include <boost/math/special_functions/bessel.hpp>
-#include <boost/math/special_functions/spherical_harmonic.hpp>
+//#include <boost/math/special_functions/bessel.hpp>
+//#include <boost/math/special_functions/spherical_harmonic.hpp>
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -26,129 +26,99 @@
 #include "integrate.h"
 
 
-tdsfm_t* tdsfm_new(sp_grid_t const* k_grid, sh_grid_t const* r_grid, double A_max, int ir) {
-	tdsfm_t* tdsfm = new tdsfm_t;
-	tdsfm->k_grid = k_grid;
-	tdsfm->r_grid = r_grid;
-	tdsfm->ir = ir;
-	tdsfm->data = new cdouble[k_grid->n[iR]*k_grid->n[iC]]();
+tdsfm_t::tdsfm_t(sp_grid_t const* k_grid, sh_grid_t const* r_grid, double A_max, int ir):
+	k_grid(k_grid),
+	r_grid(r_grid),
+	ir(ir),
+	int_A(0.0),
+	int_A2(0.0)
+{
+	data = new cdouble[k_grid->n[iR]*k_grid->n[iC]]();
 
-	double k_max = sp_grid_r(k_grid, k_grid->n[iR]-1) + A_max;
-	int N[3] = {(int)(k_max/k_grid->d[iR])*2, k_grid->n[1]*2, k_grid->n[2]};
-	tdsfm->appr_k_grid = sp_grid_new(N, k_max);
-	tdsfm->jl = new double[tdsfm->appr_k_grid->n[iR]*(r_grid->n[iL]+1)];
-	double r = sh_grid_r(r_grid, ir);
-	for (int ik=0; ik<tdsfm->appr_k_grid->n[iR]; ik++) {
-		double k = sp_grid_r(tdsfm->appr_k_grid, ik);
-		for (int il=0; il<(r_grid->n[iL]+1); il++) {
-			tdsfm->jl[il + (r_grid->n[iL]+1)*ik] = boost::math::sph_bessel(il, k*r);
-		}
-	}
+	double k_max = (sp_grid_r(k_grid, k_grid->n[iR]-1) + A_max);
+	double r_max = sh_grid_r_max(r_grid);
 
-	tdsfm->ylm = ylm_cache_new(r_grid->n[iL], tdsfm->appr_k_grid);
+	int N[3] = {(int)(k_max*r_max/(k_grid->d[iR]*r_grid->d[iR]))*2, k_grid->n[1]*2, k_grid->n[2]};
+	jl_grid = sp_grid_new(N, k_max*r_max);
+	jl = new jl_cache_t(jl_grid, r_grid->n[iL]+1);
 
-	tdsfm->int_A  = 0.0;
-	tdsfm->int_A2 = 0.0;
-
-	return tdsfm;
+	int N_ylm[3] = {(int)(k_max/k_grid->d[iR])*2, k_grid->n[1]*2, k_grid->n[2]};
+	ylm_grid = sp_grid_new(N_ylm, k_max);
+	ylm = new ylm_cache_t(ylm_grid, r_grid->n[iL]);
 }
 
-void tdsfm_del(tdsfm_t* tdsfm) {
-	ylm_cache_del(tdsfm->ylm);
-	delete[] tdsfm->jl;
-	delete[] tdsfm->data;
-	sp_grid_del(tdsfm->appr_k_grid);
-	delete tdsfm;
+tdsfm_t::~tdsfm_t() {
+	delete ylm;
+	delete jl;
+	delete[] data;
+	sp_grid_del(jl_grid);
+	sp_grid_del(ylm_grid);
 }
 
-void tdsfm_calc(tdsfm_t* tdsfm, field_t const* field, sh_wavefunc_t const* wf, double t, double dt) {
-	int Nk = tdsfm->k_grid->n[iR];
-	int Nl = tdsfm->r_grid->n[iL];
+void tdsfm_t::calc(field_t const* field, sh_wavefunc_t const& wf, double t, double dt) {
+	int Nk = k_grid->n[iR];
+	int Nl = r_grid->n[iL];
 
-	double ir = tdsfm->ir;
-	double r = sh_grid_r(wf->grid, ir);
-	double dr = wf->grid->d[iR];
+	double r = sh_grid_r(wf.grid, ir);
+	double dr = wf.grid->d[iR];
 
 	double At_dt = field_A(field, t-dt);
 	double At    = field_A(field, t);
-	tdsfm->int_A  += (At + At_dt)*dt*0.5;
-	tdsfm->int_A2 += (pow(At, 2) + pow(At_dt, 2))*dt*0.5;
+
+	int_A  += (At + At_dt)*dt*0.5;
+	int_A2 += (pow(At, 2) + pow(At_dt, 2))*dt*0.5;
 
 #pragma omp parallel for collapse(2)
 	for (int ik=0; ik<Nk; ik++) {
-		for (int ic=0; ic<tdsfm->k_grid->n[iC]; ic++) {
-			double k  = sp_grid_r(tdsfm->k_grid, ik);
-			double kz = sp_grid_c(tdsfm->k_grid, ic)*k;
+		for (int ic=0; ic<k_grid->n[iC]; ic++) {
+			double k  = sp_grid_r(k_grid, ik);
+			double kz = sp_grid_c(k_grid, ic)*k;
 
-			cdouble S = cexp(0.5*I*(k*k*t + 2*kz*tdsfm->int_A + tdsfm->int_A2));
+			cdouble S = cexp(0.5*I*(k*k*t + 2*kz*int_A + int_A2));
 
 			double k_A = sqrt(k*k + 2*kz*At + At*At);
 			double k_A_z = kz + At;
 
-			int ik_A   = sp_grid_ir(tdsfm->appr_k_grid, k_A);
-			int ic_k_A = sp_grid_ic(tdsfm->appr_k_grid, k_A_z/k_A);
-
-			if (ik_A < 0) {
-				printf("Error: out of range array, ik_A = %d, max = %d\n", ik_A, tdsfm->appr_k_grid->n[iR]);
-				printf("k_A = %f, dk = %f\n", k_A, tdsfm->appr_k_grid->d[iR]);
-			}
-
-			if (ic_k_A < 0) {
-				printf("Error: out of range array, ic_k_A = %d, max = %d\n", ic_k_A, tdsfm->appr_k_grid->n[iC]);
-			}
-
-			if (ik_A >= tdsfm->appr_k_grid->n[iR]) {
-				printf("Error: out of range array, ik_A = %d, max = %d\n", ik_A, tdsfm->appr_k_grid->n[iR]);
-			}
-
-			if (ic_k_A >= tdsfm->appr_k_grid->n[iC]) {
-				printf("Error: out of range array, ic_k_A = %d, max = %d\n", ic_k_A, tdsfm->appr_k_grid->n[iC]);
-			}
-
 			cdouble a_k = 0.0;
-			for (int il=0; il<wf->grid->n[iL]; il++) {
-				cdouble psi = swf_get(wf, ir, il);
-				cdouble dpsi = (swf_get(wf, ir+1, il) - swf_get(wf, ir-1, il))/(2*dr);
+			for (int il=0; il<wf.grid->n[iL]; il++) {
+				cdouble psi = wf(ir, il);
+				cdouble dpsi = (wf(ir+1, il) - wf(ir-1, il))/(2*dr);
 				a_k += cpow(-I, il+1)*(
-						//tdsfm->jl[il  +ik_A*(Nl+1)]*(dpsi-(il+1)*psi/r) +
-						boost::math::sph_bessel(il, k_A*r)*(dpsi-(il+1)*psi/r) +
-						//tdsfm->jl[il+1+ik_A*(Nl+1)]*k_A*psi
-						boost::math::sph_bessel(il+1, k_A*r)*k_A*psi
-						//)*ylm_cache_get(tdsfm->ylm, il, wf->m, ic_k_A);
-						)*boost::math::spherical_harmonic_r(il, wf->m, acos(k_A_z/k_A), 0);
+						(*jl)(k_A*r, il)*(dpsi-(il+1)*psi/r) +
+						//boost::math::sph_bessel(il, k_A*r)*(dpsi-(il+1)*psi/r) +
+						(*jl)(k_A*r, il+1)*k_A*psi
+						//boost::math::sph_bessel(il+1, k_A*r)*k_A*psi
+						)*(*ylm)(il, wf.m, k_A);
+						//)*boost::math::spherical_harmonic_r(il, wf->m, acos(k_A_z/k_A), 0);
 			}
 
-			tdsfm->data[ik+ic*Nk] += a_k*r/sqrt(2.0*M_PI)*S*dt;
+			data[ik+ic*Nk] += a_k*r/sqrt(2.0*M_PI)*S*dt;
 		}
 	}
 }
 
-void tdsfm_calc_inner(tdsfm_t* tdsfm, field_t const* field, sh_wavefunc_t const* wf, double t, int ir_min, int ir_max) {
-	int Nk = tdsfm->k_grid->n[iR];
+void tdsfm_t::calc_inner(field_t const* field, sh_wavefunc_t const& wf, double t, int ir_min, int ir_max) {
+	int Nk = k_grid->n[iR];
 
 #pragma omp parallel for collapse(2)
 	for (int ik=0; ik<Nk; ik++) {
-		for (int ic=0; ic<tdsfm->k_grid->n[iC]; ic++) {
-			double k = sp_grid_r(tdsfm->k_grid, ik);
-			double kz = sp_grid_c(tdsfm->k_grid, ic)*k;
+		for (int ic=0; ic<k_grid->n[iC]; ic++) {
+			double k = sp_grid_r(k_grid, ik);
+			double kz = sp_grid_c(k_grid, ic)*k;
 
-			cdouble S = cexp(0.5*I*(k*k*t - 2*kz*tdsfm->int_A + tdsfm->int_A2));
+			cdouble S = cexp(0.5*I*(k*k*t - 2*kz*int_A + int_A2));
 
 			cdouble a_k = 0.0;
-			for (int il=0; il<wf->grid->n[iL]; il++) {
+			for (int il=0; il<wf.grid->n[iL]; il++) {
 				cdouble a_kl = 0.0;
 				for (int ir=ir_min; ir<ir_max; ir++) {
-					double r = sh_grid_r(wf->grid, ir);
-					a_kl += r*swf_get(wf, ir, il)*boost::math::sph_bessel(il, k*r);
+					double r = sh_grid_r(wf.grid, ir);
+					a_kl += r*wf(ir, il)*(*jl)(il, k*r);
 				}
-				a_k += a_kl*cpow(-I, il)*ylm_cache_get(tdsfm->ylm, il, wf->m, ic);
+				a_k += a_kl*cpow(-I, il)*(*ylm)(il, wf.m, ic);
 			}
 
-			tdsfm->data[ik+ic*Nk] += a_k*sqrt(2.0/M_PI)*wf->grid->d[iR]*S;
+			data[ik+ic*Nk] += a_k*sqrt(2.0/M_PI)*wf.grid->d[iR]*S;
 		}
 	}
-}
-
-double jn(int l, double x) {
-	return boost::math::sph_bessel(l, x);
 }

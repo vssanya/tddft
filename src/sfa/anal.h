@@ -1,6 +1,10 @@
 #pragma once
 
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 __attribute__((pure))
 double Fn(double n0, double g, double pn, double pz, double a, double phi);
 
@@ -24,3 +28,7 @@ double sfa_djdt(double E, double w, double a, double phi);
 
 __attribute__((pure))
 double sfa_dwdt(double E, double w, double a, double phi);
+
+#ifdef __cplusplus
+}
+#endif

@@ -3,21 +3,40 @@ cimport numpy as np
 
 from grid cimport SpGrid
 
+cdef class JlCache:
+    def __cinit__(self, SpGrid grid, int l_max):
+        self.cdata = new jl_cache_t(grid.data, l_max)
+
+    def __init__(self, SpGrid grid, int l_max):
+        pass
+
+    def __dealloc__(self):
+        del self.cdata
+
+    def __call__(self, double r, int l):
+        return self.cdata[0](r, l)
+
 cdef class YlmCache:
     def __cinit__(self, int l_max, SpGrid grid):
-        self.cdata = ylm_cache_new(l_max, grid.data)
+        self.cdata = new ylm_cache_t(grid.data, l_max)
+
+    def __init__(self, int l_max, SpGrid grid):
+        pass
 
     def __dealloc__(self):
         if self.cdata != NULL:
-            ylm_cache_del(self.cdata)
+            del self.cdata
 
     @np.vectorize
     def get(self, int l, int m, int ic):
-        return ylm_cache_get(self.cdata, l, m, ic)
+        return self.cdata[0](l, m, ic)
 
     @np.vectorize
     def calc(self, int l, int m, double c):
-        return ylm_cache_calc(self.cdata, l, m, ic)
+        return self.cdata[0](l, m, c)
+
+    def __call__(self, int l, int m, double c):
+        return self.cdata[0](l, m, c)
 
 cdef object func_2d = None
 
