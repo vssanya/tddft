@@ -88,7 +88,7 @@ void tdsfm_t::calc(field_t const* field, sh_wavefunc_t const& wf, double t, doub
 						//boost::math::sph_bessel(il, k_A*r)*(dpsi-(il+1)*psi/r) +
 						(*jl)(k_A*r, il+1)*k_A*psi
 						//boost::math::sph_bessel(il+1, k_A*r)*k_A*psi
-						)*(*ylm)(il, wf.m, k_A);
+						)*(*ylm)(il, wf.m, k_A_z/k_A);
 						//)*boost::math::spherical_harmonic_r(il, wf->m, acos(k_A_z/k_A), 0);
 			}
 

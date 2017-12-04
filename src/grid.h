@@ -92,10 +92,6 @@ double sp_grid_r(sp_grid_t const* grid, int ir) {
 
 __attribute__((pure)) inline
 int sp_grid_ir(sp_grid_t const* grid, double r) {
-	if (r < grid->d[iR]) {
-		return 0.0;
-	}
-
 	return (int) (r/grid->d[iR]) - 1;
 }
 

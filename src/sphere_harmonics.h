@@ -15,13 +15,20 @@ struct jl_cache_t {
 	
 	inline
 	double operator()(int ir, int il) const {
-		return data[ir + il*grid->n[iR]];
+		assert(ir >= -1 && ir < grid->n[iR]);
+		assert(il >= 0  && il < l_max);
+
+		return data[ir + il*(grid->n[iR]+1) + 1];
 	}
+
 	double operator()(double r, int il) const;
 
 	inline
 	double& operator()(int ir, int il) {
-		return data[ir + il*grid->n[iR]];
+		assert(ir >= -1 && ir < grid->n[iR]);
+		assert(il >= 0 && il < l_max);
+
+		return data[ir + il*(grid->n[iR]+1) + 1];
 	}
 #endif
 };
@@ -39,12 +46,18 @@ struct ylm_cache_t {
 	
 	inline
 	double operator()(int l, int m, int ic) const {
+		assert(ic >= 0 && ic < grid->n[iC]);
+		assert(l >= 0 && l <= l_max);
+
 		return data[l + ic*(l_max+1) + m*(l_max+1)*grid->n[iC]];
 	}
 	double operator()(int l, int m, double c) const;
 
 	inline
 	double& operator()(int l, int m, int ic) {
+		assert(ic >= 0 && ic < grid->n[iC]);
+		assert(l >= 0 && l <= l_max);
+
 		return data[l + ic*(l_max+1) + m*(l_max+1)*grid->n[iC]];
 	}
 #endif

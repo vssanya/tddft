@@ -14,8 +14,10 @@ jl_cache_t::jl_cache_t(sp_grid_t const* grid, int l_max):
 	l_max(l_max),
 	grid(grid)
 {
-	data = new double[grid->n[iR]*l_max]();
+	data = new double[(grid->n[iR]+1)*l_max]();
 	for (int il=0; il<l_max; il++) {
+		(*this)(-1, il) = boost::math::sph_bessel(il, 0.0);
+
 		for (int ir=0; ir<grid->n[iR]; ir++) {
 			(*this)(ir, il) = boost::math::sph_bessel(il, sp_grid_r(grid, ir));
 		}
@@ -27,6 +29,8 @@ jl_cache_t::~jl_cache_t() {
 }
 
 double jl_cache_t::operator()(double r, int il) const {
+	assert(il >= 0 && il < l_max);
+
 	int ir = sp_grid_ir(grid, r);
 	double x = (r - sp_grid_r(grid, ir))/grid->d[iR];
 	return (*this)(ir, il)*(1.0 - x) + (*this)(ir+1, il)*x;
@@ -85,7 +89,12 @@ double ylm_cache_get(ylm_cache_t const* cache, int l, int m, int ic) {
 double ylm_cache_t::operator()(int l, int m, double c) const {
 	int ic = sp_grid_ic(grid, c);
 	double x = (c - sp_grid_c(grid, ic))/grid->d[iC];
-	return (*this)(l, m, ic)*(1.0 - x) + (*this)(l, m, ic+1)*x;
+
+	if (ic == grid->n[iC] - 1) {
+		return (*this)(l, m, ic);
+	} else {
+		return (*this)(l, m, ic)*(1.0 - x) + (*this)(l, m, ic+1)*x;
+	}
 }
 
 double ylm_cache_calc(ylm_cache_t const* cache, int l, int m, double c) {
