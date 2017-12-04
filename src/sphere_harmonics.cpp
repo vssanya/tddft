@@ -15,11 +15,14 @@ jl_cache_t::jl_cache_t(sp_grid_t const* grid, int l_max):
 	grid(grid)
 {
 	data = new double[(grid->n[iR]+1)*l_max]();
+#pragma omp parallel for collapse(2)
 	for (int il=0; il<l_max; il++) {
-		(*this)(-1, il) = boost::math::sph_bessel(il, 0.0);
-
 		for (int ir=0; ir<grid->n[iR]; ir++) {
-			(*this)(ir, il) = boost::math::sph_bessel(il, sp_grid_r(grid, ir));
+			if (ir == -1) {
+				(*this)(ir, il) = boost::math::sph_bessel(il, 0.0);
+			} else {
+				(*this)(ir, il) = boost::math::sph_bessel(il, sp_grid_r(grid, ir));
+			}
 		}
 	}
 }
