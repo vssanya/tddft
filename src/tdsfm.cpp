@@ -106,19 +106,35 @@ void tdsfm_t::calc_inner(field_t const* field, sh_wavefunc_t const& wf, double t
 			double k = sp_grid_r(k_grid, ik);
 			double kz = sp_grid_c(k_grid, ic)*k;
 
-			cdouble S = cexp(0.5*I*(k*k*t - 2*kz*int_A + int_A2));
+			cdouble S = cexp(0.5*I*(k*k*t + 2*kz*int_A + int_A2));
 
 			cdouble a_k = 0.0;
 			for (int il=0; il<wf.grid->n[iL]; il++) {
 				cdouble a_kl = 0.0;
 				for (int ir=ir_min; ir<ir_max; ir++) {
 					double r = sh_grid_r(wf.grid, ir);
-					a_kl += r*wf(ir, il)*(*jl)(il, k*r);
+					a_kl += r*wf(ir, il)*(*jl)(k*r, il);
 				}
-				a_k += a_kl*cpow(-I, il)*(*ylm)(il, wf.m, ic);
+				a_k += a_kl*cpow(-I, il)*(*ylm)(il, wf.m, sp_grid_c(k_grid, ic));
 			}
 
-			data[ik+ic*Nk] += a_k*sqrt(2.0/M_PI)*wf.grid->d[iR]*S;
+			(*this)(ik, ic) += a_k*sqrt(2.0/M_PI)*wf.grid->d[iR]*S;
 		}
 	}
+}
+
+double tdsfm_t::pz() const {
+	double pz = 0.0;
+
+#pragma omp parallel for reduction(+:pz) collapse(2)
+	for (int ik=0; ik<k_grid->n[iR]; ik++) {
+		for (int ic=0; ic<k_grid->n[iC]; ic++) {
+			double k = sp_grid_r(k_grid, ik);
+			double kz = sp_grid_c(k_grid, ic)*k;
+
+			pz += kz*(pow(creal((*this)(ik, ic)), 2) + pow(cimag((*this)(ik, ic)), 2))*k;
+		}
+	}
+
+	return pz*k_grid->d[iR]*k_grid->d[iC]*2*M_PI;
 }

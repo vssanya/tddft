@@ -46,4 +46,16 @@ struct tdsfm_t {
 
 	void calc(field_t const* field, sh_wavefunc_t const& wf, double t, double dt);
 	void calc_inner(field_t const* field, sh_wavefunc_t const& wf, double t, int ir_min, int ir_max);
+
+	double pz() const;
+
+	inline
+	cdouble operator()(int ik, int ic) const {
+		return data[ik + ic*k_grid->n[iR]];
+	}
+
+	inline
+	cdouble& operator()(int ik, int ic) {
+		return data[ik + ic*k_grid->n[iR]];
+	}
 };

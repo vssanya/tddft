@@ -13,7 +13,7 @@
 
 
 sh_wavefunc_t* _sh_wavefunc_new(cdouble* data, bool data_own, sh_grid_t const* grid, int const m) {
-	sh_wavefunc_t* wf = new sh_wavefunc_t;
+	auto wf = new sh_wavefunc_t;
 	wf->grid = grid;
 
 	wf->data = data;
@@ -25,7 +25,7 @@ sh_wavefunc_t* _sh_wavefunc_new(cdouble* data, bool data_own, sh_grid_t const* g
 }
 
 sh_wavefunc_t* sh_wavefunc_new(sh_grid_t const* grid, int const m) {
-	cdouble* data = new cdouble[grid2_size(grid)]();
+	auto data = new cdouble[grid2_size(grid)]();
 	return _sh_wavefunc_new(data, true, grid, m);
 }
 
