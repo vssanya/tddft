@@ -1,5 +1,6 @@
 tdse/bot_client.py
 tdse/const.py
+tdse/ground_state.py
 tdse/probability.py
 tdse/task.py
 tdse/utils.py
@@ -7,11 +8,17 @@ tdse/__init__.py
 
 examples/task/h_az.py
 
+src/workspace.h
+src/workspace/wf.h
+src/workspace/orbs.h
+src/workspace/sae.h
+src/workspace/gps.h
+src/workspace/common_alg.h
+
 src/fourier.h
 src/kn.h
 src/prog.h
 src/grid.h
-src/sh_workspace.h
 src/sh_wavefunc.h
 src/hartree_potential.h
 src/types.h
@@ -25,6 +32,7 @@ src/orbitals.h
 src/atom.h
 src/eigen.h
 src/linalg.h
+src/tdsfm.h
 src/sfa/anal.h
 src/integrate.h
 

@@ -51,6 +51,7 @@ set( LIB_HEADERS
 	eigen.h
 	linalg.h
 	tdsfm.h
+	integrate.h
 	"sfa/anal.h"
 	)
 

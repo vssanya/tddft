@@ -3,8 +3,6 @@ from cpython cimport Py_buffer
 import numpy as np
 cimport numpy as np
 
-import scipy.special
-
 from types cimport complex_t
 from grid cimport ShGrid, SpGrid, sp_grid_r, sp_grid_c
 from field cimport Field
@@ -13,8 +11,8 @@ from sphere_harmonics cimport ylm_cache_get
 
 
 cdef class TDSFM:
-    def __cinit__(self, SpGrid k_grid, ShGrid r_grid, double A_max, int ir):
-        self.cdata = new tdsfm_t(k_grid.data, r_grid.data, A_max, ir)
+    def __cinit__(self, SpGrid k_grid, ShGrid r_grid, double A_max, int ir, bool init_cache = True):
+        self.cdata = new tdsfm_t(k_grid.data, r_grid.data, A_max, ir, init_cache)
         self.k_grid = k_grid
         self.r_grid = r_grid
 
@@ -23,6 +21,9 @@ cdef class TDSFM:
 
     def __dealloc__(self):
         del self.cdata
+
+    def init_cache(self):
+        self.cdata.init_cache()
 
     def calc(self, Field field, SWavefunc wf, double t, double dt):
         self.cdata[0].calc(field.cdata, wf.cdata[0], t, dt)

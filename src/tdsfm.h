@@ -41,8 +41,10 @@ struct tdsfm_t {
 	double int_A;
 	double int_A2;
 
-	tdsfm_t(sp_grid_t const* k_grid, sh_grid_t const* r_grid, double A_max, int ir);
+	tdsfm_t(sp_grid_t const* k_grid, sh_grid_t const* r_grid, double A_max, int ir, bool init_cache=true);
 	~tdsfm_t();
+
+	void init_cache();
 
 	void calc(field_t const* field, sh_wavefunc_t const& wf, double t, double dt);
 	void calc_inner(field_t const* field, sh_wavefunc_t const& wf, double t, int ir_min, int ir_max);

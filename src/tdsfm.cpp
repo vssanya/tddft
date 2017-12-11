@@ -26,10 +26,12 @@
 #include "integrate.h"
 
 
-tdsfm_t::tdsfm_t(sp_grid_t const* k_grid, sh_grid_t const* r_grid, double A_max, int ir):
+tdsfm_t::tdsfm_t(sp_grid_t const* k_grid, sh_grid_t const* r_grid, double A_max, int ir, bool init_cache):
 	k_grid(k_grid),
 	r_grid(r_grid),
 	ir(ir),
+	jl(NULL),
+	ylm(NULL),
 	int_A(0.0),
 	int_A2(0.0)
 {
@@ -40,11 +42,23 @@ tdsfm_t::tdsfm_t(sp_grid_t const* k_grid, sh_grid_t const* r_grid, double A_max,
 
 	int N[3] = {(int)(k_max*r_max/(k_grid->d[iR]*r_grid->d[iR]))*2, k_grid->n[1]*2, k_grid->n[2]};
 	jl_grid = sp_grid_new(N, k_max*r_max);
-	jl = new jl_cache_t(jl_grid, r_grid->n[iL]+1);
 
 	int N_ylm[3] = {(int)(k_max/k_grid->d[iR])*2, k_grid->n[1]*2, k_grid->n[2]};
 	ylm_grid = sp_grid_new(N_ylm, k_max);
-	ylm = new ylm_cache_t(ylm_grid, r_grid->n[iL]);
+
+	if (init_cache) {
+		this->init_cache();
+	}
+}
+
+void tdsfm_t::init_cache() {
+	if (jl == NULL) {
+		jl = new jl_cache_t(jl_grid, r_grid->n[iL]+1);
+	}
+
+	if (ylm == NULL) {
+		ylm = new ylm_cache_t(ylm_grid, r_grid->n[iL]);
+	}
 }
 
 tdsfm_t::~tdsfm_t() {
@@ -132,7 +146,7 @@ double tdsfm_t::pz() const {
 			double k = sp_grid_r(k_grid, ik);
 			double kz = sp_grid_c(k_grid, ic)*k;
 
-			pz += kz*(pow(creal((*this)(ik, ic)), 2) + pow(cimag((*this)(ik, ic)), 2))*k;
+			pz += kz*(pow(creal((*this)(ik, ic)), 2) + pow(cimag((*this)(ik, ic)), 2))*k*k;
 		}
 	}
 
