@@ -281,3 +281,23 @@ void sh_wavefunc_random_l(sh_wavefunc_t* wf, int l) {
 		}
 	}
 }
+
+cdouble* swf_ptr(sh_wavefunc_t const* wf, int ir, int il) {
+	int index[2] = {ir, il};
+	return &wf->data[grid2_index(wf->grid, index)];
+}
+
+cdouble const* swf_const_ptr(sh_wavefunc_t const* wf, int ir, int il) {
+	int index[2] = {ir, il};
+	return &wf->data[grid2_index(wf->grid, index)];
+}
+
+cdouble swf_get(sh_wavefunc_t const* wf, int ir, int il) {
+	int index[2] = {ir, il};
+	return wf->data[grid2_index(wf->grid, index)];
+}
+
+void swf_set(sh_wavefunc_t* wf, int ir, int il, cdouble value) {
+	int index[2] = {ir, il};
+	wf->data[grid2_index(wf->grid, index)] = value;
+}

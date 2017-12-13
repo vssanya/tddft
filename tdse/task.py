@@ -161,7 +161,7 @@ class WavefuncTask(Task):
 
         if self.is_calc_ground_state:
             print("Start calc ground state")
-            self.wf = self.calc_ground_state(ws=ws)
+            self.wf = self.calc_ground_state(self.ws)
         else:
             self.wf = tdse.wavefunc.SWavefunc(self.grid)
 

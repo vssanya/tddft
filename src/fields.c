@@ -5,6 +5,22 @@
 
 #include "utils.h"
 
+double field_E(field_t const* field, double t) {
+	return field->fE(field, t);
+}
+
+double field_A(field_t const* field, double t) {
+	return field->fA(field, t);
+}
+
+double field_T(field_t const* field) {
+	if (field->pT != NULL) {
+		return field->pT(field);
+	}
+
+	return 0.0;
+}
+
 double field_func_zero(void const* field, double t) {
 	return 0.0;
 }

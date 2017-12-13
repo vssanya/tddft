@@ -18,21 +18,9 @@ typedef struct field_t {
 double field_func_zero(void const* field, double t);
 double field_E_from_A(field_t const* field, double t);
 
-inline double field_E(field_t const* field, double t) {
-	return field->fE(field, t);
-}
-
-inline double field_A(field_t const* field, double t) {
-	return field->fA(field, t);
-}
-
-inline double field_T(field_t const* field) {
-	if (field->pT != NULL) {
-		return field->pT(field);
-	}
-
-	return 0.0;
-}
+double field_E(field_t const* field, double t);
+double field_A(field_t const* field, double t);
+double field_T(field_t const* field);
 
 #define FIELD_STRUCT(name, ...)\
 	typedef struct field_##name##_t {\

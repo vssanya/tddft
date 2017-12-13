@@ -59,25 +59,10 @@ sh_wavefunc_t* sh_wavefunc_new_from(
 
 void sh_wavefunc_copy(sh_wavefunc_t const* wf_src, sh_wavefunc_t* wf_dest);
 
-inline cdouble* swf_ptr(sh_wavefunc_t const* wf, int ir, int il) {
-	int index[2] = {ir, il};
-	return &wf->data[grid2_index(wf->grid, index)];
-}
-
-inline cdouble const* swf_const_ptr(sh_wavefunc_t const* wf, int ir, int il) {
-	int index[2] = {ir, il};
-	return &wf->data[grid2_index(wf->grid, index)];
-}
-
-inline cdouble swf_get(sh_wavefunc_t const* wf, int ir, int il) {
-	int index[2] = {ir, il};
-	return wf->data[grid2_index(wf->grid, index)];
-}
-
-inline void swf_set(sh_wavefunc_t* wf, int ir, int il, cdouble value) {
-	int index[2] = {ir, il};
-	wf->data[grid2_index(wf->grid, index)] = value;
-}
+cdouble* swf_ptr(sh_wavefunc_t const* wf, int ir, int il);
+cdouble const* swf_const_ptr(sh_wavefunc_t const* wf, int ir, int il);
+cdouble swf_get(sh_wavefunc_t const* wf, int ir, int il);
+void swf_set(sh_wavefunc_t* wf, int ir, int il, cdouble value);
 
 void sh_wavefunc_ort_l(int l, int n, sh_wavefunc_t** wfs);
 

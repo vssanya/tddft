@@ -1,4 +1,4 @@
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -O3")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall")
 
 set( LIB_SOURCES
 	"workspace/wf.c"
@@ -9,6 +9,7 @@ set( LIB_SOURCES
 
 	sh_wavefunc.cpp
 	hartree_potential.c
+	integrate.c
 	utils.c
 	abs_pot.c
 	grid.c

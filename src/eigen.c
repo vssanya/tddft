@@ -25,6 +25,16 @@ void eigen_ws_free(eigen_ws_t* ws) {
 	free(ws);
 }
 
+double eigen_eval(eigen_ws_t const* ws, int il, int ie) {
+	int const Nr = ws->grid->n[iR];
+	return ws->eval[ie + il*Nr];
+}
+
+double eigen_evec(eigen_ws_t const* ws, int il, int ir, int ie) {
+	int const Nr = ws->grid->n[iR];
+	return ws->evec[ie + ir*Nr + il*Nr*Nr];
+}
+
 void eigen_calc_dr4(eigen_ws_t* ws, sh_f u, int Z) {
 	int const Nr = ws->grid->n[iR];
 

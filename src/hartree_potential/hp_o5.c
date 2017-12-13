@@ -2,6 +2,9 @@
 #include "../grid.h"
 #include "../integrate.h"
 
+double Dn_func(int n, sh_grid_t const* grid, int ir, int irl, double const f[grid->n[iR]]);
+double Un_func(int n, sh_grid_t const* grid, int ir, int irl, double const f[grid->n[iR]]);
+
 
 double Dn_0(int n, sh_grid_t const* grid, double const f[grid->n[iR]]) {
   double func(int irl) {

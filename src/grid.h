@@ -52,31 +52,13 @@ enum {
 	iM = 2, //!< is index for m
 };
 
-inline size_t grid2_size(grid2_t const* grid) {
-	return grid->n[0]*grid->n[1];
-}
-
-inline size_t grid3_size(grid3_t const* grid) {
-	return grid->n[0]*grid->n[1]*grid->n[2];
-}
+size_t grid2_size(grid2_t const* grid);
+size_t grid3_size(grid3_t const* grid);
 
 #define check_index(grid, space, index) assert(index >= 0 || index < grid->n[space])
 
-inline size_t grid2_index(grid2_t const* grid, int i[2]) {
-    check_index(grid, 0, i[0]);
-    check_index(grid, 1, i[1]);
-    return i[0] +
-           i[1]*grid->n[0];
-}
-
-inline size_t grid3_index(grid3_t const* grid, int i[3]) {
-    check_index(grid, 0, i[0]);
-    check_index(grid, 1, i[1]);
-    check_index(grid, 2, i[2]);
-    return i[0] + 
-           i[1]*grid->n[0] +
-           i[2]*grid->n[1]*grid->n[0];
-}
+size_t grid2_index(grid2_t const* grid, int i[2]);
+size_t grid3_index(grid3_t const* grid, int i[3]);
 
 sp_grid_t* sp_grid_new(int n[3], double r_max);
 void sp_grid_del(sp_grid_t* grid);
@@ -84,51 +66,15 @@ void sp_grid_del(sp_grid_t* grid);
 sh_grid_t* sh_grid_new(int n[2], double r_max);
 void sh_grid_del(sh_grid_t* grid);
 
-__attribute__((pure)) inline
-double sp_grid_r(sp_grid_t const* grid, int ir) {
-    check_index(grid, iR, ir);
-    return grid->d[iR]*(ir+1);
-}
-
-__attribute__((pure)) inline
-int sp_grid_ir(sp_grid_t const* grid, double r) {
-	return (int) (r/grid->d[iR]) - 1;
-}
-
-__attribute__((pure)) inline
-double sp_grid_c(sp_grid_t const* grid, int ic) {
-    check_index(grid, iC, ic);
-    return grid->d[iC]*ic - 1.0;
-}
-
-__attribute__((pure)) inline
-int sp_grid_ic(sp_grid_t const* grid, double c) {
-	return (int) ((c + 1.0) / grid->d[iC]);
-}
-
-inline double sp_grid_phi(sp_grid_t const* grid, int ip) {
-    check_index(grid, iP, ip);
-    return grid->d[iP]*ip;
-}
-
-inline double sh_grid_r(sh_grid_t const* grid, int ir) {
-    check_index(grid, iR, ir);
-    return grid->d[iR]*(ir+1);
-}
-
-inline double sh_grid_r_max(sh_grid_t const* grid) {
-	return sh_grid_r(grid, grid->n[iR]-1);
-}
-
-inline int sh_grid_l(sh_grid_t const* grid, int il) {
-    check_index(grid, iL, il);
-    return il;
-}
-
-inline int sh_grid_m(sh_grid_t const* grid, int im) {
-    assert(im >= -grid->n[iL] && im <= grid->n[iL]);
-    return im;
-}
+__attribute__((pure)) double sp_grid_r(sp_grid_t const* grid, int ir);
+__attribute__((pure)) int sp_grid_ir(sp_grid_t const* grid, double r);
+__attribute__((pure)) double sp_grid_c(sp_grid_t const* grid, int ic);
+__attribute__((pure)) int sp_grid_ic(sp_grid_t const* grid, double c);
+double sp_grid_phi(sp_grid_t const* grid, int ip);
+double sh_grid_r(sh_grid_t const* grid, int ir);
+double sh_grid_r_max(sh_grid_t const* grid);
+int sh_grid_l(sh_grid_t const* grid, int il);
+int sh_grid_m(sh_grid_t const* grid, int im);
 
 #ifdef __cplusplus
 }
