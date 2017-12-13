@@ -59,7 +59,7 @@ cdef class Field:
 cdef object FIELDS = {}
 
 cdef double field_base_func(void* self, double t):
-    return FIELDS[<size_t>self]._E(t)
+    return FIELDS[<size_t>self]._func(t)
 
 cdef class FieldBase(Field):
     def __cinit__(self):
@@ -69,7 +69,14 @@ cdef class FieldBase(Field):
 
         FIELDS[<size_t>self.cdata] = self
 
-    def _E(self, t):
+    def _func(self, t):
+        return 0.0
+
+cdef class FieldBaseFromA(FieldBase):
+    def __cinit__(self):
+        self.cfield.fE = <field_func_t>field_E_from_A
+
+    def _func(self, t):
         return 0.0
 
 cdef class OpField(Field):
