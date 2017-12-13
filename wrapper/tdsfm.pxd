@@ -20,6 +20,7 @@ cdef extern from "tdsfm.h":
         void init_cache()
         void calc(field_t* field, sh_wavefunc_t& wf, double t, double dt)
         void calc_inner(field_t* field, sh_wavefunc_t& wf, double t, int ir_min, int ir_max)
+        double pz()
 
 
 cdef class TDSFM:

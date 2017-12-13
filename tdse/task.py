@@ -141,7 +141,7 @@ class WavefuncTask(Task):
     """
     """
     state_n = 1 # Номер состояния
-    calc_ground_state = True
+    is_calc_ground_state = True
 
     def __init__(self, path_res='res', mode=None, **kwargs):
         super().__init__(path_res, mode, is_mpi=False, **kwargs)
@@ -159,13 +159,19 @@ class WavefuncTask(Task):
 
         self.ws = tdse.workspace.SKnWorkspace(self.grid, self.uabs)
 
-        if self.calc_ground_state:
+        if self.is_calc_ground_state:
             print("Start calc ground state")
-            self.wf = tdse.ground_state.wf(self.atom, self.grid, self.ws, self.dt, 10000, n=self.state_n)
+            self.wf = self.calc_ground_state(ws=ws)
         else:
             self.wf = tdse.wavefunc.SWavefunc(self.grid)
 
         self.t = self.field.get_t(self.dt, dT=self.dT)
+
+    def calc_ground_state(self, ws=None):
+        if ws is None:
+            ws = tdse.workspace.SKnWorkspace(self.grid, tdse.abs_pot.UabsZero())
+
+        return tdse.ground_state.wf(self.atom, self.grid, ws, self.dt, 10000, n=self.state_n)
 
     def calc_prop(self, i, t):
         self.ws.prop(self.wf, self.atom, self.field, t, self.dt)

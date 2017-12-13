@@ -16,11 +16,14 @@ cdef class TDSFM:
         self.k_grid = k_grid
         self.r_grid = r_grid
 
-    def __init__(self, SpGrid k_grid, ShGrid r_grid, double A_max, int ir):
+    def __init__(self, SpGrid k_grid, ShGrid r_grid, double A_max, int ir, bool init_cache = True):
         pass
 
     def __dealloc__(self):
         del self.cdata
+
+    def pz(self):
+        return self.cdata.pz()
 
     def init_cache(self):
         self.cdata.init_cache()
