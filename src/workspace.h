@@ -2,3 +2,6 @@
 #include "workspace/orbs.h"
 #include "workspace/sae.h"
 #include "workspace/gps.h"
+#ifdef __cplusplus
+#include "workspace/sfa.h"
+#endif

@@ -14,6 +14,19 @@ from sphere_harmonics cimport YlmCache
 from libc.stdlib cimport malloc, free
 
 
+cdef class CtWavefunc:
+    def __cinit__(self, CtGrid grid):
+        self.grid = grid
+        self.cdata = ct_wavefunc_t(grid.cdata)
+
+    def __init__(self, CtGrid grid):
+        pass
+
+    def asarray(self):
+        cdef complex_t[:, ::1] array = <complex_t[:self.cdata.grid.n[1],:self.cdata.grid.n[0]]>(<complex_t*>self.cdata.data)
+        return np.asarray(array)
+
+
 cdef class SWavefunc:
     def __cinit__(self, ShGrid grid, int m=0, dealloc=True):
         self.grid = grid

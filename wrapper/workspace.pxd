@@ -2,13 +2,14 @@ from types cimport cdouble, sh_f
 
 from grid cimport sh_grid_t, sp_grid_t
 from abs_pot cimport uabs_sh_t, Uabs
-from wavefunc cimport sh_wavefunc_t
+from wavefunc cimport sh_wavefunc_t, ct_wavefunc_t
 
 from field cimport field_t
 from orbitals cimport orbitals_t
 from sphere_harmonics cimport ylm_cache_t
 from atom cimport atom_t
 from hartree_potential cimport potential_xc_f
+
 
 cdef extern from "eigen.h":
     ctypedef struct eigen_ws_t:
@@ -21,6 +22,11 @@ cdef extern from "eigen.h":
     void eigen_calc(eigen_ws_t* ws, sh_f u, int Z)
     void eigen_calc_for_atom(eigen_ws_t* ws, atom_t* atom)
     int eigen_get_n_with_energy(eigen_ws_t* ws, double energy);
+
+cdef extern from "workspace/sfa.h" namespace "workspace::sfa":
+    cdef cppclass momentum_space:
+        momentum_space()
+        void propagate(ct_wavefunc_t& wf, field_t* field, double t, double dt)
 
 cdef extern from "workspace.h":
     ctypedef struct ws_gps_t:
@@ -157,3 +163,7 @@ cdef class GPSWorkspace:
 cdef class Eigen:
     cdef:
         eigen_ws_t* cdata
+
+cdef class SFAWorkspace:
+    cdef:
+        momentum_space cdata

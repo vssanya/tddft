@@ -100,6 +100,27 @@ sh_grid_t* sh_grid_new(int n[2], double r_max) {
 	return grid;
 }
 
+grid2_t* ct_grid_new(int n[2], double x_max, double y_max) {
+	grid2_t* grid = (grid2_t*) malloc(sizeof(grid2_t));
+
+	for (int i = 0; i < 2; ++i) {
+		grid->n[i] = n[i];
+	}
+
+	grid->d[iX] = (2*x_max)/(n[iX]-1);
+	grid->d[iY] = y_max/n[iY];
+
+	return grid;
+}
+
+double ct_grid_x(grid2_t const* grid, int ix) {
+	return 0.5*grid->d[iX]*(2*ix - grid->n[iX] + 1);
+}
+
+double ct_grid_y(grid2_t const* grid, int iy) {
+	return iy*grid->d[iY];
+}
+
 void sh_grid_del(sh_grid_t* grid) {
 	free(grid);
 }

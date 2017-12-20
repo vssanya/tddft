@@ -33,6 +33,12 @@ sh_wavefunc_t* sh_wavefunc_new_from(cdouble* data, sh_grid_t const* grid, int co
 	return _sh_wavefunc_new(data, false, grid, m);
 }
 
+void sh_wavefunc_t::prop_ang_l(cdouble dt, int l, int l1, sh_f Ul, linalg::matrix_f dot, linalg::matrix_f dot_T, cdouble const eigenval[2]) {
+#pragma omp for
+	for (int i=0; i<grid->n[iR]; ++i) {
+	}
+}
+
 void sh_wavefunc_copy(sh_wavefunc_t const* wf_src, sh_wavefunc_t* wf_dest) {
 #pragma omp parallel for
 	for (int i = 0; i < grid2_size(wf_src->grid); ++i) {

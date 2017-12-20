@@ -76,6 +76,10 @@ double sh_grid_r_max(sh_grid_t const* grid);
 int sh_grid_l(sh_grid_t const* grid, int il);
 int sh_grid_m(sh_grid_t const* grid, int im);
 
+grid2_t* ct_grid_new(int n[2], double x_max, double y_max);
+double ct_grid_x(grid2_t const* grid, int ix);
+double ct_grid_y(grid2_t const* grid, int iy);
+
 #ifdef __cplusplus
 }
 #endif

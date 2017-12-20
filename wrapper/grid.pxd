@@ -29,6 +29,13 @@ cdef extern from "grid.h":
     int sh_grid_l(sh_grid_t* grid, int il)
     int sh_grid_m(sh_grid_t* grid, int im)
 
+    grid2_t* ct_grid_new(int n[2], double x_max, double y_max);
+    double ct_grid_x(grid2_t* grid, int ix);
+    double ct_grid_y(grid2_t* grid, int iy);
+
+cdef class CtGrid:
+    cdef grid2_t* cdata
+
 cdef class ShGrid:
     cdef sh_grid_t* data
 

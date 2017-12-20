@@ -3,7 +3,7 @@ cimport numpy as np
 
 from atom cimport Atom
 from grid cimport ShGrid, SpGrid
-from wavefunc cimport SWavefunc
+from wavefunc cimport SWavefunc, CtWavefunc
 from field cimport Field
 from orbitals cimport SOrbitals
 from sphere_harmonics cimport YlmCache
@@ -60,6 +60,13 @@ cdef class GPSWorkspace:
     def prop_comm(self, SWavefunc wf, Uabs uabs, Field field, double t):
         ws_gps_prop_common(self.cdata, wf.cdata, uabs.cdata, field.cdata, t)
 
+
+cdef class SFAWorkspace:
+    def __cinit__(self):
+        self.cdata = momentum_space()
+
+    def prop(self, CtWavefunc wf, Field field, double t, double dt):
+        self.cdata.propagate(wf.cdata, field.cdata, t, dt)
 
 cdef class SKnWorkspace:
     def __cinit__(self, ShGrid grid, Uabs uabs, int num_threads = -1):

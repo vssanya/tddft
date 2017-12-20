@@ -1,4 +1,16 @@
 import numpy as np
+from libc.stdlib cimport free
+
+
+cdef class CtGrid:
+    def __cinit__(self, int Nx, int Ny, double Xmax, double Ymax):
+        self.cdata = ct_grid_new([Nx, Ny], Xmax, Ymax)
+
+    def __init__(self, int Nx, int Ny, double Xmax, double Ymax):
+        pass
+
+    def __dealloc__(self):
+        free(self.cdata)
 
 
 cdef class ShGrid:

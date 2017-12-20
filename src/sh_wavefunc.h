@@ -7,6 +7,10 @@
 #include "grid.h"
 #include "sphere_harmonics.h"
 
+#ifdef __cplusplus
+#include "linalg.h"
+#endif
+
 /*!
  * \brief Волновая функция представленная в виде разложения по сферическим гармоникам
  *
@@ -33,6 +37,8 @@ struct sh_wavefunc_t {
   }
 
   cdouble operator*(sh_wavefunc_t const& other) const;
+
+  void prop_ang_l(cdouble dt, int l, int l1, sh_f Ul, linalg::matrix_f dot, linalg::matrix_f dot_T, cdouble const eigenval[2]);
 #endif
 };
 

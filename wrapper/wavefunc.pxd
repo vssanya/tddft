@@ -1,7 +1,17 @@
 from types cimport sh_f, cdouble
-from grid cimport sh_grid_t, sp_grid_t
-from grid cimport ShGrid
+from grid cimport sh_grid_t, sp_grid_t, grid2_t
+from grid cimport ShGrid, CtGrid
 from sphere_harmonics cimport ylm_cache_t
+
+
+cdef extern from "wavefunc/cartesian_2d.h":
+    cdef cppclass ct_wavefunc_t:
+        grid2_t* grid,
+        double* data,
+        bint data_own
+
+        ct_wavefunc_t()
+        ct_wavefunc_t(grid2_t* grid)
 
 
 cdef extern from "sh_wavefunc.h":
@@ -38,5 +48,9 @@ cdef class SWavefunc:
     cdef public ShGrid grid
 
     cdef _set_data(self, sh_wavefunc_t* data)
+
+cdef class CtWavefunc:
+    cdef ct_wavefunc_t cdata
+    cdef public CtGrid grid
 
 cdef SWavefunc swavefunc_from_point(sh_wavefunc_t* data, ShGrid grid)

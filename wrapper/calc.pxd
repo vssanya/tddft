@@ -5,9 +5,6 @@ from field cimport field_t
 from types cimport sh_f
 from atom cimport atom_t
 
-cdef extern from "linalg.h":
-    void linalg_tdm_inv(double a00, double* a, int N, double* b)
-    void linalg_m_dot_tdm(int N, double* a, double b00, double* b)
 
 cdef extern from "calc.h":
     double calc_wf_ionization_prob(sh_wavefunc_t* wf)

@@ -6,6 +6,7 @@ set( LIB_SOURCES
 	#"workspace/sae.cpp"
 	"workspace/gps.c"
 	"workspace/common_alg.c"
+	"workspace/sfa.cpp"
 
 	sh_wavefunc.cpp
 	hartree_potential.c
@@ -18,12 +19,14 @@ set( LIB_SOURCES
 	sphere_harmonics.cpp
 	orbitals.c
 	atom.c
-	eigen.c
-	linalg.c
+	eigen.cpp
+	linalg.cpp
 	tdsfm.cpp
 	"sfa/anal.c"
 	"hartree_potential/hp_o3.c"
 	"hartree_potential/hp_o5.c"
+
+	"wavefunc/2d.cpp"
 	)
 
 set( LIB_HEADERS
@@ -33,6 +36,7 @@ set( LIB_HEADERS
 	"workspace/sae.h"
 	"workspace/gps.h"
 	"workspace/common_alg.h"
+	"workspace/sfa.h"
 
 	fourier.h
 	kn.h
@@ -54,6 +58,9 @@ set( LIB_HEADERS
 	tdsfm.h
 	integrate.h
 	"sfa/anal.h"
+
+	"wavefunc/2d.h"
+	"wavefunc/cartesian_2d.h"
 	)
 
 add_library( tdse SHARED ${LIB_SOURCES} ${LIB_HEADERS} )

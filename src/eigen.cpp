@@ -10,19 +10,19 @@
 
 
 eigen_ws_t* eigen_ws_alloc(sh_grid_t const* grid) {
-	eigen_ws_t* ws = malloc(sizeof(eigen_ws_t));
+	eigen_ws_t* ws = new eigen_ws_t;
 	ws->grid = grid;
 
-	ws->evec = malloc(sizeof(double)*grid->n[iL]*grid->n[iR]*grid->n[iR]);
-	ws->eval = malloc(sizeof(double)*grid->n[iL]*grid->n[iR]);
+	ws->evec = new double[grid->n[iL]*grid->n[iR]*grid->n[iR]];
+	ws->eval = new double[grid->n[iL]*grid->n[iR]];
 
 	return ws;
 }
 
 void eigen_ws_free(eigen_ws_t* ws) {
-	free(ws->eval);
-	free(ws->evec);
-	free(ws);
+	delete[] ws->eval;
+	delete[] ws->evec;
+	delete ws;
 }
 
 double eigen_eval(eigen_ws_t const* ws, int il, int ie) {
@@ -35,7 +35,7 @@ double eigen_evec(eigen_ws_t const* ws, int il, int ir, int ie) {
 	return ws->evec[ie + ir*Nr + il*Nr*Nr];
 }
 
-void eigen_calc_dr4(eigen_ws_t* ws, sh_f u, int Z) {
+void eigen_calc_dr4(eigen_ws_t* ws, std::function<double(sh_grid_t const*, int, int, int)> u, int Z) {
 	int const Nr = ws->grid->n[iR];
 
 	gsl_eigen_symmv_workspace* gsl_ws = gsl_eigen_symmv_alloc(Nr);
@@ -48,21 +48,28 @@ void eigen_calc_dr4(eigen_ws_t* ws, sh_f u, int Z) {
 	double const d2[3] = {1.0/dr2, -2.0/dr2, 1.0/dr2};
 	double const d2_l0_11 = d2[1]*(1.0 - Z*dr/(12.0 - 10.0*Z*dr));
 
-	double const M2[3] = {
-		1.0/12.0,
-		10.0/12.0,
-		1.0/12.0
-	};
+	linalg::tdm_t const m_d2 = { -0.5*d2[1], {-0.5*d2[0], -0.5*d2[1], -0.5*d2[2]}, Nr };
+	linalg::tdm_t const m_d2_l0 = { -0.5*d2_l0_11, {-0.5*d2[0], -0.5*d2[1], -0.5*d2[2]}, Nr };
 
-	const double M2_l0_11 = 1.0 + d2_l0_11*dr2/12.0;
+//	double const M2[3] = {
+//		1.0/12.0,
+//		10.0/12.0,
+//		1.0/12.0
+//	};
+
+	double const M2_l0_11 = 1.0 + d2_l0_11*dr2/12.0;
+
+	linalg::tdm_t const m_M2 = { 10.0/12.0, {1.0/12.0, 10.0/12.0, 1.0/12.0}, Nr };
+	linalg::tdm_t const m_M2_l0 = { M2_l0_11, {1.0/12.0, 10.0/12.0, 1.0/12.0}, Nr };
+
 
 	for (int il=0; il<ws->grid->n[iL]; ++il) {
 		if (il == 0) {
-			linalg_tdm_inv(M2_l0_11, M2, Nr, A->data);
-			linalg_m_dot_tdm(Nr, A->data, -0.5*d2_l0_11, (double[]){-0.5*d2[0], -0.5*d2[1], -0.5*d2[2]});
+			m_M2_l0.inv(A->data);
+			m_d2_l0.matrix_dot(A->data);
 		} else {
-			linalg_tdm_inv(M2[1], M2, Nr, A->data);
-			linalg_m_dot_tdm(Nr, A->data, -0.5*d2[1], (double[]){-0.5*d2[0], -0.5*d2[1], -0.5*d2[2]});
+			m_M2.inv(A->data);
+			m_d2.matrix_dot(A->data);
 		}
 
 		for (int ir = 0; ir < Nr; ++ir) {
@@ -82,19 +89,16 @@ void eigen_calc_dr4(eigen_ws_t* ws, sh_f u, int Z) {
 }
 
 void eigen_calc_for_atom(eigen_ws_t* ws, atom_t const* atom) {
-	double u(sh_grid_t const* grid, int ir, int l, int m) {
+	eigen_calc_dr4(ws, [atom](sh_grid_t const* grid, int ir, int l, int m) {
 		double const r = sh_grid_r(grid, ir);
 		return l*(l+1)/(2*r*r) + atom->u(atom, grid, ir);
-	}
-
-	eigen_calc_dr4(ws, u, atom->Z);
-	//eigen_calc(ws, u, atom->Z);
+	}, atom->Z);
 }
 
 void eigen_calc(eigen_ws_t* ws, sh_f u, int Z) {
 	int const Nr = ws->grid->n[iR];
 
-	double* lapack_ws = malloc(sizeof(double)*(2*Nr-1));
+	double* lapack_ws = new double[2*Nr-1];
 
 	double const dr = ws->grid->d[iR];
 	double const dr2 = dr*dr;
@@ -103,7 +107,7 @@ void eigen_calc(eigen_ws_t* ws, sh_f u, int Z) {
 	double const d2_l0_11 = d2[1]*(1.0 - Z*dr/(12.0 - 10.0*Z*dr));
 
 	double* A_d;
-	double* A_d_up = malloc(sizeof(double)*(Nr-1));
+	double* A_d_up = new double[Nr-1];
 
 	for (int il=0; il<ws->grid->n[iL]; ++il) {
 		double* eval = &ws->eval[Nr*il];
@@ -134,8 +138,8 @@ void eigen_calc(eigen_ws_t* ws, sh_f u, int Z) {
 		LAPACKE_dsteqr(LAPACK_ROW_MAJOR, 'I', Nr, A_d, A_d_up, evec, Nr);
 	}
 
-	free(A_d_up);
-	free(lapack_ws);
+	delete[] A_d_up;
+	delete[] lapack_ws;
 }
 
 int eigen_get_n_with_energy(eigen_ws_t const* ws, double energy) {

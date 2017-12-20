@@ -20,7 +20,7 @@ ext = Extension("*", ["wrapper/*.pyx"],
                     mpi4py.get_include(),
                 ],
                 extra_compile_args=[
-                    '-std=c++11',
+                    '-std=gnu++11',
                     '-D_MPI',
                     '-g',
                 ],
