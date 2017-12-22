@@ -24,7 +24,7 @@ void momentum_space::propagate(ct_wavefunc_t& wf, field_t const* field, double t
 
 			double p[2] = {px, py};
 
-			wf(ir, ic) = ((I - 0.25*dt*(p[1]*p[1] + pow(p[0] + A_t, 2)))*wf(ir, ic) + 0.5*dt*(V_0(p, E_t_dt, A_t_dt, t+dt) + V_0(p, E_t, A_t, t)))/(I + 0.25*dt*(p[1]*p[1] + pow(p[0] + A_t_dt, 2)));
+			wf(ir, ic) = ((I + 0.25*dt*(p[1]*p[1] + pow(p[0] + A_t, 2)))*wf(ir, ic) + 0.5*dt*(V_0(p, E_t_dt, A_t_dt, t+dt) + V_0(p, E_t, A_t, t)))/(I - 0.25*dt*(p[1]*p[1] + pow(p[0] + A_t_dt, 2)));
 		}
 	}
 }
