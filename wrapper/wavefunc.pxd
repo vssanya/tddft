@@ -1,6 +1,6 @@
 from types cimport sh_f, cdouble
 from grid cimport sh_grid_t, sp_grid_t, grid2_t
-from grid cimport ShGrid, CtGrid
+from grid cimport ShGrid, Sp2Grid
 from sphere_harmonics cimport ylm_cache_t
 
 
@@ -51,6 +51,6 @@ cdef class SWavefunc:
 
 cdef class CtWavefunc:
     cdef ct_wavefunc_t cdata
-    cdef public CtGrid grid
+    cdef public Sp2Grid grid
 
 cdef SWavefunc swavefunc_from_point(sh_wavefunc_t* data, ShGrid grid)

@@ -23,6 +23,8 @@ class Task(object):
 
     CALC_DATA = []
 
+    save_path = None
+
     def __init__(self, path_res='res', mode=None, save_state_step=None, send_status=True, term_save_state=True, is_mpi=False):
         """
         save_state_step is set in percents
@@ -111,11 +113,16 @@ class Task(object):
             self.bot_client.finish()
 
     def _create_save_path(self, path_res):
-        script_path = inspect.getfile(self.__class__)
-        task_dir = os.path.splitext(os.path.basename(script_path))[0]
-        save_path = os.path.join(os.path.dirname(script_path), path_res, task_dir)
+        if self.save_path is None:
+            script_path = inspect.getfile(self.__class__)
+            task_dir = os.path.splitext(os.path.basename(script_path))[0]
+            save_path = os.path.join(os.path.dirname(script_path), path_res, task_dir)
+        else:
+            save_path = self.save_path
+
         if self.rank == 0 and not os.path.exists(save_path):
             os.mkdir(save_path)
+        
         return save_path
 
     def _get_data_path(self, calc_data_name):
@@ -138,11 +145,10 @@ class Task(object):
                 setattr(self, name, np.load(self._get_data_path(name)))
 
 class SFATask(Task):
-    Nx = 100
-    Ny = 50
+    Nr = 100
+    Nc = 50
 
-    Xmax = 4
-    Ymax = 4
+    Rmax = 4
 
     field = None
 
@@ -150,7 +156,7 @@ class SFATask(Task):
 
     def __init__(self, path_res='res', mode=None, **kwargs):
         super().__init__(path_res, mode, is_mpi=False, **kwargs)
-        self.grid = tdse.grid.CtGrid(self.Nx, self.Ny, self.Xmax, self.Ymax)
+        self.grid = tdse.grid.Sp2Grid(self.Nr, self.Nc, self.Rmax)
 
     def calc_init(self):
         self.ws = tdse.workspace.SFAWorkspace()

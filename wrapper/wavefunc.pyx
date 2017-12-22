@@ -15,11 +15,11 @@ from libc.stdlib cimport malloc, free
 
 
 cdef class CtWavefunc:
-    def __cinit__(self, CtGrid grid):
+    def __cinit__(self, Sp2Grid grid):
         self.grid = grid
         self.cdata = ct_wavefunc_t(grid.cdata)
 
-    def __init__(self, CtGrid grid):
+    def __init__(self, Sp2Grid grid):
         pass
 
     def asarray(self):

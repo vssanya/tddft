@@ -70,9 +70,6 @@ tdsfm_t::~tdsfm_t() {
 }
 
 void tdsfm_t::calc(field_t const* field, sh_wavefunc_t const& wf, double t, double dt) {
-	int Nk = k_grid->n[iR];
-	int Nl = r_grid->n[iL];
-
 	double r = sh_grid_r(wf.grid, ir);
 	double dr = wf.grid->d[iR];
 
@@ -83,7 +80,7 @@ void tdsfm_t::calc(field_t const* field, sh_wavefunc_t const& wf, double t, doub
 	int_A2 += (pow(At, 2) + pow(At_dt, 2))*dt*0.5;
 
 #pragma omp parallel for collapse(2)
-	for (int ik=0; ik<Nk; ik++) {
+	for (int ik=0; ik<k_grid->n[iR]; ik++) {
 		for (int ic=0; ic<k_grid->n[iC]; ic++) {
 			double k  = sp_grid_r(k_grid, ik);
 			double kz = sp_grid_c(k_grid, ic)*k;
@@ -106,30 +103,33 @@ void tdsfm_t::calc(field_t const* field, sh_wavefunc_t const& wf, double t, doub
 						//)*boost::math::spherical_harmonic_r(il, wf->m, acos(k_A_z/k_A), 0);
 			}
 
-			data[ik+ic*Nk] += a_k*r/sqrt(2.0*M_PI)*S*dt;
+			(*this)(ik, ic) += a_k*r/sqrt(2.0*M_PI)*S*dt;
 		}
 	}
 }
 
 void tdsfm_t::calc_inner(field_t const* field, sh_wavefunc_t const& wf, double t, int ir_min, int ir_max) {
-	int Nk = k_grid->n[iR];
+	double At = field_A(field, t);
 
 #pragma omp parallel for collapse(2)
-	for (int ik=0; ik<Nk; ik++) {
+	for (int ik=0; ik<k_grid->n[iR]; ik++) {
 		for (int ic=0; ic<k_grid->n[iC]; ic++) {
 			double k = sp_grid_r(k_grid, ik);
 			double kz = sp_grid_c(k_grid, ic)*k;
 
 			cdouble S = cexp(0.5*I*(k*k*t + 2*kz*int_A + int_A2));
 
+			double k_A = sqrt(k*k + 2*kz*At + At*At);
+			double k_A_z = kz + At;
+
 			cdouble a_k = 0.0;
 			for (int il=0; il<wf.grid->n[iL]; il++) {
 				cdouble a_kl = 0.0;
 				for (int ir=ir_min; ir<ir_max; ir++) {
 					double r = sh_grid_r(wf.grid, ir);
-					a_kl += r*wf(ir, il)*(*jl)(k*r, il);
+					a_kl += r*wf(ir, il)*(*jl)(k_A*r, il);
 				}
-				a_k += a_kl*cpow(-I, il)*(*ylm)(il, wf.m, sp_grid_c(k_grid, ic));
+				a_k += a_kl*cpow(-I, il)*(*ylm)(il, wf.m, k_A_z/k_A);
 			}
 
 			(*this)(ik, ic) += a_k*sqrt(2.0/M_PI)*wf.grid->d[iR]*S;

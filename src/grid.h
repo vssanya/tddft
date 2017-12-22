@@ -80,6 +80,9 @@ grid2_t* ct_grid_new(int n[2], double x_max, double y_max);
 double ct_grid_x(grid2_t const* grid, int ix);
 double ct_grid_y(grid2_t const* grid, int iy);
 
+grid2_t* sp2_grid_new(int n[2], double r_max);
+double sp2_grid_r(grid2_t const* grid, int ir);
+double sp2_grid_c(grid2_t const* grid, int ic);
 #ifdef __cplusplus
 }
 #endif

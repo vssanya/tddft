@@ -4,10 +4,7 @@
 
 using namespace workspace::sfa;
 
-cdouble V_0(double p[2], field_t const* field, double t) {
-	double E = field_E(field, t);
-	double A = field_A(field, t);
-
+cdouble V_0(double p[2], double E, double A, double t) {
 	return -32*I*sqrt(M_PI)*E*(p[0]+A)/pow(1 + pow(p[0]+A, 2) + p[1]*p[1], 3)*cexp(I*t/2);
 }
 
@@ -15,12 +12,19 @@ void momentum_space::propagate(ct_wavefunc_t& wf, field_t const* field, double t
 	double A_t = field_A(field, t);
 	double A_t_dt = field_A(field, t+dt);
 
-#pragma omp parallel for collapse(2)
-	for (int ix=0; ix<wf.grid->n[iX]; ++ix) {
-		for (int iy=0; iy<wf.grid->n[iY]; ++iy) {
-			double p[2] = {ct_grid_x(wf.grid, ix), ct_grid_y(wf.grid, iy)};
+	double E_t = field_E(field, t);
+	double E_t_dt = field_E(field, t+dt);
 
-			wf(ix, iy) = ((I - 0.25*dt*(p[1]*p[1] + pow(p[0] + A_t, 2)))*wf(ix, iy) + 0.5*dt*(V_0(p, field, t+dt) + V_0(p, field, t)))/(I + 0.25*dt*(p[1]*p[1] + pow(p[0] + A_t_dt, 2)));
+#pragma omp parallel for collapse(2)
+	for (int ir=0; ir<wf.grid->n[iX]; ++ir) {
+		for (int ic=0; ic<wf.grid->n[iY]; ++ic) {
+			double mod_p = sp2_grid_r(wf.grid, ir);
+			double px = sp2_grid_c(wf.grid, ic)*mod_p;
+			double py = sqrt(mod_p*mod_p - px*px);
+
+			double p[2] = {px, py};
+
+			wf(ir, ic) = ((I - 0.25*dt*(p[1]*p[1] + pow(p[0] + A_t, 2)))*wf(ir, ic) + 0.5*dt*(V_0(p, E_t_dt, A_t_dt, t+dt) + V_0(p, E_t, A_t, t)))/(I + 0.25*dt*(p[1]*p[1] + pow(p[0] + A_t_dt, 2)));
 		}
 	}
 }

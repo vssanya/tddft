@@ -12,6 +12,23 @@ cdef class CtGrid:
     def __dealloc__(self):
         free(self.cdata)
 
+    def size(self):
+        grid2_size(self.cdata)
+
+
+cdef class Sp2Grid:
+    def __cinit__(self, int Nr, int Nc, double Rmax):
+        self.cdata = sp2_grid_new([Nr, Nc], Rmax)
+
+    def __init__(self, int Nr, int Nc, double Rmax):
+        pass
+
+    def __dealloc__(self):
+        free(self.cdata)
+
+    def size(self):
+        grid2_size(self.cdata)
+
 
 cdef class ShGrid:
     def __cinit__(self, int Nr, int Nl, double r_max):

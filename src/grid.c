@@ -10,6 +10,18 @@ size_t grid3_size(grid3_t const* grid) {
 }
 
 __attribute__((pure))
+double sp2_grid_r(grid2_t const* grid, int ir) {
+	check_index(grid, iR, ir);
+	return grid->d[iR]*(ir+1);
+}
+
+__attribute__((pure))
+double sp2_grid_c(grid2_t const* grid, int ic) {
+	check_index(grid, iC, ic);
+	return grid->d[iC]*ic - 1.0;
+}
+
+__attribute__((pure))
 	double sp_grid_r(sp_grid_t const* grid, int ir) {
 		check_index(grid, iR, ir);
 		return grid->d[iR]*(ir+1);
@@ -112,6 +124,20 @@ grid2_t* ct_grid_new(int n[2], double x_max, double y_max) {
 
 	return grid;
 }
+
+grid2_t* sp2_grid_new(int n[2], double r_max) {
+	grid2_t* grid = (grid2_t*) malloc(sizeof(grid2_t));
+
+	for (int i = 0; i < 2; ++i) {
+		grid->n[i] = n[i];
+	}
+
+	grid->d[iR] = r_max/n[iR];
+	grid->d[iC] = 2.0/(n[iC]-1);
+
+	return grid;
+}
+
 
 double ct_grid_x(grid2_t const* grid, int ix) {
 	return 0.5*grid->d[iX]*(2*ix - grid->n[iX] + 1);
