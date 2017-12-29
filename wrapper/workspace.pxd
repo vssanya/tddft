@@ -47,15 +47,40 @@ cdef extern from "workspace.h":
     void ws_gps_prop(ws_gps_t* ws, sh_wavefunc_t* wf);
     void ws_gps_prop_common(ws_gps_t* ws, sh_wavefunc_t* wf, uabs_sh_t* uabs, field_t* field, double t);
 
-    ctypedef struct ws_wf_t:
+cdef extern from "workspace.h" namespace "workspace":
+    cdef cppclass wf_base:
+        wf_base()
+        wf_base(sh_grid_t* grid, uabs_sh_t* uabs, int num_threads)
+
+        void prop_ang(sh_wavefunc_t& wf, double dt, int l, double E)
+        #void prop_at(sh_wavefunc_t& wf, cdouble dt, sh_f Ul, int Z, potential_type_e u_type)
+        void prop_mix(sh_wavefunc_t& wf, sh_f Al, double dt, int l)
+        void prop_abs(sh_wavefunc_t& wf, double dt)
+        #void prop_common(sh_wavefunc_t& wf, cdouble dt, int l_max, sh_f* Ul, int Z, potential_type_e u_type, sh_f* Al)
+        void prop(sh_wavefunc_t& wf, atom_t* atom, field_t* field, double t, double dt)
+        void prop_img(sh_wavefunc_t& wf, atom_t* atom, double dt)
+
         sh_grid_t* grid
         uabs_sh_t* uabs
         cdouble* alpha
         cdouble* betta
         int num_threads
 
-    ctypedef struct ws_orbs_t:
-        ws_wf_t* wf_ws
+    cdef cppclass wf_A:
+        wf_A()
+        wf_A(sh_grid_t* grid, uabs_sh_t* uabs, int num_threads)
+        void prop(sh_wavefunc_t& wf, atom_t* atom, field_t* field, double t, double dt)
+        void prop_img(sh_wavefunc_t& wf, atom_t* atom, double dt)
+
+    cdef cppclass orbs:
+        orbs()
+        orbs(sh_grid_t* sh_grid, sp_grid_t* sp_grid, uabs_sh_t* uabs, ylm_cache_t* ylm_cache, int Uh_lmax, int Uxc_lmax, potential_xc_f Uxc, int num_threads)
+
+        void prop(orbitals_t* orbs, atom_t* atom, field_t* field, double t, double dt, bint calc_uee)
+        void prop_img(orbitals_t* orbs, atom_t* atom, double dt)
+        void calc_Uee(orbitals_t* orbs, int Uxc_lmax, int Uh_lmax)
+
+        wf_base* wf_ws
         double* Uh
         double* Uxc
         sh_grid_t* sh_grid
@@ -67,93 +92,20 @@ cdef extern from "workspace.h":
         int Uh_lmax
         int Uxc_lmax
 
-    ws_wf_t* ws_wf_new(
-            sh_grid_t* sh_grid,
-            uabs_sh_t* uabs,
-            int num_threads
-            )
-
-    void ws_wf_del(ws_wf_t* ws)
-
-    void ws_wf_prop_ang(
-            ws_wf_t* ws,
-            sh_wavefunc_t* wf,
-            double dt,
-            int l, double E)
-
-    void ws_wf_prop_at(
-            ws_wf_t* ws,
-            sh_wavefunc_t* wf,
-            cdouble dt,
-            sh_f Ul,
-            uabs_sh_t* uabs
-            )
-
-    void ws_wf_prop_at_v2(
-            ws_wf_t* ws,
-            sh_wavefunc_t* wf,
-            cdouble dt,
-            sh_f Ul,
-            uabs_sh_t* uabs
-            )
-
-    void ws_wf_prop(
-            ws_wf_t* ws,
-            sh_wavefunc_t* wf,
-            atom_t* atom,
-            field_t* E,
-            double t,
-            double dt
-            )
-
-    void ws_wf_prop_img(
-            ws_wf_t* ws,
-            sh_wavefunc_t* wf,
-            atom_t* atom,
-            double dt
-            )
-
-    void ws_orbs_prop(
-            ws_orbs_t* ws,
-            orbitals_t* orbs,
-            atom_t* atom,
-            field_t* field,
-            double t,
-            double dt,
-            bint calc_uee
-            )
-
-    void ws_orbs_prop_img(
-        ws_orbs_t* ws,
-        orbitals_t* orbs,
-        atom_t* atom,
-        double dt
-    )
-
-    ws_orbs_t* ws_orbs_alloc(
-        sh_grid_t* sh_grid,
-        sp_grid_t* sp_grid,
-        uabs_sh_t* uabs,
-        ylm_cache_t* ylm_cache,
-        int Uh_lmax,
-        int Uxc_lmax,
-        potential_xc_f uxc,
-        int num_threads
-    )
-
-    void ws_orbs_free(ws_orbs_t* ws)
-
-    void ws_orbs_calc_Uee(ws_orbs_t* ws, orbitals_t* orbs, int Uxc_lmax, int Uh_lmax)
-
 
 cdef class SKnWorkspace:
     cdef:
-        ws_wf_t* cdata
+        wf_base cdata
+        Uabs uabs
+
+cdef class SKnAWorkspace:
+    cdef:
+        wf_A cdata
         Uabs uabs
 
 cdef class SOrbsWorkspace:
     cdef:
-        ws_orbs_t* cdata
+        orbs cdata
         Uabs uabs
 
 cdef class GPSWorkspace:

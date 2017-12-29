@@ -21,22 +21,17 @@
 #include "wf.h"
 #include "../orbitals.h"
 
-#ifdef __cplusplus
-namespace tdse {
-	namespace workspace {
-		class SAE
-		{
-			public:
-				SAE(sh_grid_t const* grid, uabs_sh_t const* uabs, int num_threads);
-				~SAE();
+namespace workspace {
+	class SAE {
+		public:
+			SAE(sh_grid_t const* grid, uabs_sh_t const* uabs, int num_threads);
+			~SAE();
 
-				void setGroundState(orbitals_t* gs_orbs) { this->gs_orbs = gs_orbs; }
-				void prop(sh_wavefunc_t* wf, atom_t const* atom, field_t const* field, double t, double dt);
+			void setGroundState(orbitals_t* gs_orbs) { this->gs_orbs = gs_orbs; }
+			void prop(sh_wavefunc_t* wf, atom_t const* atom, field_t const* field, double t, double dt);
 
-			private:
-				ws_wf_t* ws_wf;
-				orbitals_t* gs_orbs;
-		};
-	}
+		private:
+			workspace::wf_base* ws_wf;
+			orbitals_t* gs_orbs;
+	};
 }
-#endif

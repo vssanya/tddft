@@ -104,13 +104,13 @@ double ylm_cache_calc(ylm_cache_t const* cache, int l, int m, double c) {
 	return (*cache)(l, m, c);
 }
 
-double sh_series_r(func_2d_t f, int ir, int l, int m, sp_grid_t const* grid, ylm_cache_t const* ylm_cache) {
+double sh_series_r(std::function<double(int, int)> f, int ir, int l, int m, sp_grid_t const* grid, ylm_cache_t const* ylm_cache) {
 	return integrate_1d_cpp<double>([f, ir, ylm_cache, l, m](int ic) -> double {
 			return f(ir, ic)*ylm_cache_get(ylm_cache, l, m, ic);
 			}, grid->n[iC], grid->d[iC])*2*M_PI;
 }
 
-void sh_series(func_2d_t f, int l, int m, sp_grid_t const* grid, double* series, ylm_cache_t const* ylm_cache) {
+void sh_series(std::function<double(int, int)> f, int l, int m, sp_grid_t const* grid, double* series, ylm_cache_t const* ylm_cache) {
 #pragma omp parallel for
 	for (int ir = 0; ir < grid->n[iR]; ++ir) {
 		series[ir] = sh_series_r(f, ir, l, m, grid, ylm_cache);

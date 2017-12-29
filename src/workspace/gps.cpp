@@ -7,7 +7,7 @@
 
 
 ws_gps_t* ws_gps_alloc(sh_grid_t const* grid, atom_t const* atom, double dt, double e_max) {
-	ws_gps_t* ws = malloc(sizeof(ws_gps_t));
+	ws_gps_t* ws = new ws_gps_t;
 
 	ws->grid = grid;
 	ws->atom = atom;
@@ -36,7 +36,7 @@ void ws_gps_calc_s(ws_gps_t* ws, eigen_ws_t const* eigen) {
 
 	int const Ne = eigen_get_n_with_energy(eigen, ws->e_max);
 
-	ws->s = calloc(Nl*Nr*Nr, sizeof(cdouble));
+	ws->s = new cdouble[Nl*Nr*Nr]();
 
 #pragma omp parallel for collapse(3)
 	for (int il = 0; il < Nl; ++il) {
@@ -78,20 +78,20 @@ void ws_gps_prop_common(
 ) {
 	double Et = field_E(field, t + ws->dt/2);
 
-	double Ul1(sh_grid_t const* grid, int ir, int l, int m) {
+	auto Ul1 = [Et](sh_grid_t const* grid, int ir, int l, int m) -> double {
 		double const r = sh_grid_r(grid, ir);
 		return r*Et*clm(l,m);
-	}
+	};
 
 	int l1 = 1;
 	for (int il = 0; il < ws->grid->n[iL] - l1; ++il) {
-		wf_prop_ang_l(wf, ws->dt*0.5, il, l1, Ul1);
+		wf_prop_ang_E_l(*wf, ws->dt*0.5, il, l1, Ul1);
 	}
 
 	ws_gps_prop(ws, wf);
 
 	for (int il = ws->grid->n[iL] - 1 - l1; il >= 0; --il) {
-		wf_prop_ang_l(wf, ws->dt*0.5, il, l1, Ul1);
+		wf_prop_ang_E_l(*wf, ws->dt*0.5, il, l1, Ul1);
 	}
 
 	for (int il = 0; il < ws->grid->n[iL]; ++il) {

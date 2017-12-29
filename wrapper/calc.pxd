@@ -1,4 +1,4 @@
-from workspace cimport ws_wf_t, ws_orbs_t
+from workspace cimport wf_base, orbs
 from wavefunc cimport sh_wavefunc_t
 from orbitals cimport orbitals_t
 from field cimport field_t
@@ -14,13 +14,13 @@ cdef extern from "calc.h":
     void calc_orbs_az_ne(orbitals_t* orbs, field_t* field, double t, double* az)
     void calc_wf_az_t(
             int Nt, double* a,
-            ws_wf_t* ws,
+            wf_base* ws,
             sh_wavefunc_t* wf,
             field_t* field,
             double dt);
 
     double calc_wf_jrcd(
-            ws_wf_t* ws,
+            wf_base* ws,
             sh_wavefunc_t* wf,
             atom_t* atom,
             field_t* field,
@@ -30,7 +30,7 @@ cdef extern from "calc.h":
     )
 
     double calc_orbs_jrcd(
-            ws_orbs_t* ws,
+            orbs* ws,
             orbitals_t* orbs,
             atom_t* atom,
             field_t* field,

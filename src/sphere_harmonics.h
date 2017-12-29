@@ -1,5 +1,7 @@
 #pragma once
 
+#include <functional>
+
 #include "grid.h"
 
 
@@ -107,8 +109,9 @@ double ylm_cache_calc(ylm_cache_t const* cache, int l, int m, double c);
 /*!
  * \brief Разложение функции по сферическим гармоникам
  * */
-void sh_series(double (*func)(int ix, int iy), int l, int m, sp_grid_t const* grid, double* series, ylm_cache_t const* ylm_cache);
 
 #ifdef __cplusplus
 }
 #endif
+
+void sh_series(std::function<double(int, int)> func, int l, int m, sp_grid_t const* grid, double* series, ylm_cache_t const* ylm_cache);

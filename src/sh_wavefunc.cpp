@@ -224,10 +224,14 @@ void sh_wavefunc_print(sh_wavefunc_t const* wf) {
 }
 
 // <psi|U(r)cos(\theta)|psi>
+double sh_wavefunc_t::cos(sh_f func) const {
+	return 2*sh_wavefunc_integrate<double>(this, [func](sh_wavefunc_t const* wf, int ir, int il) -> double {
+		return clm(il, wf->m)*creal((*wf)(ir, il)*conj((*wf)(ir, il+1)))*func(wf->grid, ir, il, wf->m);
+	}, grid->n[iL]-1);
+}
+
 double sh_wavefunc_cos(sh_wavefunc_t const* wf, sh_f U) {
-	return 2*sh_wavefunc_integrate<double>(wf, [U](sh_wavefunc_t const* wf, int ir, int il) -> double {
-		return clm(il, wf->m)*creal(swf_get(wf, ir, il)*conj(swf_get(wf, ir, il+1)))*U(wf->grid, ir, il, wf->m);
-	}, wf->grid->n[iL]-1);
+	wf->cos(U);
 }
 
 double sh_wavefunc_cos_r2(sh_wavefunc_t const* wf, sh_f U, int Z) {

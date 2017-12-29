@@ -8,10 +8,6 @@
 #include "atom.h"
 
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 double calc_wf_ionization_prob(sh_wavefunc_t const* wf);
 double calc_orbs_ionization_prob(orbitals_t const* orbs);
 
@@ -39,7 +35,7 @@ void calc_orbs_az_ne(
 );
 
 double calc_wf_jrcd(
-		ws_wf_t* ws,
+		workspace::wf_base* ws,
 		sh_wavefunc_t* wf,
 		atom_t const* atom,
 		field_t const* field,
@@ -49,7 +45,7 @@ double calc_wf_jrcd(
 );
 
 double calc_orbs_jrcd(
-		ws_orbs_t* ws,
+		workspace::orbs* ws,
 		orbitals_t* orbs,
 		atom_t const* atom,
 		field_t const* field,
@@ -57,7 +53,3 @@ double calc_orbs_jrcd(
 		double dt,
 		double t_smooth
 );
-
-#ifdef __cplusplus
-}
-#endif

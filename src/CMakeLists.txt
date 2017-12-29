@@ -1,24 +1,24 @@
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall")
 
 set( LIB_SOURCES
-	"workspace/wf.c"
-	"workspace/orbs.c"
+	"workspace/wf.cpp"
+	"workspace/orbs.cpp"
 	#"workspace/sae.cpp"
-	"workspace/gps.c"
-	"workspace/common_alg.c"
+	"workspace/gps.cpp"
+	"workspace/common_alg.cpp"
 	"workspace/sfa.cpp"
 
 	sh_wavefunc.cpp
-	hartree_potential.c
+	hartree_potential.cpp
 	integrate.c
 	utils.c
 	abs_pot.c
 	grid.c
 	fields.c
-	calc.c
+	calc.cpp
 	sphere_harmonics.cpp
-	orbitals.c
-	atom.c
+	orbitals.cpp
+	atom.cpp
 	eigen.cpp
 	linalg.cpp
 	tdsfm.cpp

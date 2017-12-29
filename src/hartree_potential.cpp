@@ -3,7 +3,7 @@
 #include "utils.h"
 
 
-void _hartree_potential_calc_f_l0(orbitals_t const* orbs, double f[orbs->grid->n[iR]]) {
+void _hartree_potential_calc_f_l0(orbitals_t const* orbs, double* f) {
   sh_grid_t const* grid = orbs->grid;
 #ifdef _MPI
   if (orbs->mpi_comm != MPI_COMM_NULL) {
@@ -26,35 +26,35 @@ void _hartree_potential_calc_f_l0(orbitals_t const* orbs, double f[orbs->grid->n
     }
 }
 
-void _hartree_potential_calc_f_l1(orbitals_t const* orbs, double f[orbs->grid->n[iR]]) {
+void _hartree_potential_calc_f_l1(orbitals_t const* orbs, double* f) {
   sh_grid_t const* grid = orbs->grid;
 #ifdef _MPI
 	if (orbs->mpi_comm != MPI_COMM_NULL) {
-		sh_wavefunc_t const* wf = orbs->mpi_wf;
+		sh_wavefunc_t const& wf = *orbs->mpi_wf;
 		int const n_e = orbs->atom->n_e[orbs->mpi_rank];
 
 		{
 			int il = 0;
 			for (int ir = 0; ir < grid->n[iR]; ++ir) {
-				f[ir] += n_e*swf_get(wf, ir, il) *
-					clm(il  , wf->m)*conj(swf_get(wf, ir, il+1));
+				f[ir] += creal(n_e*wf(ir, il) *
+					clm(il, wf.m)*conj(wf(ir, il+1)));
 			}
 		}
 
 		for (int il = 1; il < grid->n[iL]-1; ++il) {
 			for (int ir = 0; ir < grid->n[iR]; ++ir) {
-				f[ir] += n_e*swf_get(wf, ir, il) * (
-						clm(il-1, wf->m)*conj(swf_get(wf, ir, il-1)) +
-						clm(il  , wf->m)*conj(swf_get(wf, ir, il+1))
-						);
+				f[ir] += creal(n_e*wf(ir, il) * (
+						clm(il-1, wf.m)*conj(wf(ir, il-1)) +
+						clm(il  , wf.m)*conj(wf(ir, il+1))
+						));
 			}
 		}
 
 		{
 			int il = grid->n[iL]-1;
 			for (int ir = 0; ir < grid->n[iR]; ++ir) {
-				f[ir] += n_e*swf_get(wf, ir, il) *
-					clm(il-1, wf->m)*conj(swf_get(wf, ir, il-1));
+				f[ir] += creal(n_e*wf(ir, il) *
+					clm(il-1, wf.m)*conj(wf(ir, il-1)));
 			}
 		}
 	} else
@@ -67,32 +67,32 @@ void _hartree_potential_calc_f_l1(orbitals_t const* orbs, double f[orbs->grid->n
 			{
 				int il = 0;
 				for (int ir = 0; ir < grid->n[iR]; ++ir) {
-					f[ir] += n_e*swf_get(wf, ir, il) *
-						clm(il  , wf->m)*conj(swf_get(wf, ir, il+1));
+					f[ir] += creal(n_e*swf_get(wf, ir, il) *
+						clm(il, wf->m)*conj(swf_get(wf, ir, il+1)));
 				}
 			}
 
 			for (int il = 1; il < grid->n[iL]-1; ++il) {
 				for (int ir = 0; ir < grid->n[iR]; ++ir) {
-					f[ir] += n_e*swf_get(wf, ir, il) * (
+					f[ir] += creal(n_e*swf_get(wf, ir, il) * (
 							clm(il-1, wf->m)*conj(swf_get(wf, ir, il-1)) +
 							clm(il  , wf->m)*conj(swf_get(wf, ir, il+1))
-							);
+							));
 				}
 			}
 
 			{
 				int il = grid->n[iL]-1;
 				for (int ir = 0; ir < grid->n[iR]; ++ir) {
-					f[ir] += n_e*swf_get(wf, ir, il) *
-						clm(il-1, wf->m)*conj(swf_get(wf, ir, il-1));
+					f[ir] += creal(n_e*swf_get(wf, ir, il) *
+						clm(il-1, wf->m)*conj(swf_get(wf, ir, il-1)));
 				}
 			}
 		}
 	}
 }
 
-void _hartree_potential_calc_f_l2(orbitals_t const* orbs, double f[orbs->grid->n[iR]]) {
+void _hartree_potential_calc_f_l2(orbitals_t const* orbs, double* f) {
   sh_grid_t const* grid = orbs->grid;
 #ifdef _MPI
 	if (orbs->mpi_comm != MPI_COMM_NULL) {
@@ -101,27 +101,27 @@ void _hartree_potential_calc_f_l2(orbitals_t const* orbs, double f[orbs->grid->n
 
 		for (int il = 0; il < 2; ++il) {
 			for (int ir = 0; ir < grid->n[iR]; ++ir) {
-				f[ir] += n_e*swf_get(wf, ir, il) * (
+				f[ir] += creal(n_e*swf_get(wf, ir, il) * (
 						plm(il, wf->m)*conj(swf_get(wf, ir, il)) +
 						qlm(il, wf->m)*conj(swf_get(wf, ir, il+2))
-						);
+						));
 			}
 		}
 		for (int il = 2; il < grid->n[iL]-2; ++il) {
 			for (int ir = 0; ir < grid->n[iR]; ++ir) {
-				f[ir] += n_e*swf_get(wf, ir, il) * (
+				f[ir] += creal(n_e*swf_get(wf, ir, il) * (
 						plm(il, wf->m)*conj(swf_get(wf, ir, il)) +
 						qlm(il, wf->m)*conj(swf_get(wf, ir, il+2)) +
 						qlm(il-2, wf->m)*conj(swf_get(wf, ir, il-2))
-						);
+						));
 			}
 		}
 		for (int il = grid->n[iL]-2; il < grid->n[iL]; ++il) {
 			for (int ir = 0; ir < grid->n[iR]; ++ir) {
-				f[ir] += n_e*swf_get(wf, ir, il) * (
+				f[ir] += creal(n_e*swf_get(wf, ir, il) * (
 						plm(il, wf->m)*conj(swf_get(wf, ir, il)) +
 						qlm(il-2, wf->m)*conj(swf_get(wf, ir, il-2))
-						);
+						));
 			}
 		}
 	} else
@@ -132,27 +132,27 @@ void _hartree_potential_calc_f_l2(orbitals_t const* orbs, double f[orbs->grid->n
 			int const n_e = orbs->atom->n_e[ie];
 			for (int il = 0; il < 2; ++il) {
 				for (int ir = 0; ir < grid->n[iR]; ++ir) {
-					f[ir] += n_e*swf_get(wf, ir, il) * (
+					f[ir] += creal(n_e*swf_get(wf, ir, il) * (
 							plm(il, wf->m)*conj(swf_get(wf, ir, il)) +
 							qlm(il, wf->m)*conj(swf_get(wf, ir, il+2))
-							);
+							));
 				}
 			}
 			for (int il = 2; il < grid->n[iL]-2; ++il) {
 				for (int ir = 0; ir < grid->n[iR]; ++ir) {
-					f[ir] += n_e*swf_get(wf, ir, il) * (
+					f[ir] += creal(n_e*swf_get(wf, ir, il) * (
 							plm(il, wf->m)*conj(swf_get(wf, ir, il)) +
 							qlm(il, wf->m)*conj(swf_get(wf, ir, il+2)) +
 							qlm(il-2, wf->m)*conj(swf_get(wf, ir, il-2))
-							);
+							));
 				}
 			}
 			for (int il = grid->n[iL]-2; il < grid->n[iL]; ++il) {
 				for (int ir = 0; ir < grid->n[iR]; ++ir) {
-					f[ir] += n_e*swf_get(wf, ir, il) * (
+					f[ir] += creal(n_e*swf_get(wf, ir, il) * (
 							plm(il, wf->m)*conj(swf_get(wf, ir, il)) +
 							qlm(il-2, wf->m)*conj(swf_get(wf, ir, il-2))
-							);
+							));
 				}
 			}
 		}
@@ -169,9 +169,9 @@ calc_func_t const calc_funcs[3] = {
 void hartree_potential(
 		orbitals_t const* orbs,
 		int l,
-		double U[orbs->grid->n[iR]],
-		double U_local[orbs->grid->n[iR]],
-		double f[orbs->grid->n[iR]],
+		double* U,
+		double* U_local,
+		double* f,
 		int order
 ) {
   assert(l >= 0 && l <= 2);
@@ -209,8 +209,8 @@ void hartree_potential(
 
 void hartree_potential_wf_l0(
 		sh_wavefunc_t const* wf,
-		double U[wf->grid->n[iR]],
-		double f[wf->grid->n[iR]],
+		double* U,
+		double* f,
 		int order
 ) {
 	sh_grid_t const* grid = wf->grid;
@@ -235,10 +235,10 @@ void hartree_potential_wf_l0(
 void uxc_calc_l(
 		potential_xc_f uxc,
 		int l, orbitals_t const* orbs,
-		double U[orbs->grid->n[iR]],
+		double* U,
 		sp_grid_t const* grid,
-		double n[grid->n[iR]*grid->n[iC]], // for calc using mpi
-		double n_tmp[grid->n[iR]*grid->n[iC]], // for calc using mpi
+		double* n, // for calc using mpi
+		double* n_tmp, // for calc using mpi
 		ylm_cache_t const* ylm_cache
 		) {
 		orbitals_n_sp(orbs, grid, n, n_tmp, ylm_cache);
@@ -247,10 +247,10 @@ void uxc_calc_l(
 		if (orbs->mpi_rank == 0 || orbs->mpi_comm == MPI_COMM_NULL)
 #endif
 		{
-			double func(int ir, int ic) {
+			auto func = [grid, uxc, n](int ir, int ic) -> double {
 				double x = mod_grad_n(grid, n, ir, ic);
 				return uxc(n[ir + ic*grid->n[iR]], x);
-			}
+			};
 
 			sh_series(func, l, 0, grid, U, ylm_cache);
 		}
@@ -259,10 +259,10 @@ void uxc_calc_l(
 void uxc_calc_l0(
 		potential_xc_f uxc,
 		int l, orbitals_t const* orbs,
-		double U[orbs->grid->n[iR]],
+		double* U,
 		sp_grid_t const* grid,
-		double n[grid->n[iR]], // for calc using mpi
-		double n_tmp[grid->n[iR]], // for calc using mpi
+		double* n, // for calc using mpi
+		double* n_tmp, // for calc using mpi
 		ylm_cache_t const* ylm_cache
 		) {
 	if (l==0) {
@@ -322,7 +322,7 @@ double uxc_lda_x(double n, double x) {
 	return ux_lda_func(n);
 }
 
-double mod_grad_n(sp_grid_t const* grid, double n[grid->n[iR]*grid->n[iC]], int ir, int ic) {
+double mod_grad_n(sp_grid_t const* grid, double* n, int ir, int ic) {
 	double dn_dr = 0.0;
 	double dn_dc = 0.0;
 
@@ -348,7 +348,7 @@ double mod_grad_n(sp_grid_t const* grid, double n[grid->n[iR]*grid->n[iC]], int 
 	return sqrt(pow(dn_dr,2) + pow(dn_dc/r,2)*(1.0 - c*c))/pow(n[ir + ic*grid->n[iR]], 4.0/3.0);
 }
 
-double mod_dndr(sp_grid_t const* grid, double n[grid->n[iR]], int ir) {
+double mod_dndr(sp_grid_t const* grid, double* n, int ir) {
 	double dn_dr = 0.0;
 
 	if (ir == 0) {

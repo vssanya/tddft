@@ -2,6 +2,7 @@
 
 #include <stdbool.h>
 #include <math.h>
+#include <functional>
 
 #include "types.h"
 #include "grid.h"
@@ -39,6 +40,7 @@ struct sh_wavefunc_t {
   cdouble operator*(sh_wavefunc_t const& other) const;
 
   void prop_ang_l(cdouble dt, int l, int l1, sh_f Ul, linalg::matrix_f dot, linalg::matrix_f dot_T, cdouble const eigenval[2]);
+  double cos(sh_f func) const;
 #endif
 };
 
