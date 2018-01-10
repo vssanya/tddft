@@ -43,9 +43,9 @@ def az_ne(SOrbitals orbs, Field field, double t, np.ndarray[double, ndim=1, mode
 
 def jrcd(Atom atom, WS ws, WF wf, Field field, int Nt, double dt, double t_smooth):
     if WF is SOrbitals and WS is SOrbsWorkspace:
-        return calc_orbs_jrcd(&ws.cdata, wf.cdata, atom.cdata, field.cdata, Nt, dt, t_smooth)
+        return calc_orbs_jrcd(ws.cdata, wf.cdata, atom.cdata, field.cdata, Nt, dt, t_smooth)
     elif WF is SWavefunc and WS is SKnWorkspace:
-        return calc_wf_jrcd(&ws.cdata, wf.cdata, atom.cdata, field.cdata, Nt, dt, t_smooth)
+        return calc_wf_jrcd(ws.cdata, wf.cdata, atom.cdata, field.cdata, Nt, dt, t_smooth)
     else:
         assert(False)
 

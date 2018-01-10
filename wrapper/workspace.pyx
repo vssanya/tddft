@@ -63,15 +63,21 @@ cdef class GPSWorkspace:
 
 cdef class SFAWorkspace:
     def __cinit__(self):
-        self.cdata = momentum_space()
+        self.cdata = new momentum_space()
+
+    def __dealloc__(self):
+        del self.cdata
 
     def prop(self, CtWavefunc wf, Field field, double t, double dt):
         self.cdata.propagate(wf.cdata, field.cdata, t, dt)
 
 cdef class SKnWorkspace:
     def __cinit__(self, ShGrid grid, Uabs uabs, int num_threads = -1):
-        self.cdata = wf_base(grid.data, uabs.cdata, num_threads)
+        self.cdata = new wf_base(grid.data, uabs.cdata, num_threads)
         self.uabs = uabs
+
+    def __dealloc__(self):
+        del self.cdata
 
     def __init__(self, ShGrid grid, Uabs uabs, int num_threads = -1):
         pass
@@ -85,8 +91,11 @@ cdef class SKnWorkspace:
 
 cdef class SKnAWorkspace:
     def __cinit__(self, ShGrid grid, Uabs uabs, int num_threads = -1):
-        self.cdata = wf_A(grid.data, uabs.cdata, num_threads)
+        self.cdata = new wf_A(grid.data, uabs.cdata, num_threads)
         self.uabs = uabs
+
+    def __dealloc__(self):
+        del self.cdata
 
     def __init__(self, ShGrid grid, Uabs uabs, int num_threads = -1):
         pass
@@ -103,8 +112,11 @@ cdef class SOrbsWorkspace:
         assert(Uxc_lmax >= 0 and Uxc_lmax <= 3)
         assert(Uh_lmax >= 0 and Uh_lmax <= 3)
 
-        self.cdata = orbs(sh_grid.data, sp_grid.data, uabs.cdata, ylm_cache.cdata, Uh_lmax, Uxc_lmax, uxc.cdata, num_threads)
+        self.cdata = new orbs(sh_grid.data, sp_grid.data, uabs.cdata, ylm_cache.cdata, Uh_lmax, Uxc_lmax, uxc.cdata, num_threads)
         self.uabs = uabs
+
+    def __dealloc__(self):
+        del self.cdata
 
     def __init__(self, ShGrid sh_grid, SpGrid sp_grid, Uabs uabs, YlmCache ylm_cache, int Uxc_lmax = 3, int Uh_lmax = 3, Uxc uxc = UXC_LB, int num_threads=-1):
         pass

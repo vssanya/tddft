@@ -95,17 +95,17 @@ cdef extern from "workspace.h" namespace "workspace":
 
 cdef class SKnWorkspace:
     cdef:
-        wf_base cdata
+        wf_base* cdata
         Uabs uabs
 
 cdef class SKnAWorkspace:
     cdef:
-        wf_A cdata
+        wf_A* cdata
         Uabs uabs
 
 cdef class SOrbsWorkspace:
     cdef:
-        orbs cdata
+        orbs* cdata
         Uabs uabs
 
 cdef class GPSWorkspace:
@@ -118,4 +118,4 @@ cdef class Eigen:
 
 cdef class SFAWorkspace:
     cdef:
-        momentum_space cdata
+        momentum_space* cdata

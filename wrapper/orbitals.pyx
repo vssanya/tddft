@@ -167,9 +167,9 @@ cdef class SOrbitals:
     def __str__(self):
         return "Orbitals MPI, wf.m = {}".format(self.cdata.mpi_wf.m)
 
-    def grad_u(self, ie=0):
-        cdef np.ndarray[np.double_t, ndim=1] res = np.ndarray(self.cdata.grid.n[0], np.double)
+    # def grad_u(self, ie=0):
+        # cdef np.ndarray[np.double_t, ndim=1] res = np.ndarray(self.cdata.grid.n[0], np.double)
 
-        sh_wavefunc_cos_r(self.cdata.wf[ie], <sh_f>self.atom.cdata.dudz, <double*>res.data)
-        return res
+        # sh_wavefunc_cos_r(self.cdata.wf[ie], <sh_f>self.atom.cdata.dudz, <double*>res.data)
+        # return res
 
