@@ -2,42 +2,42 @@
 #include "../grid.h"
 #include "../integrate.h"
 
-double Dn_func(int n, sh_grid_t const* grid, int ir, int irl, double const f[grid->n[iR]]);
-double Un_func(int n, sh_grid_t const* grid, int ir, int irl, double const f[grid->n[iR]]);
+double Dn_func(int n, sh_grid_t const* grid, int ir, int irl, double const* f);
+double Un_func(int n, sh_grid_t const* grid, int ir, int irl, double const* f);
 
 
-double Dn_0(int n, sh_grid_t const* grid, double const f[grid->n[iR]]) {
-  double func(int irl) {
+double Dn_0(int n, sh_grid_t const* grid, double const* f) {
+  auto func = [n, grid, f](int irl) -> double {
     return Dn_func(n, grid, 0, irl, f);
-  }
+  };
   return (5/4*0.0 + 2*func(0) - func(1)/4)*grid->d[iR]/3;
 }
 
-double Dn_1(int n, sh_grid_t const* grid, double const f[grid->n[iR]]) {
-  double func(int irl) {
+double Dn_1(int n, sh_grid_t const* grid, double const* f) {
+  auto func = [n, grid, f](int irl) -> double {
     return Dn_func(n, grid, 1, irl, f);
-  }
+  };
 
   return (0.0 + 4*func(0) + func(1))*grid->d[iR]/3;
 }
 
-void Dn_init(int n, double F[2], sh_grid_t const* grid, double const f[grid->n[iR]]) {
+void Dn_init(int n, double F[2], sh_grid_t const* grid, double const* f) {
   F[0] = Dn_0(n, grid, f);
   F[1] = Dn_1(n, grid, f);
 }
 
-double Dn_next(int n, double F[2], int ir, sh_grid_t const* grid, double const f[grid->n[iR]]) {
+double Dn_next(int n, double F[2], int ir, sh_grid_t const* grid, double const* f) {
   if (ir <= 1) {
     return F[ir];
   }
 
-  double func(int irl) {
+  auto func = [n, grid, ir, f](int irl) -> double {
     if (irl > grid->n[iR]-1) {
       return 0.0;
     }
 
     return Dn_func(n, grid, ir, irl, f);
-  }
+  };
 
   double res;
   if (ir % 2 == 0) {
@@ -52,37 +52,37 @@ double Dn_next(int n, double F[2], int ir, sh_grid_t const* grid, double const f
   return res;
 }
 
-double Un_0(int n, sh_grid_t const* grid, double const f[grid->n[iR]]) {
+double Un_0(int n, sh_grid_t const* grid, double const* f) {
   return 0.0;
 }
 
-double Un_1(int n, sh_grid_t const* grid, double const f[grid->n[iR]]) {
+double Un_1(int n, sh_grid_t const* grid, double const* f) {
   int ir = grid->n[iR]-2;
 
-  double func(int irl) {
+  auto func = [n, grid, ir, f](int irl) -> double {
     return Un_func(n, grid, ir, irl, f);
-  }
+  };
 
   return (func(ir) + func(ir+1))*grid->d[iR]*0.5;
 }
 
-void Un_init(int n, double F[2], sh_grid_t const* grid, double const f[grid->n[iR]]) {
+void Un_init(int n, double F[2], sh_grid_t const* grid, double const* f) {
   F[0] = Un_0(n, grid, f);
   F[1] = Un_1(n, grid, f);
 }
 
-double Un_next(int n, double F[2], int ir, sh_grid_t const* grid, double const f[grid->n[iR]]) {
+double Un_next(int n, double F[2], int ir, sh_grid_t const* grid, double const* f) {
   if (ir >= grid->n[iR]-2) {
     return F[grid->n[iR] - 1 - ir];
   }
 
-  double func(int irl) {
+  auto func = [n, grid, ir, f](int irl) -> double {
     if (irl < 0) {
       return 0.0;
     }
 
     return Un_func(n, grid, ir, irl, f);
-  }
+  };
 
   double res;
   if (ir % 2 == 0) {
@@ -97,7 +97,7 @@ double Un_next(int n, double F[2], int ir, sh_grid_t const* grid, double const f
   return res;
 }
 
-void integrate_rmin_rmax_o5(int n, sh_grid_t const* grid, double const f[grid->n[iR]], double res[grid->n[iR]]) {
+void integrate_rmin_rmax_o5(int n, sh_grid_t const* grid, double const* f, double* res) {
   double F[2];
 
   Dn_init(n, F, grid, f);

@@ -23,8 +23,8 @@ set( LIB_SOURCES
 	linalg.cpp
 	tdsfm.cpp
 	"sfa/anal.c"
-	"hartree_potential/hp_o3.c"
-	"hartree_potential/hp_o5.c"
+	"hartree_potential/hp_o3.cpp"
+	"hartree_potential/hp_o5.cpp"
 
 	"wavefunc/2d.cpp"
 	)

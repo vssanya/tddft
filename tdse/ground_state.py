@@ -2,8 +2,8 @@ import numpy as np
 from . import grid, wavefunc
 
 
-def wf_1(atom, grid, ws, dt, Nt):
-    wf = wavefunc.SWavefunc.random(grid, 0, m=atom.get_m(0))
+def wf_1(atom, l, m, grid, ws, dt, Nt):
+    wf = wavefunc.SWavefunc.random(grid, l, m)
 
     for i in range(Nt):
         ws.prop_img(wf, atom, dt)
@@ -11,10 +11,8 @@ def wf_1(atom, grid, ws, dt, Nt):
 
     return wf
 
-def wf_n(atom, n, grid, ws, dt, Nt):
-    l = atom.get_l(0)
-
-    wfs = [wavefunc.SWavefunc.random(grid, l, m=atom.get_m(0)) for i in range(n)]
+def wf_n(atom, n, l, m, grid, ws, dt, Nt):
+    wfs = [wavefunc.SWavefunc.random(grid, l, m) for i in range(n)]
 
     for i in range(Nt):
         for j in range(n):
@@ -25,11 +23,16 @@ def wf_n(atom, n, grid, ws, dt, Nt):
     wfs[-1].normalize()
     return wfs[-1]
 
-def wf(atom, grid, ws, dt, Nt, n=1):
+def wf(atom, grid, ws, dt, Nt, n=1, l=None, m=None):
+    if l is None:
+        l = atom.get_l(0)
+    if m is None:
+        m = atom.get_m(0)
+
     if n == 1:
-        return wf_1(atom, grid, ws, dt, Nt)
+        return wf_1(atom, l, m, grid, ws, dt, Nt)
     else:
-        return wf_n(atom, n, grid, ws, dt, Nt)
+        return wf_n(atom, n, l, m, grid, ws, dt, Nt)
 
 
 def orbs(atom, grid, ws, dt=0.125, Nt=10000):

@@ -170,7 +170,7 @@ class SFATask(Task):
 class WavefuncTask(Task):
     """
     """
-    state_n = 1 # Номер состояния
+    state = {'n': 1, 'l': 0, 'm': 0}
     is_calc_ground_state = True
 
     def __init__(self, path_res='res', mode=None, **kwargs):
@@ -201,7 +201,7 @@ class WavefuncTask(Task):
         if ws is None:
             ws = tdse.workspace.SKnWorkspace(self.grid, tdse.abs_pot.UabsZero())
 
-        return tdse.ground_state.wf(self.atom, self.grid, ws, self.dt, 10000, n=self.state_n)
+        return tdse.ground_state.wf(self.atom, self.grid, ws, self.dt, 10000, **self.state)
 
     def calc_prop(self, i, t):
         self.ws.prop(self.wf, self.atom, self.field, t, self.dt)
