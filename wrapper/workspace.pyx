@@ -20,7 +20,7 @@ cdef class Eigen:
             eigen_ws_free(self.cdata)
 
     def calc(self, Atom atom):
-        eigen_calc_for_atom(self.cdata, atom.cdata)
+        eigen_calc_for_atom(self.cdata, &atom.cdata)
 
     def get_eval(self):
         cdef double[:, ::1] array = <double[:self.cdata.grid.n[1],:self.cdata.grid.n[0]]>self.cdata.eval
@@ -46,7 +46,7 @@ cdef class Eigen:
 
 cdef class GPSWorkspace:
     def __cinit__(self, ShGrid grid, Atom atom, double dt, double Emax):
-        self.cdata = ws_gps_alloc(grid.data, atom.cdata, dt, Emax)
+        self.cdata = ws_gps_alloc(grid.data, &atom.cdata, dt, Emax)
 
     def __dealloc__(self):
         ws_gps_free(self.cdata)
@@ -83,10 +83,10 @@ cdef class SKnWorkspace:
         pass
 
     def prop(self, SWavefunc wf, Atom atom, Field field, double t, double dt):
-        self.cdata.prop(wf.cdata[0], atom.cdata, field.cdata, t, dt)
+        self.cdata.prop(wf.cdata[0], &atom.cdata, field.cdata, t, dt)
 
     def prop_img(self, SWavefunc wf, Atom atom, double dt):
-        self.cdata.prop_img(wf.cdata[0], atom.cdata, dt)
+        self.cdata.prop_img(wf.cdata[0], &atom.cdata, dt)
 
 
 cdef class SKnAWorkspace:
@@ -101,10 +101,10 @@ cdef class SKnAWorkspace:
         pass
 
     def prop(self, SWavefunc wf, Atom atom, Field field, double t, double dt):
-        self.cdata.prop(wf.cdata[0], atom.cdata, field.cdata, t, dt)
+        self.cdata.prop(wf.cdata[0], &atom.cdata, field.cdata, t, dt)
 
     def prop_img(self, SWavefunc wf, Atom atom, double dt):
-        self.cdata.prop_img(wf.cdata[0], atom.cdata, dt)
+        self.cdata.prop_img(wf.cdata[0], &atom.cdata, dt)
 
 
 cdef class SOrbsWorkspace:
@@ -122,10 +122,10 @@ cdef class SOrbsWorkspace:
         pass
 
     def prop_img(self, SOrbitals orbs, Atom atom, double dt):
-        self.cdata.prop_img(orbs.cdata, atom.cdata, dt)
+        self.cdata.prop_img(orbs.cdata, &atom.cdata, dt)
 
     def prop(self, SOrbitals orbs, Atom atom, Field field, double t, double dt, bint calc_uee=True):
-        self.cdata.prop(orbs.cdata, atom.cdata, field.cdata, t, dt, calc_uee)
+        self.cdata.prop(orbs.cdata, &atom.cdata, field.cdata, t, dt, calc_uee)
 
     def calc_uee(self, SOrbitals orbs, Uxc_lmax=None, Uh_lmax=None):
         if Uxc_lmax is None:

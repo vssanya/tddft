@@ -10,7 +10,7 @@ cdef class Atom:
     @staticmethod
     cdef Atom from_c(const atom_t* atom):
         obj = <Atom>Atom.__new__(Atom)
-        obj.cdata = atom
+        obj.cdata = atom[0]
         return obj
 
     @property
@@ -32,6 +32,17 @@ Ar       = Atom.from_c(&atom_argon)
 Ar_ion   = Atom.from_c(&atom_argon_ion)
 Ar_sae   = Atom.from_c(&atom_argon_sae)
 NONE = Atom.from_c(&atom_none)
+
+cdef class HAtom:
+    def __cinit__(self, int Z):
+        self.cdata.Z = Z
+        self.cdata.n_orbs = 1
+        self.cdata.u = <pot_f>atom_u_coulomb
+        self.cdata.dudz = <pot_f>atom_dudz_coulomb
+        self.cdata.u_type = POTENTIAL_COULOMB
+
+    def __init__(self, int Z):
+        pass
 
 def ground_state(ShGrid grid) -> SWavefunc:
     wf = SWavefunc(grid)

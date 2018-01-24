@@ -18,7 +18,7 @@ cdef class SOrbitals:
         if comm is None:
             comm = COMM_NULL
 
-        self.cdata = orbials_new(atom.cdata, grid.data, comm.ob_mpi)
+        self.cdata = orbials_new(&atom.cdata, grid.data, comm.ob_mpi)
 
         self.mpi_comm = comm
         self.grid = grid

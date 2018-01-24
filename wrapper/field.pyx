@@ -56,6 +56,12 @@ cdef class Field:
     def _repr_latex(self):
         return r"$\vec{A}(t) = \vec{e}_z \left(" + self._repr_latex_A_() + r"\right)$"
 
+    def get_E(self, t):
+        E = np.zeros(t.size)
+        for i in range(t.size):
+            E[i] = self.E(t)
+        return E
+
 cdef object FIELDS = {}
 
 cdef double field_base_func(void* self, double t):

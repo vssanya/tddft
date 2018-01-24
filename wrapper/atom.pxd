@@ -6,14 +6,16 @@ cdef extern from "atom.h":
     ctypedef enum potential_type_e:
         POTENTIAL_SMOOTH, POTENTIAL_COULOMB
 
+    ctypedef double (*pot_f)(atom_t*, sh_grid_t*, int)
+
     ctypedef struct atom_t:
         int Z
         int n_orbs
         int* m
         int* l
         int* e_n
-        sh_f u
-        sh_f dudz
+        pot_f u
+        pot_f dudz
         potential_type_e u_type
 
     double atom_u_coulomb(atom_t* atom, sh_grid_t* grid, int ir)
@@ -35,6 +37,10 @@ cdef extern from "atom.h":
     atom_t atom_none
 
 cdef class Atom:
-    cdef const atom_t* cdata
+    cdef atom_t cdata
     @staticmethod
     cdef Atom from_c(atom_t* atom)
+
+
+cdef class HAtom(Atom):
+    pass

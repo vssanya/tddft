@@ -29,11 +29,13 @@ struct sh_wavefunc_t {
 #ifdef __cplusplus
   inline
   cdouble& operator() (int ir, int il) {
+	  assert(ir < grid->n[iR] && il < grid->n[iL]);
 	  return data[ir + il*grid->n[iR]];
   }
 
   inline
-  cdouble operator() (int ir, int il) const {
+  cdouble const& operator() (int ir, int il) const {
+	  assert(ir < grid->n[iR] && il < grid->n[iL]);
 	  return data[ir + il*grid->n[iR]];
   }
 

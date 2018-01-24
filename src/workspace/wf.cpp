@@ -42,8 +42,10 @@ void workspace::wf_base::prop_mix(sh_wavefunc_t& wf, sh_f Al, double dt, int l) 
 
 	linalg::tdm_t M = {(4.0+x)/6.0, {1.0/6.0, 2.0/3.0, 1.0/6.0}, Nr};
 
-	linalg::eq_solve(v[0], M, { x*glm, {-glm, 0.0,  glm}, Nr}, alpha, betta);
-	linalg::eq_solve(v[1], M, {-x*glm, { glm, 0.0, -glm}, Nr}, alpha, betta);
+#pragma omp single nowait
+	linalg::eq_solve(v[0], M, { x*glm, {-glm, 0.0,  glm}, Nr}, &alpha[0*Nr], &betta[0*Nr]);
+#pragma omp single
+	linalg::eq_solve(v[1], M, {-x*glm, { glm, 0.0, -glm}, Nr}, &alpha[1*Nr], &betta[1*Nr]);
 
 	linalg::matrix_dot_vec(Nr, v, linalg::matrix_bE::dot_T);
 }
