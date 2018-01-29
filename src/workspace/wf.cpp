@@ -232,6 +232,26 @@ void workspace::wf_base::prop(sh_wavefunc_t& wf, atom_t const* atom, field_t con
 	prop_abs(wf, dt);
 }
 
+void workspace::wf_E::prop(sh_wavefunc_t& wf, atom_t const* atom, field_t const* field, double t, double dt) {
+	double Et = field_E(field, t + dt/2);
+
+	sh_f Ul[2] = {
+			[atom](sh_grid_t const* grid, int ir, int l, int m) -> double {
+				double const r = sh_grid_r(grid, ir);
+				return l*(l+1)/(2*r*r) + atom->u(atom, grid, ir);
+			},
+			[Et](sh_grid_t const* grid, int ir, int l, int m) -> double {
+				double const r = sh_grid_r(grid, ir);
+				return r*Et*clm(l,m);
+			}
+	};
+
+
+	prop_common(wf, dt, 2, Ul, atom->Z, atom->u_type);
+
+	prop_abs(wf, dt);
+}
+
 void workspace::wf_A::prop(sh_wavefunc_t& wf, atom_t const* atom, field_t const* field, double t, double dt) {
 	double At = -field_A(field, t + dt/2);
 
