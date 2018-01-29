@@ -75,6 +75,25 @@ double atom_dudz_smooth(atom_t const* atom, sh_grid_t const* grid, int ir) {
   return 2.0*alpha*t*s/a + t/pow(r, 2) - s/(a*r);
 }
 
+double atom_u_ar_smooth(atom_t const* atom, sh_grid_t const* grid, int ir) {
+	double const a = 0.3;
+	double const alpha = 3.88;
+
+	double const r = sh_grid_r(grid, ir);
+	return -alpha*pow(cosh(r/a), -2) - tanh(r/a)/r;
+}
+
+double atom_dudz_ar_smooth(atom_t const* atom, sh_grid_t const* grid, int ir) {
+	double const a = 0.3;
+	double const alpha = 3.88;
+
+  double const r = sh_grid_r(grid, ir);
+  double const t = tanh(r/a);
+  double const s = pow(cosh(r/a), -2);
+
+  return 2.0*alpha*t*s/a + t/pow(r, 2) - s/(a*r);
+}
+
 void atom_hydrogen_ground(sh_wavefunc_t* wf) {
 	assert(wf->m == 0);
 	// l = 0

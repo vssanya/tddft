@@ -36,6 +36,8 @@ double atom_u_coulomb(atom_t const* atom, sh_grid_t const* grid, int ir) __attri
 double atom_dudz_coulomb(atom_t const* atom, sh_grid_t const* grid, int ir) __attribute__((pure));
 double atom_u_smooth(atom_t const* atom, sh_grid_t const* grid, int ir) __attribute__((pure));
 double atom_dudz_smooth(atom_t const* atom, sh_grid_t const* grid, int ir) __attribute__((pure));
+double atom_u_ar_smooth(atom_t const* atom, sh_grid_t const* grid, int ir) __attribute__((pure));
+double atom_dudz_ar_smooth(atom_t const* atom, sh_grid_t const* grid, int ir) __attribute__((pure));
 double atom_u_ar_sae(atom_t const* atom, sh_grid_t const* grid, int ir);
 double atom_dudz_ar_sae(atom_t const* atom, sh_grid_t const* grid, int ir);
 
@@ -60,6 +62,17 @@ static atom_t const atom_hydrogen_smooth = {
 	.n_e = (int[]){1},
 	.u    = (pot_f)atom_u_smooth,
 	.dudz = (pot_f)atom_dudz_smooth,
+	.u_type = POTENTIAL_SMOOTH,
+};
+
+static atom_t const atom_argon_sae_smooth = {
+	.Z = 1,
+	.n_orbs = 1,
+	.m   = (int[]){0},
+	.l   = (int[]){1},
+	.n_e = (int[]){1},
+	.u    = (pot_f)atom_u_ar_smooth,
+	.dudz = (pot_f)atom_dudz_ar_smooth,
 	.u_type = POTENTIAL_SMOOTH,
 };
 

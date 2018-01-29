@@ -31,6 +31,7 @@ Ne       = Atom.from_c(&atom_neon)
 Ar       = Atom.from_c(&atom_argon)
 Ar_ion   = Atom.from_c(&atom_argon_ion)
 Ar_sae   = Atom.from_c(&atom_argon_sae)
+Ar_sae_smooth = Atom.from_c(&atom_argon_sae_smooth)
 NONE = Atom.from_c(&atom_none)
 
 cdef class HAtom:

@@ -59,7 +59,7 @@ cdef class Field:
     def get_E(self, t):
         E = np.zeros(t.size)
         for i in range(t.size):
-            E[i] = self.E(t)
+            E[i] = self.E(t[i])
         return E
 
 cdef object FIELDS = {}
