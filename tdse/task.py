@@ -206,6 +206,43 @@ class WavefuncTask(Task):
     def calc_prop(self, i, t):
         self.ws.prop(self.wf, self.atom, self.field, t, self.dt)
 
+class WavefuncWithSourceTask(Task):
+    state = {'n': 1, 'l': 0, 'm': 0}
+
+    def __init__(self, path_res='res', mode=None, **kwargs):
+        super().__init__(path_res, mode, is_mpi=False, **kwargs)
+
+        Nr = int(self.r_max/self.dr)
+        self.grid = tdse.grid.ShGrid(Nr=Nr, Nl=self.Nl, r_max=self.r_max)
+        self.grid_source = tdse.grid.ShGrid(Nr=Nr, Nl=self.state['l']+1, r_max=self.r_max)
+
+    def save_state(self, i):
+        np.save(os.path.join(self.save_path, 'wf_{}.npy'.format(i)), self.wf.asarray())
+
+    def load_state(self, i):
+        self.wf.asarray[:] = np.load(os.path.join(self.save_path, 'wf_{}.npy'.format(i)))
+
+    def calc_init(self):
+        super().calc_init()
+
+        self.wf_source = self.calc_ground_state()
+        self.wf = tdse.wavefunc.SWavefunc(self.grid)
+        self.wf.asarray()[:] = 0.0
+
+        self.ws = tdse.workspace.SKnWithSourceWorkspace(self.grid, self.uabs, self.wf_source)
+
+
+        self.t = self.field.get_t(self.dt, dT=self.dT)
+
+    def calc_ground_state(self, ws=None):
+        if ws is None:
+            ws = tdse.workspace.SKnWorkspace(self.grid_source, tdse.abs_pot.UabsZero())
+
+        return tdse.ground_state.wf(self.atom, self.grid, ws, self.dt, 10000, **self.state)
+
+    def calc_prop(self, i, t):
+        self.ws.prop(self.wf, tdse.atom.NONE, self.field, t, self.dt)
+
 class OrbitalsTask(Task):
     """
     """
