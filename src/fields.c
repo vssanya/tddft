@@ -124,12 +124,12 @@ double field_gauss_env_A(field_gauss_env_t const* field, double t) {
 }
 
 double field_gauss_env_E(field_gauss_env_t const* field, double t) {
-	t -= field_T((field_t*)field)*0.5;
-	return 2.0*t/pow(field->tp,2)*field_E((field_t*)field, t);
+	double  dt = field_T((field_t*)field)*0.5;
+	return 2.0*(t-dt)/pow(field->tp,2)*field_A((field_t*)field, t);
 }
 
 double field_gauss_env_T(field_gauss_env_t const* field) {
-	return 2.0*sqrt(0.5*pow(field->tp,2)*log(field->dI));
+	return 2.0*field->tp*sqrt(-0.5*log(field->dI));
 }
 
 double field_sin_env_A(field_sin_env_t const* field, double t) {

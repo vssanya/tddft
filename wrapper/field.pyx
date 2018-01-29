@@ -1,4 +1,5 @@
 import numpy as np
+cimport numpy as np
 
 import tdse.utils
 if tdse.utils.is_jupyter_notebook():
@@ -8,12 +9,33 @@ if tdse.utils.is_jupyter_notebook():
 from libc.stdlib cimport malloc, free
 
 
-cdef class Field:
-    def E(self, double t):
-        return field_E(self.cdata, t)
+ctypedef fused IDouble:
+    double
+    np.ndarray[double, ndim=1]
 
-    def A(self, double t):
-        return field_A(self.cdata, t)
+
+cdef class Field:
+    def E(self, IDouble t):
+        cdef int i = 0
+
+        if IDouble is double:
+            return field_E(self.cdata, t)
+        else:
+            E = np.zeros(t.size)
+            for i in range(t.size):
+                E[i] = field_E(self.cdata, t[i])
+            return E
+
+    def A(self, IDouble t):
+        cdef int i = 0
+
+        if IDouble is double:
+            return field_A(self.cdata, t)
+        else:
+            A = np.zeros(t.size)
+            for i in range(t.size):
+                A[i] = field_A(self.cdata, t[i])
+            return A
 
     def __mul__(self, Field other):
         return MulField(self, other)
@@ -55,12 +77,6 @@ cdef class Field:
 
     def _repr_latex(self):
         return r"$\vec{A}(t) = \vec{e}_z \left(" + self._repr_latex_A_() + r"\right)$"
-
-    def get_E(self, t):
-        E = np.zeros(t.size)
-        for i in range(t.size):
-            E[i] = self.E(t[i])
-        return E
 
 cdef object FIELDS = {}
 
@@ -224,7 +240,7 @@ cdef class TwoColorTrField(TwoColorBaseField):
 cdef class GaussEnvField(Field):
     def __init__(self, double t_fwhm, double dI):
         self.cfield.dI = dI
-        self.cfield.tp = self.t_fwhm / np.sqrt(2*np.log(2))
+        self.cfield.tp = t_fwhm / np.sqrt(2*np.log(2))
         self.cfield.fA = <field_func_t>field_gauss_env_A
         self.cfield.fE = <field_func_t>field_gauss_env_E
         self.cfield.pT = <field_prop_t>field_gauss_env_T
