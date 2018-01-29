@@ -37,15 +37,21 @@ void workspace::wf_base::prop_mix(sh_wavefunc_t& wf, sh_f Al, double dt, int l) 
 	cdouble* v[2] = {&wf(0,l), &wf(0,l+1)};
 	linalg::matrix_dot_vec(Nr, v, linalg::matrix_bE::dot);
 
-	double const glm = dt*Al(grid, 0, l, wf.m)/(4.0*dr);
+	double const glm = -dt*Al(grid, 0, l, wf.m)/(4.0*dr);
 	const double x = sqrt(3.0) - 2.0;
 
-	linalg::tdm_t M = {(4.0+x)/6.0, {1.0/6.0, 2.0/3.0, 1.0/6.0}, Nr};
+	linalg::tdm_t M = {(4.0+x)/6.0, (4.0+x)/6.0, {1.0/6.0, 2.0/3.0, 1.0/6.0}, Nr};
 
 #pragma omp single nowait
-	linalg::eq_solve(v[0], M, { x*glm, {-glm, 0.0,  glm}, Nr}, &alpha[0*Nr], &betta[0*Nr]);
+	{
+		int tid = omp_get_thread_num();
+		linalg::eq_solve(v[0], M, {-x*glm,  x*glm, { glm, 0.0, -glm}, Nr}, &alpha[tid*Nr], &betta[tid*Nr]);
+	}
 #pragma omp single
-	linalg::eq_solve(v[1], M, {-x*glm, { glm, 0.0, -glm}, Nr}, &alpha[1*Nr], &betta[1*Nr]);
+	{
+		int tid = omp_get_thread_num();
+		linalg::eq_solve(v[1], M, { x*glm, -x*glm, {-glm, 0.0,  glm}, Nr}, &alpha[tid*Nr], &betta[tid*Nr]);
+	}
 
 	linalg::matrix_dot_vec(Nr, v, linalg::matrix_bE::dot_T);
 }
@@ -168,7 +174,7 @@ void workspace::wf_base::prop_common(sh_wavefunc_t& wf, cdouble dt, int l_max, s
 
 		if (Al != nullptr) {
 			for (int il=0; il<Nl-1; ++il) {
-				wf_prop_ang_A_l(wf, dt*0.5, il, 1, Al[0]);
+				wf_prop_ang_A_l(wf, dt*0.5, il, 1, Al[1]);
 			}
 
 			for (int il=0; il<Nl-1; ++il) {
@@ -184,7 +190,7 @@ void workspace::wf_base::prop_common(sh_wavefunc_t& wf, cdouble dt, int l_max, s
 			}
 
 			for (int il=Nl-2; il>=0; --il) {
-				wf_prop_ang_A_l(wf, dt*0.5, il, 1, Al[0]);
+				wf_prop_ang_A_l(wf, dt*0.5, il, 1, Al[1]);
 			}
 		}
 
@@ -227,7 +233,7 @@ void workspace::wf_base::prop(sh_wavefunc_t& wf, atom_t const* atom, field_t con
 }
 
 void workspace::wf_A::prop(sh_wavefunc_t& wf, atom_t const* atom, field_t const* field, double t, double dt) {
-	double At = field_A(field, t + dt/2);
+	double At = -field_A(field, t + dt/2);
 
 	sh_f Ul[1] = {
 			[atom](sh_grid_t const* grid, int ir, int l, int m) -> double {
@@ -236,9 +242,13 @@ void workspace::wf_A::prop(sh_wavefunc_t& wf, atom_t const* atom, field_t const*
 			},
 	};
 
-	sh_f Al[1] = {
+	sh_f Al[2] = {
 		[At](sh_grid_t const* grid, int ir, int l, int m) -> double {
 				return At*clm(l,m);
+		},
+		[At](sh_grid_t const* grid, int ir, int l, int m) -> double {
+				double const r = sh_grid_r(grid, ir);
+				return At*(l+1)*clm(l,m)/r;
 		}
 	};
 

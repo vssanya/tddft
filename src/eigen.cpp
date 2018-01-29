@@ -48,8 +48,8 @@ void eigen_calc_dr4(eigen_ws_t* ws, std::function<double(sh_grid_t const*, int, 
 	double const d2[3] = {1.0/dr2, -2.0/dr2, 1.0/dr2};
 	double const d2_l0_11 = d2[1]*(1.0 - Z*dr/(12.0 - 10.0*Z*dr));
 
-	linalg::tdm_t const m_d2 = { -0.5*d2[1], {-0.5*d2[0], -0.5*d2[1], -0.5*d2[2]}, Nr };
-	linalg::tdm_t const m_d2_l0 = { -0.5*d2_l0_11, {-0.5*d2[0], -0.5*d2[1], -0.5*d2[2]}, Nr };
+	linalg::tdm_t const m_d2 = { -0.5*d2[1], -0.5*d2[1], {-0.5*d2[0], -0.5*d2[1], -0.5*d2[2]}, Nr };
+	linalg::tdm_t const m_d2_l0 = { -0.5*d2_l0_11,  -0.5*d2_l0_11, {-0.5*d2[0], -0.5*d2[1], -0.5*d2[2]}, Nr };
 
 //	double const M2[3] = {
 //		1.0/12.0,
@@ -59,8 +59,8 @@ void eigen_calc_dr4(eigen_ws_t* ws, std::function<double(sh_grid_t const*, int, 
 
 	double const M2_l0_11 = 1.0 + d2_l0_11*dr2/12.0;
 
-	linalg::tdm_t const m_M2 = { 10.0/12.0, {1.0/12.0, 10.0/12.0, 1.0/12.0}, Nr };
-	linalg::tdm_t const m_M2_l0 = { M2_l0_11, {1.0/12.0, 10.0/12.0, 1.0/12.0}, Nr };
+	linalg::tdm_t const m_M2 = { 10.0/12.0, 10.0/12.0, {1.0/12.0, 10.0/12.0, 1.0/12.0}, Nr };
+	linalg::tdm_t const m_M2_l0 = { M2_l0_11,  M2_l0_11, {1.0/12.0, 10.0/12.0, 1.0/12.0}, Nr };
 
 
 	for (int il=0; il<ws->grid->n[iL]; ++il) {

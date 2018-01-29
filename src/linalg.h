@@ -9,6 +9,7 @@ namespace linalg
 {
 	struct tdm_t {
 		double a00; // top-left element
+		double aNN; // bottom-right element
 		double a[3];
 		int N;
 

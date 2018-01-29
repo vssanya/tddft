@@ -52,6 +52,7 @@ cdef class SWavefunc:
     def __dealloc__(self):
         if self.dealloc and self.cdata != NULL:
             sh_wavefunc_del(self.cdata)
+            self.cdata = NULL
 
     def n_sp(self, SpGrid grid, YlmCache ylm_cache, np.ndarray[np.double_t, ndim=2] n = None) -> np.ndarray:
         if n is None:

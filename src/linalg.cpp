@@ -91,8 +91,8 @@ void linalg::eq_solve(cdouble* vec, tdm_t const& M, tdm_t const& d, cdouble* alp
 
 		al[0] = M.a[0] - d.a[0];
 		ar[0] = M.a[0] + d.a[0];
-		al[1] = M.a00 + d.a00;
-		ar[1] = M.a00 - d.a00;
+		al[1] = M.aNN - d.aNN;
+		ar[1] = M.aNN + d.aNN;
 
 		cdouble c = al[1] + al[0]*alpha[i-1];
 		f = ar[0]*vec[i-1] + ar[1]*vec[i];
