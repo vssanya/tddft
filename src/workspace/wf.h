@@ -25,7 +25,6 @@
 namespace workspace {
 	class wf_base {
 		public:
-			wf_base() {}
 			wf_base(sh_grid_t const* grid, uabs_sh_t const* uabs, int num_threads);
 			virtual ~wf_base ();
 
@@ -61,12 +60,13 @@ namespace workspace {
 	};
 
 	class wf_E: public wf_base {
-		void prop(sh_wavefunc_t& wf, atom_t const* atom, field_t const* field, double t, double dt);
+		public:
+			wf_E(sh_grid_t const* grid, uabs_sh_t const* uabs, int num_threads): wf_base(grid, uabs, num_threads) {}
+			void prop(sh_wavefunc_t& wf, atom_t const* atom, field_t const* field, double t, double dt);
 	};
 
 	class wf_A: public wf_base {
 		public:
-			wf_A() {}
 			wf_A(sh_grid_t const* grid, uabs_sh_t const* uabs, int num_threads): wf_base(grid, uabs, num_threads) {}
 			void prop(sh_wavefunc_t& wf, atom_t const* atom, field_t const* field, double t, double dt);
 	};

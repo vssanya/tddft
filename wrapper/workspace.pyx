@@ -106,6 +106,21 @@ cdef class SKnAWorkspace:
     def prop_img(self, SWavefunc wf, Atom atom, double dt):
         self.cdata.prop_img(wf.cdata[0], &atom.cdata, dt)
 
+cdef class SKnWithSourceWorkspace:
+    def __cinit__(self, ShGrid grid, Uabs uabs, SWavefunc source, int num_threads = -1):
+        self.cdata = new wf_E_with_source(grid.data, uabs.cdata, source.cdata[0], num_threads)
+        self.uabs = uabs
+        self.source = source
+
+    def __dealloc__(self):
+        del self.cdata
+
+    def __init__(self, ShGrid grid, Uabs uabs, SWavefunc source, int num_threads = -1):
+        pass
+
+    def prop(self, SWavefunc wf, Atom atom, Field field, double t, double dt):
+        self.cdata.prop(wf.cdata[0], &atom.cdata, field.cdata, t, dt)
+
 
 cdef class SOrbsWorkspace:
     def __cinit__(self, ShGrid sh_grid, SpGrid sp_grid, Uabs uabs, YlmCache ylm_cache, int Uxc_lmax = 3, int Uh_lmax = 3, Uxc uxc = UXC_LB, int num_threads=-1):

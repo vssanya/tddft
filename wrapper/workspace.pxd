@@ -2,7 +2,7 @@ from types cimport cdouble, sh_f
 
 from grid cimport sh_grid_t, sp_grid_t
 from abs_pot cimport uabs_sh_t, Uabs
-from wavefunc cimport sh_wavefunc_t, ct_wavefunc_t
+from wavefunc cimport sh_wavefunc_t, ct_wavefunc_t, SWavefunc
 
 from field cimport field_t
 from orbitals cimport orbitals_t
@@ -49,7 +49,6 @@ cdef extern from "workspace.h":
 
 cdef extern from "workspace.h" namespace "workspace":
     cdef cppclass wf_base:
-        wf_base()
         wf_base(sh_grid_t* grid, uabs_sh_t* uabs, int num_threads)
 
         void prop_ang(sh_wavefunc_t& wf, double dt, int l, double E)
@@ -66,14 +65,16 @@ cdef extern from "workspace.h" namespace "workspace":
         cdouble* betta
         int num_threads
 
+    cdef cppclass wf_E_with_source:
+        wf_E_with_source(sh_grid_t* grid, uabs_sh_t* uabs, sh_wavefunc_t& source, int num_threads)
+        void prop(sh_wavefunc_t& wf, atom_t* atom, field_t* field, double t, double dt)
+
     cdef cppclass wf_A:
-        wf_A()
         wf_A(sh_grid_t* grid, uabs_sh_t* uabs, int num_threads)
         void prop(sh_wavefunc_t& wf, atom_t* atom, field_t* field, double t, double dt)
         void prop_img(sh_wavefunc_t& wf, atom_t* atom, double dt)
 
     cdef cppclass orbs:
-        orbs()
         orbs(sh_grid_t* sh_grid, sp_grid_t* sp_grid, uabs_sh_t* uabs, ylm_cache_t* ylm_cache, int Uh_lmax, int Uxc_lmax, potential_xc_f Uxc, int num_threads)
 
         void prop(orbitals_t* orbs, atom_t* atom, field_t* field, double t, double dt, bint calc_uee)
@@ -101,6 +102,12 @@ cdef class SKnWorkspace:
 cdef class SKnAWorkspace:
     cdef:
         wf_A* cdata
+        Uabs uabs
+
+cdef class SKnWithSourceWorkspace:
+    cdef:
+        wf_E_with_source* cdata
+        SWavefunc source
         Uabs uabs
 
 cdef class SOrbsWorkspace:

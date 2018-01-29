@@ -2,6 +2,7 @@ set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall")
 
 set( LIB_SOURCES
 	"workspace/wf.cpp"
+	"workspace/wf_with_source.cpp"
 	"workspace/orbs.cpp"
 	#"workspace/sae.cpp"
 	"workspace/gps.cpp"
@@ -32,6 +33,7 @@ set( LIB_SOURCES
 set( LIB_HEADERS
 	workspace.h
 	"workspace/wf.h"
+	"workspace/wf_with_source.h"
 	"workspace/orbs.h"
 	"workspace/sae.h"
 	"workspace/gps.h"

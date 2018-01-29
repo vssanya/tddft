@@ -11,7 +11,6 @@ namespace workspace
 {
 	class orbs {
 		public:
-			orbs() {}
 			orbs(sh_grid_t const* sh_grid, sp_grid_t const* sp_grid, uabs_sh_t const* uabs, ylm_cache_t const* ylm_cache, int Uh_lmax, int Uxc_lmax, potential_xc_f Uxc, int num_threads);
 			virtual ~orbs();
 
