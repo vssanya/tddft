@@ -107,8 +107,8 @@ cdef class SKnAWorkspace:
         self.cdata.prop_img(wf.cdata[0], &atom.cdata, dt)
 
 cdef class SKnWithSourceWorkspace:
-    def __cinit__(self, ShGrid grid, Uabs uabs, SWavefunc source, int num_threads = -1):
-        self.cdata = new wf_E_with_source(grid.data, uabs.cdata, source.cdata[0], num_threads)
+    def __cinit__(self, ShGrid grid, Uabs uabs, SWavefunc source, double E, int num_threads = -1):
+        self.cdata = new wf_E_with_source(grid.data, uabs.cdata, source.cdata[0], E, num_threads)
         self.uabs = uabs
         self.source = source
 

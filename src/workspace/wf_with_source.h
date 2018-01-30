@@ -6,7 +6,7 @@
 namespace workspace {
 	class wf_E_with_source: public wf_E {
 		public:
-			wf_E_with_source(sh_grid_t const* grid, uabs_sh_t const* uabs, sh_wavefunc_t const& wf_source, int num_threads): wf_E(grid, uabs, num_threads), wf_source(wf_source)
+			wf_E_with_source(sh_grid_t const* grid, uabs_sh_t const* uabs, sh_wavefunc_t const& wf_source, double E, int num_threads): wf_E(grid, uabs, num_threads), wf_source(wf_source), source_E(E)
 		{
 			assert(grid->n[iR] == wf_source.grid->n[iR]);
 		}
@@ -19,5 +19,6 @@ namespace workspace {
 
 		private:
 			sh_wavefunc_t const& wf_source;
+			double source_E;
 	};
 }

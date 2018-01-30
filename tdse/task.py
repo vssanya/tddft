@@ -173,6 +173,8 @@ class WavefuncTask(Task):
     state = {'n': 1, 'l': 0, 'm': 0}
     is_calc_ground_state = True
 
+    Workspace = tdse.workspace.SKnWorkspace
+
     def __init__(self, path_res='res', mode=None, **kwargs):
         super().__init__(path_res, mode, is_mpi=False, **kwargs)
 
@@ -187,7 +189,7 @@ class WavefuncTask(Task):
     def calc_init(self):
         super().calc_init()
 
-        self.ws = tdse.workspace.SKnWorkspace(self.grid, self.uabs)
+        self.ws = self.Workspace(self.grid, self.uabs)
 
         if self.is_calc_ground_state:
             print("Start calc ground state")
@@ -199,7 +201,7 @@ class WavefuncTask(Task):
 
     def calc_ground_state(self, ws=None):
         if ws is None:
-            ws = tdse.workspace.SKnWorkspace(self.grid, tdse.abs_pot.UabsZero())
+            ws = self.Workspace(self.grid, tdse.abs_pot.UabsZero())
 
         return tdse.ground_state.wf(self.atom, self.grid, ws, self.dt, 10000, **self.state)
 
@@ -229,7 +231,7 @@ class WavefuncWithSourceTask(Task):
         self.wf = tdse.wavefunc.SWavefunc(self.grid)
         self.wf.asarray()[:] = 0.0
 
-        self.ws = tdse.workspace.SKnWithSourceWorkspace(self.grid, self.uabs, self.wf_source)
+        self.ws = tdse.workspace.SKnWithSourceWorkspace(self.grid, self.uabs, self.wf_source, -0.5)
 
 
         self.t = self.field.get_t(self.dt, dT=self.dT)

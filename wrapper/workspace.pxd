@@ -66,7 +66,7 @@ cdef extern from "workspace.h" namespace "workspace":
         int num_threads
 
     cdef cppclass wf_E_with_source:
-        wf_E_with_source(sh_grid_t* grid, uabs_sh_t* uabs, sh_wavefunc_t& source, int num_threads)
+        wf_E_with_source(sh_grid_t* grid, uabs_sh_t* uabs, sh_wavefunc_t& source, double E, int num_threads)
         void prop(sh_wavefunc_t& wf, atom_t* atom, field_t* field, double t, double dt)
 
     cdef cppclass wf_A:
