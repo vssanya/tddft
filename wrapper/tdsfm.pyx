@@ -11,7 +11,7 @@ from sphere_harmonics cimport ylm_cache_get
 
 
 cdef class TDSFM:
-    def __init__(self, SpGrid k_grid, ShGrid r_grid, double A_max, int ir, bool init_cache = True):
+    def __cinit__(self, SpGrid k_grid, ShGrid r_grid, int ir, bool init_cache = True):
         pass
 
     def __dealloc__(self):
@@ -36,7 +36,7 @@ cdef class TDSFM:
         return np.asarray(arr)
 
 cdef class TDSFM_LG(TDSFM):
-    def __cinit__(self, SpGrid k_grid, ShGrid r_grid, double A_max, int ir, bool init_cache = True):
+    def __cinit__(self, SpGrid k_grid, ShGrid r_grid, int ir, bool init_cache = True, double A_max = 0.0):
         self.cdata = <TDSFM_Base*> new TDSFM_E(k_grid.data, r_grid.data, A_max, ir, init_cache)
         self.k_grid = k_grid
         self.r_grid = r_grid
