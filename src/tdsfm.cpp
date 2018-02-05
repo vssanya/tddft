@@ -24,14 +24,14 @@
 #include "utils.h"
 
 
-TDSFM_Base::TDSFM_Base(sp_grid_t const* k_grid, sh_grid_t const* r_grid, int ir, sp_grid_t const* jl_grid, sp_grid_t const* ylm_grid):
+TDSFM_Base::TDSFM_Base(sp_grid_t const* k_grid, sh_grid_t const* r_grid, int ir):
 	k_grid(k_grid),
 	r_grid(r_grid),
 	ir(ir),
-	jl_grid(jl_grid),
-	ylm_grid(ylm_grid),
-	jl(NULL),
-	ylm(NULL),
+	jl_grid(nullptr),
+	ylm_grid(nullptr),
+	jl(nullptr),
+	ylm(nullptr),
 	int_A(0.0),
 	int_A2(0.0)
 {
@@ -61,7 +61,7 @@ void TDSFM_Base::init_cache() {
 }
 
 TDSFM_E::TDSFM_E(sp_grid_t const* k_grid, sh_grid_t const* r_grid, double A_max, int ir, bool init_cache):
-	TDSFM_Base(k_grid, r_grid, ir, NULL, NULL)
+	TDSFM_Base(k_grid, r_grid, ir)
 {
 	double k_max = (sp_grid_r(k_grid, k_grid->n[iR]-1) + A_max);
 	double r = sh_grid_r(r_grid, ir);
@@ -83,12 +83,14 @@ TDSFM_E::~TDSFM_E() {
 }
 
 TDSFM_A::TDSFM_A(sp_grid_t const* k_grid, sh_grid_t const* r_grid, int ir, bool init_cache):
-	TDSFM_Base(k_grid, r_grid, ir, NULL, k_grid)
+	TDSFM_Base(k_grid, r_grid, ir)
 {
 	double k_max = sp_grid_r(k_grid, k_grid->n[iR]-1);
 	double r = sh_grid_r(r_grid, ir);
 
-	jl_grid = sp_grid_new(k_grid->n, k_max*r);
+	int N[3] = {k_grid->n[0], k_grid->n[1], k_grid->n[2]};
+	jl_grid = sp_grid_new(N, k_max*r);
+	ylm_grid = sp_grid_new(N, k_max);
 
 	if (init_cache) {
 		this->init_cache();
@@ -96,8 +98,6 @@ TDSFM_A::TDSFM_A(sp_grid_t const* k_grid, sh_grid_t const* r_grid, int ir, bool 
 }
 
 TDSFM_A::~TDSFM_A() {
-	TDSFM_Base::~TDSFM_Base();
-
 	sp_grid_del(jl_grid);
 	sp_grid_del(ylm_grid);
 }

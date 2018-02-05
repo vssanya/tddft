@@ -33,16 +33,16 @@ class TDSFM_Base {
 
 		cdouble* data; //!< data[i + j*grid->Np] = \f$a_{I}(k_{i,j}\f$
 
-		sp_grid_t const* jl_grid;
+		sp_grid_t* jl_grid;
 		jl_cache_t* jl;
 
-		sp_grid_t const* ylm_grid;
+		sp_grid_t* ylm_grid;
 		ylm_cache_t* ylm;
 
 		double int_A;
 		double int_A2;
 
-		TDSFM_Base(sp_grid_t const* k_grid, sh_grid_t const* r_grid, int ir, sp_grid_t const* jl_grid, sp_grid_t const* ylm_grid);
+		TDSFM_Base(sp_grid_t const* k_grid, sh_grid_t const* r_grid, int ir);
 		virtual ~TDSFM_Base();
 
 		void init_cache();
