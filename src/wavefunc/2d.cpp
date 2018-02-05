@@ -1,4 +1,5 @@
 #include "2d.h"
+#include "cartesian_2d.h"
 
 #include <iostream>
 
@@ -22,4 +23,19 @@ wavefunc_2d_t::~wavefunc_2d_t() {
 	if (data_own) {
 		delete[] data;
 	}
+}
+
+double ct_wavefunc_t::norm() const {
+	double norm = 0.0;
+
+#pragma omp parallel for reduction(+:norm) collapse(2)
+	for (int ir=0; ir<grid->n[iX]; ++ir) {
+		for (int ic=0; ic<grid->n[iY]; ++ic) {
+			double p = sp2_grid_r(grid, ir);
+
+			norm += pow(cabs((*this)(ir,ic))*p, 2);
+		}
+	}
+
+	return norm*grid->d[iX]*grid->d[iY];
 }

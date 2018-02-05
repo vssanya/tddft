@@ -17,6 +17,17 @@ cdef class Atom:
     def n_orbs(self):
         return self.cdata.n_orbs
 
+    @property
+    def l_max(self):
+        cdef int l = 0
+        cdef int i = 0
+
+        for i in range(self.cdata.n_orbs):
+            if l < self.cdata.l[i]:
+                l = self.cdata.l[i]
+
+        return l
+
     def get_l(self, int i):
         assert(i<self.cdata.n_orbs)
         return self.cdata.l[i]

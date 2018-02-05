@@ -15,6 +15,8 @@ struct wavefunc_2d_t {
 	wavefunc_2d_t(cdouble* data, grid2_t const* grid);
 	~wavefunc_2d_t();
 
+	double norm() const;
+
 	inline
 		cdouble& operator() (int i, int j) {
 			return data[i + j*grid->n[0]];

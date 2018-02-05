@@ -13,6 +13,8 @@ cdef extern from "wavefunc/cartesian_2d.h":
         ct_wavefunc_t()
         ct_wavefunc_t(grid2_t* grid)
 
+        double norm()
+
 
 cdef extern from "sh_wavefunc.h":
     ctypedef struct sh_wavefunc_t:

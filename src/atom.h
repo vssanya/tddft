@@ -98,10 +98,10 @@ static atom_t const atom_argon = {
 
 static atom_t const atom_argon_sae = {
 	.Z = 18,
-	.n_orbs = 1,
-	.m   = (int[]){0},
-	.l   = (int[]){1},
-	.n_e = (int[]){1},
+	.n_orbs = 7,
+	.m   = (int[]){0,0,0,0,0,1,1},
+	.l   = (int[]){0,0,0,1,1,1,1},
+	.n_e = (int[]){2,2,2,2,2,4,4},
 	.u    = (pot_f)atom_u_ar_sae,
 	.dudz = (pot_f)atom_dudz_ar_sae,
 	.u_type = POTENTIAL_COULOMB,

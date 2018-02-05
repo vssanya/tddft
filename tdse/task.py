@@ -246,8 +246,18 @@ class WavefuncWithSourceTask(Task):
         self.ws.prop(self.wf, tdse.atom.NONE, self.field, t, self.dt)
 
 class OrbitalsTask(Task):
-    """
-    """
+    atom = tdse.atom.Ar
+
+    dt = 0.008
+    dr = 0.025
+
+    r_max = 100
+    Nl = 2
+    Nc = 33
+
+    uxc = tdse.hartree_potential.UXC_LB
+    Uxc_lmax = 1
+    Uh_lmax = 3
 
     def __init__(self, path_res='res', mode=None, is_mpi=True, **kwargs):
         super().__init__(path_res, mode, is_mpi=is_mpi, **kwargs)
@@ -277,3 +287,44 @@ class OrbitalsTask(Task):
 
     def calc_prop(self, i, t):
         self.ws.prop(self.orbs, self.atom, self.field, t, self.dt)
+
+class OrbitalsGroundStateTask(Task):
+    atom = tdse.atom.Ar
+
+    dt = 0.008
+    dr = 0.025
+
+    T = 100
+    r_max = 100
+    Nc = 33
+
+    uxc = tdse.hartree_potential.UXC_LB
+
+    Uxc_lmax = 1
+    Uh_lmax = 1
+
+    CALC_DATA = ['orbs_gs', 'E']
+
+    def __init__(self, path_res='res', mode=None, is_mpi=False, **kwargs):
+        super().__init__(path_res, mode, is_mpi=False, **kwargs)
+
+        self.Nl = self.atom.l_max + 1
+        self.Nr = int(self.r_max/self.dr)
+        self.Nt = int(self.T / self.dt)
+
+        self.sh_grid = tdse.grid.ShGrid(Nr=self.Nr, Nl=self.Nl, r_max=self.r_max)
+        self.sp_grid = tdse.grid.SpGrid(Nr=self.Nr, Nc=self.Nc, Np=1, r_max=self.r_max)
+        self.ylm_cache = tdse.sphere_harmonics.YlmCache(self.Nl, self.sp_grid)
+
+    def calc_init(self):
+        super().calc_init()
+
+        self.ws = tdse.workspace.SOrbsWorkspace(self.sh_grid, self.sp_grid, tdse.abs_pot.UabsZero(), self.ylm_cache, Uxc_lmax=self.Uxc_lmax, Uh_lmax = self.Uh_lmax, uxc=self.uxc)
+
+    def calc(self):
+        self.calc_init()
+
+        self.orbs, self.E = tdse.ground_state.orbs(self.atom, self.sh_grid, self.ws, self.dt, self.Nt, print_calc_info=True)
+
+        self.orbs_gs = self.orbs.asarray()
+        self.save()

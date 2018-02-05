@@ -26,6 +26,9 @@ cdef class CtWavefunc:
         cdef complex_t[:, ::1] array = <complex_t[:self.cdata.grid.n[1],:self.cdata.grid.n[0]]>(<complex_t*>self.cdata.data)
         return np.asarray(array)
 
+    def norm(self):
+        return self.cdata.norm()
+
 
 cdef class SWavefunc:
     def __cinit__(self, ShGrid grid, int m=0, dealloc=True):

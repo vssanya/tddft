@@ -1,5 +1,5 @@
 import numpy as np
-from . import grid, wavefunc
+from . import grid, wavefunc, orbitals
 
 
 def wf_1(atom, l, m, grid, ws, dt, Nt):
@@ -35,13 +35,24 @@ def wf(atom, grid, ws, dt, Nt, n=1, l=None, m=None):
         return wf_n(atom, n, l, m, grid, ws, dt, Nt)
 
 
-def orbs(atom, grid, ws, dt=0.125, Nt=10000):
-    orbs = tdse.orbitals.SOrbitals(atom, grid)
+def orbs(atom, grid, ws, dt=0.125, Nt=10000, print_calc_info=False):
+    orbs = orbitals.SOrbitals(atom, grid)
     orbs.init()
 
     for i in range(Nt):
-        ws.prop_img(orbs, atom, dt)
+        if print_calc_info and i % (Nt // 100) == 0:
+            print("i = ", i//100)
+            n = np.sqrt(orbs.norm_ne())
+            print(2/dt*(1-n)/(1+n))
+
         orbs.ort()
         orbs.normalize()
+        ws.prop_img(orbs, atom, dt)
 
-    return orbs
+    n = np.sqrt(orbs.norm_ne())
+    E = 2/dt*(1-n)/(1+n)
+
+    orbs.ort()
+    orbs.normalize()
+
+    return orbs, E
