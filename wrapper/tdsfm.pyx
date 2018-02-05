@@ -37,12 +37,12 @@ cdef class TDSFM:
 
 cdef class TDSFM_LG(TDSFM):
     def __cinit__(self, SpGrid k_grid, ShGrid r_grid, double A_max, int ir, bool init_cache = True):
-        self.cdata = new TDSFM_E(k_grid.data, r_grid.data, A_max, ir, init_cache)
+        self.cdata = <TDSFM_Base*> new TDSFM_E(k_grid.data, r_grid.data, A_max, ir, init_cache)
         self.k_grid = k_grid
         self.r_grid = r_grid
 
 cdef class TDSFM_VG(TDSFM):
     def __cinit__(self, SpGrid k_grid, ShGrid r_grid, int ir, bool init_cache = True):
-        self.cdata = new TDSFM_A(k_grid.data, r_grid.data, ir, init_cache)
+        self.cdata = <TDSFM_Base*> new TDSFM_A(k_grid.data, r_grid.data, ir, init_cache)
         self.k_grid = k_grid
         self.r_grid = r_grid
