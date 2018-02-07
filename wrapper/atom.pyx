@@ -36,6 +36,24 @@ cdef class Atom:
         assert(i<self.cdata.n_orbs)
         return self.cdata.m[i]
 
+    def get_u(self, ShGrid grid):
+        res = np.zeros(grid.data.n[0])
+        cdef i = 0
+
+        for i in range(res.size):
+            res[i] = self.cdata.u(&self.cdata, grid.data, i)
+
+        return res
+
+    def get_dudz(self, ShGrid grid):
+        res = np.zeros(grid.data.n[0])
+        cdef i = 0
+
+        for i in range(res.size):
+            res[i] = self.cdata.dudz(&self.cdata, grid.data, i)
+
+        return res
+
 H        = Atom.from_c(&atom_hydrogen)
 H_smooth = Atom.from_c(&atom_hydrogen_smooth)
 Ne       = Atom.from_c(&atom_neon)
@@ -43,6 +61,8 @@ Ar       = Atom.from_c(&atom_argon)
 Ar_ion   = Atom.from_c(&atom_argon_ion)
 Ar_sae   = Atom.from_c(&atom_argon_sae)
 Ar_sae_smooth = Atom.from_c(&atom_argon_sae_smooth)
+Rb_sae   = Atom.from_c(&atom_rb_sae)
+Na_sae   = Atom.from_c(&atom_na_sae)
 NONE = Atom.from_c(&atom_none)
 
 cdef class HAtom:

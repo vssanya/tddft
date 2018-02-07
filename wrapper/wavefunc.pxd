@@ -17,13 +17,15 @@ cdef extern from "wavefunc/cartesian_2d.h":
 
 
 cdef extern from "sh_wavefunc.h":
-    ctypedef struct sh_wavefunc_t:
+    cdef cppclass sh_wavefunc_t:
         sh_grid_t* grid
 
         cdouble* data
         bint data_own
 
         int m
+
+        void exclude(sh_wavefunc_t& other)
 
     sh_wavefunc_t* sh_wavefunc_new(sh_grid_t* grid, int m)
     sh_wavefunc_t* sh_wavefunc_new_from(cdouble* data, sh_grid_t* grid, int m)

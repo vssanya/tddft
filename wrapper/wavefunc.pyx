@@ -85,6 +85,8 @@ cdef class SWavefunc:
         cdef cdouble res = sh_wavefunc_prod(self.cdata, other.cdata)
         return (<complex_t*>(&res))[0]
 
+    def exclude(SWavefunc self, SWavefunc other):
+        self.cdata.exclude(other.cdata[0])
 
     def asarray(self):
         cdef complex_t[:, ::1] array = <complex_t[:self.cdata.grid.n[1],:self.cdata.grid.n[0]]>(<complex_t*>self.cdata.data)

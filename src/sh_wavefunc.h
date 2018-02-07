@@ -40,9 +40,12 @@ struct sh_wavefunc_t {
   }
 
   cdouble operator*(sh_wavefunc_t const& other) const;
+  void exclude(sh_wavefunc_t const& other);
 
   void prop_ang_l(cdouble dt, int l, int l1, sh_f Ul, linalg::matrix_f dot, linalg::matrix_f dot_T, cdouble const eigenval[2]);
   double cos(sh_f func) const;
+
+  double norm(sh_f mask = nullptr) const;
 #endif
 };
 

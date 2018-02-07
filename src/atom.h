@@ -38,8 +38,15 @@ double atom_u_smooth(atom_t const* atom, sh_grid_t const* grid, int ir) __attrib
 double atom_dudz_smooth(atom_t const* atom, sh_grid_t const* grid, int ir) __attribute__((pure));
 double atom_u_ar_smooth(atom_t const* atom, sh_grid_t const* grid, int ir) __attribute__((pure));
 double atom_dudz_ar_smooth(atom_t const* atom, sh_grid_t const* grid, int ir) __attribute__((pure));
+
 double atom_u_ar_sae(atom_t const* atom, sh_grid_t const* grid, int ir);
 double atom_dudz_ar_sae(atom_t const* atom, sh_grid_t const* grid, int ir);
+
+double atom_u_rb_sae(atom_t const* atom, sh_grid_t const* grid, int ir);
+double atom_dudz_rb_sae(atom_t const* atom, sh_grid_t const* grid, int ir);
+
+double atom_u_na_sae(atom_t const* atom, sh_grid_t const* grid, int ir);
+double atom_dudz_na_sae(atom_t const* atom, sh_grid_t const* grid, int ir);
 
 void atom_hydrogen_ground(sh_wavefunc_t* wf);
 
@@ -105,6 +112,26 @@ static atom_t const atom_argon_sae = {
 	.u    = (pot_f)atom_u_ar_sae,
 	.dudz = (pot_f)atom_dudz_ar_sae,
 	.u_type = POTENTIAL_COULOMB,
+};
+
+static atom_t const atom_rb_sae = {
+	.Z = 37,
+	.n_orbs = 1,
+	.m = (int[]){0},
+	.l = (int[]){0},
+	.n_e = (int[]){1},
+	.u    = (pot_f)atom_u_rb_sae,
+	.dudz = (pot_f)atom_dudz_rb_sae,
+};
+
+static atom_t const atom_na_sae = {
+	.Z = 11,
+	.n_orbs = 5,
+	.m    = (int[]){0,0,0,0,1},
+	.l    = (int[]){0,0,0,1,1},
+	.n_e  = (int[]){2,2,1,2,4},
+	.u    = (pot_f)atom_u_na_sae,
+	.dudz = (pot_f)atom_dudz_na_sae,
 };
 
 static atom_t const atom_argon_ion = {

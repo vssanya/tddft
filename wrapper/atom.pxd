@@ -33,6 +33,9 @@ cdef extern from "atom.h":
     atom_t atom_argon_sae
     atom_t atom_argon_sae_smooth
 
+    atom_t atom_rb_sae
+    atom_t atom_na_sae
+
     atom_t atom_neon
 
     atom_t atom_none

@@ -148,6 +148,17 @@ cdouble sh_wavefunc_t::operator*(sh_wavefunc_t const& other) const {
 			}, min(grid->n[iL], other.grid->n[iL]));
 }
 
+void sh_wavefunc_t::exclude(sh_wavefunc_t const& other) {
+	auto proj = (*this)*other / other.norm();
+
+#pragma omp parallel for collapse(2)
+	for (int il = 0; il < grid->n[iL]; il++) {
+		for (int ir = 0; ir < grid->n[iR]; ir++) {
+			(*this)(ir, il) -= other(ir, il)*proj;
+		}
+	}
+}
+
 cdouble sh_wavefunc_prod(sh_wavefunc_t const* wf1, sh_wavefunc_t const* wf2) { return (*wf1)*(*wf2); }
 
 void sh_wavefunc_ort_l(int l, int n, sh_wavefunc_t** wfs) {
@@ -193,14 +204,18 @@ typedef struct {
 	int const il;
 } param_t;
 
-double sh_wavefunc_norm(sh_wavefunc_t const* wf, sh_f mask) {
-	if (mask == NULL) {
-		return sh_wavefunc_integrate<double>(wf, swf_get_abs_2, wf->grid->n[iL]);
+double sh_wavefunc_t::norm(sh_f mask) const {
+	if (mask == nullptr) {
+		return sh_wavefunc_integrate<double>(this, swf_get_abs_2, grid->n[iL]);
 	} else {
-		return sh_wavefunc_integrate<double>(wf, [mask](sh_wavefunc_t const* wf, int ir, int il){
+		return sh_wavefunc_integrate<double>(this, [mask](sh_wavefunc_t const* wf, int ir, int il){
 			return swf_get_abs_2(wf, ir, il)*mask(wf->grid, ir, il, wf->m);
-		}, wf->grid->n[iL]);
+		}, grid->n[iL]);
 	}
+}
+
+double sh_wavefunc_norm(sh_wavefunc_t const* wf, sh_f mask) {
+	return wf->norm(mask);
 }
 
 void sh_wavefunc_normalize(sh_wavefunc_t* wf) {
