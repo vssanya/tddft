@@ -61,7 +61,7 @@ void ws_gps_prop(ws_gps_t const* ws, sh_wavefunc_t* wf) {
 		for (int ir1 = 0; ir1 < Nr; ++ir1) {
 			psi[ir1] = 0.0;
 			for (int ir2 = 0; ir2 < Nr; ++ir2) {
-				psi[ir1] += ws->s[ir2 + (ir1 + il*Nr)*Nr]*swf_get(wf, ir2, il);
+				psi[ir1] += ws->s[ir2 + (ir1 + il*Nr)*Nr]*(*wf)(ir2, il);
 			}
 		}
 	}

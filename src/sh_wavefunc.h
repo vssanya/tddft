@@ -39,6 +39,12 @@ struct sh_wavefunc_t {
 	  return data[ir + il*grid->n[iR]];
   }
 
+  inline
+  double abs_2(int ir, int il) const {
+	  cdouble const value = (*this)(ir, il);
+	  return pow(creal(value), 2) + pow(cimag(value), 2);
+  }
+
   cdouble operator*(sh_wavefunc_t const& other) const;
   void exclude(sh_wavefunc_t const& other);
 
@@ -72,10 +78,8 @@ sh_wavefunc_t* sh_wavefunc_new_from(
 
 void sh_wavefunc_copy(sh_wavefunc_t const* wf_src, sh_wavefunc_t* wf_dest);
 
-cdouble* swf_ptr(sh_wavefunc_t const* wf, int ir, int il);
+cdouble* swf_ptr(sh_wavefunc_t* wf, int ir, int il);
 cdouble const* swf_const_ptr(sh_wavefunc_t const* wf, int ir, int il);
-cdouble swf_get(sh_wavefunc_t const* wf, int ir, int il);
-void swf_set(sh_wavefunc_t* wf, int ir, int il, cdouble value);
 
 void sh_wavefunc_ort_l(int l, int n, sh_wavefunc_t** wfs);
 
@@ -83,8 +87,6 @@ void sh_wavefunc_ort_l(int l, int n, sh_wavefunc_t** wfs);
  * \return \f$\psi(r, \Omega)\f$
  * */
 cdouble swf_get_sp(sh_wavefunc_t const* wf, sp_grid_t const* grid, int i[3], ylm_cache_t const* ylm_cache);
-
-double swf_get_abs_2(sh_wavefunc_t const* wf, int ir, int il);
 
 void   sh_wavefunc_del(sh_wavefunc_t* wf);
 

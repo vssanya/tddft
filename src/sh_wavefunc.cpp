@@ -53,12 +53,6 @@ void sh_wavefunc_del(sh_wavefunc_t* wf) {
 	delete wf;
 }
 
-double swf_get_abs_2(sh_wavefunc_t const* wf, int ir, int il) {
-	cdouble const value = (*wf)(ir, il);
-	return pow(creal(value), 2) + pow(cimag(value), 2);
-}
-
-
 typedef double (*func_wf_t)(sh_wavefunc_t const* wf, int ir, int il);
 typedef cdouble (*func_complex_wf_t)(sh_wavefunc_t const* wf, int ir, int il);
 
@@ -180,7 +174,7 @@ void sh_wavefunc_ort_l(int l, int n, sh_wavefunc_t** wfs) {
 		for (int ip=0; ip<in; ++ip) {
 			cdouble* psi = swf_ptr(wfs[in], 0, l);
 			for (int ir=0; ir<grid->n[iR]; ++ir) {
-				psi[ir] -= proj[ip]*swf_get(wfs[ip], ir, l);
+				psi[ir] -= proj[ip]*(*wfs[ip])(ir, l);
 			}
 		}
 
@@ -206,10 +200,12 @@ typedef struct {
 
 double sh_wavefunc_t::norm(sh_f mask) const {
 	if (mask == nullptr) {
-		return sh_wavefunc_integrate<double>(this, swf_get_abs_2, grid->n[iL]);
+		return sh_wavefunc_integrate<double>(this, [](sh_wavefunc_t const* wf, int ir, int il) {
+					return wf->abs_2(ir, il);
+				}, grid->n[iL]);
 	} else {
-		return sh_wavefunc_integrate<double>(this, [mask](sh_wavefunc_t const* wf, int ir, int il){
-			return swf_get_abs_2(wf, ir, il)*mask(wf->grid, ir, il, wf->m);
+		return sh_wavefunc_integrate<double>(this, [mask](sh_wavefunc_t const* wf, int ir, int il) {
+			return wf->abs_2(ir, il)*mask(wf->grid, ir, il, wf->m);
 		}, grid->n[iL]);
 	}
 }
@@ -231,7 +227,7 @@ void sh_wavefunc_print(sh_wavefunc_t const* wf) {
 		double const r = sh_grid_r(wf->grid, ir);
 		double res = 0.0;
 		for (int il = 0; il < wf->grid->n[iL]; ++il) {
-			res += pow(cabs(swf_get(wf, ir, il)), 2);
+			res += pow(cabs((*wf)(ir, il)), 2);
 		}
 		printf("%f ", res/(r*r));
 	}
@@ -251,7 +247,7 @@ double sh_wavefunc_cos(sh_wavefunc_t const* wf, sh_f U) {
 
 double sh_wavefunc_cos_r2(sh_wavefunc_t const* wf, sh_f U, int Z) {
 	return 2*sh_wavefunc_integrate<double>(wf, [U](sh_wavefunc_t const* wf, int ir, int il) -> double {
-		return clm(il, wf->m)*creal(swf_get(wf, ir, il)*conj(swf_get(wf, ir, il+1)))*U(wf->grid, ir, il, wf->m);
+		return clm(il, wf->m)*creal((*wf)(ir, il)*conj((*wf)(ir, il+1)))*U(wf->grid, ir, il, wf->m);
 	}, wf->grid->n[iL]-1);
 }
 
@@ -259,7 +255,7 @@ void sh_wavefunc_cos_r(sh_wavefunc_t const* wf, sh_f U, double* res) {
 	for (int ir = 0; ir < wf->grid->n[iR]; ++ir) {
 		res[ir] = 0.0;
 		for (int il = 0; il < wf->grid->n[iL]-1; ++il) {
-			res[ir] += 2*clm(il, wf->m)*creal(swf_get(wf, ir, il)*conj(swf_get(wf, ir, il+1)))*U(wf->grid, ir, il, wf->m);
+			res[ir] += 2*clm(il, wf->m)*creal((*wf)(ir, il)*conj((*wf)(ir, il+1)))*U(wf->grid, ir, il, wf->m);
 		}
 	}
 }
@@ -274,7 +270,7 @@ cdouble swf_get_sp(sh_wavefunc_t const* wf, sp_grid_t const* grid, int i[3], ylm
 	cdouble res = 0.0;
 	for (int il = 0; il < wf->grid->n[iL]; ++il) {
 		int const l = sh_grid_l(wf->grid, il);
-		res += swf_get(wf, i[iR], il)*ylm_cache_get(ylm_cache, l, wf->m, i[iC]);
+		res += (*wf)(i[iR], il)*(*ylm_cache)(l, wf->m, i[iC]);
 	}
 
 	double r = sh_grid_r(wf->grid, i[iR]);
@@ -286,7 +282,7 @@ void sh_wavefunc_random_l(sh_wavefunc_t* wf, int l) {
 
 	for (int il=0; il<wf->grid->n[iL]; ++il) {
 		for (int ir=0; ir<wf->grid->n[iR]; ++ir) {
-			swf_set(wf, ir, il, 0.0);
+			(*wf)(ir, il) = 0.0;
 		}
 	}
 
@@ -307,22 +303,10 @@ void sh_wavefunc_random_l(sh_wavefunc_t* wf, int l) {
 	}
 }
 
-cdouble* swf_ptr(sh_wavefunc_t const* wf, int ir, int il) {
-	int index[2] = {ir, il};
-	return &wf->data[grid2_index(wf->grid, index)];
+cdouble* swf_ptr(sh_wavefunc_t* wf, int ir, int il) {
+	return &(*wf)(ir, il);
 }
 
 cdouble const* swf_const_ptr(sh_wavefunc_t const* wf, int ir, int il) {
-	int index[2] = {ir, il};
-	return &wf->data[grid2_index(wf->grid, index)];
-}
-
-cdouble swf_get(sh_wavefunc_t const* wf, int ir, int il) {
-	int index[2] = {ir, il};
-	return wf->data[grid2_index(wf->grid, index)];
-}
-
-void swf_set(sh_wavefunc_t* wf, int ir, int il, cdouble value) {
-	int index[2] = {ir, il};
-	wf->data[grid2_index(wf->grid, index)] = value;
+	return &(*wf)(ir, il);
 }

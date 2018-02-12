@@ -17,7 +17,7 @@ def calc_wf_az_t():
     dr = 0.125
 
     r_max = 50
-    Nl = 8
+    Nl = 256
 
     t = f.get_t(dt, 0)
 

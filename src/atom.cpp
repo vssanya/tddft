@@ -182,13 +182,13 @@ void atom_hydrogen_ground(sh_wavefunc_t* wf) {
 		int const il = 0;
 		for (int ir = 0; ir < wf->grid->n[iR]; ++ir) {
 			double r = sh_grid_r(wf->grid, ir);
-			swf_set(wf, ir, il, 2*r*exp(-r));
+			(*wf)(ir, il) = 2*r*exp(-r);
 		}
 	}
 
 	for (int il = 1; il < wf->grid->n[iL]; ++il) {
 		for (int ir = 0; ir < wf->grid->n[iR]; ++ir) {
-			swf_set(wf, ir, il, 0.0);
+			(*wf)(ir, il) = 0.0;
 		}
 	}
 }
