@@ -62,13 +62,18 @@ class Task(object):
         self.is_slurm = os.environ.get('SLURM_JOB_ID', None) is not None
         if mode is Task.MODE_ANALISIS:
             self.send_status = False
-        if self.is_slurm and self.send_status:
+        if self.is_slurm and self.send_status and self.is_root():
             self.bot_client = BotClient()
+        else:
+            self.bot_client = None
 
         self.save_path = self._create_save_path(path_res)
 
+    def is_root(self):
+        return (not self.is_mpi) or (self.rank == 0)
+
     def calc_init(self):
-        if self.is_slurm and self.send_status:
+        if self.bot_client is not None:
             self.bot_client.start()
 
     def calc_prop(self, i, t):
@@ -95,7 +100,7 @@ class Task(object):
             if (i+1) % int(self.t.size*0.01) == 0:
                 self.save()
 
-                if self.is_slurm and self.send_status:
+                if self.bot_client is not None:
                     self.bot_client.send_status(i / self.t.size)
 
             if self.save_state_step is not None and (i+1) % int(self.t.size*self.save_state_step/100) == 0:
@@ -109,7 +114,7 @@ class Task(object):
         self.calc_finish()
 
         self.save()
-        if self.is_slurm and self.send_status:
+        if self.bot_client is not None:
             self.bot_client.finish()
 
     def _create_save_path(self, path_res):

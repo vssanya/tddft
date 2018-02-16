@@ -18,7 +18,7 @@ orbitals_t* orbials_new(atom_t const* atom, sh_grid_t const* grid, MPI_Comm mpi_
 	if (mpi_comm != MPI_COMM_NULL) {
 		MPI_Comm_rank(orbs->mpi_comm, &orbs->mpi_rank);
 
-		orbs->data = new cdouble[grid2_size(grid)];
+		orbs->data = new cdouble[grid2_size(grid)]();
 		for (int ie = 0; ie < atom->n_orbs; ++ie) {
 			if (ie == orbs->mpi_rank) {
 				orbs->wf[ie] = sh_wavefunc_new_from(orbs->data, grid, atom->m[ie]);
@@ -30,7 +30,7 @@ orbitals_t* orbials_new(atom_t const* atom, sh_grid_t const* grid, MPI_Comm mpi_
 	} else
 #endif
 	{
-		orbs->data = new cdouble[grid2_size(grid)*atom->n_orbs];
+		orbs->data = new cdouble[grid2_size(grid)*atom->n_orbs]();
 		for (int ie = 0; ie < atom->n_orbs; ++ie) {
 			orbs->wf[ie] = sh_wavefunc_new_from(&orbs->data[grid2_size(grid)*ie], grid, atom->m[ie]);
 		}

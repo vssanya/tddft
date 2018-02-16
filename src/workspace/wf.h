@@ -49,7 +49,7 @@ namespace workspace {
 			void prop(sh_wavefunc_t& wf, atom_t const* atom, field_t const* field, double t, double dt);
 			void prop_img(sh_wavefunc_t& wf, atom_t const* atom, double dt);
 
-		private:
+		protected:
 			sh_grid_t const* grid;
 			uabs_sh_t const* uabs;
 

@@ -89,7 +89,7 @@ void workspace::wf_base::prop_at(sh_wavefunc_t& wf, cdouble dt, sh_f Ul, int Z, 
 	cdouble f;
 
 #pragma omp for private(U, al, ar, f)
-	for (int l = 0; l < grid->n[iL]; ++l) {
+	for (int l = 0; l < wf.grid->n[iL]; ++l) {
 		int tid = omp_get_thread_num();
 
 		cdouble* alpha_tid = &alpha[tid*Nr];
@@ -163,7 +163,9 @@ void workspace::wf_base::prop_at(sh_wavefunc_t& wf, cdouble dt, sh_f Ul, int Z, 
 }
 
 void workspace::wf_base::prop_common(sh_wavefunc_t& wf, cdouble dt, int l_max, sh_f* Ul, int Z, potential_type_e u_type, sh_f* Al) {
-	int const Nl = grid->n[iL];
+	assert(wf.grid->n[iR] == grid->n[iR]);
+	assert(wf.grid->n[iL] <= grid->n[iL]);
+	const int Nl = wf.grid->n[iL];
 #pragma omp parallel
 	{
 		for (int l1 = 1; l1 < l_max; ++l1) {
@@ -204,9 +206,12 @@ void workspace::wf_base::prop_common(sh_wavefunc_t& wf, cdouble dt, int l_max, s
 }
 
 void workspace::wf_base::prop_abs(sh_wavefunc_t& wf, double dt) {
+	assert(wf.grid->n[iR] == grid->n[iR]);
+	assert(wf.grid->n[iL] <= grid->n[iL]);
+
 #pragma omp parallel for collapse(2)
-	for (int il = 0; il < grid->n[iL]; ++il) {
-		for (int ir = 0; ir < grid->n[iR]; ++ir) {
+	for (int il = 0; il < wf.grid->n[iL]; ++il) {
+		for (int ir = 0; ir < wf.grid->n[iR]; ++ir) {
 			wf(ir, il) *= exp(-uabs_get(uabs, grid, ir, il, wf.m)*dt);
 		}
 	}
