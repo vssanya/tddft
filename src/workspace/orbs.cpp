@@ -6,8 +6,8 @@
 #include "common_alg.h"
 
 
-workspace::orbs::orbs(sh_grid_t const* sh_grid, sp_grid_t const* sp_grid, uabs_sh_t const* uabs, ylm_cache_t const* ylm_cache, int Uh_lmax, int Uxc_lmax, potential_xc_f Uxc, int num_threads):
-	wf_ws(sh_grid, uabs, num_threads),
+workspace::orbs::orbs(const Atom &atom, ShGrid const* sh_grid, SpGrid const* sp_grid, uabs_sh_t const* uabs, ylm_cache_t const* ylm_cache, int Uh_lmax, int Uxc_lmax, potential_xc_f Uxc, int num_threads):
+    wf_ws(atom, sh_grid, uabs, num_threads),
 	Uh_lmax(Uh_lmax),
 	Uxc(Uxc),
 	Uxc_lmax(Uxc_lmax),
@@ -18,6 +18,10 @@ workspace::orbs::orbs(sh_grid_t const* sh_grid, sp_grid_t const* sp_grid, uabs_s
 	lmax = std::max(Uh_lmax, Uxc_lmax);
 	lmax = std::max(lmax, 2);
 
+	init();
+}
+
+void workspace::orbs::init() {
 	Utmp = new double[sh_grid->n[iR]];
 	Utmp_local = new double[sh_grid->n[iR]];
 
@@ -38,9 +42,7 @@ workspace::orbs::~orbs() {
 	delete[] Uee;
 }
 
-void workspace::orbs::calc_Uee(orbitals_t const* orbs, int Uxc_lmax, int Uh_lmax) {
-	double const UXC_NORM_L[] = {sqrt(1.0/(4.0*M_PI)), sqrt(3.0/(4*M_PI)), sqrt(5.0/(4*M_PI))};
-
+void workspace::orbs::calc_Uee(Orbitals const* orbs, int Uxc_lmax, int Uh_lmax) {
 #ifdef _MPI
 	if (orbs->mpi_comm == MPI_COMM_NULL || orbs->mpi_rank == 0)
 #endif
@@ -86,10 +88,9 @@ void workspace::orbs::calc_Uee(orbitals_t const* orbs, int Uxc_lmax, int Uh_lmax
 		MPI_Bcast(Uee, orbs->grid->n[iR]*lmax, MPI_DOUBLE, 0, orbs->mpi_comm);
 	}
 #endif
-
 }
 
-void workspace::orbs::prop(orbitals_t* orbs, atom_t const* atom, field_t const* field, double t, double dt, bool calc_uee) {
+void workspace::orbs::prop(Orbitals* orbs, field_t const* field, double t, double dt, bool calc_uee) {
 	double Et = field_E(field, t + dt/2);
 
 	if (calc_uee) {
@@ -97,51 +98,51 @@ void workspace::orbs::prop(orbitals_t* orbs, atom_t const* atom, field_t const* 
 	}
 
 	sh_f Ul[3] = {
-		[atom, this](sh_grid_t const* grid, int ir, int l, int m) -> double {
-			double const r = sh_grid_r(grid, ir);
-			return l*(l+1)/(2*r*r) + atom->u(atom, grid, ir) + Uee[ir] + plm(l,m)*Uee[ir + 2*grid->n[iR]];
+        [this](ShGrid const* grid, int ir, int l, int m) -> double {
+			double const r = grid->r(ir);
+            return l*(l+1)/(2*r*r) + wf_ws.atom_cache.u(ir) + Uee[ir] + plm(l,m)*Uee[ir + 2*grid->n[iR]];
 		},
-		[Et, this](sh_grid_t const* grid, int ir, int l, int m) -> double {
-			double const r = sh_grid_r(grid, ir);
+        [Et, this](ShGrid const* grid, int ir, int l, int m) -> double {
+			double const r = grid->r(ir);
 			return clm(l, m)*(r*Et + Uee[ir + grid->n[iR]]);
 		},
-		[this](sh_grid_t const* grid, int ir, int l, int m) -> double {
+        [this](ShGrid const* grid, int ir, int l, int m) -> double {
 			return qlm(l, m)*Uee[ir + 2*grid->n[iR]];
 		}
 	};
 
 #ifdef _MPI
 	if (orbs->mpi_comm != MPI_COMM_NULL) {
-		wf_ws.prop_common(*orbs->mpi_wf, dt, lmax, Ul, atom->Z, atom->u_type);
+        wf_ws.prop_common(*orbs->mpi_wf, dt, lmax, Ul);
 		wf_ws.prop_abs(*orbs->mpi_wf, dt);
 	} else
 #endif
 	{
-		for (int ie = 0; ie < orbs->atom->n_orbs; ++ie) {
-			wf_ws.prop_common(*orbs->wf[ie], dt, lmax, Ul, atom->Z, atom->u_type);
+        for (int ie = 0; ie < orbs->atom.countOrbs; ++ie) {
+            wf_ws.prop_common(*orbs->wf[ie], dt, lmax, Ul);
 			wf_ws.prop_abs(*orbs->wf[ie], dt);
 		}
 	}
 }
 
-void workspace::orbs::prop_img(orbitals_t* orbs, atom_t const* atom, double dt) {
+void workspace::orbs::prop_img(Orbitals* orbs, double dt) {
 	calc_Uee(orbs, std::min(1, Uxc_lmax), std::min(1, Uh_lmax));
 
 	sh_f Ul[1] = {
-		[atom, this](sh_grid_t const* grid, int ir, int l, int m) -> double {
-			double const r = sh_grid_r(grid, ir);
-			return l*(l+1)/(2*r*r) + atom->u(atom, grid, ir) + Uee[ir];
+        [this](ShGrid const* grid, int ir, int l, int m) -> double {
+			double const r = grid->r(ir);
+            return l*(l+1)/(2*r*r) + wf_ws.atom_cache.u(ir) + Uee[ir];
 		}
 	};
 
 #ifdef _MPI
 	if (orbs->mpi_comm != MPI_COMM_NULL) {
-		wf_ws.prop_common(*orbs->mpi_wf, -I*dt, 1, Ul, atom->Z, atom->u_type);
+        wf_ws.prop_common(*orbs->mpi_wf, -I*dt, 1, Ul);
 	} else
 #endif
 	{
-		for (int ie = 0; ie < orbs->atom->n_orbs; ++ie) {
-			wf_ws.prop_common(*orbs->wf[ie], -I*dt, 1, Ul, atom->Z, atom->u_type);
+        for (int ie = 0; ie < orbs->atom.countOrbs; ++ie) {
+            wf_ws.prop_common(*orbs->wf[ie], -I*dt, 1, Ul);
 		}
 	}
 }

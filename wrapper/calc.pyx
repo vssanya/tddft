@@ -3,49 +3,49 @@ cimport numpy as np
 
 import numpy.fft
 
-from wavefunc cimport SWavefunc
-from orbitals cimport SOrbitals
+from wavefunc cimport ShWavefunc
+from orbitals cimport Orbitals
 from workspace cimport SKnWorkspace, SOrbsWorkspace
 from field cimport Field
-from atom cimport Atom
+from atom cimport AtomCache
 
 
 ctypedef fused WF:
-    SOrbitals
-    SWavefunc
+    Orbitals
+    ShWavefunc
 
 ctypedef fused WS:
     SKnWorkspace
     SOrbsWorkspace
 
 def ionization_prob(WF wf):
-    if WF is SOrbitals:
+    if WF is Orbitals:
         return calc_orbs_ionization_prob(wf.cdata)
     else:
         return calc_wf_ionization_prob(wf.cdata)
 
-def az(WF wf, Atom atom, Field field, double t):
-    if WF is SOrbitals:
-        return calc_orbs_az(wf.cdata, &atom.cdata, field.cdata, t)
+def az(WF wf, AtomCache atom, Field field, double t):
+    if WF is Orbitals:
+        return calc_orbs_az(wf.cdata, atom.cdata[0], field.cdata, t)
     else:
-        return calc_wf_az(wf.cdata, &atom.cdata, field.cdata, t)
+        return calc_wf_az(wf.cdata, atom.cdata[0], field.cdata, t)
 
-def az_ne(SOrbitals orbs, Field field, double t, np.ndarray[double, ndim=1, mode='c'] az = None):
+def az_ne(Orbitals orbs, AtomCache atom, Field field, double t, np.ndarray[double, ndim=1, mode='c'] az = None):
     cdef double* res_ptr = NULL
     if orbs.is_root():
         if az is None:
-            az = np.ndarray(orbs.cdata.atom.n_orbs, dtype=np.double)
+            az = np.ndarray(orbs.atom.countOrbs, dtype=np.double)
         res_ptr = <double*>az.data
 
-    calc_orbs_az_ne(orbs.cdata, field.cdata, t, res_ptr)
+    calc_orbs_az_ne(orbs.cdata, atom.cdata[0], field.cdata, t, res_ptr)
 
     return az
 
-def jrcd(Atom atom, WS ws, WF wf, Field field, int Nt, double dt, double t_smooth):
-    if WF is SOrbitals and WS is SOrbsWorkspace:
-        return calc_orbs_jrcd(ws.cdata, wf.cdata, &atom.cdata, field.cdata, Nt, dt, t_smooth)
-    elif WF is SWavefunc and WS is SKnWorkspace:
-        return calc_wf_jrcd(ws.cdata, wf.cdata, &atom.cdata, field.cdata, Nt, dt, t_smooth)
+def jrcd(AtomCache atom, WS ws, WF wf, Field field, int Nt, double dt, double t_smooth):
+    if WF is Orbitals and WS is SOrbsWorkspace:
+        return calc_orbs_jrcd(ws.cdata, wf.cdata, atom.cdata[0], field.cdata, Nt, dt, t_smooth)
+    elif WF is ShWavefunc and WS is SKnWorkspace:
+        return calc_wf_jrcd(ws.cdata, wf.cdata, atom.cdata[0], field.cdata, Nt, dt, t_smooth)
     else:
         assert(False)
 

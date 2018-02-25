@@ -5,7 +5,7 @@ from types cimport cdouble, complex_t
 from abs_pot cimport mask_core
 from grid cimport ShGrid, SpGrid
 from atom cimport Atom
-from wavefunc cimport sh_wavefunc_norm, swavefunc_from_point, sh_wavefunc_cos_r
+from wavefunc cimport swavefunc_from_point
 from sphere_harmonics cimport YlmCache
 
 
@@ -13,12 +13,12 @@ from mpi4py.libmpi cimport MPI_COMM_NULL, MPI_Gather, MPI_C_DOUBLE_COMPLEX
 from mpi4py.MPI import COMM_NULL
 
 
-cdef class SOrbitals:
+cdef class Orbitals:
     def __cinit__(self, Atom atom, ShGrid grid, Comm comm = None):
         if comm is None:
             comm = COMM_NULL
 
-        self.cdata = orbials_new(&atom.cdata, grid.data, comm.ob_mpi)
+        self.cdata = new cOrbitals(atom.cdata[0], grid.data, comm.ob_mpi)
 
         self.mpi_comm = comm
         self.grid = grid
@@ -26,13 +26,13 @@ cdef class SOrbitals:
 
     def __dealloc__(self):
         if self.cdata != NULL:
-            orbitals_del(self.cdata)
+            del self.cdata
 
     def init(self):
-        orbitals_init(self.cdata)
+        self.cdata.init()
 
     def ort(self):
-        orbitals_ort(self.cdata)
+        self.cdata.ort()
 
     def is_root_or_not_mpi(self):
         return not self.is_mpi() or self.cdata.mpi_rank == 0
@@ -54,11 +54,11 @@ cdef class SOrbitals:
         if self.is_mpi():
             shape = self.mpi_comm.bcast(shape)
 
-        orbitals_set_init_state(self.cdata, <cdouble*>data_ptr, shape[1], shape[0])
+        self.cdata.setInitState(<cdouble*>data_ptr, shape[1], shape[0])
 
     @property
     def shape(self):
-        return (self.cdata.atom.n_orbs, self.cdata.grid.n[1], self.cdata.grid.n[0])
+        return (self.cdata.atom.countOrbs, self.cdata.grid.n[1], self.cdata.grid.n[0])
 
     def save(self, filename):
         data = self.asarray()
@@ -77,10 +77,10 @@ cdef class SOrbitals:
             np.save(filename, data_save)
 
     def n(self, SpGrid grid, YlmCache ylm_cache, int ir, int ic):
-        return orbitals_n(self.cdata, grid.data, [ir, ic], ylm_cache.cdata)
+        return self.cdata.n(grid.data, [ir, ic], ylm_cache.cdata)
 
     def z(self):
-        return orbitals_z(self.cdata)
+        return self.cdata.z()
 
     def n_sp(self, SpGrid grid, YlmCache ylm_cache, np.ndarray[np.double_t, ndim=2] n = None):
         cdef np.ndarray[np.double_t, ndim=2, mode='c'] n_local = np.ndarray(grid.shape, dtype=np.double)
@@ -90,7 +90,7 @@ cdef class SOrbitals:
             n = np.ndarray(grid.shape, dtype=np.double)
             n_ptr = <double*>n.data
 
-        orbitals_n_sp(self.cdata, grid.data, n_ptr, <double*>n_local.data, ylm_cache.cdata) 
+        self.cdata.n_sp(grid.data, n_ptr, <double*>n_local.data, ylm_cache.cdata) 
 
         return n
 
@@ -102,36 +102,36 @@ cdef class SOrbitals:
             n = np.ndarray(self.cdata.grid.n[0], dtype=np.double)
             n_ptr = <double*>n.data
 
-        orbitals_n_l0(self.cdata, n_ptr, <double*>n_local.data) 
+        self.cdata.n_l0(n_ptr, <double*>n_local.data) 
 
         return n
 
     def norm(self, masked=False):
         if masked:
-            return orbitals_norm(self.cdata, mask_core)
+            return self.cdata.norm(mask_core)
         else:
-            return orbitals_norm(self.cdata, NULL)
+            return self.cdata.norm(NULL)
 
     def norm_ne(self, np.ndarray[double, ndim=1, mode='c'] norm = None, masked=False):
         cdef double* res_ptr = NULL
         if self.is_root():
             if norm is None:
-                norm = np.ndarray(self.cdata.atom.n_orbs, dtype=np.double)
+                norm = np.ndarray(self.cdata.atom.countOrbs, dtype=np.double)
             res_ptr = <double*>norm.data
 
         if masked:
-            orbitals_norm_ne(self.cdata, res_ptr, mask_core)
+            self.cdata.norm_ne(res_ptr, mask_core)
         else:
-            orbitals_norm_ne(self.cdata, res_ptr, NULL)
+            self.cdata.norm_ne(res_ptr, NULL)
 
         return norm
 
 
     def normalize(self):
-        orbitals_normalize(self.cdata)
+        self.cdata.normalize()
 
     def get_wf(self, int ie):
-        assert(ie < self.cdata.atom.n_orbs)
+        assert(ie < self.cdata.atom.countOrbs)
         return swavefunc_from_point(self.cdata.wf[ie], self.grid)
 
     def asarray(self):
@@ -139,7 +139,7 @@ cdef class SOrbitals:
         if self.is_mpi():
             array = <complex_t[:1, :self.cdata.grid.n[1],:self.cdata.grid.n[0]]>(<complex_t*>self.cdata.data)
         else:
-            array = <complex_t[:self.cdata.atom.n_orbs, :self.cdata.grid.n[1],:self.cdata.grid.n[0]]>(<complex_t*>self.cdata.data)
+            array = <complex_t[:self.cdata.atom.countOrbs, :self.cdata.grid.n[1],:self.cdata.grid.n[0]]>(<complex_t*>self.cdata.data)
 
         return np.asarray(array)
 
@@ -156,7 +156,7 @@ cdef class SOrbitals:
 
         if self.is_mpi():
             if self.cdata.mpi_rank == 0:
-                arr = np.ndarray((self.cdata.atom.n_orbs, self.cdata.grid.n[1], self.cdata.grid.n[0]), dtype=np.complex)
+                arr = np.ndarray((self.cdata.atom.countOrbs, self.cdata.grid.n[1], self.cdata.grid.n[0]), dtype=np.complex)
                 arr_ptr = <cdouble*>arr.data
             MPI_Gather(self.cdata.data, size, MPI_C_DOUBLE_COMPLEX, arr_ptr, size, MPI_C_DOUBLE_COMPLEX, 0, self.cdata.mpi_comm)
             if self.cdata.mpi_rank == 0:

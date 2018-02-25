@@ -5,171 +5,355 @@
 
 #include "types.h"
 
+#include <vector>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+class Atom {
+	public:
+		enum PotentialType {
+			POTENTIAL_SMOOTH,
+			POTENTIAL_COULOMB
+		};
 
-typedef enum {
-  POTENTIAL_SMOOTH,
-  POTENTIAL_COULOMB
-} potential_type_e;
+		struct State {
+			int n;
+			int l;
+			int m;
+			int s;
+			int countElectrons;
 
-typedef double (*pot_f)(void const*, sh_grid_t const*, int);
+			State(const char* id, int m=0, int countElectrons = -1, int s=0): m(m), s(s) {
+				switch (id[1]) {
+					case 's':
+						l = 0;
+						break;
+					case 'p':
+						l = 1;
+						break;
+					case 'd':
+						l = 2;
+					default:
+						l = 0;
+				}
 
-typedef struct atom_s {
-	int Z; //!< nuclear charge
-	int n_orbs; //!< orbitals count
-	int* m; //!< z component momentum of orbital
-	int* l; //!< full orbital momentum of orbital
-	int* n_e; //!< electrons count for each orbital
-	pot_f u;
-	pot_f dudz;
-  potential_type_e u_type;
-} atom_t;
+				switch (id[0]) {
+					case '1':
+						n = 0;
+						break;
+					case '2':
+						n = 1 - l;
+						break;
+					case '3':
+						n = 2 - l;
+						break;
+					default:
+						l = 0;
+				}
 
-int atom_get_count_electrons(atom_t const* atom);
-int atom_get_number_ort(atom_t const* atom, int ie);
+				if (countElectrons < -1) {
+					if (s == 0) {
+						this->countElectrons = 2;
+					} else {
+						this->countElectrons = 1;
+					}
+				} else {
+					this->countElectrons = countElectrons;
+				}
+			}
+		};
 
-// Potential
-double atom_u_coulomb(atom_t const* atom, sh_grid_t const* grid, int ir) __attribute__((pure));
-double atom_dudz_coulomb(atom_t const* atom, sh_grid_t const* grid, int ir) __attribute__((pure));
-double atom_u_smooth(atom_t const* atom, sh_grid_t const* grid, int ir) __attribute__((pure));
-double atom_dudz_smooth(atom_t const* atom, sh_grid_t const* grid, int ir) __attribute__((pure));
-double atom_u_ar_smooth(atom_t const* atom, sh_grid_t const* grid, int ir) __attribute__((pure));
-double atom_dudz_ar_smooth(atom_t const* atom, sh_grid_t const* grid, int ir) __attribute__((pure));
+		int Z;
 
-double atom_u_ar_sae(atom_t const* atom, sh_grid_t const* grid, int ir);
-double atom_dudz_ar_sae(atom_t const* atom, sh_grid_t const* grid, int ir);
+		std::vector<State> orbs;
+		int countOrbs;
 
-double atom_u_rb_sae(atom_t const* atom, sh_grid_t const* grid, int ir);
-double atom_dudz_rb_sae(atom_t const* atom, sh_grid_t const* grid, int ir);
+		State groundState;
 
-double atom_u_na_sae(atom_t const* atom, sh_grid_t const* grid, int ir);
-double atom_dudz_na_sae(atom_t const* atom, sh_grid_t const* grid, int ir);
+		PotentialType potentialType;
+		int countElectrons;
 
-void atom_hydrogen_ground(sh_wavefunc_t* wf);
+        Atom(int Z, std::vector<State> orbs, State groundState, PotentialType type):
+			Z(Z),
+			orbs(orbs),
+			countOrbs(orbs.size()),
+            groundState(groundState),
+			potentialType(type),
+			countElectrons(0)
+		{
+			for (State s: orbs) {
+				countElectrons += s.countElectrons;
+			}
+		}
 
-static atom_t const atom_hydrogen = {
-	.Z = 1,
-	.n_orbs = 1,
-	.m = (int[]){0},
-	.l = (int[]){0},
-	.n_e = (int[]){1},
-	.u    = (pot_f)atom_u_coulomb,
-	.dudz = (pot_f)atom_dudz_coulomb,
-	.u_type = POTENTIAL_COULOMB,
+        Atom(int Z, std::vector<State> orbs, int groundStateId, PotentialType type): Atom(Z, orbs, orbs[groundStateId], type) {}
+
+        virtual double u(double r) const = 0;
+        virtual double dudz(double r) const = 0;
+
+        int getNumberOrt(int ie) const {
+			if (ie == countOrbs) {
+				return 1;
+			}
+
+			auto next_state = orbs[ie];
+
+			for (int i=ie+1; i<countOrbs; ++i) {
+				auto state = orbs[i];
+				if (state.l != next_state.l || state.m != next_state.m || state.s != next_state.s) {
+					return i - ie;
+				}
+			}
+
+			return countOrbs - ie;
+		}
 };
 
-static atom_t const atom_hydrogen_smooth = {
-	.Z = 1,
-	.n_orbs = 1,
-	.m = (int[]){0},
-	.l = (int[]){0},
-	.n_e = (int[]){1},
-	.u    = (pot_f)atom_u_smooth,
-	.dudz = (pot_f)atom_dudz_smooth,
-	.u_type = POTENTIAL_SMOOTH,
+class AtomCache {
+	public:
+        AtomCache(Atom const& atom, ShGrid const* grid): atom(atom), grid(grid) {
+			const int Nr = grid->n[iR];
+			data_u = new double[Nr];
+			data_dudz = new double[Nr];
+
+#pragma omp parallel for
+			for (int ir=0; ir<Nr; ir++) {
+                double r = grid->r(ir);
+				data_u[ir] = atom.u(r);
+				data_dudz[ir] = atom.dudz(r);
+			}
+		}
+
+        ~AtomCache() {
+            delete[] data_u;
+            delete[] data_dudz;
+        }
+
+        double u(int ir) const {
+            return data_u[ir];
+		}
+
+        double dudz(int ir) const {
+            return data_dudz[ir];
+		}
+
+        Atom const& atom;
+        ShGrid const* grid;
+
+		double* data_u;
+		double* data_dudz;
 };
 
-static atom_t const atom_argon_sae_smooth = {
-	.Z = 1,
-	.n_orbs = 1,
-	.m   = (int[]){0},
-	.l   = (int[]){1},
-	.n_e = (int[]){1},
-	.u    = (pot_f)atom_u_ar_smooth,
-	.dudz = (pot_f)atom_dudz_ar_smooth,
-	.u_type = POTENTIAL_SMOOTH,
+class AtomCoulomb: public Atom {
+	public:
+        AtomCoulomb(int Z, std::vector<State> orbs, int groundStateId): Atom(Z, orbs, groundStateId, POTENTIAL_COULOMB) {}
+
+        double u(double r) const {
+			return -Z/r;
+		}
+
+        double dudz(double r) const {
+			return Z/pow(r, 2);
+		}
 };
+
+template<int S, int np, std::array<double, S*np> const& C, std::array<double, S*np> const& B>
+class AtomSGB: public Atom {
+	public:
+        AtomSGB(int Z, std::vector<State> orbs, int groundStateId): Atom(Z, orbs, groundStateId, POTENTIAL_COULOMB) {}
+
+        double u(double r) const {
+			double res = 0.0;
+
+#pragma unroll
+			for (int p=0; p<S; p++) {
+#pragma unroll
+				for (int k=0; k<np; k++) {
+					res += C[k + p*np]*pow(r, p)*exp(-B[k + p*np]*r);
+				}
+			}
+
+			return - (Z - countElectrons + 1 + (countElectrons-1)*res) / r;
+		}
+
+        double dudz(double r) const {
+			double res1 = 0.0;
+			double res2 = 0.0;
+
+#pragma unroll
+			for (int p=0; p<S; p++) {
+#pragma unroll
+				for (int k=0; k<np; k++) {
+					double tmp = C[k + p*np]*exp(-B[k + p*np]*r);
+					res1 += tmp*pow(r, p);
+					res2 += tmp*(p*pow(r, p-1) - B[k + p*np]*pow(r, p));
+				}
+			}
+
+			return (Z - countElectrons + 1 + (countElectrons-1)*res1) / (r*r) - (countElectrons-1)*res2/r;
+		}
+};
+
+class NaAtom: public AtomCoulomb {
+	public:
+		static const std::vector<State> GroundStateOrbs;
+
+		NaAtom(): AtomCoulomb(11, GroundStateOrbs, 2) {}
+};
+
+extern const std::array<double, 2*3> Na_B;
+extern const std::array<double, 2*3> Na_C;
+
+class NaAtomSGB: public AtomSGB<3, 2, Na_C, Na_B> {
+	public:
+		NaAtomSGB(): AtomSGB(11, NaAtom::GroundStateOrbs, 2) {}
+};
+
+
+class HAtom: public AtomCoulomb {
+	public:
+		static const std::vector<State> GroundStateOrbs;
+		HAtom(): AtomCoulomb(1, GroundStateOrbs, 0) {}
+};
+
+class HSmothAtom: public Atom {
+	public:
+		static constexpr double A = 0.3;
+		static constexpr double ALPHA = 2.17;
+
+        HSmothAtom(): Atom(1, HAtom::GroundStateOrbs, 0, POTENTIAL_SMOOTH) {}
+
+        double u(double r) const {
+			return -ALPHA*pow(cosh(r/A), -2) - tanh(r/A)/r;
+		}
+
+        double dudz(double r) const {
+			double const t = tanh(r/A);
+			double const s = pow(cosh(r/A), -2);
+
+			return 2.0*ALPHA*t*s/A + t/pow(r, 2) - s/(A*r);
+		}
+};
+
+class ArAtom: public AtomCoulomb {
+	public:
+		static const std::vector<State> GroundStateOrbs;
+		ArAtom(): AtomCoulomb(18, GroundStateOrbs, 5) {}
+};
+
+class ArSaeAtom: public Atom {
+	public:
+		static constexpr double A = 5.4;
+		static constexpr double B = 1;
+		static constexpr double C = 3.682;
+
+        ArSaeAtom(): Atom(18, ArAtom::GroundStateOrbs, 5, POTENTIAL_COULOMB) {}
+
+        double u(double r) const {
+			return - (1.0 + (A*exp(-B*r) + (17 - A)*exp(-C*r)))/r;
+		}
+
+        double dudz(double r) const {
+			return (1.0 + (  A*exp(-B*r) +   (17 - A)*exp(-C*r)))/(r*r) +
+				(B*A*exp(-B*r) + C*(17 - A)*exp(-C*r))/r;
+		}
+};
+
+class ArSaeSmoothAtom: public Atom {
+public:
+    static constexpr double A = 0.3;
+    static constexpr double ALPHA = 3.88;
+
+    ArSaeSmoothAtom(): Atom(18, ArAtom::GroundStateOrbs, 5, POTENTIAL_SMOOTH) {}
+
+    double u(double r) const {
+        return -ALPHA*pow(cosh(r/A), -2) - tanh(r/A)/r;
+    }
+
+    double dudz(double r) const {
+        double const t = tanh(r/A);
+        double const s = pow(cosh(r/A), -2);
+
+        return 2.0*ALPHA*t*s/A + t/pow(r, 2) - s/(A*r);
+    }
+};
+
+
+class NoneAtom: public Atom {
+public:
+    NoneAtom(): Atom(0, {}, State("1s"), POTENTIAL_SMOOTH) {}
+
+    double u(double r) const { return 0.0; }
+    double dudz(double r) const { return 0.0; }
+};
+
+/*
+   double atom_u_ar_smooth(Atom const* atom, cShGrid const* grid, int ir) __attribute__((pure));
+   double atom_dudz_ar_smooth(Atom const* atom, cShGrid const* grid, int ir) __attribute__((pure));
+
+   double atom_u_rb_sae(Atom const* atom, cShGrid const* grid, int ir);
+   double atom_dudz_rb_sae(Atom const* atom, cShGrid const* grid, int ir);
+
+   double atom_u_na_sae(Atom const* atom, cShGrid const* grid, int ir);
+   double atom_dudz_na_sae(Atom const* atom, cShGrid const* grid, int ir);
+
+   void atom_hydrogen_ground(ShWavefunc* wf);
+
+   static Atom const atom_argon_sae_smooth = {
+   .Z = 1,
+   .countOrbs = 1,
+   .m   = (int[]){0},
+   .l   = (int[]){1},
+   .n_e = (int[]){1},
+   .u    = (pot_f)atom_u_ar_smooth,
+   .dudz = (pot_f)atom_dudz_ar_smooth,
+   .u_type = POTENTIAL_SMOOTH,
+   };
 
 // I_p = 0.5791 au
 // 1s 2s 2p 3s 3p
 // 2  2  6  2  6
 
-/* Atom argon. We assume ionization doesn't dependent on sign of m and of electron spin. */
-static atom_t const atom_argon = {
-	.Z = 18,
-//	.n_orbs = 9,
-//	.m   = (int[]){0,0,0,-1,-1,0,0,1,1},
-//	.l   = (int[]){0,0,0, 1, 1,1,1,1,1},
-//	.n_e = (int[]){2,2,2, 2, 2,2,2,2,2},
-	.n_orbs = 7,
-	.m   = (int[]){0,0,0,0,0,1,1},
-	.l   = (int[]){0,0,0,1,1,1,1},
-	.n_e = (int[]){2,2,2,2,2,4,4},
-	.u    = (pot_f)atom_u_coulomb,
-	.dudz = (pot_f)atom_dudz_coulomb,
-  .u_type = POTENTIAL_COULOMB,
+static Atom const atom_rb_sae = {
+.Z = 37,
+.countOrbs = 1,
+.m = (int[]){0},
+.l = (int[]){0},
+.n_e = (int[]){1},
+.u    = (pot_f)atom_u_rb_sae,
+.dudz = (pot_f)atom_dudz_rb_sae,
 };
 
-static atom_t const atom_argon_sae = {
-	.Z = 18,
-	.n_orbs = 7,
-	.m   = (int[]){0,0,0,0,0,1,1},
-	.l   = (int[]){0,0,0,1,1,1,1},
-	.n_e = (int[]){2,2,2,2,2,4,4},
-	.u    = (pot_f)atom_u_ar_sae,
-	.dudz = (pot_f)atom_dudz_ar_sae,
-	.u_type = POTENTIAL_COULOMB,
+static Atom const atom_na_sae = {
+.Z = 11,
+.countOrbs = 5,
+.m    = (int[]){0,0,0,0,1},
+.l    = (int[]){0,0,0,1,1},
+.n_e  = (int[]){2,2,1,2,4},
+.u    = (pot_f)atom_u_na_sae,
+.dudz = (pot_f)atom_dudz_na_sae,
 };
 
-static atom_t const atom_rb_sae = {
-	.Z = 37,
-	.n_orbs = 1,
-	.m = (int[]){0},
-	.l = (int[]){0},
-	.n_e = (int[]){1},
-	.u    = (pot_f)atom_u_rb_sae,
-	.dudz = (pot_f)atom_dudz_rb_sae,
-};
-
-static atom_t const atom_na_sae = {
-	.Z = 11,
-	.n_orbs = 5,
-	.m    = (int[]){0,0,0,0,1},
-	.l    = (int[]){0,0,0,1,1},
-	.n_e  = (int[]){2,2,1,2,4},
-	.u    = (pot_f)atom_u_na_sae,
-	.dudz = (pot_f)atom_dudz_na_sae,
-};
-
-static atom_t const atom_argon_ion = {
-	.Z = 18,
-	.n_orbs = 1,
-	.m = (int[]){0},
-	.l = (int[]){0},
-	.n_e = (int[]){2},
-	.u    = (pot_f)atom_u_coulomb,
-	.dudz = (pot_f)atom_dudz_coulomb,
-	.u_type = POTENTIAL_COULOMB,
+static Atom const atom_argon_ion = {
+.Z = 18,
+.countOrbs = 1,
+.m = (int[]){0},
+.l = (int[]){0},
+.n_e = (int[]){2},
+.u    = (pot_f)atom_u_coulomb,
+.dudz = (pot_f)atom_dudz_coulomb,
+.u_type = POTENTIAL_COULOMB,
 };
 
 // I_p = 0.5791 au
 // 1s 2s 2p
 // 2  2  6
-static atom_t const atom_neon = {
-	.Z = 10,
-	.n_orbs = 4,
-	.m    = (int[]){0,0,0,1},
-	.l    = (int[]){0,0,1,1},
-	.n_e  = (int[]){2,2,2,4},
-	.u    = (pot_f)atom_u_coulomb,
-	.dudz = (pot_f)atom_dudz_coulomb,
-	.u_type = POTENTIAL_COULOMB,
+static Atom const atom_neon = {
+.Z = 10,
+.countOrbs = 4,
+.m    = (int[]){0,0,0,1},
+.l    = (int[]){0,0,1,1},
+.n_e  = (int[]){2,2,2,4},
+.u    = (pot_f)atom_u_coulomb,
+.dudz = (pot_f)atom_dudz_coulomb,
+.u_type = POTENTIAL_COULOMB,
 };
-
-static atom_t const atom_none = {
-	.Z = 0,
-	.n_orbs = 1,
-	.m = (int[]){0},
-	.l = (int[]){0},
-	.n_e = (int[]){1},
-	.u = (pot_f)atom_u_coulomb,
-	.dudz = (pot_f)atom_dudz_coulomb,
-	.u_type = POTENTIAL_SMOOTH
-};
-
-#ifdef __cplusplus
-}
-#endif
+*/

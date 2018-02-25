@@ -9,16 +9,20 @@
 
 namespace workspace
 {
+	double const UXC_NORM_L[] = {sqrt(1.0/(4.0*M_PI)), sqrt(3.0/(4*M_PI)), sqrt(5.0/(4*M_PI))};
+
 	class orbs {
 		public:
-			orbs(sh_grid_t const* sh_grid, sp_grid_t const* sp_grid, uabs_sh_t const* uabs, ylm_cache_t const* ylm_cache, int Uh_lmax, int Uxc_lmax, potential_xc_f Uxc, int num_threads);
+            orbs(Atom const& atom, ShGrid const* sh_grid, SpGrid const* sp_grid, uabs_sh_t const* uabs, ylm_cache_t const* ylm_cache, int Uh_lmax, int Uxc_lmax, potential_xc_f Uxc, int num_threads);
 			virtual ~orbs();
 
-			void prop(orbitals_t* orbs, atom_t const* atom, field_t const* field, double t, double dt, bool calc_uee);
-			void prop_img(orbitals_t* orbs, atom_t const* atom, double dt);
-			void calc_Uee(orbitals_t const* orbs, int Uxc_lmax, int Uh_lmax);
+			virtual void init();
 
-			workspace::wf_base wf_ws;
+            void prop(Orbitals* orbs, field_t const* field, double t, double dt, bool calc_uee);
+            void prop_img(Orbitals* orbs, double dt);
+			void calc_Uee(Orbitals const* orbs, int Uxc_lmax, int Uh_lmax);
+
+			workspace::WfBase wf_ws;
 
 			double* Utmp;
 			double* Utmp_local;
@@ -31,8 +35,8 @@ namespace workspace
 			double* Uee;
 			int lmax;
 
-			sh_grid_t const* sh_grid;
-			sp_grid_t const* sp_grid;
+            ShGrid const* sh_grid;
+            SpGrid const* sp_grid;
 			double* uh_tmp;
 			double* n_sp; // for root
 			double* n_sp_local;

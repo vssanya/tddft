@@ -17,7 +17,7 @@ class TestOrbitals(unittest.TestCase):
 
         self.atom = tdse.atom.Atom('Ar')
         self.uabs = tdse.abs_pot.UabsMultiHump(0.1, 20)
-        self.orbs = tdse.orbitals.SOrbitals(self.atom, self.grid)
+        self.orbs = tdse.orbitals.Orbitals(self.atom, self.grid)
         self.orbs.init()
         self.field = tdse.field.TwoColorSinField()
         self.ws = tdse.workspace.SOrbsWorkspace(self.grid, self.sp_grid, self.uabs, ylm_cache=self.ylm_cache)

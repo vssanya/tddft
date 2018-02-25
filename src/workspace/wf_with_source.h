@@ -4,21 +4,21 @@
 
 
 namespace workspace {
-	class wf_E_with_source: public wf_E {
+    class WfEWithSource: public WfE {
 		public:
-			wf_E_with_source(sh_grid_t const* grid, uabs_sh_t const* uabs, sh_wavefunc_t const& wf_source, double E, int num_threads): wf_E(grid, uabs, num_threads), wf_source(wf_source), source_E(E)
+            WfEWithSource(Atom const& atom, ShGrid const* grid, uabs_sh_t const* uabs, ShWavefunc const& wf_source, double E, int num_threads): WfE(atom, grid, uabs, num_threads), wf_source(wf_source), source_E(E)
 		{
 			assert(grid->n[iR] == wf_source.grid->n[iR]);
 		}
 
-			void prop_src(sh_wavefunc_t& wf, field_t const* field, double t, double dt);
-			void prop(sh_wavefunc_t& wf, atom_t const* atom, field_t const* field, double t, double dt) {
-				wf_E::prop(wf, atom, field, t, dt);
+			void prop_src(ShWavefunc& wf, field_t const* field, double t, double dt);
+            void prop(ShWavefunc& wf, field_t const* field, double t, double dt) {
+                WfE::prop(wf, field, t, dt);
 				prop_src(wf, field, t, dt);
 			}
 
 		private:
-			sh_wavefunc_t const& wf_source;
+			ShWavefunc const& wf_source;
 			double source_E;
 	};
 }

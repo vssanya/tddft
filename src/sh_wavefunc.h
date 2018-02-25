@@ -18,98 +18,73 @@
  * \f[\psi(\vec{r}) = \frac{1}{r} \sum_{l=0}^{\infty} \Theta_{lm}(r) Y_{lm}(\theta, \phi) \simeq \frac{1}{r} \sum_{l=0}^{N_l - 1} \Theta_{lm}(r) Y_{lm}(\theta, \phi)\f]
  *
  * */
-struct sh_wavefunc_t {
-  sh_grid_t const* grid;
+class ShWavefunc {
+public:
+  ShGrid const* grid;
 
   cdouble* data; //!< data[i + l*grid->Nr] = \f$\Theta_{lm}(r_i)\f$
   bool data_own; //!< кто выделил данные
 
   int m;         //!< is magnetic quantum number
 
-#ifdef __cplusplus
-  inline
-  cdouble& operator() (int ir, int il) {
+  ShWavefunc(cdouble* data, ShGrid const* grid, int const m);
+  ShWavefunc(ShGrid const* grid, int const m): ShWavefunc(nullptr, grid, m) {}
+  ~ShWavefunc();
+
+
+  inline cdouble& operator() (int ir, int il) {
 	  assert(ir < grid->n[iR] && il < grid->n[iL]);
 	  return data[ir + il*grid->n[iR]];
   }
 
-  inline
-  cdouble const& operator() (int ir, int il) const {
+  inline cdouble const& operator() (int ir, int il) const {
 	  assert(ir < grid->n[iR] && il < grid->n[iL]);
 	  return data[ir + il*grid->n[iR]];
   }
 
-  inline
-  double abs_2(int ir, int il) const {
+  inline double abs_2(int ir, int il) const {
 	  cdouble const value = (*this)(ir, il);
 	  return pow(creal(value), 2) + pow(cimag(value), 2);
   }
 
-  cdouble operator*(sh_wavefunc_t const& other) const;
-  void exclude(sh_wavefunc_t const& other);
-
-  void prop_ang_l(cdouble dt, int l, int l1, sh_f Ul, linalg::matrix_f dot, linalg::matrix_f dot_T, cdouble const eigenval[2]);
-  double cos(sh_f func) const;
-
-  double norm(sh_f mask = nullptr) const;
-#endif
-};
-
-#ifndef __cplusplus
-typedef struct sh_wavefunc_t sh_wavefunc_t;
-#endif
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-sh_wavefunc_t* sh_wavefunc_new(
-		sh_grid_t const* grid,
-		int const m
-);
-
-void sh_wavefunc_random_l(sh_wavefunc_t* wf, int l);
-
-sh_wavefunc_t* sh_wavefunc_new_from(
-		cdouble* data,
-		sh_grid_t const* grid,
-		int const m
-);
-
-void sh_wavefunc_copy(sh_wavefunc_t const* wf_src, sh_wavefunc_t* wf_dest);
-
-cdouble* swf_ptr(sh_wavefunc_t* wf, int ir, int il);
-cdouble const* swf_const_ptr(sh_wavefunc_t const* wf, int ir, int il);
-
-void sh_wavefunc_ort_l(int l, int n, sh_wavefunc_t** wfs);
-
-/*!
- * \return \f$\psi(r, \Omega)\f$
- * */
-cdouble swf_get_sp(sh_wavefunc_t const* wf, sp_grid_t const* grid, int i[3], ylm_cache_t const* ylm_cache);
-
-void   sh_wavefunc_del(sh_wavefunc_t* wf);
+  void copy(ShWavefunc* wf_dest) const;
 
 // \return \f$<\psi_1|\psi_2>\f$
-cdouble sh_wavefunc_prod(sh_wavefunc_t const* wf1, sh_wavefunc_t const* wf2);
-
-void sh_wavefunc_n_sp(sh_wavefunc_t const* wf, sp_grid_t const* grid, double* n, ylm_cache_t const* ylm_cache);
-
-double sh_wavefunc_norm(sh_wavefunc_t const* wf, sh_f mask);
-void   sh_wavefunc_normalize(sh_wavefunc_t* wf);
-
-void   sh_wavefunc_print(sh_wavefunc_t const* wf);
+  cdouble operator*(ShWavefunc const& other) const;
+  void exclude(ShWavefunc const& other);
 
 // <psi|U(r)cos(\theta)|psi>
-double sh_wavefunc_cos(
-		sh_wavefunc_t const* wf,
-		sh_f U
-);
-double sh_wavefunc_cos_r2(sh_wavefunc_t const* wf, sh_f U, int Z);
-void sh_wavefunc_cos_r(sh_wavefunc_t const* wf, sh_f U, double* res);
+  double cos(sh_f func) const;
+  void   cos_r(sh_f U, double* res) const;
+  double cos_r2(sh_f U, int Z) const;
 
-double sh_wavefunc_z(sh_wavefunc_t const* wf);
+  double norm(sh_f mask = nullptr) const;
+  void normalize();
 
-#ifdef __cplusplus
-}
-#endif
+  double z() const;
+
+  void random_l(int l);
+
+  template<class T>
+  inline T integrate(std::function<T(ShWavefunc const*, int, int)> func, int l_max) const {
+      T res = 0.0;
+#pragma omp parallel for reduction(+:res) collapse(2)
+      for (int il = 0; il < l_max; ++il) {
+          for (int ir = 0; ir < grid->n[iR]; ++ir) {
+              res += func(this, ir, il);
+          }
+      }
+      return res*grid->d[iR];
+  }
+
+  static void ort_l(int l, int n, ShWavefunc** wfs);
+
+  /*!
+ * \return \f$\psi(r, \Omega)\f$
+ * */
+  cdouble get_sp(SpGrid const* grid, int i[3], ylm_cache_t const* ylm_cache) const;
+
+  void n_sp(SpGrid const* grid, double* n, ylm_cache_t const* ylm_cache) const;
+
+  void print() const;
+};

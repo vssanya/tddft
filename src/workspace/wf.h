@@ -23,10 +23,10 @@
  * */
 
 namespace workspace {
-	class wf_base {
+    class WfBase {
 		public:
-			wf_base(sh_grid_t const* grid, uabs_sh_t const* uabs, int num_threads);
-			virtual ~wf_base ();
+            WfBase(Atom const& atom, ShGrid const* grid, uabs_sh_t const* uabs, int num_threads);
+            virtual ~WfBase ();
 
 			/* 
 			 * [1 + 0.5iΔtH(t+Δt/2)] Ψ(r, t+Δt) = [1 - 0.5iΔtH(t+Δt/2)] Ψ(r, t)
@@ -34,41 +34,42 @@ namespace workspace {
 			 * exp(-0.5iΔtHang(l,m, t+Δt/2))
 			 * @param E = E(t+dt/2)
 			 * */
-			void prop_ang(sh_wavefunc_t& wf, double dt, int l, double E);
+			void prop_ang(ShWavefunc& wf, double dt, int l, double E);
 
-			void prop_at(sh_wavefunc_t& wf, cdouble dt, sh_f Ul, int Z, potential_type_e u_type);
-			void prop_mix(sh_wavefunc_t& wf, sh_f Al, double dt, int l);
+            void prop_at(ShWavefunc& wf, cdouble dt, sh_f Ul);
+			void prop_mix(ShWavefunc& wf, sh_f Al, double dt, int l);
 
-			void prop_abs(sh_wavefunc_t& wf, double dt);
+			void prop_abs(ShWavefunc& wf, double dt);
 			/*!
 			 * \f[U(r,t) = \sum_l U_l(r, t)\f]
 			 * \param[in] Ul = \f[U_l(r, t=t+dt/2)\f]
 			 * */
-			void prop_common(sh_wavefunc_t& wf, cdouble dt, int l_max, sh_f* Ul, int Z, potential_type_e u_type, sh_f* Al = nullptr);
+            void prop_common(ShWavefunc& wf, cdouble dt, int l_max, sh_f* Ul, sh_f* Al = nullptr);
 
-			void prop(sh_wavefunc_t& wf, atom_t const* atom, field_t const* field, double t, double dt);
-			void prop_img(sh_wavefunc_t& wf, atom_t const* atom, double dt);
+            void prop(ShWavefunc& wf, field_t const* field, double t, double dt);
+            void prop_img(ShWavefunc& wf, double dt);
 
-		private:
-			sh_grid_t const* grid;
+            ShGrid const* grid;
 			uabs_sh_t const* uabs;
 
 			cdouble* alpha;
 			cdouble* betta;
 
 			int num_threads;
+
+            AtomCache atom_cache;
 	};
 
-	class wf_E: public wf_base {
+    class WfE: public WfBase {
 		public:
-			wf_E(sh_grid_t const* grid, uabs_sh_t const* uabs, int num_threads): wf_base(grid, uabs, num_threads) {}
-			void prop(sh_wavefunc_t& wf, atom_t const* atom, field_t const* field, double t, double dt);
+            WfE(Atom const& atom, ShGrid const* grid, uabs_sh_t const* uabs, int num_threads): WfBase(atom, grid, uabs, num_threads) {}
+            void prop(ShWavefunc& wf, field_t const* field, double t, double dt);
 	};
 
-	class wf_A: public wf_base {
+    class WfA: public WfBase {
 		public:
-			wf_A(sh_grid_t const* grid, uabs_sh_t const* uabs, int num_threads): wf_base(grid, uabs, num_threads) {}
-			void prop(sh_wavefunc_t& wf, atom_t const* atom, field_t const* field, double t, double dt);
+            WfA(Atom const& atom, ShGrid const* grid, uabs_sh_t const* uabs, int num_threads): WfBase(atom, grid, uabs, num_threads) {}
+            void prop(ShWavefunc& wf, field_t const* field, double t, double dt);
 	};
 }
 

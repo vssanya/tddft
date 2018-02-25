@@ -8,18 +8,20 @@ cdouble V_0(double p[2], double E, double A, double t) {
 	return -32*I*sqrt(M_PI)*E*(p[0]+A)/pow(1 + pow(p[0]+A, 2) + p[1]*p[1], 3)*cexp(I*t/2);
 }
 
-void momentum_space::propagate(ct_wavefunc_t& wf, field_t const* field, double t, double dt) {
+void momentum_space::propagate(CtWavefunc& wf, field_t const* field, double t, double dt) {
 	double A_t = field_A(field, t);
 	double A_t_dt = field_A(field, t+dt);
 
 	double E_t = field_E(field, t);
 	double E_t_dt = field_E(field, t+dt);
 
+    auto grid = *static_cast<SpGrid2d const*>(wf.grid);
+
 #pragma omp parallel for collapse(2)
-	for (int ir=0; ir<wf.grid->n[iX]; ++ir) {
-		for (int ic=0; ic<wf.grid->n[iY]; ++ic) {
-			double mod_p = sp2_grid_r(wf.grid, ir);
-			double px = sp2_grid_c(wf.grid, ic)*mod_p;
+    for (int ir=0; ir<grid.n[iX]; ++ir) {
+        for (int ic=0; ic<grid.n[iY]; ++ic) {
+            double mod_p = grid.r(ir);
+            double px = grid.c(ic)*mod_p;
 			double py = sqrt(mod_p*mod_p - px*px);
 
 			double p[2] = {px, py};

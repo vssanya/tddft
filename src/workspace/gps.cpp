@@ -6,7 +6,7 @@
 #include "common_alg.h"
 
 
-ws_gps_t* ws_gps_alloc(sh_grid_t const* grid, atom_t const* atom, double dt, double e_max) {
+ws_gps_t* ws_gps_alloc(ShGrid const* grid, Atom const* atom, double dt, double e_max) {
 	ws_gps_t* ws = new ws_gps_t;
 
 	ws->grid = grid;
@@ -17,7 +17,7 @@ ws_gps_t* ws_gps_alloc(sh_grid_t const* grid, atom_t const* atom, double dt, dou
 
 	ws->s = NULL;
 
-	ws->prop_wf = sh_wavefunc_new(grid, 0);
+    ws->prop_wf = new ShWavefunc(grid, 0);
 
 	return ws;
 }
@@ -26,7 +26,7 @@ void ws_gps_free(ws_gps_t* ws) {
 	if (ws->s != NULL) {
 		free(ws->s);
 	}
-	sh_wavefunc_del(ws->prop_wf);
+    delete ws->prop_wf;
 	free(ws);
 }
 
@@ -50,13 +50,13 @@ void ws_gps_calc_s(ws_gps_t* ws, eigen_ws_t const* eigen) {
 	}
 }
 
-void ws_gps_prop(ws_gps_t const* ws, sh_wavefunc_t* wf) {
+void ws_gps_prop(ws_gps_t const* ws, ShWavefunc* wf) {
 	int const Nr = ws->grid->n[iR];
 	int const Nl = ws->grid->n[iL];
 
 #pragma omp parallel for
 	for (int il = 0; il < Nl; ++il) {
-		cdouble* psi = swf_ptr(ws->prop_wf, 0, il);
+        cdouble* psi = &(*ws->prop_wf)(0, il);
 
 		for (int ir1 = 0; ir1 < Nr; ++ir1) {
 			psi[ir1] = 0.0;
@@ -64,22 +64,22 @@ void ws_gps_prop(ws_gps_t const* ws, sh_wavefunc_t* wf) {
 				psi[ir1] += ws->s[ir2 + (ir1 + il*Nr)*Nr]*(*wf)(ir2, il);
 			}
 		}
-	}
+    }
 
-	sh_wavefunc_copy(ws->prop_wf, wf);
+    ws->prop_wf->copy(wf);
 }
 
 void ws_gps_prop_common(
 		ws_gps_t* ws,
-		sh_wavefunc_t* wf,
+		ShWavefunc* wf,
 		uabs_sh_t const* uabs,
 		field_t const* field,
 		double t
 ) {
 	double Et = field_E(field, t + ws->dt/2);
 
-	auto Ul1 = [Et](sh_grid_t const* grid, int ir, int l, int m) -> double {
-		double const r = sh_grid_r(grid, ir);
+    auto Ul1 = [Et](ShGrid const* grid, int ir, int l, int m) -> double {
+		double const r = grid->r(ir);
 		return r*Et*clm(l,m);
 	};
 

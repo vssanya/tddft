@@ -9,7 +9,7 @@
 #include "linalg.h"
 
 
-eigen_ws_t* eigen_ws_alloc(sh_grid_t const* grid) {
+eigen_ws_t* eigen_ws_alloc(ShGrid const* grid) {
 	eigen_ws_t* ws = new eigen_ws_t;
 	ws->grid = grid;
 
@@ -35,7 +35,7 @@ double eigen_evec(eigen_ws_t const* ws, int il, int ir, int ie) {
 	return ws->evec[ie + ir*Nr + il*Nr*Nr];
 }
 
-void eigen_calc_dr4(eigen_ws_t* ws, std::function<double(sh_grid_t const*, int, int, int)> u, int Z) {
+void eigen_calc_dr4(eigen_ws_t* ws, std::function<double(ShGrid const*, int, int, int)> u, int Z) {
 	int const Nr = ws->grid->n[iR];
 
 	gsl_eigen_symmv_workspace* gsl_ws = gsl_eigen_symmv_alloc(Nr);
@@ -88,11 +88,11 @@ void eigen_calc_dr4(eigen_ws_t* ws, std::function<double(sh_grid_t const*, int, 
 	gsl_eigen_symmv_free(gsl_ws);
 }
 
-void eigen_calc_for_atom(eigen_ws_t* ws, atom_t const* atom) {
-	eigen_calc_dr4(ws, [atom](sh_grid_t const* grid, int ir, int l, int m) {
-		double const r = sh_grid_r(grid, ir);
-		return l*(l+1)/(2*r*r) + atom->u(atom, grid, ir);
-	}, atom->Z);
+void eigen_calc_for_atom(eigen_ws_t* ws, AtomCache const* atom_cache) {
+    eigen_calc_dr4(ws, [atom_cache](ShGrid const* grid, int ir, int l, int m) {
+		double const r = grid->r(ir);
+        return l*(l+1)/(2*r*r) + atom_cache->u(ir);
+    }, atom_cache->atom.Z);
 }
 
 void eigen_calc(eigen_ws_t* ws, sh_f u, int Z) {

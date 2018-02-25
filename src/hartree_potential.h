@@ -22,12 +22,12 @@ extern "C" {
 /*! 
  * U0(r,t) = 2*\sum_{i,l} \int |\theta_{ilm}(r', t)|^2 / r> dr'
  * */
-void hartree_potential(orbitals_t const* orbs, int l, double* U, double* U_local, double* f, int order);
+void hartree_potential(Orbitals const* orbs, int l, double* U, double* U_local, double* f, int order);
 
-void hartree_potential_wf_l0(sh_wavefunc_t const* wf, double* U, double* f, int order);
+void hartree_potential_wf_l0(ShWavefunc const* wf, double* U, double* f, int order);
 
-double mod_dndr(sp_grid_t const* grid, double* n, int ir);
-double mod_grad_n(sp_grid_t const* grid, double* n, int ir, int ic);
+double mod_dndr(SpGrid const* grid, double* n, int ir);
+double mod_grad_n(SpGrid const* grid, double* n, int ir, int ic);
 double ux_lda_func(double n);
 double uc_lda_func(double n);
 
@@ -45,9 +45,9 @@ typedef double (*potential_xc_f)(double n, double x);
  * */
 void uxc_calc_l(
 		potential_xc_f uxc,
-		int l, orbitals_t const* orbs,
+		int l, Orbitals const* orbs,
 		double* U,
-		sp_grid_t const* grid,
+		SpGrid const* grid,
 		double* n, // for calc using mpi
 		double* n_tmp, // for calc using mpi
 		ylm_cache_t const* ylm_cache
@@ -55,9 +55,9 @@ void uxc_calc_l(
 
 void uxc_calc_l0(
 		potential_xc_f uxc,
-		int l, orbitals_t const* orbs,
+		int l, Orbitals const* orbs,
 		double* U,
-		sp_grid_t const* grid,
+		SpGrid const* grid,
 		double* n, // for calc using mpi
 		double* n_tmp, // for calc using mpi
 		ylm_cache_t const* ylm_cache

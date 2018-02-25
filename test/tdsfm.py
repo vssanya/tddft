@@ -10,7 +10,7 @@ class TestTdsfm(unittest.TestCase):
 
     def test_calc(self):
         tdsfm = tdse.tdsfm.TDSFM(self.k_grid, self.r_grid, 10)
-        wf = tdse.wavefunc.SWavefunc(self.r_grid)
+        wf = tdse.wavefunc.ShWavefunc(self.r_grid)
         field = tdse.field.CarField(1,1,1)
 
         tdsfm.calc(field, wf, 0, 0.1)

@@ -4,9 +4,9 @@ import numpy as np
 cimport numpy as np
 
 from types cimport complex_t
-from grid cimport ShGrid, SpGrid, sp_grid_r, sp_grid_c
+from grid cimport ShGrid, SpGrid
 from field cimport Field
-from wavefunc cimport SWavefunc
+from wavefunc cimport ShWavefunc
 from sphere_harmonics cimport ylm_cache_get
 
 
@@ -23,10 +23,10 @@ cdef class TDSFM:
     def init_cache(self):
         self.cdata.init_cache()
 
-    def calc(self, Field field, SWavefunc wf, double t, double dt):
+    def calc(self, Field field, ShWavefunc wf, double t, double dt):
         self.cdata[0].calc(field.cdata, wf.cdata[0], t, dt)
 
-    def calc_inner(self, Field field, SWavefunc wf, double t, int ir_min = 0, int ir_max = -1):
+    def calc_inner(self, Field field, ShWavefunc wf, double t, int ir_min = 0, int ir_max = -1):
         if ir_max == -1:
             ir_max = self.cdata.ir
         self.cdata[0].calc_inner(field.cdata, wf.cdata[0], t, ir_min, ir_max)

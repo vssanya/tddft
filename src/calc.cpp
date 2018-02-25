@@ -3,43 +3,49 @@
 #include "abs_pot.h"
 
 
-double calc_wf_az(sh_wavefunc_t const* wf, atom_t const* atom, field_t const* field, double t) {
-	auto func = [atom](sh_grid_t const* grid, int ir, int il, int m) -> double { return atom->dudz(atom, grid, ir); };
+double calc_wf_az(ShWavefunc const* wf, const AtomCache &atom_cache, field_t const* field, double t) {
+    auto func = [atom_cache](ShGrid const* grid, int ir, int il, int m) -> double {
+        return atom_cache.dudz(ir);
+    };
     return - field_E(field, t) - wf->cos(func);
 }
 
-double calc_orbs_az(orbitals_t const* orbs, atom_t const* atom, field_t const* field, double t) {
-	auto func = [atom](sh_grid_t const* grid, int ir, int il, int m) -> double { return atom->dudz(atom, grid, ir); };
-	return - field_E(field, t)*atom_get_count_electrons(atom) - orbitals_cos(orbs, func);
+double calc_orbs_az(Orbitals const* orbs, const AtomCache &atom_cache, field_t const* field, double t) {
+    auto func = [atom_cache](ShGrid const* grid, int ir, int il, int m) -> double {
+        return atom_cache.dudz(ir);
+    };
+    return - field_E(field, t)*atom_cache.atom.countElectrons - orbs->cos(func);
 }
 
-void calc_orbs_az_ne(orbitals_t const* orbs, field_t const* field, double t, double* az) {
-	auto func = [orbs](sh_grid_t const* grid, int ir, int il, int m) -> double { return orbs->atom->dudz(orbs->atom, grid, ir); };
+void calc_orbs_az_ne(Orbitals const* orbs, const AtomCache& atom_cache, field_t const* field, double t, double* az) {
+    auto func = [atom_cache](ShGrid const* grid, int ir, int il, int m) -> double {
+        return atom_cache.dudz(ir);
+    };
 #ifdef _MPI
 	if (orbs->mpi_comm != MPI_COMM_NULL) {
-		double az_local = - (field_E(field, t) + orbs->mpi_wf->cos(func))*orbs->atom->n_e[orbs->mpi_rank];
+        double az_local = - (field_E(field, t) + orbs->mpi_wf->cos(func))*orbs->atom.orbs[orbs->mpi_rank].countElectrons;
 		MPI_Gather(&az_local, 1, MPI_DOUBLE, az, 1, MPI_DOUBLE, 0, orbs->mpi_comm);
 	} else
 #endif
 	{
-		for (int ie=0; ie<orbs->atom->n_orbs; ++ie) {
-			az[ie] = - (field_E(field, t) + orbs->wf[ie]->cos(func))*orbs->atom->n_e[ie];
+		for (int ie=0; ie<orbs->atom.countOrbs; ++ie) {
+            az[ie] = - (field_E(field, t) + orbs->wf[ie]->cos(func))*orbs->atom.orbs[ie].countElectrons;
 		}
 	}
 }
 
-double calc_wf_ionization_prob(sh_wavefunc_t const* wf) {
-	return 1.0 - sh_wavefunc_norm(wf, mask_core);
+double calc_wf_ionization_prob(ShWavefunc const* wf) {
+    return 1.0 - wf->norm(mask_core);
 }
 
-double calc_orbs_ionization_prob(orbitals_t const* orbs) {
-	return atom_get_count_electrons(orbs->atom) - orbitals_norm(orbs, mask_core);
+double calc_orbs_ionization_prob(Orbitals const* orbs) {
+    return orbs->atom.countElectrons - orbs->norm(mask_core);
 }
 
 double calc_wf_jrcd(
-		workspace::wf_base* ws,
-		sh_wavefunc_t* wf,
-		atom_t const* atom,
+		workspace::WfBase* ws,
+		ShWavefunc* wf,
+        AtomCache const& atom_cache,
 		field_t const* field,
 		int Nt, 
 		double dt,
@@ -50,8 +56,8 @@ double calc_wf_jrcd(
 	double const t_max = Nt*dt;
 
 	for (int i = 0; i < Nt; ++i) {
-		res += calc_wf_az(wf, atom, field, t)*smoothstep(t_max - t, 0, t_smooth);
-		ws->prop(*wf, atom, field, t, dt);
+        res += calc_wf_az(wf, atom_cache, field, t)*smoothstep(t_max - t, 0, t_smooth);
+        ws->prop(*wf, field, t, dt);
 		t += dt;
 	}
 
@@ -60,8 +66,8 @@ double calc_wf_jrcd(
 
 double calc_orbs_jrcd(
 		workspace::orbs* ws,
-		orbitals_t* orbs,
-		atom_t const* atom,
+		Orbitals* orbs,
+        AtomCache const& atom_cache,
 		field_t const* field,
 		int Nt, 
 		double dt,
@@ -72,8 +78,8 @@ double calc_orbs_jrcd(
 	double const t_max = Nt*dt;
 
 	for (int i = 0; i < Nt; ++i) {
-		res += calc_orbs_az(orbs, atom, field, t)*smoothstep(t_max - t, 0, t_smooth);
-		ws->prop(orbs, atom, field, t, dt, true);
+        res += calc_orbs_az(orbs, atom_cache, field, t)*smoothstep(t_max - t, 0, t_smooth);
+        ws->prop(orbs, field, t, dt, true);
 		t += dt;
 	}
 

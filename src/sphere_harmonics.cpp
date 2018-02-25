@@ -10,7 +10,7 @@
 #include <stdio.h>
 
 
-jl_cache_t::jl_cache_t(sp_grid_t const* grid, int l_max):
+jl_cache_t::jl_cache_t(SpGrid const* grid, int l_max):
 	l_max(l_max),
 	grid(grid)
 {
@@ -21,7 +21,7 @@ jl_cache_t::jl_cache_t(sp_grid_t const* grid, int l_max):
 			if (ir == -1) {
 				(*this)(ir, il) = boost::math::sph_bessel(il, 0.0);
 			} else {
-				(*this)(ir, il) = boost::math::sph_bessel(il, sp_grid_r(grid, ir));
+                (*this)(ir, il) = boost::math::sph_bessel(il, grid->r(ir));
 			}
 		}
 	}
@@ -34,8 +34,8 @@ jl_cache_t::~jl_cache_t() {
 double jl_cache_t::operator()(double r, int il) const {
 	assert(il >= 0 && il < l_max);
 
-	int ir = sp_grid_ir(grid, r);
-	double x = (r - sp_grid_r(grid, ir))/grid->d[iR];
+    int ir = grid->ir(r);
+    double x = (r - grid->r(ir))/grid->d[iR];
 	return (*this)(ir, il)*(1.0 - x) + (*this)(ir+1, il)*x;
 }
 
@@ -52,7 +52,7 @@ double y3(int l1, int m1, int l2, int m2, int L, int M) {
 	return sqrt((2*l1 + 1)*(2*l2 + 1)/(4*M_PI*(2*L + 1)))*clebsch_gordan_coef(l1, 0, l2, 0, L, 0)*clebsch_gordan_coef(l1, m1, l2, m2, L, M);
 }
 
-ylm_cache_t::ylm_cache_t(sp_grid_t const* grid, int l_max):
+ylm_cache_t::ylm_cache_t(SpGrid const* grid, int l_max):
 	l_max(l_max),
 	grid(grid)
 {
@@ -61,7 +61,7 @@ ylm_cache_t::ylm_cache_t(sp_grid_t const* grid, int l_max):
 
 	double* tmp = new double[size]();
 	for (int ic=0; ic<grid->n[iC]; ++ic) {
-		double x = sp_grid_c(grid, ic);
+        double x = grid->c(ic);
 		gsl_sf_legendre_array(GSL_SF_LEGENDRE_SPHARM, l_max, x, tmp);
 		for (int m=0; m<2; ++m) {
 			for (int l=0; l<=l_max; ++l) {
@@ -77,7 +77,7 @@ ylm_cache_t::~ylm_cache_t() {
 	delete[] data;
 }
 
-ylm_cache_t* ylm_cache_new(int l_max, sp_grid_t const* grid) {
+ylm_cache_t* ylm_cache_new(int l_max, SpGrid const* grid) {
 	return new ylm_cache_t(grid, l_max);
 }
 
@@ -90,8 +90,8 @@ double ylm_cache_get(ylm_cache_t const* cache, int l, int m, int ic) {
 }
 
 double ylm_cache_t::operator()(int l, int m, double c) const {
-	int ic = sp_grid_ic(grid, c);
-	double x = (c - sp_grid_c(grid, ic))/grid->d[iC];
+    int ic = grid->ic(c);
+    double x = (c - grid->c(ic))/grid->d[iC];
 
 	if (ic == grid->n[iC] - 1) {
 		return (*this)(l, m, ic);
@@ -104,13 +104,13 @@ double ylm_cache_calc(ylm_cache_t const* cache, int l, int m, double c) {
 	return (*cache)(l, m, c);
 }
 
-double sh_series_r(std::function<double(int, int)> f, int ir, int l, int m, sp_grid_t const* grid, ylm_cache_t const* ylm_cache) {
+double sh_series_r(std::function<double(int, int)> f, int ir, int l, int m, SpGrid const* grid, ylm_cache_t const* ylm_cache) {
 	return integrate_1d_cpp<double>([f, ir, ylm_cache, l, m](int ic) -> double {
 			return f(ir, ic)*ylm_cache_get(ylm_cache, l, m, ic);
 			}, grid->n[iC], grid->d[iC])*2*M_PI;
 }
 
-void sh_series(std::function<double(int, int)> f, int l, int m, sp_grid_t const* grid, double* series, ylm_cache_t const* ylm_cache) {
+void sh_series(std::function<double(int, int)> f, int l, int m, SpGrid const* grid, double* series, ylm_cache_t const* ylm_cache) {
 #pragma omp parallel for
 	for (int ir = 0; ir < grid->n[iR]; ++ir) {
 		series[ir] = sh_series_r(f, ir, l, m, grid, ylm_cache);

@@ -19,7 +19,7 @@ ylm_cache = tdse.sphere_harmonics.YlmCache(Nl, sp_grid)
 uabs = tdse.abs_pot.UabsZero()
 ws = tdse.workspace.SOrbsWorkspace(g, sp_grid, uabs, ylm_cache, Uxc_lmax=1, Uh_lmax=1, uxc=tdse.hartree_potential.UXC_LDA)
 
-orbs = tdse.orbitals.SOrbitals(atom, g)
+orbs = tdse.orbitals.Orbitals(atom, g)
 orbs.init()
 #orbs.load('res/gs/argon_dr_0.02.npy')
 orbs.normalize()

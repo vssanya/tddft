@@ -15,7 +15,7 @@ import tdse
 
         # self.grid = tdse.grid.ShGrid(Nr, Nl, r_max)
         # self.atom = tdse.atom.Ar
-        # self.orbs = tdse.orbitals.SOrbitals(self.atom, self.grid)
+        # self.orbs = tdse.orbitals.Orbitals(self.atom, self.grid)
         # self.orbs.init()
         # self.field = tdse.field.TwoColorSinField()
 
@@ -45,7 +45,7 @@ import tdse
         # self.ylm_cache = tdse.sphere_harmonics.YlmCache(Nl, self.sp_grid)
 
         # self.atom = tdse.atom.Ar
-        # self.orbs = tdse.orbitals.SOrbitals(self.atom, self.grid)
+        # self.orbs = tdse.orbitals.Orbitals(self.atom, self.grid)
         # self.orbs.init()
         # self.uh = np.ndarray(Nr)
         # self.uabs = tdse.abs_pot.UabsMultiHump(0.1, 10)
@@ -76,7 +76,7 @@ class WavefuncPropagate:
         # self.ylm_cache = tdse.sphere_harmonics.YlmCache(Nl, self.sp_grid)
         self.atom = tdse.atom.H
         # self.n = np.ndarray((Nr, 32))
-        self.wf = tdse.wavefunc.SWavefunc(self.grid)
+        self.wf = tdse.wavefunc.ShWavefunc(self.grid)
         self.uabs = tdse.abs_pot.UabsMultiHump(0.1, 10)
         self.ws = tdse.workspace.SKnWorkspace(grid=self.grid, uabs=self.uabs)
         self.field = tdse.field.TwoColorSinField()

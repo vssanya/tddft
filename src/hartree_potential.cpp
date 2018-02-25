@@ -3,35 +3,35 @@
 #include "utils.h"
 
 
-void _hartree_potential_calc_f_l0(orbitals_t const* orbs, double* f) {
-  sh_grid_t const* grid = orbs->grid;
+void _hartree_potential_calc_f_l0(Orbitals const* orbs, double* f) {
+  ShGrid const* grid = orbs->grid;
 #ifdef _MPI
   if (orbs->mpi_comm != MPI_COMM_NULL) {
     for (int il = 0; il < grid->n[iL]; ++il) {
       for (int ir = 0; ir < grid->n[iR]; ++ir) {
-        f[ir] += orbs->mpi_wf->abs_2(ir, il)*orbs->atom->n_e[orbs->mpi_rank];
+        f[ir] += orbs->mpi_wf->abs_2(ir, il)*orbs->atom.orbs[orbs->mpi_rank].countElectrons;
       }
     }
   } else
 #endif
     {
-      for (int ie = 0; ie < orbs->atom->n_orbs; ++ie) {
-        sh_wavefunc_t const* wf = orbs->wf[ie];
+      for (int ie = 0; ie < orbs->atom.countOrbs; ++ie) {
+        ShWavefunc const* wf = orbs->wf[ie];
         for (int il = 0; il < grid->n[iL]; ++il) {
           for (int ir = 0; ir < grid->n[iR]; ++ir) {
-            f[ir] += wf->abs_2(ir, il)*orbs->atom->n_e[ie];
+            f[ir] += wf->abs_2(ir, il)*orbs->atom.orbs[ie].countElectrons;
           }
         }
       }
     }
 }
 
-void _hartree_potential_calc_f_l1(orbitals_t const* orbs, double* f) {
-  sh_grid_t const* grid = orbs->grid;
+void _hartree_potential_calc_f_l1(Orbitals const* orbs, double* f) {
+  ShGrid const* grid = orbs->grid;
 #ifdef _MPI
 	if (orbs->mpi_comm != MPI_COMM_NULL) {
-		sh_wavefunc_t const& wf = *orbs->mpi_wf;
-		int const n_e = orbs->atom->n_e[orbs->mpi_rank];
+		ShWavefunc const& wf = *orbs->mpi_wf;
+        int const n_e = orbs->atom.orbs[orbs->mpi_rank].countElectrons;
 
 		{
 			int il = 0;
@@ -60,9 +60,9 @@ void _hartree_potential_calc_f_l1(orbitals_t const* orbs, double* f) {
 	} else
 #endif
 	{
-		for (int ie = 0; ie < orbs->atom->n_orbs; ++ie) {
-			sh_wavefunc_t const& wf = *orbs->wf[ie];
-			int const n_e = orbs->atom->n_e[ie];
+        for (int ie = 0; ie < orbs->atom.countOrbs; ++ie) {
+			ShWavefunc const& wf = *orbs->wf[ie];
+            int const n_e = orbs->atom.orbs[ie].countElectrons;
 
 			{
 				int il = 0;
@@ -92,12 +92,12 @@ void _hartree_potential_calc_f_l1(orbitals_t const* orbs, double* f) {
 	}
 }
 
-void _hartree_potential_calc_f_l2(orbitals_t const* orbs, double* f) {
-  sh_grid_t const* grid = orbs->grid;
+void _hartree_potential_calc_f_l2(Orbitals const* orbs, double* f) {
+  ShGrid const* grid = orbs->grid;
 #ifdef _MPI
 	if (orbs->mpi_comm != MPI_COMM_NULL) {
-		sh_wavefunc_t const& wf = *orbs->mpi_wf;
-		int const n_e = orbs->atom->n_e[orbs->mpi_rank];
+		ShWavefunc const& wf = *orbs->mpi_wf;
+        int const n_e = orbs->atom.orbs[orbs->mpi_rank].countElectrons;
 
 		for (int il = 0; il < 2; ++il) {
 			for (int ir = 0; ir < grid->n[iR]; ++ir) {
@@ -127,9 +127,9 @@ void _hartree_potential_calc_f_l2(orbitals_t const* orbs, double* f) {
 	} else
 #endif
 	{
-		for (int ie = 0; ie < orbs->atom->n_orbs; ++ie) {
-			sh_wavefunc_t const& wf = *orbs->wf[ie];
-			int const n_e = orbs->atom->n_e[ie];
+        for (int ie = 0; ie < orbs->atom.countOrbs; ++ie) {
+			ShWavefunc const& wf = *orbs->wf[ie];
+            int const n_e = orbs->atom.orbs[ie].countElectrons;
 			for (int il = 0; il < 2; ++il) {
 				for (int ir = 0; ir < grid->n[iR]; ++ir) {
 					f[ir] += creal(n_e*wf(ir, il) * (
@@ -159,7 +159,7 @@ void _hartree_potential_calc_f_l2(orbitals_t const* orbs, double* f) {
 	}
 }
 
-typedef void (*calc_func_t)(orbitals_t const* orbs, double* f);
+typedef void (*calc_func_t)(Orbitals const* orbs, double* f);
 calc_func_t const calc_funcs[3] = {
   _hartree_potential_calc_f_l0,
   _hartree_potential_calc_f_l1,
@@ -167,7 +167,7 @@ calc_func_t const calc_funcs[3] = {
 };
 
 void hartree_potential(
-		orbitals_t const* orbs,
+		Orbitals const* orbs,
 		int l,
 		double* U,
 		double* U_local,
@@ -176,7 +176,7 @@ void hartree_potential(
 ) {
   assert(l >= 0 && l <= 2);
 
-	sh_grid_t const* grid = orbs->grid;
+	ShGrid const* grid = orbs->grid;
 
 	for (int ir = 0; ir < grid->n[iR]; ++ir) {
 		f[ir] = 0.0;
@@ -208,12 +208,12 @@ void hartree_potential(
 }
 
 void hartree_potential_wf_l0(
-		sh_wavefunc_t const* wf,
+		ShWavefunc const* wf,
 		double* U,
 		double* f,
 		int order
 ) {
-	sh_grid_t const* grid = wf->grid;
+	ShGrid const* grid = wf->grid;
 
 	for (int ir = 0; ir < grid->n[iR]; ++ir) {
 		f[ir] = 0.0;
@@ -234,14 +234,14 @@ void hartree_potential_wf_l0(
 
 void uxc_calc_l(
 		potential_xc_f uxc,
-		int l, orbitals_t const* orbs,
+		int l, Orbitals const* orbs,
 		double* U,
-		sp_grid_t const* grid,
+		SpGrid const* grid,
 		double* n, // for calc using mpi
 		double* n_tmp, // for calc using mpi
 		ylm_cache_t const* ylm_cache
 		) {
-		orbitals_n_sp(orbs, grid, n, n_tmp, ylm_cache);
+        orbs->n_sp(grid, n, n_tmp, ylm_cache);
 
 #ifdef _MPI
 		if (orbs->mpi_rank == 0 || orbs->mpi_comm == MPI_COMM_NULL)
@@ -258,15 +258,15 @@ void uxc_calc_l(
 
 void uxc_calc_l0(
 		potential_xc_f uxc,
-		int l, orbitals_t const* orbs,
+		int l, Orbitals const* orbs,
 		double* U,
-		sp_grid_t const* grid,
+		SpGrid const* grid,
 		double* n, // for calc using mpi
 		double* n_tmp, // for calc using mpi
 		ylm_cache_t const* ylm_cache
 		) {
 	if (l==0) {
-		orbitals_n_l0(orbs, n, n_tmp);
+        orbs->n_l0(n, n_tmp);
 
 #ifdef _MPI
 		if (orbs->mpi_rank == 0 || orbs->mpi_comm == MPI_COMM_NULL)
@@ -274,8 +274,8 @@ void uxc_calc_l0(
 		{
 			for (int ir=0; ir<grid->n[iR]; ++ir) {
 				double x = mod_dndr(grid, n, ir);
-				double r = sh_grid_r(orbs->grid, ir);
-				double r_max = sh_grid_r_max(orbs->grid);
+                double r = orbs->grid->r(ir);
+                double r_max = orbs->grid->Rmax();
 				U[ir] = uxc(n[ir], x)*sqrt(4*M_PI);//*(1.0 - smoothstep(r, 20, 40));
 			}
 		}
@@ -322,7 +322,7 @@ double uxc_lda_x(double n, double x) {
 	return ux_lda_func(n);
 }
 
-double mod_grad_n(sp_grid_t const* grid, double* n, int ir, int ic) {
+double mod_grad_n(SpGrid const* grid, double* n, int ir, int ic) {
 	double dn_dr = 0.0;
 	double dn_dc = 0.0;
 
@@ -342,13 +342,13 @@ double mod_grad_n(sp_grid_t const* grid, double* n, int ir, int ic) {
 		dn_dc = (n[ir + (ic-1)*grid->n[iR]] - n[ir + (ic+1)*grid->n[iR]])/(2*grid->d[iC]);
 	}
 
-	double c = sp_grid_c(grid, ic);
-	double r = sp_grid_r(grid, ir);
+    double c = grid->c(ic);
+    double r = grid->r(ir);
 
 	return sqrt(pow(dn_dr,2) + pow(dn_dc/r,2)*(1.0 - c*c))/pow(n[ir + ic*grid->n[iR]], 4.0/3.0);
 }
 
-double mod_dndr(sp_grid_t const* grid, double* n, int ir) {
+double mod_dndr(SpGrid const* grid, double* n, int ir) {
 	double dn_dr = 0.0;
 
 	if (ir == 0) {

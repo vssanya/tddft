@@ -15,11 +15,11 @@ from libc.stdlib cimport malloc, free
 
 
 cdef class CtWavefunc:
-    def __cinit__(self, Sp2Grid grid):
+    def __cinit__(self, SpGrid2d grid):
         self.grid = grid
-        self.cdata = ct_wavefunc_t(grid.cdata)
+        self.cdata = new cCtWavefunc(<cGrid2d*> grid.cdata)
 
-    def __init__(self, Sp2Grid grid):
+    def __init__(self, SpGrid2d grid):
         pass
 
     def asarray(self):
@@ -30,14 +30,14 @@ cdef class CtWavefunc:
         return self.cdata.norm()
 
 
-cdef class SWavefunc:
+cdef class ShWavefunc:
     def __cinit__(self, ShGrid grid, int m=0, dealloc=True):
         self.grid = grid
 
         if not dealloc:
             self.cdata = NULL
         else:
-            self.cdata = sh_wavefunc_new(grid.data, m)
+            self.cdata = new cShWavefunc(grid.data, m)
 
         self.dealloc = dealloc
 
@@ -45,47 +45,47 @@ cdef class SWavefunc:
         pass
 
     def copy(self):
-        cdef SWavefunc wf_copy = SWavefunc(self.grid, m=self.cdata.m)
-        sh_wavefunc_copy(self.cdata, wf_copy.cdata)
+        cdef ShWavefunc wf_copy = ShWavefunc(self.grid, m=self.cdata.m)
+        self.cdata.copy(wf_copy.cdata)
         return wf_copy
 
-    cdef _set_data(self, sh_wavefunc_t* data):
+    cdef _set_data(self, cShWavefunc* data):
         self.cdata = data
 
     def __dealloc__(self):
         if self.dealloc and self.cdata != NULL:
-            sh_wavefunc_del(self.cdata)
+            del self.cdata
             self.cdata = NULL
 
     def n_sp(self, SpGrid grid, YlmCache ylm_cache, np.ndarray[np.double_t, ndim=2] n = None) -> np.ndarray:
         if n is None:
             n = np.ndarray((grid.data.n[1], grid.data.n[0]), np.double)
 
-        sh_wavefunc_n_sp(self.cdata, grid.data, &n[0,0], ylm_cache.cdata)
+        self.cdata.n_sp(grid.data, &n[0,0], ylm_cache.cdata)
 
         return n
 
     def norm(self, masked=False):
         if masked:
-            return sh_wavefunc_norm(self.cdata, mask_core)
+            return self.cdata.norm(mask_core)
         else:
-            return sh_wavefunc_norm(self.cdata, NULL)
+            return self.cdata.norm(NULL)
 
     def norm_l(self):
         arr = self.asarray()
         return np.sum(np.abs(arr)**2, axis=1)*self.grid.data.d[0]
 
     def normalize(self):
-        sh_wavefunc_normalize(self.cdata)
+        self.cdata.normalize()
 
     def z(self):
-        return sh_wavefunc_z(self.cdata)
+        return self.cdata.z()
 
-    def __mul__(SWavefunc self, SWavefunc other):
-        cdef cdouble res = sh_wavefunc_prod(self.cdata, other.cdata)
+    def __mul__(ShWavefunc self, ShWavefunc other):
+        cdef cdouble res = self.cdata[0]*other.cdata[0]
         return (<complex_t*>(&res))[0]
 
-    def exclude(SWavefunc self, SWavefunc other):
+    def exclude(ShWavefunc self, ShWavefunc other):
         self.cdata.exclude(other.cdata[0])
 
     def asarray(self):
@@ -93,7 +93,7 @@ cdef class SWavefunc:
         return np.asarray(array)
 
     def get_sp(self, SpGrid grid, YlmCache ylm_cache, int ir, int ic, int ip):
-        cdef cdouble res =  swf_get_sp(self.cdata, grid.data, [ir, ic, ip], ylm_cache.cdata)
+        cdef cdouble res =  self.cdata.get_sp(grid.data, [ir, ic, ip], ylm_cache.cdata)
         return (<complex_t*>(&res))[0]
 
     def _figure_data(self, format):
@@ -116,7 +116,7 @@ cdef class SWavefunc:
 
     @staticmethod
     def random(ShGrid grid, int l=0, int m=0):
-        wf = SWavefunc(grid, m)
+        wf = ShWavefunc(grid, m)
         arr = wf.asarray()
         arr[:] = 0.0
         arr[l,:] = np.random.rand(arr.shape[1])
@@ -125,14 +125,14 @@ cdef class SWavefunc:
 
     @staticmethod
     def ort_l(wfs, int l):
-        cdef sh_wavefunc_t** wf_arr = <sh_wavefunc_t**>malloc(sizeof(sh_wavefunc_t*)*len(wfs))
+        cdef cShWavefunc** wf_arr = <cShWavefunc**>malloc(sizeof(cShWavefunc*)*len(wfs))
         for i in range(len(wfs)):
-            wf_arr[i] = (<SWavefunc>wfs[i]).cdata
+            wf_arr[i] = (<ShWavefunc>wfs[i]).cdata
 
-        sh_wavefunc_ort_l(l, len(wfs), wf_arr)
+        cShWavefunc.ort_l(l, len(wfs), wf_arr)
         free(wf_arr)
 
-cdef SWavefunc swavefunc_from_point(sh_wavefunc_t* data, ShGrid grid):
-    wf = SWavefunc(grid=grid, dealloc=False)
+cdef ShWavefunc swavefunc_from_point(cShWavefunc* data, ShGrid grid):
+    wf = ShWavefunc(grid=grid, dealloc=False)
     wf._set_data(data)
     return wf

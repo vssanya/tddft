@@ -1,60 +1,60 @@
 from types cimport sh_f, cdouble
-from grid cimport sh_grid_t, sp_grid_t, grid2_t
-from grid cimport ShGrid, Sp2Grid
+from grid cimport cShGrid, cSpGrid, cGrid2d
+from grid cimport ShGrid, SpGrid2d
 from sphere_harmonics cimport ylm_cache_t
 
 
 cdef extern from "wavefunc/cartesian_2d.h":
-    cdef cppclass ct_wavefunc_t:
-        grid2_t* grid,
+    cdef cppclass cCtWavefunc "CtWavefunc":
+        cGrid2d* grid,
         double* data,
         bint data_own
 
-        ct_wavefunc_t()
-        ct_wavefunc_t(grid2_t* grid)
+        cCtWavefunc()
+        cCtWavefunc(cGrid2d* grid)
 
         double norm()
 
 
 cdef extern from "sh_wavefunc.h":
-    cdef cppclass sh_wavefunc_t:
-        sh_grid_t* grid
+    cdef cppclass cShWavefunc "ShWavefunc":
+        cShGrid* grid
 
         cdouble* data
         bint data_own
 
+
         int m
 
-        void exclude(sh_wavefunc_t& other)
+        cShWavefunc(cdouble* data, cShGrid* grid, int m)
+        cShWavefunc(cShGrid* grid, int m)
 
-    sh_wavefunc_t* sh_wavefunc_new(sh_grid_t* grid, int m)
-    sh_wavefunc_t* sh_wavefunc_new_from(cdouble* data, sh_grid_t* grid, int m)
-    void sh_wavefunc_copy(sh_wavefunc_t* wf_src, sh_wavefunc_t* wf_dest)
+        double norm()
+        double abs_2(int ir, int il)
+        void copy(cShWavefunc* wf_dest) 
+        cdouble operator*(cShWavefunc& other) 
+        void exclude(cShWavefunc& other)
+        double cos(sh_f func) 
+        void   cos_r(sh_f U, double* res) 
+        double cos_r2(sh_f U, int Z) 
+        double norm(sh_f mask) 
+        void normalize()
+        double z() 
+        void random_l(int l)
+        cdouble get_sp(cSpGrid* grid, int i[3], ylm_cache_t* ylm_cache)
+        void n_sp(cSpGrid* grid, double* n, ylm_cache_t* ylm_cache)
+        @staticmethod
+        void ort_l(int l, int n, cShWavefunc** wfs)
 
-    void   sh_wavefunc_del(sh_wavefunc_t* wf)
-    void   sh_wavefunc_n_sp(sh_wavefunc_t* wf, sp_grid_t* grid, double* n, ylm_cache_t* ylm_cache)
-    double sh_wavefunc_norm(sh_wavefunc_t* wf, sh_f mask)
-    void   sh_wavefunc_normalize(sh_wavefunc_t* wf)
-    void   sh_wavefunc_print(sh_wavefunc_t * wf)
-    double sh_wavefunc_cos(
-		sh_wavefunc_t * wf,
-		sh_f U
-    )
-    void sh_wavefunc_cos_r(sh_wavefunc_t* wf, sh_f U, double* res)
-    double sh_wavefunc_z(sh_wavefunc_t * wf)
-    void sh_wavefunc_ort_l(int l, int n, sh_wavefunc_t** wfs)
-    cdouble swf_get_sp(sh_wavefunc_t* wf, sp_grid_t* grid, int i[3], ylm_cache_t* ylm_cache)
-    cdouble sh_wavefunc_prod(sh_wavefunc_t* wf1, sh_wavefunc_t* wf2)
-
-cdef class SWavefunc:
-    cdef sh_wavefunc_t* cdata
+cdef class ShWavefunc:
+    cdef cShWavefunc* cdata
     cdef bint dealloc
     cdef public ShGrid grid
 
-    cdef _set_data(self, sh_wavefunc_t* data)
+    cdef _set_data(self, cShWavefunc* data)
 
 cdef class CtWavefunc:
-    cdef ct_wavefunc_t cdata
-    cdef public Sp2Grid grid
+    cdef cCtWavefunc* cdata
+    cdef public SpGrid2d grid
 
-cdef SWavefunc swavefunc_from_point(sh_wavefunc_t* data, ShGrid grid)
+cdef ShWavefunc swavefunc_from_point(cShWavefunc* data, ShGrid grid)

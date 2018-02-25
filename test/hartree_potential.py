@@ -12,7 +12,7 @@ class TestHartreePotential(unittest.TestCase):
         Nl = 1
 
         self.grid = tdse.grid.ShGrid(Nr, Nl, r_max)
-        self.wf = tdse.wavefunc.SWavefunc(self.grid)
+        self.wf = tdse.wavefunc.ShWavefunc(self.grid)
         self.psi = self.wf.asarray()
         self.psi[0,:100] = 1.0
         self.psi[0,100:] = 0.0

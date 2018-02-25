@@ -2,7 +2,7 @@
 #include "../linalg.h"
 
 
-void wf_prop_ang_l(sh_wavefunc_t& wf, cdouble dt, int l, int l1, sh_f Ul, linalg::matrix_f dot, linalg::matrix_f dot_T, cdouble const eigenval[2]) {
+void wf_prop_ang_l(ShWavefunc& wf, cdouble dt, int l, int l1, sh_f Ul, linalg::matrix_f dot, linalg::matrix_f dot_T, cdouble const eigenval[2]) {
 	int const Nr = wf.grid->n[iR];
 
 	cdouble* psi_l0 = &wf(0, l);
@@ -24,7 +24,7 @@ void wf_prop_ang_l(sh_wavefunc_t& wf, cdouble dt, int l, int l1, sh_f Ul, linalg
 	}
 }
 
-void wf_prop_ang_l_2(sh_wavefunc_t& wf, cdouble dt, int l, int l1, sh_f Ul, linalg::matrix_f dot, linalg::matrix_f dot_T, cdouble const eigenval[2]) {
+void wf_prop_ang_l_2(ShWavefunc& wf, cdouble dt, int l, int l1, sh_f Ul, linalg::matrix_f dot, linalg::matrix_f dot_T, cdouble const eigenval[2]) {
 	int const Nr = wf.grid->n[iR];
 
 	cdouble* psi_l0 = &wf(0, l);
@@ -46,10 +46,10 @@ void wf_prop_ang_l_2(sh_wavefunc_t& wf, cdouble dt, int l, int l1, sh_f Ul, lina
 	}
 }
 
-void wf_prop_ang_E_l(sh_wavefunc_t& wf, cdouble dt, int l, int l1, sh_f Ul) {
+void wf_prop_ang_E_l(ShWavefunc& wf, cdouble dt, int l, int l1, sh_f Ul) {
 	wf_prop_ang_l(wf, dt, l, l1, Ul, linalg::matrix_bE::dot, linalg::matrix_bE::dot_T, linalg::matrix_bE::eigenval);
 }
 
-void wf_prop_ang_A_l(sh_wavefunc_t& wf, cdouble dt, int l, int l1, sh_f Ul) {
+void wf_prop_ang_A_l(ShWavefunc& wf, cdouble dt, int l, int l1, sh_f Ul) {
 	wf_prop_ang_l_2(wf, dt, l, l1, Ul, linalg::matrix_bA::dot, linalg::matrix_bA::dot_T, linalg::matrix_bA::eigenval);
 }

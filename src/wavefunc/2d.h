@@ -4,16 +4,16 @@
 #include "../grid.h"
 
 
-struct wavefunc_2d_t {
-	grid2_t const* grid;
+struct Wavefunc2d {
+	Grid2d const* grid;
 
 	cdouble* data;
 	bool data_own;
 
-	wavefunc_2d_t(): grid(NULL), data(NULL), data_own(false) {}
-	wavefunc_2d_t(grid2_t const* grid);
-	wavefunc_2d_t(cdouble* data, grid2_t const* grid);
-	~wavefunc_2d_t();
+    Wavefunc2d(): grid(NULL), data(NULL), data_own(false) {}
+    Wavefunc2d(Grid2d const* grid);
+    Wavefunc2d(cdouble* data, Grid2d const* grid);
+    ~Wavefunc2d();
 
 	double norm() const;
 
@@ -28,5 +28,5 @@ struct wavefunc_2d_t {
 		}
 
 	private:
-	wavefunc_2d_t(cdouble* data, bool data_own, grid2_t const* grid);
+    Wavefunc2d(cdouble* data, bool data_own, Grid2d const* grid);
 };

@@ -17,8 +17,8 @@ extern "C" {
 #endif
 
 typedef struct {
-	sh_grid_t const* grid;
-	atom_t const* atom;
+	ShGrid const* grid;
+	Atom const* atom;
 
 	double dt;
 	double e_max; // maximum energy
@@ -26,16 +26,16 @@ typedef struct {
 	cdouble* s; // propogation matrix shape = (Nl,Nr,n_evec)
 	int n_evec; // number of eigenvec for prop
 
-	sh_wavefunc_t* prop_wf;
+	ShWavefunc* prop_wf;
 } ws_gps_t;
 
-ws_gps_t* ws_gps_alloc(sh_grid_t const* grid, atom_t const* atom, double dt, double e_max);
+ws_gps_t* ws_gps_alloc(ShGrid const* grid, Atom const* atom, double dt, double e_max);
 void ws_gps_free(ws_gps_t* ws);
 void ws_gps_calc_s(ws_gps_t* ws, eigen_ws_t const* eigen);
-void ws_gps_prop(ws_gps_t const* ws, sh_wavefunc_t* wf);
+void ws_gps_prop(ws_gps_t const* ws, ShWavefunc* wf);
 void ws_gps_prop_common(
 		ws_gps_t* ws,
-		sh_wavefunc_t* wf,
+		ShWavefunc* wf,
 		uabs_sh_t const* uabs,
 		field_t const* field,
 		double t

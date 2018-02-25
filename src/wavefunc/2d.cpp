@@ -4,34 +4,35 @@
 #include <iostream>
 
 
-wavefunc_2d_t::wavefunc_2d_t(cdouble* data, bool data_own, grid2_t const* grid):
+Wavefunc2d::Wavefunc2d(cdouble* data, bool data_own, Grid2d const* grid):
 	grid(grid),
 	data(data),
 	data_own(data_own)
 {
 }
 
-wavefunc_2d_t::wavefunc_2d_t(cdouble* data, grid2_t const* grid): wavefunc_2d_t(data, false, grid) {
+Wavefunc2d::Wavefunc2d(cdouble* data, Grid2d const* grid): Wavefunc2d(data, false, grid) {
 }
 
-wavefunc_2d_t::wavefunc_2d_t(grid2_t const* grid): wavefunc_2d_t(NULL, false, grid) {
+Wavefunc2d::Wavefunc2d(Grid2d const* grid): Wavefunc2d(NULL, false, grid) {
 	std::cout << "Call constructor";
-	data = new cdouble[grid2_size(grid)]();
+	data = new cdouble[grid->size()]();
 }
 
-wavefunc_2d_t::~wavefunc_2d_t() {
+Wavefunc2d::~Wavefunc2d() {
 	if (data_own) {
 		delete[] data;
 	}
 }
 
-double ct_wavefunc_t::norm() const {
+double CtWavefunc::norm() const {
 	double norm = 0.0;
+    auto sp_grid = static_cast<SpGrid2d const*>(this->grid);
 
 #pragma omp parallel for reduction(+:norm) collapse(2)
-	for (int ir=0; ir<grid->n[iX]; ++ir) {
-		for (int ic=0; ic<grid->n[iY]; ++ic) {
-			double p = sp2_grid_r(grid, ir);
+    for (int ir=0; ir<sp_grid->n[iX]; ++ir) {
+        for (int ic=0; ic<sp_grid->n[iY]; ++ic) {
+            double p = sp_grid->r(ir);
 
 			norm += pow(cabs((*this)(ir,ic))*p, 2);
 		}

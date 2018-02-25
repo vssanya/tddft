@@ -156,7 +156,7 @@ class SFATask(Task):
 
     def __init__(self, path_res='res', mode=None, **kwargs):
         super().__init__(path_res, mode, is_mpi=False, **kwargs)
-        self.grid = tdse.grid.Sp2Grid(self.Nr, self.Nc, self.Rmax)
+        self.grid = tdse.grid.SpGrid2d(self.Nr, self.Nc, self.Rmax)
 
     def calc_init(self):
         self.ws = tdse.workspace.SFAWorkspace()
@@ -195,7 +195,7 @@ class WavefuncTask(Task):
             print("Start calc ground state")
             self.wf = self.calc_ground_state(self.ws)
         else:
-            self.wf = tdse.wavefunc.SWavefunc(self.grid)
+            self.wf = tdse.wavefunc.ShWavefunc(self.grid)
 
         self.t = self.field.get_t(self.dt, dT=self.dT)
 
@@ -228,7 +228,7 @@ class WavefuncWithSourceTask(Task):
         super().calc_init()
 
         self.wf_source = self.calc_ground_state()
-        self.wf = tdse.wavefunc.SWavefunc(self.grid)
+        self.wf = tdse.wavefunc.ShWavefunc(self.grid)
         self.wf.asarray()[:] = 0.0
 
         self.ws = tdse.workspace.SKnWithSourceWorkspace(self.grid, self.uabs, self.wf_source, -0.5)
@@ -278,7 +278,7 @@ class OrbitalsTask(Task):
     def calc_init(self):
         super().calc_init()
 
-        self.orbs = tdse.orbitals.SOrbitals(self.atom, self.sh_grid, self.comm)
+        self.orbs = tdse.orbitals.Orbitals(self.atom, self.sh_grid, self.comm)
         self.orbs.load(self.ground_state)
 
         self.ws = tdse.workspace.SOrbsWorkspace(self.sh_grid, self.sp_grid, self.uabs, self.ylm_cache, Uxc_lmax=self.Uxc_lmax, Uh_lmax = self.Uh_lmax, uxc=self.uxc)

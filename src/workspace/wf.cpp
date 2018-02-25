@@ -7,7 +7,8 @@
 #include "../linalg.h"
 
 
-workspace::wf_base::wf_base(sh_grid_t const* grid, uabs_sh_t const* uabs, int num_threads):
+workspace::WfBase::WfBase(Atom const& atom, ShGrid const* grid, uabs_sh_t const* uabs, int num_threads):
+    atom_cache(AtomCache(atom, grid)),
 	grid(grid),
 	uabs(uabs),
 	num_threads(num_threads)
@@ -25,12 +26,12 @@ workspace::wf_base::wf_base(sh_grid_t const* grid, uabs_sh_t const* uabs, int nu
 	betta = new cdouble[grid->n[iR]*num_threads];
 }
 
-workspace::wf_base::~wf_base() {
+workspace::WfBase::~WfBase() {
 	delete[] alpha;
 	delete[] betta;
 }
 
-void workspace::wf_base::prop_mix(sh_wavefunc_t& wf, sh_f Al, double dt, int l) {
+void workspace::WfBase::prop_mix(ShWavefunc& wf, sh_f Al, double dt, int l) {
 	int    const Nr = grid->n[iR];
 	double const dr = grid->d[iR];
 
@@ -66,10 +67,12 @@ void workspace::wf_base::prop_mix(sh_wavefunc_t& wf, sh_f Al, double dt, int l) 
  * \param[in,out] wf
  *
  */
-void workspace::wf_base::prop_at(sh_wavefunc_t& wf, cdouble dt, sh_f Ul, int Z, potential_type_e u_type) {
+void workspace::WfBase::prop_at(ShWavefunc& wf, cdouble dt, sh_f Ul) {
 	int const Nr = grid->n[iR];
 	double const dr = grid->d[iR];
 	double const dr2 = dr*dr;
+
+    int const Z = atom_cache.atom.Z;
 
 
 	double const d2[3] = {1.0/dr2, -2.0/dr2, 1.0/dr2};
@@ -110,7 +113,7 @@ void workspace::wf_base::prop_at(sh_wavefunc_t& wf, cdouble dt, sh_f Ul, int Z, 
 				ar[i] = M2[i]*(1.0 - idt_2*U[i]) + 0.5*idt_2*d2[i];
 			}
 
-			if (l == 0 && u_type == POTENTIAL_COULOMB) {
+            if (l == 0 && atom_cache.atom.potentialType == Atom::POTENTIAL_COULOMB) {
 				al[1] = M2_l0_11*(1.0 + idt_2*U[1]) - 0.5*idt_2*d2_l0_11;
 				ar[1] = M2_l0_11*(1.0 - idt_2*U[1]) + 0.5*idt_2*d2_l0_11;
 			}
@@ -162,7 +165,7 @@ void workspace::wf_base::prop_at(sh_wavefunc_t& wf, cdouble dt, sh_f Ul, int Z, 
 	}
 }
 
-void workspace::wf_base::prop_common(sh_wavefunc_t& wf, cdouble dt, int l_max, sh_f* Ul, int Z, potential_type_e u_type, sh_f* Al) {
+void workspace::WfBase::prop_common(ShWavefunc& wf, cdouble dt, int l_max, sh_f* Ul, sh_f* Al) {
 	int const Nl = grid->n[iL];
 #pragma omp parallel
 	{
@@ -182,7 +185,7 @@ void workspace::wf_base::prop_common(sh_wavefunc_t& wf, cdouble dt, int l_max, s
 			}
 		}
 
-		prop_at(wf, dt, Ul[0], Z, u_type);
+        prop_at(wf, dt, Ul[0]);
 
 		if (Al != nullptr) {
 			for (int il=Nl-2; il>=0; --il) {
@@ -203,7 +206,7 @@ void workspace::wf_base::prop_common(sh_wavefunc_t& wf, cdouble dt, int l_max, s
 	}
 }
 
-void workspace::wf_base::prop_abs(sh_wavefunc_t& wf, double dt) {
+void workspace::WfBase::prop_abs(ShWavefunc& wf, double dt) {
 #pragma omp parallel for collapse(2)
 	for (int il = 0; il < grid->n[iL]; ++il) {
 		for (int ir = 0; ir < grid->n[iR]; ++ir) {
@@ -212,78 +215,78 @@ void workspace::wf_base::prop_abs(sh_wavefunc_t& wf, double dt) {
 	}
 }
 
-void workspace::wf_base::prop(sh_wavefunc_t& wf, atom_t const* atom, field_t const* field, double t, double dt) {
+void workspace::WfBase::prop(ShWavefunc& wf, field_t const* field, double t, double dt) {
 	double Et = field_E(field, t + dt/2);
 
 	sh_f Ul[2] = {
-			[atom](sh_grid_t const* grid, int ir, int l, int m) -> double {
-				double const r = sh_grid_r(grid, ir);
-				return l*(l+1)/(2*r*r) + atom->u(atom, grid, ir);
+            [this](ShGrid const* grid, int ir, int l, int m) -> double {
+				double const r = grid->r(ir);
+                return l*(l+1)/(2*r*r) + atom_cache.u(ir);
 			},
-			[Et](sh_grid_t const* grid, int ir, int l, int m) -> double {
-				double const r = sh_grid_r(grid, ir);
+            [Et](ShGrid const* grid, int ir, int l, int m) -> double {
+				double const r = grid->r(ir);
 				return r*Et*clm(l,m);
 			}
 	};
 
 
-	prop_common(wf, dt, 2, Ul, atom->Z, atom->u_type);
+    prop_common(wf, dt, 2, Ul);
 
 	prop_abs(wf, dt);
 }
 
-void workspace::wf_E::prop(sh_wavefunc_t& wf, atom_t const* atom, field_t const* field, double t, double dt) {
+void workspace::WfE::prop(ShWavefunc& wf, field_t const* field, double t, double dt) {
 	double Et = field_E(field, t + dt/2);
 
 	sh_f Ul[2] = {
-			[atom](sh_grid_t const* grid, int ir, int l, int m) -> double {
-				double const r = sh_grid_r(grid, ir);
-				return l*(l+1)/(2*r*r) + atom->u(atom, grid, ir);
+            [this](ShGrid const* grid, int ir, int l, int m) -> double {
+				double const r = grid->r(ir);
+                return l*(l+1)/(2*r*r) + atom_cache.u(ir);
 			},
-			[Et](sh_grid_t const* grid, int ir, int l, int m) -> double {
-				double const r = sh_grid_r(grid, ir);
+            [Et](ShGrid const* grid, int ir, int l, int m) -> double {
+				double const r = grid->r(ir);
 				return r*Et*clm(l,m);
 			}
 	};
 
 
-	prop_common(wf, dt, 2, Ul, atom->Z, atom->u_type);
+    prop_common(wf, dt, 2, Ul);
 
 	prop_abs(wf, dt);
 }
 
-void workspace::wf_A::prop(sh_wavefunc_t& wf, atom_t const* atom, field_t const* field, double t, double dt) {
+void workspace::WfA::prop(ShWavefunc& wf, field_t const* field, double t, double dt) {
 	double At = -field_A(field, t + dt/2);
 
 	sh_f Ul[1] = {
-			[atom](sh_grid_t const* grid, int ir, int l, int m) -> double {
-				double const r = sh_grid_r(grid, ir);
-				return l*(l+1)/(2*r*r) + atom->u(atom, grid, ir);
+            [this](ShGrid const* grid, int ir, int l, int m) -> double {
+				double const r = grid->r(ir);
+                return l*(l+1)/(2*r*r) + atom_cache.u(ir);
 			},
 	};
 
 	sh_f Al[2] = {
-		[At](sh_grid_t const* grid, int ir, int l, int m) -> double {
+        [At](ShGrid const* grid, int ir, int l, int m) -> double {
 				return At*clm(l,m);
 		},
-		[At](sh_grid_t const* grid, int ir, int l, int m) -> double {
-				double const r = sh_grid_r(grid, ir);
+        [At](ShGrid const* grid, int ir, int l, int m) -> double {
+				double const r = grid->r(ir);
 				return At*(l+1)*clm(l,m)/r;
 		}
 	};
 
 
-	prop_common(wf, dt, 1, Ul, atom->Z, atom->u_type, Al);
+    prop_common(wf, dt, 1, Ul, Al);
 	prop_abs(wf, dt);
 }
 
-void workspace::wf_base::prop_img(sh_wavefunc_t& wf, atom_t const* atom, double dt) {
+void workspace::WfBase::prop_img(ShWavefunc& wf, double dt) {
 	sh_f Ul[1] = {
-		[atom](sh_grid_t const* grid, int ir, int l, int m) -> double {
-			double const r = sh_grid_r(grid, ir);
-			return l*(l+1)/(2*r*r) + atom->u(atom, grid, ir);
+        [this](ShGrid const* grid, int ir, int l, int m) -> double {
+			double const r = grid->r(ir);
+            return l*(l+1)/(2*r*r) + atom_cache.u(ir);
 		}
 	};
 
-	prop_common(wf, -I*dt, 1, Ul, atom->Z, atom->u_type);
+    prop_common(wf, -I*dt, 1, Ul);
 }

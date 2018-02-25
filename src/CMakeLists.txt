@@ -4,6 +4,7 @@ set( LIB_SOURCES
 	"workspace/wf.cpp"
 	"workspace/wf_with_source.cpp"
 	"workspace/orbs.cpp"
+	"workspace/orbs_spin.cpp"
 	#"workspace/sae.cpp"
 	"workspace/gps.cpp"
 	"workspace/common_alg.cpp"
@@ -13,8 +14,7 @@ set( LIB_SOURCES
 	hartree_potential.cpp
 	integrate.c
 	utils.c
-	abs_pot.c
-	grid.c
+	abs_pot.cpp
 	fields.c
 	calc.cpp
 	sphere_harmonics.cpp
@@ -35,6 +35,7 @@ set( LIB_HEADERS
 	"workspace/wf.h"
 	"workspace/wf_with_source.h"
 	"workspace/orbs.h"
+	"workspace/orbs_spin.h"
 	"workspace/sae.h"
 	"workspace/gps.h"
 	"workspace/common_alg.h"

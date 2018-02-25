@@ -8,36 +8,37 @@
 #include "atom.h"
 
 
-double calc_wf_ionization_prob(sh_wavefunc_t const* wf);
-double calc_orbs_ionization_prob(orbitals_t const* orbs);
+double calc_wf_ionization_prob(ShWavefunc const* wf);
+double calc_orbs_ionization_prob(Orbitals const* orbs);
 
 // az(t) = - Ez(t) - <Ψ|dUdz|Ψ>
 // @param dUdz - depends only r. It's dUdz/cos(\theta).
 double calc_wf_az(
-		sh_wavefunc_t const* wf,
-		atom_t const* atom,
+		ShWavefunc const* wf,
+        AtomCache const& atom_cache,
 		field_t const* field,
 		double t
 );
 
 double calc_orbs_az(
-		orbitals_t const* orbs,
-		atom_t const* atom,
+		Orbitals const* orbs,
+        AtomCache const& atom_cache,
 		field_t const* field,
 		double t
 );
 
 void calc_orbs_az_ne(
-		orbitals_t const* orbs,
+		Orbitals const* orbs,
+        AtomCache const& atom_cache,
 		field_t const* field,
 		double t,
 		double* az
 );
 
 double calc_wf_jrcd(
-		workspace::wf_base* ws,
-		sh_wavefunc_t* wf,
-		atom_t const* atom,
+		workspace::WfBase* ws,
+		ShWavefunc* wf,
+        AtomCache const& atom,
 		field_t const* field,
 		int Nt, 
 		double dt,
@@ -46,8 +47,8 @@ double calc_wf_jrcd(
 
 double calc_orbs_jrcd(
 		workspace::orbs* ws,
-		orbitals_t* orbs,
-		atom_t const* atom,
+		Orbitals* orbs,
+        AtomCache const& atom,
 		field_t const* field,
 		int Nt, 
 		double dt,

@@ -1,50 +1,72 @@
-from wavefunc cimport sh_wavefunc_t
-from grid cimport sh_grid_t
-from types cimport sh_f
+from grid cimport cShGrid, ShGrid
+from libcpp.vector cimport vector
 
 cdef extern from "atom.h":
-    ctypedef enum potential_type_e:
-        POTENTIAL_SMOOTH, POTENTIAL_COULOMB
+    cdef cppclass cAtom "Atom":
+        enum PotentialType:
+            POTENTIAL_SMOOTH,
+            POTENTIAL_COULOMB
 
-    ctypedef double (*pot_f)(atom_t*, sh_grid_t*, int)
+        cppclass State:
+            int n
+            int l
+            int m
+            int s
+            int countElectrons
 
-    ctypedef struct atom_t:
         int Z
-        int n_orbs
-        int* m
-        int* l
-        int* e_n
-        pot_f u
-        pot_f dudz
-        potential_type_e u_type
+        vector[State] orbs
+        int countOrbs
 
-    double atom_u_coulomb(atom_t* atom, sh_grid_t* grid, int ir)
-    double atom_dudz_coulomb(atom_t* atom, sh_grid_t* grid, int ir)
-    double atom_u_smooth(atom_t* atom, sh_grid_t* grid, int ir)
-    double atom_dudz_smooth(atom_t* atom, sh_grid_t* grid, int ir)
+        State groundState
 
-    void atom_hydrogen_ground(sh_wavefunc_t* wf)
+        PotentialType potentialType
+        int countElectrons
 
-    atom_t atom_hydrogen
-    atom_t atom_hydrogen_smooth
+        double u(double r)
+        double dudz(double r)
 
-    atom_t atom_argon
-    atom_t atom_argon_ion
-    atom_t atom_argon_sae
-    atom_t atom_argon_sae_smooth
+    cdef cppclass cAtomCache "AtomCache":
+        cAtomCache(cAtom& atom, cShGrid* grid)
+        double u(int ir)
+        double dudz(int ir)
 
-    atom_t atom_rb_sae
-    atom_t atom_na_sae
+        cAtom& atom;
+        cShGrid* grid;
 
-    atom_t atom_neon
+        double* data_u;
+        double* data_dudz;
 
-    atom_t atom_none
+    cdef cppclass NaAtom:
+        NaAtom()
+
+    cdef cppclass NaAtomSGB:
+        NaAtomSGB()
+
+    cdef cppclass HAtom:
+        HAtom()
+    
+    cdef cppclass HSmothAtom:
+        HSmothAtom()
+
+    cdef cppclass ArAtom:
+        ArAtom()
+
+    cdef cppclass ArSaeAtom:
+        ArSaeAtom()
+
+    cdef cppclass ArSaeSmoothAtom:
+        ArSaeSmoothAtom()
+
+    cdef cppclass NoneAtom:
+        NoneAtom()
 
 cdef class Atom:
-    cdef atom_t cdata
+    cdef cAtom* cdata
     @staticmethod
-    cdef Atom from_c(atom_t* atom)
+    cdef Atom from_c(cAtom* atom)
 
-
-cdef class HAtom(Atom):
-    pass
+cdef class AtomCache:
+    cdef cAtomCache* cdata
+    cdef public Atom atom
+    cdef public ShGrid grid

@@ -8,7 +8,7 @@ dt = 0.025
 dr = 0.125
 r_max = 60
 g = grid.ShGrid(Nr=r_max/dr, Nl=1, r_max=r_max)
-wf = wavefunc.SWavefunc.random(g)
+wf = wavefunc.ShWavefunc.random(g)
 ws = workspace.SKnWorkspace(dt=dt, grid=g)
 
 wf_hydrogen = hydrogen.ground_state(g)

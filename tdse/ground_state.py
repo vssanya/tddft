@@ -3,7 +3,7 @@ from . import grid, wavefunc, orbitals
 
 
 def wf_1(atom, l, m, grid, ws, dt, Nt):
-    wf = wavefunc.SWavefunc.random(grid, l, m)
+    wf = wavefunc.ShWavefunc.random(grid, l, m)
 
     for i in range(Nt):
         ws.prop_img(wf, atom, dt)
@@ -12,13 +12,13 @@ def wf_1(atom, l, m, grid, ws, dt, Nt):
     return wf
 
 def wf_n(atom, n, l, m, grid, ws, dt, Nt):
-    wfs = [wavefunc.SWavefunc.random(grid, l, m) for i in range(n)]
+    wfs = [wavefunc.ShWavefunc.random(grid, l, m) for i in range(n)]
 
     for i in range(Nt):
         for j in range(n):
             ws.prop_img(wfs[j], atom, dt)
             wfs[j].normalize()
-        wavefunc.SWavefunc.ort_l(wfs, l)
+        wavefunc.ShWavefunc.ort_l(wfs, l)
 
     wfs[-1].normalize()
     return wfs[-1]
@@ -36,7 +36,7 @@ def wf(atom, grid, ws, dt, Nt, n=1, l=None, m=None):
 
 
 def orbs(atom, grid, ws, dt=0.125, Nt=10000, print_calc_info=False):
-    orbs = orbitals.SOrbitals(atom, grid)
+    orbs = orbitals.Orbitals(atom, grid)
     orbs.init()
 
     for i in range(Nt):

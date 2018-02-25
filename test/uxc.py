@@ -17,7 +17,7 @@ ylm_cache = tdse.sphere_harmonics.YlmCache(Nl, sp_grid)
 
 r = np.linspace(0, 120, Nr)
 
-orbs = tdse.orbitals.SOrbitals(atom, sh_grid)
+orbs = tdse.orbitals.Orbitals(atom, sh_grid)
 orbs.load('ar_r_120_lb.npy')
 
 n_sp = orbs.n_sp(sp_grid, ylm_cache)

@@ -6,9 +6,9 @@
 #include "2d.h"
 
 
-struct ct_wavefunc_t : public wavefunc_2d_t {
-	ct_wavefunc_t(): wavefunc_2d_t() {}
-	ct_wavefunc_t(grid2_t const* grid): wavefunc_2d_t(grid) {}
+struct CtWavefunc : public Wavefunc2d {
+    CtWavefunc(): Wavefunc2d() {}
+    CtWavefunc(Grid2d const* grid): Wavefunc2d(grid) {}
 
 	double norm() const;
 };

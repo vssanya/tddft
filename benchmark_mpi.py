@@ -14,11 +14,11 @@ grid = tdse.grid.ShGrid(Nr=Nr, Nl=60, r_max=200)
 sp_grid = tdse.grid.SpGrid(Nr=Nr, Nc=32, Np=1, r_max=200)
 ylm_cache = tdse.sphere_harmonics.YlmCache(60, sp_grid)
 
-orbs = tdse.orbitals.SOrbitals(size, grid, comm=comm)
-#orbs = tdse.orbitals.SOrbitals(size, grid)
+orbs = tdse.orbitals.Orbitals(size, grid, comm=comm)
+#orbs = tdse.orbitals.Orbitals(size, grid)
 atom = tdse.atom.Atom('H')
 
-wf = tdse.wavefunc.SWavefunc(grid)
+wf = tdse.wavefunc.ShWavefunc(grid)
 ws = tdse.workspace.SOrbsWorkspace(grid, sp_grid, ylm_cache)
 
 n_wf = np.ndarray((Nr, 32))
@@ -27,9 +27,9 @@ uh = np.ndarray(Nr)
 uxc = np.ndarray(Nr)
 
 if rank == 0:
-    n_orbs = np.ndarray((Nr, 32))
+    countOrbs = np.ndarray((Nr, 32))
 else:
-    n_orbs = None
+    countOrbs = None
 
 f = tdse.field.TwoColorPulseField()
 ws.prop(orbs, atom, f, 0.0, 0.1)

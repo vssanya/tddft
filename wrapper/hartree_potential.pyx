@@ -1,8 +1,8 @@
 import numpy as np
 cimport numpy as np
 
-from wavefunc cimport SWavefunc
-from orbitals cimport SOrbitals
+from wavefunc cimport ShWavefunc
+from orbitals cimport Orbitals
 from grid cimport SpGrid
 from sphere_harmonics cimport YlmCache
 
@@ -13,7 +13,7 @@ cdef class Uxc:
         obj.cdata = func
         return obj
 
-    def calc_l(self, int l, SOrbitals orbs, SpGrid grid, YlmCache ylm_cache, np.ndarray[np.double_t, ndim=1] uxc = None, np.ndarray[np.double_t, ndim=2] n = None) -> np.ndarray:
+    def calc_l(self, int l, Orbitals orbs, SpGrid grid, YlmCache ylm_cache, np.ndarray[np.double_t, ndim=1] uxc = None, np.ndarray[np.double_t, ndim=2] n = None) -> np.ndarray:
         if uxc is None:
             uxc = np.ndarray((orbs.cdata.wf[0].grid.n[0]), np.double)
         else:
@@ -23,7 +23,7 @@ cdef class Uxc:
 
         return uxc
 
-    def calc_l0(self, int l, SOrbitals orbs, SpGrid grid, YlmCache ylm_cache, np.ndarray[np.double_t, ndim=1] uxc = None, np.ndarray[np.double_t, ndim=2] n = None) -> np.ndarray:
+    def calc_l0(self, int l, Orbitals orbs, SpGrid grid, YlmCache ylm_cache, np.ndarray[np.double_t, ndim=1] uxc = None, np.ndarray[np.double_t, ndim=2] n = None) -> np.ndarray:
         if uxc is None:
             uxc = np.ndarray((orbs.cdata.wf[0].grid.n[0]), np.double)
         else:
@@ -41,7 +41,7 @@ UXC_LDA_X = Uxc.from_c_func(uxc_lda_x)
 def uc_lda(double n):
     return uc_lda_func(n)
 
-def potential(SOrbitals orbs, int l = 0, np.ndarray[np.double_t, ndim=1] uh = None, int order=3) -> np.ndarray:
+def potential(Orbitals orbs, int l = 0, np.ndarray[np.double_t, ndim=1] uh = None, int order=3) -> np.ndarray:
     if uh is None:
         uh = np.ndarray((orbs.cdata.wf[0].grid.n[0]), np.double)
 
@@ -50,7 +50,7 @@ def potential(SOrbitals orbs, int l = 0, np.ndarray[np.double_t, ndim=1] uh = No
 
     return uh
 
-def wf_l0(SWavefunc wf, np.ndarray[np.double_t, ndim=1] uh = None, int order=3) -> np.ndarray:
+def wf_l0(ShWavefunc wf, np.ndarray[np.double_t, ndim=1] uh = None, int order=3) -> np.ndarray:
     if uh is None:
         uh = np.ndarray((wf.cdata.grid.n[0]), np.double)
 

@@ -1,28 +1,22 @@
-from workspace cimport wf_base, orbs
-from wavefunc cimport sh_wavefunc_t
-from orbitals cimport orbitals_t
+from workspace cimport WfBase, orbs
+from wavefunc cimport cShWavefunc
+from orbitals cimport cOrbitals
 from field cimport field_t
 from types cimport sh_f
-from atom cimport atom_t
+from atom cimport cAtomCache
 
 
 cdef extern from "calc.h":
-    double calc_wf_ionization_prob(sh_wavefunc_t* wf)
-    double calc_orbs_ionization_prob(orbitals_t* orbs)
-    double calc_wf_az(sh_wavefunc_t* wf, atom_t* atom, field_t* field, double t)
-    double calc_orbs_az(orbitals_t* orbs, atom_t* atom, field_t* field, double t)
-    void calc_orbs_az_ne(orbitals_t* orbs, field_t* field, double t, double* az)
-    void calc_wf_az_t(
-            int Nt, double* a,
-            wf_base* ws,
-            sh_wavefunc_t* wf,
-            field_t* field,
-            double dt);
+    double calc_wf_ionization_prob(cShWavefunc* wf)
+    double calc_orbs_ionization_prob(cOrbitals* orbs)
+    double calc_wf_az(cShWavefunc* wf, cAtomCache& atom, field_t* field, double t)
+    double calc_orbs_az(cOrbitals* orbs, cAtomCache& atom, field_t* field, double t)
+    void calc_orbs_az_ne(cOrbitals* orbs, cAtomCache& atom, field_t* field, double t, double* az)
 
     double calc_wf_jrcd(
-            wf_base* ws,
-            sh_wavefunc_t* wf,
-            atom_t* atom,
+            WfBase* ws,
+            cShWavefunc* wf,
+            cAtomCache& atom,
             field_t* field,
             int Nt, 
             double dt,
@@ -31,8 +25,8 @@ cdef extern from "calc.h":
 
     double calc_orbs_jrcd(
             orbs* ws,
-            orbitals_t* orbs,
-            atom_t* atom,
+            cOrbitals* orbs,
+            cAtomCache& atom,
             field_t* field,
             int Nt, 
             double dt,

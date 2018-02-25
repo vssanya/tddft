@@ -4,277 +4,266 @@
 #include <stdio.h>
 
 
-orbitals_t* orbials_new(atom_t const* atom, sh_grid_t const* grid, MPI_Comm mpi_comm) {
-	orbitals_t* orbs = new orbitals_t;
-
-	orbs->atom = atom;
-	orbs->grid = grid;
-
-	orbs->wf = new sh_wavefunc_t*[atom->n_orbs];
+Orbitals::Orbitals(Atom const& atom, ShGrid const* grid, MPI_Comm mpi_comm):
+    atom(atom),
+    grid(grid)
+{
+    wf = new ShWavefunc*[atom.countOrbs];
 
 #ifdef _MPI
-	orbs->mpi_comm = mpi_comm;
+    this->mpi_comm = mpi_comm;
 
 	if (mpi_comm != MPI_COMM_NULL) {
-		MPI_Comm_rank(orbs->mpi_comm, &orbs->mpi_rank);
+        MPI_Comm_rank(mpi_comm, &mpi_rank);
 
-		orbs->data = new cdouble[grid2_size(grid)];
-		for (int ie = 0; ie < atom->n_orbs; ++ie) {
-			if (ie == orbs->mpi_rank) {
-				orbs->wf[ie] = sh_wavefunc_new_from(orbs->data, grid, atom->m[ie]);
-				orbs->mpi_wf = orbs->wf[ie];
+        data = new cdouble[grid->size()];
+        for (int ie = 0; ie < atom.countOrbs; ++ie) {
+            if (ie == mpi_rank) {
+                wf[ie] = new ShWavefunc(data, grid, atom.orbs[ie].m);
+                mpi_wf = wf[ie];
 			} else {
-				orbs->wf[ie] = NULL;
+                wf[ie] = NULL;
 			}
 		}
 	} else
 #endif
 	{
-		orbs->data = new cdouble[grid2_size(grid)*atom->n_orbs];
-		for (int ie = 0; ie < atom->n_orbs; ++ie) {
-			orbs->wf[ie] = sh_wavefunc_new_from(&orbs->data[grid2_size(grid)*ie], grid, atom->m[ie]);
+        data = new cdouble[grid->size()*atom.countOrbs];
+        for (int ie = 0; ie < atom.countOrbs; ++ie) {
+            wf[ie] = new ShWavefunc(&data[grid->size()*ie], grid, atom.orbs[ie].m);
 		}
 	}
-	
-	return orbs;
 }
 
-void orbitals_init(orbitals_t* orbs) {
+void Orbitals::init() {
+    for (int ie = 0; ie < atom.countOrbs; ++ie) {
+        if (wf[ie] != nullptr) {
+            wf[ie]->m = atom.orbs[ie].m;
+            wf[ie]->random_l(atom.orbs[ie].l);
+        }
+    }
+}
+
+void Orbitals::setInitState(cdouble* data, int Nr, int Nl) {
+    assert(grid->n[iR] <= Nr);
+
+    int const size = Nl*grid->n[iR];
 #ifdef _MPI
-	if (orbs->mpi_comm != MPI_COMM_NULL) {
-		orbs->mpi_wf->m = orbs->atom->m[orbs->mpi_rank];
-		sh_wavefunc_random_l(orbs->mpi_wf, orbs->atom->l[orbs->mpi_rank]);
-	} else
+    if (mpi_comm != MPI_COMM_NULL) {
+        assert(grid->n[iR] == Nr);
+        MPI_Scatter(data, size, MPI_C_DOUBLE_COMPLEX, mpi_wf->data, size, MPI_C_DOUBLE_COMPLEX, 0, mpi_comm);
+    } else
 #endif
-	{
-		for (int ie = 0; ie < orbs->atom->n_orbs; ++ie) {
-			orbs->wf[ie]->m = orbs->atom->m[ie];
-			sh_wavefunc_random_l(orbs->wf[ie], orbs->atom->l[ie]);
-		}
-	}
+    {
+        if (Nr == grid->n[iR]) {
+            for (int ie = 0; ie < atom.countOrbs; ++ie) {
+                memcpy(wf[ie]->data, &data[ie*Nr*Nl], size*sizeof(cdouble));
+            }
+        } else {
+            for (int ie = 0; ie < atom.countOrbs; ++ie) {
+                for (int il = 0; il < Nl; ++il) {
+                    memcpy(&wf[ie]->data[il*grid->n[iR]], &data[il*Nr + ie*Nr*Nl], size*sizeof(cdouble));
+                }
+            }
+        }
+    }
 }
 
-void orbitals_set_init_state(orbitals_t* orbs, cdouble* data, int n_r, int n_l) {
-	assert(orbs->grid->n[iR] <= n_r);
-
-	int const size = n_l*orbs->grid->n[iR];
-#ifdef _MPI
-	if (orbs->mpi_comm != MPI_COMM_NULL) {
-		assert(orbs->grid->n[iR] == n_r);
-		MPI_Scatter(data, size, MPI_C_DOUBLE_COMPLEX, orbs->mpi_wf->data, size, MPI_C_DOUBLE_COMPLEX, 0, orbs->mpi_comm);
-	} else
-#endif
-	{
-		if (n_r == orbs->grid->n[iR]) {
-			for (int ie = 0; ie < orbs->atom->n_orbs; ++ie) {
-				memcpy(orbs->wf[ie]->data, &data[ie*n_r*n_l], size*sizeof(cdouble));
-			}
-		} else {
-			for (int ie = 0; ie < orbs->atom->n_orbs; ++ie) {
-				for (int il = 0; il < n_l; ++il) {
-					memcpy(&orbs->wf[ie]->data[il*orbs->grid->n[iR]], &data[il*n_r + ie*n_r*n_l], size*sizeof(cdouble));
-				}
-			}
-		}
-	}
-}
-
-void orbitals_del(orbitals_t* orbs) {
-	assert(orbs != NULL);
-
-	for (int ie = 0; ie < orbs->atom->n_orbs; ++ie) {
-		if (orbs->wf[ie] != NULL) {
-			sh_wavefunc_del(orbs->wf[ie]);
-		}
-	}
-	
-	delete[] orbs->data;
-	delete orbs;
-}
-
-double orbitals_norm(orbitals_t const* orbs, sh_f mask) {
-	assert(orbs != NULL);
-
-	double res = 0.0;
-
-#ifdef _MPI
-	if (orbs->mpi_comm != MPI_COMM_NULL) {
-		double local_res = sh_wavefunc_norm(orbs->mpi_wf, mask)*orbs->atom->n_e[orbs->mpi_rank];
-		MPI_Reduce(&local_res, &res, 1, MPI_DOUBLE, MPI_SUM, 0, orbs->mpi_comm);
-	} else
-#endif
-	{
-#pragma omp parallel for reduction(+:res)
-		for (int ie=0; ie<orbs->atom->n_orbs; ++ie) {
-			res += sh_wavefunc_norm(orbs->wf[ie], mask)*orbs->atom->n_e[ie];
-		}
-	}
-
-	return res;
-}
-
-double orbitals_z(orbitals_t const* orbs) {
-	double res = 0.0;
-
-#ifdef _MPI
-	if (orbs->mpi_comm != MPI_COMM_NULL) {
-		double local_res = sh_wavefunc_z(orbs->mpi_wf)*orbs->atom->n_e[orbs->mpi_rank];
-		MPI_Reduce(&local_res, &res, 1, MPI_DOUBLE, MPI_SUM, 0, orbs->mpi_comm);
-	} else
-#endif
-	{
-		for (int ie=0; ie<orbs->atom->n_orbs; ++ie) {
-			res += sh_wavefunc_z(orbs->wf[ie])*orbs->atom->n_e[ie];
-		}
-	}
-
-	return res;
-}
-
-void orbitals_norm_ne(orbitals_t const* orbs, double* n, sh_f mask) {
-	assert(orbs != NULL);
-
-#ifdef _MPI
-	if (orbs->mpi_comm != MPI_COMM_NULL) {
-		double n_local = sh_wavefunc_norm(orbs->mpi_wf, mask)*orbs->atom->n_e[orbs->mpi_rank];
-		MPI_Gather(&n_local, 1, MPI_DOUBLE, n, 1, MPI_DOUBLE, 0, orbs->mpi_comm);
-	} else
-#endif
-	{
-		for (int ie=0; ie<orbs->atom->n_orbs; ++ie) {
-			n[ie] = sh_wavefunc_norm(orbs->wf[ie], mask);//*orbs->atom->n_e[ie];
-		}
-	}
-}
-
-void orbitals_normalize(orbitals_t* orbs) {
-	assert(orbs != NULL);
-
-#ifdef _MPI
-	if (orbs->mpi_comm != MPI_COMM_NULL) {
-		sh_wavefunc_normalize(orbs->mpi_wf);
-	} else
-#endif
-	{
-#pragma omp parallel for
-		for (int ie=0; ie<orbs->atom->n_orbs; ++ie) {
-			sh_wavefunc_normalize(orbs->wf[ie]);
-		}
-	}
-}
-
-double orbitals_cos(orbitals_t const* orbs, sh_f U) {
-	assert(orbs != NULL);
-
-	double res = 0.0;
-
-#ifdef _MPI
-	if (orbs->mpi_comm != MPI_COMM_NULL) {
-		double res_local = sh_wavefunc_cos(orbs->mpi_wf, U)*orbs->atom->n_e[orbs->mpi_rank];
-		MPI_Reduce(&res_local, &res, 1, MPI_DOUBLE, MPI_SUM, 0, orbs->mpi_comm);
-	} else
-#endif
-	{
-		for (int ie=0; ie<orbs->atom->n_orbs; ++ie) {
-			res += sh_wavefunc_cos(orbs->wf[ie], U)*orbs->atom->n_e[ie];
-		}
-	}
-
-	return res;
-}
-
-void orbitals_n_sp(orbitals_t const* orbs, sp_grid_t const* grid, double* n, double* n_tmp, ylm_cache_t const* ylm_cache) {
-	assert(orbs != NULL && grid != NULL && n != NULL && ylm_cache != NULL);
-#ifdef _MPI
-	if (orbs->mpi_comm != MPI_COMM_NULL) {
-#pragma omp parallel for collapse(2)
-		for (int ic = 0; ic < grid->n[iC]; ++ic) {
-			for (int ir = 0; ir < grid->n[iR]; ++ir) {
-				int index[3] = {ir, ic, 0};
-				cdouble const psi = swf_get_sp(orbs->mpi_wf, grid, index, ylm_cache);
-				n_tmp[ir + ic*grid->n[iR]] = (pow(creal(psi), 2) + pow(cimag(psi), 2))*orbs->atom->n_e[orbs->mpi_rank];
-			}
-		}
-
-		MPI_Reduce(n_tmp, n, grid->n[iR]*grid->n[iC], MPI_DOUBLE, MPI_SUM, 0, orbs->mpi_comm);
-	} else
-#endif
-	{
-#pragma omp parallel
-		{
-#pragma omp for collapse(2)
-			for (int ic = 0; ic < grid->n[iC]; ++ic) {
-				for (int ir = 0; ir < grid->n[iR]; ++ir) {
-					n[ir + ic*grid->n[iR]] = 0.0;
-					for (int ie = 0; ie < orbs->atom->n_orbs; ++ie) {
-						int index[3] = {ir, ic, 0};
-						cdouble const psi = swf_get_sp(orbs->wf[ie], grid, index, ylm_cache);
-						n[ir + ic*grid->n[iR]] += (pow(creal(psi), 2) + pow(cimag(psi), 2))*orbs->atom->n_e[ie];
-					}
-				}
-			}
-		}
-	}
-}
-
-void orbitals_n_l0(orbitals_t const* orbs, double* n, double* n_tmp) {
-	assert(orbs != NULL && n != NULL);
-#ifdef _MPI
-	if (orbs->mpi_comm != MPI_COMM_NULL) {
-#pragma omp parallel for
-		for (int ir = 0; ir < orbs->grid->n[iR]; ++ir) {
-			n_tmp[ir] = 0;
-			for (int il = 0; il < orbs->grid->n[iL]; ++il) {
-				n_tmp[ir] += orbs->mpi_wf->abs_2(ir, il);
-			}
-			n_tmp[ir] *= orbs->atom->n_e[orbs->mpi_rank] / (pow(sh_grid_r(orbs->grid, ir), 2)*4*M_PI);
-		}
-
-		MPI_Reduce(n_tmp, n, orbs->grid->n[iR], MPI_DOUBLE, MPI_SUM, 0, orbs->mpi_comm);
-	} else
-#endif
-	{
-#pragma omp parallel for
-		for (int ir = 0; ir < orbs->grid->n[iR]; ++ir) {
-			n[ir] = 0.0;
-			for (int ie = 0; ie < orbs->atom->n_orbs; ++ie) {
-				double res = 0.0;
-				for (int il = 0; il < orbs->grid->n[iL]; ++il) {
-					res += orbs->wf[ie]->abs_2(ir, il);
-				}
-				n[ir] += res*orbs->atom->n_e[ie] / (pow(sh_grid_r(orbs->grid, ir), 2)*4*M_PI);
-			}
-		}
-	}
-}
-
-double orbitals_n(orbitals_t const* orbs, sp_grid_t const* grid, int i[2], ylm_cache_t const* ylm_cache) {
-	assert(orbs != NULL);
-#ifdef _MPI
-	assert(orbs->mpi_comm == MPI_COMM_NULL);
-#endif
-
-	double res = 0.0;
-
-	for (int ie = 0; ie < orbs->atom->n_orbs; ++ie) {
-		int index[3] = {i[0], i[1], 0};
-		cdouble const psi = swf_get_sp(orbs->wf[ie], grid, index, ylm_cache);
-		res += (pow(creal(psi), 2) + pow(cimag(psi), 2))*orbs->atom->n_e[ie];
-	}
-
-	return res;
-}
-
-void orbitals_ort(orbitals_t* orbs) {
-  int ie = 0;
-
-  while (ie < orbs->atom->n_orbs) {
-    int ne = atom_get_number_ort(orbs->atom, ie);
-
-    if (ne > 1) {
-      sh_wavefunc_ort_l(orbs->atom->l[ie], ne, &orbs->wf[ie]);
+Orbitals::~Orbitals() {
+    for (int ie = 0; ie < atom.countOrbs; ++ie) {
+        if (wf[ie] != NULL) {
+            delete wf[ie];
+        }
     }
 
-    ie += ne;
-  }
+    delete[] data;
+}
+
+double Orbitals::norm(sh_f mask) const {
+    assert(orbs != NULL);
+
+    double res = 0.0;
+    double local_res = 0.0;
+
+    for (int ie=0; ie<atom.countOrbs; ++ie) {
+        if (wf[ie] != nullptr) {
+            local_res += wf[ie]->norm(mask)*atom.orbs[ie].countElectrons;
+        }
+    }
+
+#ifdef _MPI
+    if (mpi_comm != MPI_COMM_NULL) {
+        MPI_Reduce(&local_res, &res, 1, MPI_DOUBLE, MPI_SUM, 0, mpi_comm);
+    } else
+#endif
+    {
+        res = local_res;
+    }
+
+    return res;
+}
+
+double Orbitals::z() const {
+    double res = 0.0;
+    double local_res = 0.0;
+
+    for (int ie=0; ie<atom.countOrbs; ++ie) {
+        if (wf[ie] != nullptr) {
+            local_res += wf[ie]->z()*atom.orbs[ie].countElectrons;
+        }
+    }
+
+#ifdef _MPI
+    if (mpi_comm != MPI_COMM_NULL) {
+        MPI_Reduce(&local_res, &res, 1, MPI_DOUBLE, MPI_SUM, 0, mpi_comm);
+    } else
+#endif
+    {
+        res = local_res;
+    }
+
+    return res;
+}
+
+void Orbitals::norm_ne(double* n, sh_f mask) const {
+    assert(orbs != NULL);
+
+#ifdef _MPI
+    if (mpi_comm != MPI_COMM_NULL) {
+        double n_local = mpi_wf->norm(mask)*atom.orbs[mpi_rank].countElectrons;
+        MPI_Gather(&n_local, 1, MPI_DOUBLE, n, 1, MPI_DOUBLE, 0, mpi_comm);
+    } else
+#endif
+    {
+        for (int ie=0; ie<atom.countOrbs; ++ie) {
+            n[ie] = wf[ie]->norm(mask);//*atom->n_e[ie];
+        }
+    }
+}
+
+void Orbitals::normalize() {
+    for (int ie=0; ie<atom.countOrbs; ++ie) {
+        if (wf[ie] != nullptr) {
+            wf[ie]->normalize();
+        }
+    }
+}
+
+double Orbitals::cos(sh_f U) const {
+    assert(orbs != NULL);
+
+    double res = 0.0;
+    double res_local = 0.0;
+
+    for (int ie=0; ie<atom.countOrbs; ++ie) {
+        if (wf[ie] != nullptr) {
+            res_local += wf[ie]->cos(U)*atom.orbs[ie].countElectrons;
+        }
+    }
+
+#ifdef _MPI
+    if (mpi_comm != MPI_COMM_NULL) {
+        MPI_Reduce(&res_local, &res, 1, MPI_DOUBLE, MPI_SUM, 0, mpi_comm);
+    } else
+#endif
+    {
+        res = res_local;
+    }
+
+    return res;
+}
+
+void Orbitals::n_sp(SpGrid const* grid, double* n, double* n_tmp, ylm_cache_t const* ylm_cache) const {
+    assert(orbs != NULL && grid != NULL && n != NULL && ylm_cache != NULL);
+#ifdef _MPI
+    if (mpi_comm != MPI_COMM_NULL) {
+#pragma omp parallel for collapse(2)
+        for (int ic = 0; ic < grid->n[iC]; ++ic) {
+            for (int ir = 0; ir < grid->n[iR]; ++ir) {
+                int index[3] = {ir, ic, 0};
+                cdouble const psi = mpi_wf->get_sp(grid, index, ylm_cache);
+                n_tmp[ir + ic*grid->n[iR]] = (pow(creal(psi), 2) + pow(cimag(psi), 2))*atom.orbs[mpi_rank].countElectrons;
+            }
+        }
+
+        MPI_Reduce(n_tmp, n, grid->n[iR]*grid->n[iC], MPI_DOUBLE, MPI_SUM, 0, mpi_comm);
+    } else
+#endif
+    {
+#pragma omp parallel
+        {
+#pragma omp for collapse(2)
+            for (int ic = 0; ic < grid->n[iC]; ++ic) {
+                for (int ir = 0; ir < grid->n[iR]; ++ir) {
+                    n[ir + ic*grid->n[iR]] = 0.0;
+                    for (int ie = 0; ie < atom.countOrbs; ++ie) {
+                        int index[3] = {ir, ic, 0};
+                        cdouble const psi = wf[ie]->get_sp(grid, index, ylm_cache);
+                        n[ir + ic*grid->n[iR]] += (pow(creal(psi), 2) + pow(cimag(psi), 2))*atom.orbs[ie].countElectrons;
+                    }
+                }
+            }
+        }
+    }
+}
+
+void Orbitals::n_l0( double* n, double* n_tmp) const {
+    assert(orbs != NULL && n != NULL);
+#ifdef _MPI
+    if (mpi_comm != MPI_COMM_NULL) {
+#pragma omp parallel for
+        for (int ir = 0; ir < grid->n[iR]; ++ir) {
+            n_tmp[ir] = 0;
+            for (int il = 0; il < grid->n[iL]; ++il) {
+                n_tmp[ir] += mpi_wf->abs_2(ir, il);
+            }
+            n_tmp[ir] *= atom.orbs[mpi_rank].countElectrons / (pow(grid->r(ir), 2)*4*M_PI);
+        }
+
+        MPI_Reduce(n_tmp, n, grid->n[iR], MPI_DOUBLE, MPI_SUM, 0, mpi_comm);
+    } else
+#endif
+    {
+#pragma omp parallel for
+        for (int ir = 0; ir < grid->n[iR]; ++ir) {
+            n[ir] = 0.0;
+            for (int ie = 0; ie < atom.countOrbs; ++ie) {
+                double res = 0.0;
+                for (int il = 0; il < grid->n[iL]; ++il) {
+                    res += wf[ie]->abs_2(ir, il);
+                }
+                n[ir] += res*atom.orbs[ie].countElectrons / (pow(grid->r(ir), 2)*4*M_PI);
+            }
+        }
+    }
+}
+
+double Orbitals::n(SpGrid const* grid, int i[2], ylm_cache_t const* ylm_cache) const {
+#ifdef _MPI
+    assert(mpi_comm == MPI_COMM_NULL);
+#endif
+
+    double res = 0.0;
+
+    for (int ie = 0; ie < atom.countOrbs; ++ie) {
+        int index[3] = {i[0], i[1], 0};
+        cdouble const psi = wf[ie]->get_sp(grid, index, ylm_cache);
+        res += (pow(creal(psi), 2) + pow(cimag(psi), 2))*atom.orbs[ie].countElectrons;
+    }
+
+    return res;
+}
+
+void Orbitals::ort() {
+    int ie = 0;
+
+    while (ie < atom.countOrbs) {
+        int ne = atom.getNumberOrt(ie);
+
+        if (ne > 1) {
+            ShWavefunc::ort_l(atom.orbs[ie].l, ne, &wf[ie]);
+        }
+
+        ie += ne;
+    }
 }

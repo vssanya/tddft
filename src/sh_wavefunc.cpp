@@ -12,63 +12,36 @@
 #include "integrate.h"
 
 
-sh_wavefunc_t* _sh_wavefunc_new(cdouble* data, bool data_own, sh_grid_t const* grid, int const m) {
-	auto wf = new sh_wavefunc_t;
-	wf->grid = grid;
-
-	wf->data = data;
-	wf->data_own = data_own;
-
-	wf->m = m;
-
-	return wf;
+ShWavefunc::ShWavefunc(cdouble *data, const ShGrid *grid, const int m):
+    data(data),
+    grid(grid),
+    m(m),
+    data_own(false) {
+    if (data == nullptr) {
+        data = new cdouble[grid->size()]();
+        data_own = true;
+    }
 }
 
-sh_wavefunc_t* sh_wavefunc_new(sh_grid_t const* grid, int const m) {
-	auto data = new cdouble[grid2_size(grid)]();
-	return _sh_wavefunc_new(data, true, grid, m);
+ShWavefunc::~ShWavefunc() {
+    if (data_own) {
+        delete[] data;
+    }
 }
 
-sh_wavefunc_t* sh_wavefunc_new_from(cdouble* data, sh_grid_t const* grid, int const m) {
-	return _sh_wavefunc_new(data, false, grid, m);
-}
 
-void sh_wavefunc_t::prop_ang_l(cdouble dt, int l, int l1, sh_f Ul, linalg::matrix_f dot, linalg::matrix_f dot_T, cdouble const eigenval[2]) {
-#pragma omp for
-	for (int i=0; i<grid->n[iR]; ++i) {
-	}
-}
-
-void sh_wavefunc_copy(sh_wavefunc_t const* wf_src, sh_wavefunc_t* wf_dest) {
+void ShWavefunc::copy(ShWavefunc* wf_dest) const {
 #pragma omp parallel for
-	for (int i = 0; i < grid2_size(wf_src->grid); ++i) {
-		wf_dest->data[i] = wf_src->data[i];
+    for (int i = 0; i < grid->size(); ++i) {
+        wf_dest->data[i] = data[i];
 	}
 }
 
-void sh_wavefunc_del(sh_wavefunc_t* wf) {
-	if (wf->data_own) {
-		delete[] wf->data;
-	}
-	delete wf;
-}
+typedef double (*func_wf_t)(ShWavefunc const* wf, int ir, int il);
+typedef cdouble (*func_complex_wf_t)(ShWavefunc const* wf, int ir, int il);
 
-typedef double (*func_wf_t)(sh_wavefunc_t const* wf, int ir, int il);
-typedef cdouble (*func_complex_wf_t)(sh_wavefunc_t const* wf, int ir, int il);
-
-template<class T>
-inline T sh_wavefunc_integrate(sh_wavefunc_t const* wf, std::function<T(sh_wavefunc_t const*, int, int)> func, int l_max) {
-	T res = 0.0;
-#pragma omp parallel for reduction(+:res) collapse(2)
-	for (int il = 0; il < l_max; ++il) {
-		for (int ir = 0; ir < wf->grid->n[iR]; ++ir) {
-			res += func(wf, ir, il);
-		}
-	}
-	return res*wf->grid->d[iR];
-}
-
-inline double sh_wavefunc_integrate_o3(sh_wavefunc_t const* wf, func_wf_t func, int l_max) {
+/*
+inline double ShWavefunc_integrate_o3(ShWavefunc const* wf, func_wf_t func, int l_max) {
 	double res = 0.0;
 #pragma omp parallel for reduction(+:res)
 	for (int il = 0; il < l_max; ++il) {
@@ -89,7 +62,7 @@ inline double sh_wavefunc_integrate_o3(sh_wavefunc_t const* wf, func_wf_t func, 
 	return res*wf->grid->d[iR]/3;
 }
 
-inline double sh_wavefunc_integrate_o4(sh_wavefunc_t const* wf, func_wf_t func, int l_max) {
+inline double ShWavefunc_integrate_o4(ShWavefunc const* wf, func_wf_t func, int l_max) {
 	double res = 0.0;
 #pragma omp parallel for reduction(+:res)
 	for (int il = 0; il < l_max; ++il) {
@@ -109,7 +82,7 @@ inline double sh_wavefunc_integrate_o4(sh_wavefunc_t const* wf, func_wf_t func, 
 	return 4.0*res*wf->grid->d[iR]/90.0;
 }
 
-inline double sh_wavefunc_integrate_r2(sh_wavefunc_t const* wf, func_wf_t func, int l_max, int Z) {
+inline double ShWavefunc_integrate_r2(ShWavefunc const* wf, func_wf_t func, int l_max, int Z) {
 	double res = 0.0;
 
 #pragma omp parallel for reduction(+:res)
@@ -134,15 +107,15 @@ inline double sh_wavefunc_integrate_r2(sh_wavefunc_t const* wf, func_wf_t func, 
 	}
 	return res*wf->grid->d[iR]/3;
 }
+*/
 
-cdouble sh_wavefunc_t::operator*(sh_wavefunc_t const& other) const {
-	return sh_wavefunc_integrate<cdouble>(this,
-			[this, other](sh_wavefunc_t const* wf, int ir, int il) -> cdouble {
+cdouble ShWavefunc::operator*(ShWavefunc const& other) const {
+    return integrate<cdouble>([this, other](ShWavefunc const* wf, int ir, int il) -> cdouble {
 				return (*this)(ir, il)*conj(other(ir, il));
 			}, min(grid->n[iL], other.grid->n[iL]));
 }
 
-void sh_wavefunc_t::exclude(sh_wavefunc_t const& other) {
+void ShWavefunc::exclude(ShWavefunc const& other) {
 	auto proj = (*this)*other / other.norm();
 
 #pragma omp parallel for collapse(2)
@@ -153,81 +126,70 @@ void sh_wavefunc_t::exclude(sh_wavefunc_t const& other) {
 	}
 }
 
-cdouble sh_wavefunc_prod(sh_wavefunc_t const* wf1, sh_wavefunc_t const* wf2) { return (*wf1)*(*wf2); }
-
-void sh_wavefunc_ort_l(int l, int n, sh_wavefunc_t** wfs) {
+void ShWavefunc::ort_l(int l, int n, ShWavefunc** wfs) {
 	assert(n > 1);
 	for (int in=1; in<n; ++in) {
 		assert(wfs[in-1]->m == wfs[in]->m);
 	}
 
-	sh_grid_t const* grid = wfs[0]->grid;
+    ShGrid const* grid = wfs[0]->grid;
 
 	cdouble proj[n];
 	double norm[n];
 
 	for (int in=0; in<n; ++in) {
 		for (int ip=0; ip<in; ++ip) {
-			proj[ip] = sh_wavefunc_prod(wfs[ip], wfs[in]) / norm[ip];
+            proj[ip] = ((*wfs[ip])*(*wfs[in])) / norm[ip];
 		}
 
 		for (int ip=0; ip<in; ++ip) {
-			cdouble* psi = swf_ptr(wfs[in], 0, l);
+            cdouble* psi = &(*wfs[in])(0, l);
 			for (int ir=0; ir<grid->n[iR]; ++ir) {
 				psi[ir] -= proj[ip]*(*wfs[ip])(ir, l);
 			}
 		}
 
-		norm[in] = sh_wavefunc_norm(wfs[in], NULL);
+        norm[in] = wfs[in]->norm(NULL);
 	}
 }
 
-void sh_wavefunc_n_sp(sh_wavefunc_t const* wf, sp_grid_t const* grid, double* n, ylm_cache_t const* ylm_cache) {
+void ShWavefunc::n_sp(SpGrid const* grid, double* n, ylm_cache_t const* ylm_cache) const {
 #pragma omp parallel for collapse(2)
 	for (int ir = 0; ir < grid->n[iR]; ++ir) {
 		for (int ic = 0; ic < grid->n[iC]; ++ic) {
 			int index[3] = {ir, ic, 0};
-			cdouble const psi = swf_get_sp(wf, grid, index, ylm_cache);
+            cdouble const psi = get_sp(grid, index, ylm_cache);
 			n[ir + ic*grid->n[iR]] = pow(creal(psi), 2) + pow(cimag(psi), 2);
 		}
 	}
 }
 
-typedef struct {
-	sh_wavefunc_t const* wf;
-	int const il;
-} param_t;
-
-double sh_wavefunc_t::norm(sh_f mask) const {
+double ShWavefunc::norm(sh_f mask) const {
 	if (mask == nullptr) {
-		return sh_wavefunc_integrate<double>(this, [](sh_wavefunc_t const* wf, int ir, int il) {
+        return  integrate<double>([](ShWavefunc const* wf, int ir, int il) {
 					return wf->abs_2(ir, il);
 				}, grid->n[iL]);
 	} else {
-		return sh_wavefunc_integrate<double>(this, [mask](sh_wavefunc_t const* wf, int ir, int il) {
+        return integrate<double>([mask](ShWavefunc const* wf, int ir, int il) {
 			return wf->abs_2(ir, il)*mask(wf->grid, ir, il, wf->m);
 		}, grid->n[iL]);
 	}
 }
 
-double sh_wavefunc_norm(sh_wavefunc_t const* wf, sh_f mask) {
-	return wf->norm(mask);
-}
-
-void sh_wavefunc_normalize(sh_wavefunc_t* wf) {
-	double norm = sh_wavefunc_norm(wf, NULL);
+void ShWavefunc::normalize() {
+    double norm = this->norm(NULL);
 #pragma omp parallel for
-	for (int i = 0; i < grid2_size(wf->grid); ++i) {
-		wf->data[i] /= sqrt(norm);
+    for (int i = 0; i < grid->size(); ++i) {
+        data[i] /= sqrt(norm);
 	}
 }
 
-void sh_wavefunc_print(sh_wavefunc_t const* wf) {
-	for (int ir = 0; ir < wf->grid->n[iR]; ++ir) {
-		double const r = sh_grid_r(wf->grid, ir);
+void ShWavefunc::print() const {
+    for (int ir = 0; ir < grid->n[iR]; ++ir) {
+        double const r = grid->r(ir);
 		double res = 0.0;
-		for (int il = 0; il < wf->grid->n[iL]; ++il) {
-			res += pow(cabs((*wf)(ir, il)), 2);
+        for (int il = 0; il < grid->n[iL]; ++il) {
+            res += pow(cabs((*this)(ir, il)), 2);
 		}
 		printf("%f ", res/(r*r));
 	}
@@ -235,78 +197,66 @@ void sh_wavefunc_print(sh_wavefunc_t const* wf) {
 }
 
 // <psi|U(r)cos(\theta)|psi>
-double sh_wavefunc_t::cos(sh_f func) const {
-	return 2*sh_wavefunc_integrate<double>(this, [func](sh_wavefunc_t const* wf, int ir, int il) -> double {
+double ShWavefunc::cos(sh_f func) const {
+    return 2*integrate<double>([func](ShWavefunc const* wf, int ir, int il) -> double {
 		return clm(il, wf->m)*creal((*wf)(ir, il)*conj((*wf)(ir, il+1)))*func(wf->grid, ir, il, wf->m);
 	}, grid->n[iL]-1);
 }
 
-double sh_wavefunc_cos(sh_wavefunc_t const* wf, sh_f U) {
-	wf->cos(U);
-}
-
-double sh_wavefunc_cos_r2(sh_wavefunc_t const* wf, sh_f U, int Z) {
-	return 2*sh_wavefunc_integrate<double>(wf, [U](sh_wavefunc_t const* wf, int ir, int il) -> double {
+double ShWavefunc::cos_r2(sh_f U, int Z) const {
+    return 2*integrate<double>([U](ShWavefunc const* wf, int ir, int il) -> double {
 		return clm(il, wf->m)*creal((*wf)(ir, il)*conj((*wf)(ir, il+1)))*U(wf->grid, ir, il, wf->m);
-	}, wf->grid->n[iL]-1);
+    }, grid->n[iL]-1);
 }
 
-void sh_wavefunc_cos_r(sh_wavefunc_t const* wf, sh_f U, double* res) {
-	for (int ir = 0; ir < wf->grid->n[iR]; ++ir) {
+void ShWavefunc::cos_r(sh_f U, double* res) const {
+    for (int ir = 0; ir < grid->n[iR]; ++ir) {
 		res[ir] = 0.0;
-		for (int il = 0; il < wf->grid->n[iL]-1; ++il) {
-			res[ir] += 2*clm(il, wf->m)*creal((*wf)(ir, il)*conj((*wf)(ir, il+1)))*U(wf->grid, ir, il, wf->m);
+        for (int il = 0; il < grid->n[iL]-1; ++il) {
+            res[ir] += 2*clm(il, m)*creal((*this)(ir, il)*conj((*this)(ir, il+1)))*U(grid, ir, il, m);
 		}
 	}
 }
 
-double sh_wavefunc_z(sh_wavefunc_t const* wf) {
-	return sh_wavefunc_cos(wf, [](sh_grid_t const* grid, int ir, int il, int im) {
-			return sh_grid_r(grid, ir);
+double ShWavefunc::z() const {
+    return cos([](ShGrid const* grid, int ir, int il, int im) {
+			return grid->r(ir);
 	});
 }
 
-cdouble swf_get_sp(sh_wavefunc_t const* wf, sp_grid_t const* grid, int i[3], ylm_cache_t const* ylm_cache) {
+cdouble ShWavefunc::get_sp(SpGrid const* grid, int i[3], ylm_cache_t const* ylm_cache) const {
 	cdouble res = 0.0;
-	for (int il = 0; il < wf->grid->n[iL]; ++il) {
-		int const l = sh_grid_l(wf->grid, il);
-		res += (*wf)(i[iR], il)*(*ylm_cache)(l, wf->m, i[iC]);
+    for (int il = 0; il < this->grid->n[iL]; ++il) {
+        int const l = this->grid->l(il);
+        res += (*this)(i[iR], il)*(*ylm_cache)(l, m, i[iC]);
 	}
 
-	double r = sh_grid_r(wf->grid, i[iR]);
+    double r = grid->r(i[iR]);
 	return res/r;
 }
 
-void sh_wavefunc_random_l(sh_wavefunc_t* wf, int l) {
-	assert(l >= 0 && l < wf->grid->n[iL]);
+void ShWavefunc::random_l(int l) {
+    assert(l >= 0 && l < grid->n[iL]);
 
-	for (int il=0; il<wf->grid->n[iL]; ++il) {
-		for (int ir=0; ir<wf->grid->n[iR]; ++ir) {
-			(*wf)(ir, il) = 0.0;
+    for (int il=0; il<grid->n[iL]; ++il) {
+        for (int ir=0; ir<grid->n[iR]; ++ir) {
+            (*this)(ir, il) = 0.0;
 		}
 	}
 
 	{
 		int il = l;
-		cdouble* psi = swf_ptr(wf, 0, il);
+        cdouble* psi = &(*this)(0, il);
 
-		for (int ir=0; ir<wf->grid->n[iR]; ++ir) {
-			double const r = sh_grid_r(wf->grid, ir);
+        for (int ir=0; ir<grid->n[iR]; ++ir) {
+            double const r = grid->r(ir);
 			psi[ir] = (double)rand()/(double)RAND_MAX*r*exp(-r/(2*l+1));
 		}
 
 		for (int i=0; i<10; ++i) {
-			for (int ir=1; ir<wf->grid->n[iR]-1; ++ir) {
+            for (int ir=1; ir<grid->n[iR]-1; ++ir) {
 				psi[ir] = (psi[ir-1] + psi[ir] + psi[ir+1])/3.0;
 			}
 		}
 	}
-}
-
-cdouble* swf_ptr(sh_wavefunc_t* wf, int ir, int il) {
-	return &(*wf)(ir, il);
-}
-
-cdouble const* swf_const_ptr(sh_wavefunc_t const* wf, int ir, int il) {
-	return &(*wf)(ir, il);
 }
