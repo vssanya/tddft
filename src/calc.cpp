@@ -4,14 +4,14 @@
 
 
 double calc_wf_az(ShWavefunc const* wf, const AtomCache &atom_cache, field_t const* field, double t) {
-    auto func = [atom_cache](ShGrid const* grid, int ir, int il, int m) -> double {
+    auto func = [&](ShGrid const* grid, int ir, int il, int m) -> double {
         return atom_cache.dudz(ir);
     };
     return - field_E(field, t) - wf->cos(func);
 }
 
 double calc_orbs_az(Orbitals const* orbs, const AtomCache &atom_cache, field_t const* field, double t) {
-    auto func = [atom_cache](ShGrid const* grid, int ir, int il, int m) -> double {
+    auto func = [&](ShGrid const* grid, int ir, int il, int m) -> double {
         return atom_cache.dudz(ir);
     };
     return - field_E(field, t)*atom_cache.atom.countElectrons - orbs->cos(func);

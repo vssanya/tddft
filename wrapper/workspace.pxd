@@ -7,7 +7,7 @@ from wavefunc cimport ShWavefunc, cCtWavefunc, cShWavefunc
 from field cimport field_t
 from orbitals cimport cOrbitals
 from sphere_harmonics cimport ylm_cache_t
-from atom cimport cAtom, cAtomCache, Atom
+from atom cimport cAtom, cAtomCache, Atom, AtomCache
 from hartree_potential cimport potential_xc_f
 
 
@@ -49,7 +49,7 @@ cdef extern from "workspace.h":
 
 cdef extern from "workspace.h" namespace "workspace":
     cdef cppclass WfBase:
-        WfBase(cAtom& atom, cShGrid* grid, uabs_sh_t* uabs, int num_threads)
+        WfBase(cAtomCache* atom, cShGrid* grid, uabs_sh_t* uabs, int num_threads)
 
         void prop_ang(cShWavefunc& wf, double dt, int l, double E)
         #void prop_at(cShWavefunc& wf, cdouble dt, sh_f Ul, int Z, potential_type_e u_type)
@@ -67,16 +67,16 @@ cdef extern from "workspace.h" namespace "workspace":
         cAtomCache atom_cache
 
     cdef cppclass WfEWithSource:
-        WfEWithSource(cAtom& atom, cShGrid* grid, uabs_sh_t* uabs, cShWavefunc& source, double E, int num_threads)
+        WfEWithSource(cAtomCache* atom_cache, cShGrid* grid, uabs_sh_t* uabs, cShWavefunc& source, double E, int num_threads)
         void prop(cShWavefunc& wf, field_t* field, double t, double dt)
 
     cdef cppclass WfA:
-        WfA(cAtom& atom, cShGrid* grid, uabs_sh_t* uabs, int num_threads)
+        WfA(cAtomCache* atom, cShGrid* grid, uabs_sh_t* uabs, int num_threads)
         void prop(cShWavefunc& wf, field_t* field, double t, double dt)
         void prop_img(cShWavefunc& wf, double dt)
 
     cdef cppclass orbs:
-        orbs(cAtom& atom, cShGrid* sh_grid, cSpGrid* sp_grid, uabs_sh_t* uabs, ylm_cache_t* ylm_cache, int Uh_lmax, int Uxc_lmax, potential_xc_f Uxc, int num_threads)
+        orbs(cAtomCache* atom, cShGrid* sh_grid, cSpGrid* sp_grid, uabs_sh_t* uabs, ylm_cache_t* ylm_cache, int Uh_lmax, int Uxc_lmax, potential_xc_f Uxc, int num_threads)
 
         void prop(cOrbitals* orbs, field_t* field, double t, double dt, bint calc_uee)
         void prop_img(cOrbitals* orbs, double dt)
@@ -99,26 +99,26 @@ cdef class SKnWorkspace:
     cdef:
         WfBase* cdata
         Uabs uabs
-        Atom atom
+        AtomCache atom_cache
 
 cdef class SKnAWorkspace:
     cdef:
         WfA* cdata
         Uabs uabs
-        Atom atom
+        AtomCache atom_cache
 
 cdef class SKnWithSourceWorkspace:
     cdef:
         WfEWithSource* cdata
         ShWavefunc source
         Uabs uabs
-        Atom atom
+        AtomCache atom_cache
 
 cdef class SOrbsWorkspace:
     cdef:
         orbs* cdata
         Uabs uabs
-        Atom atom
+        AtomCache atom_cache
 
 cdef class GPSWorkspace:
     cdef:

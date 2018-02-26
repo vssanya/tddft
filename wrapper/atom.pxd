@@ -7,7 +7,7 @@ cdef extern from "atom.h":
             POTENTIAL_SMOOTH,
             POTENTIAL_COULOMB
 
-        cppclass State:
+        cppclass cState "State":
             int n
             int l
             int m
@@ -15,10 +15,10 @@ cdef extern from "atom.h":
             int countElectrons
 
         int Z
-        vector[State] orbs
+        vector[cState] orbs
         int countOrbs
 
-        State groundState
+        cState groundState
 
         PotentialType potentialType
         int countElectrons
@@ -28,6 +28,7 @@ cdef extern from "atom.h":
 
     cdef cppclass cAtomCache "AtomCache":
         cAtomCache(cAtom& atom, cShGrid* grid)
+        cAtomCache(cAtom& atom, cShGrid* grid, double* u)
         double u(int ir)
         double dudz(int ir)
 
@@ -36,6 +37,9 @@ cdef extern from "atom.h":
 
         double* data_u;
         double* data_dudz;
+
+    cdef cppclass MgAtom:
+        MgAtom()
 
     cdef cppclass NaAtom:
         NaAtom()
@@ -61,8 +65,14 @@ cdef extern from "atom.h":
     cdef cppclass NoneAtom:
         NoneAtom()
 
+cdef class State:
+    cdef cAtom.cState cdata
+    @staticmethod
+    cdef State from_c(cAtom.cState state)
+
 cdef class Atom:
     cdef cAtom* cdata
+    cdef State ground_state
     @staticmethod
     cdef Atom from_c(cAtom* atom)
 

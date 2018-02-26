@@ -1,15 +1,27 @@
 #include "orbs_spin.h"
 
+workspace::OrbsSpin::OrbsSpin(
+        const AtomCache* atom_cache,
+        const ShGrid *sh_grid,
+        const SpGrid *sp_grid,
+        const uabs_sh_t *uabs,
+        const ylm_cache_t *ylm_cache,
+        int Uh_lmax,
+        int Uxc_lmax,
+        potential_xc_f Uxc,
+        int num_threads): workspace::orbs(atom_cache, sh_grid, sp_grid, uabs, ylm_cache, Uh_lmax, Uxc_lmax, Uxc, num_threads) {
+}
+
 void workspace::OrbsSpin::init() {
-	Utmp = new double[sh_grid->n[iR]];
-	Utmp_local = new double[sh_grid->n[iR]];
+    Utmp = new double[sh_grid->n[iR]]();
+    Utmp_local = new double[sh_grid->n[iR]]();
 
-	uh_tmp = new double[sh_grid->n[iR]];
+    uh_tmp = new double[sh_grid->n[iR]]();
 
-	Uee = new double[2*3*sh_grid->n[iR]]();
+    Uee = new double[3*sh_grid->n[iR]]();
 
-	n_sp = new double[2*sp_grid->n[iR]*sp_grid->n[iC]];
-	n_sp_local = new double[2*sp_grid->n[iR]*sp_grid->n[iC]];
+    n_sp = new double[sp_grid->n[iR]*sp_grid->n[iC]];
+    n_sp_local = new double[sp_grid->n[iR]*sp_grid->n[iC]];
 }
 
 

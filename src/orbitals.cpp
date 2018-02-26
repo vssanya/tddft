@@ -12,6 +12,7 @@ Orbitals::Orbitals(Atom const& atom, ShGrid const* grid, MPI_Comm mpi_comm):
 
 #ifdef _MPI
     this->mpi_comm = mpi_comm;
+    spin_comm = MPI_COMM_NULL;
 
 	if (mpi_comm != MPI_COMM_NULL) {
         MPI_Comm_rank(mpi_comm, &mpi_rank);
@@ -25,6 +26,10 @@ Orbitals::Orbitals(Atom const& atom, ShGrid const* grid, MPI_Comm mpi_comm):
                 wf[ie] = NULL;
 			}
 		}
+
+        if (atom.isSpinPolarized()) {
+            MPI_Comm_split(mpi_comm, atom.orbs[mpi_rank].s, mpi_rank, &spin_comm);
+        }
 	} else
 #endif
 	{

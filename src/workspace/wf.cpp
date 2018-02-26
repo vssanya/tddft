@@ -7,8 +7,8 @@
 #include "../linalg.h"
 
 
-workspace::WfBase::WfBase(Atom const& atom, ShGrid const* grid, uabs_sh_t const* uabs, int num_threads):
-    atom_cache(AtomCache(atom, grid)),
+workspace::WfBase::WfBase(AtomCache const* atom_cache, ShGrid const* grid, uabs_sh_t const* uabs, int num_threads):
+    atom_cache(atom_cache),
 	grid(grid),
 	uabs(uabs),
 	num_threads(num_threads)
@@ -22,8 +22,8 @@ workspace::WfBase::WfBase(Atom const& atom, ShGrid const* grid, uabs_sh_t const*
 	num_threads = 1;
 #endif
 
-	alpha = new cdouble[grid->n[iR]*num_threads];
-	betta = new cdouble[grid->n[iR]*num_threads];
+    alpha = new cdouble[grid->n[iR]*num_threads]();
+    betta = new cdouble[grid->n[iR]*num_threads]();
 }
 
 workspace::WfBase::~WfBase() {
@@ -72,7 +72,7 @@ void workspace::WfBase::prop_at(ShWavefunc& wf, cdouble dt, sh_f Ul) {
 	double const dr = grid->d[iR];
 	double const dr2 = dr*dr;
 
-    int const Z = atom_cache.atom.Z;
+    int const Z = atom_cache->atom.Z;
 
 
 	double const d2[3] = {1.0/dr2, -2.0/dr2, 1.0/dr2};
@@ -113,7 +113,7 @@ void workspace::WfBase::prop_at(ShWavefunc& wf, cdouble dt, sh_f Ul) {
 				ar[i] = M2[i]*(1.0 - idt_2*U[i]) + 0.5*idt_2*d2[i];
 			}
 
-            if (l == 0 && atom_cache.atom.potentialType == Atom::POTENTIAL_COULOMB) {
+            if (l == 0 && atom_cache->atom.potentialType == Atom::POTENTIAL_COULOMB) {
 				al[1] = M2_l0_11*(1.0 + idt_2*U[1]) - 0.5*idt_2*d2_l0_11;
 				ar[1] = M2_l0_11*(1.0 - idt_2*U[1]) + 0.5*idt_2*d2_l0_11;
 			}
@@ -221,7 +221,7 @@ void workspace::WfBase::prop(ShWavefunc& wf, field_t const* field, double t, dou
 	sh_f Ul[2] = {
             [this](ShGrid const* grid, int ir, int l, int m) -> double {
 				double const r = grid->r(ir);
-                return l*(l+1)/(2*r*r) + atom_cache.u(ir);
+                return l*(l+1)/(2*r*r) + atom_cache->u(ir);
 			},
             [Et](ShGrid const* grid, int ir, int l, int m) -> double {
 				double const r = grid->r(ir);
@@ -241,7 +241,7 @@ void workspace::WfE::prop(ShWavefunc& wf, field_t const* field, double t, double
 	sh_f Ul[2] = {
             [this](ShGrid const* grid, int ir, int l, int m) -> double {
 				double const r = grid->r(ir);
-                return l*(l+1)/(2*r*r) + atom_cache.u(ir);
+                return l*(l+1)/(2*r*r) + atom_cache->u(ir);
 			},
             [Et](ShGrid const* grid, int ir, int l, int m) -> double {
 				double const r = grid->r(ir);
@@ -261,7 +261,7 @@ void workspace::WfA::prop(ShWavefunc& wf, field_t const* field, double t, double
 	sh_f Ul[1] = {
             [this](ShGrid const* grid, int ir, int l, int m) -> double {
 				double const r = grid->r(ir);
-                return l*(l+1)/(2*r*r) + atom_cache.u(ir);
+                return l*(l+1)/(2*r*r) + atom_cache->u(ir);
 			},
 	};
 
@@ -284,7 +284,7 @@ void workspace::WfBase::prop_img(ShWavefunc& wf, double dt) {
 	sh_f Ul[1] = {
         [this](ShGrid const* grid, int ir, int l, int m) -> double {
 			double const r = grid->r(ir);
-            return l*(l+1)/(2*r*r) + atom_cache.u(ir);
+            return l*(l+1)/(2*r*r) + atom_cache->u(ir);
 		}
 	};
 

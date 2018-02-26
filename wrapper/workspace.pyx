@@ -72,15 +72,15 @@ cdef class SFAWorkspace:
         self.cdata.propagate(wf.cdata[0], field.cdata, t, dt)
 
 cdef class SKnWorkspace:
-    def __cinit__(self, Atom atom, ShGrid grid, Uabs uabs, int num_threads = -1):
-        self.cdata = new WfBase(atom.cdata[0], grid.data, uabs.cdata, num_threads)
+    def __cinit__(self, AtomCache atom_cache, ShGrid grid, Uabs uabs, int num_threads = -1):
+        self.cdata = new WfBase(atom_cache.cdata, grid.data, uabs.cdata, num_threads)
         self.uabs = uabs
-        self.atom = Atom
+        self.atom_cache = atom_cache
 
     def __dealloc__(self):
         del self.cdata
 
-    def __init__(self, ShGrid grid, Uabs uabs, int num_threads = -1):
+    def __init__(self, AtomCache atom_cache, ShGrid grid, Uabs uabs, int num_threads = -1):
         pass
 
     def prop(self, ShWavefunc wf, Field field, double t, double dt):
@@ -91,15 +91,15 @@ cdef class SKnWorkspace:
 
 
 cdef class SKnAWorkspace:
-    def __cinit__(self, Atom atom, ShGrid grid, Uabs uabs, int num_threads = -1):
-        self.cdata = new WfA(atom.cdata[0], grid.data, uabs.cdata, num_threads)
+    def __cinit__(self, AtomCache atom_cache, ShGrid grid, Uabs uabs, int num_threads = -1):
+        self.cdata = new WfA(atom_cache.cdata, grid.data, uabs.cdata, num_threads)
         self.uabs = uabs
-        self.atom = Atom
+        self.atom_cache = atom_cache
 
     def __dealloc__(self):
         del self.cdata
 
-    def __init__(self, ShGrid grid, Uabs uabs, int num_threads = -1):
+    def __init__(self, AtomCache atom_cache, ShGrid grid, Uabs uabs, int num_threads = -1):
         pass
 
     def prop(self, ShWavefunc wf, Field field, double t, double dt):
@@ -109,16 +109,16 @@ cdef class SKnAWorkspace:
         self.cdata.prop_img(wf.cdata[0], dt)
 
 cdef class SKnWithSourceWorkspace:
-    def __cinit__(self, Atom atom, ShGrid grid, Uabs uabs, ShWavefunc source, double E, int num_threads = -1):
-        self.cdata = new WfEWithSource(atom.cdata[0], grid.data, uabs.cdata, source.cdata[0], E, num_threads)
+    def __cinit__(self, AtomCache atom_cache, ShGrid grid, Uabs uabs, ShWavefunc source, double E, int num_threads = -1):
+        self.cdata = new WfEWithSource(atom_cache.cdata, grid.data, uabs.cdata, source.cdata[0], E, num_threads)
         self.uabs = uabs
         self.source = source
-        self.atom = Atom
+        self.atom_cache = atom_cache
 
     def __dealloc__(self):
         del self.cdata
 
-    def __init__(self, ShGrid grid, Uabs uabs, ShWavefunc source, int num_threads = -1):
+    def __init__(self, AtomCache atom_cache, ShGrid grid, Uabs uabs, ShWavefunc source, int num_threads = -1):
         pass
 
     def prop(self, ShWavefunc wf, Field field, double t, double dt):
@@ -126,18 +126,18 @@ cdef class SKnWithSourceWorkspace:
 
 
 cdef class SOrbsWorkspace:
-    def __cinit__(self, Atom atom, ShGrid sh_grid, SpGrid sp_grid, Uabs uabs, YlmCache ylm_cache, int Uxc_lmax = 3, int Uh_lmax = 3, Uxc uxc = UXC_LB, int num_threads=-1):
+    def __cinit__(self, AtomCache atom_cache, ShGrid sh_grid, SpGrid sp_grid, Uabs uabs, YlmCache ylm_cache, int Uxc_lmax = 3, int Uh_lmax = 3, Uxc uxc = UXC_LB, int num_threads=-1):
         assert(Uxc_lmax >= 0 and Uxc_lmax <= 3)
         assert(Uh_lmax >= 0 and Uh_lmax <= 3)
 
-        self.cdata = new orbs(atom.cdata[0], sh_grid.data, sp_grid.data, uabs.cdata, ylm_cache.cdata, Uh_lmax, Uxc_lmax, uxc.cdata, num_threads)
+        self.cdata = new orbs(atom_cache.cdata, sh_grid.data, sp_grid.data, uabs.cdata, ylm_cache.cdata, Uh_lmax, Uxc_lmax, uxc.cdata, num_threads)
         self.uabs = uabs
-        self.atom = Atom
+        self.atom_cache = atom_cache
 
     def __dealloc__(self):
         del self.cdata
 
-    def __init__(self, ShGrid sh_grid, SpGrid sp_grid, Uabs uabs, YlmCache ylm_cache, int Uxc_lmax = 3, int Uh_lmax = 3, Uxc uxc = UXC_LB, int num_threads=-1):
+    def __init__(self, AtomCache atom_cache, ShGrid sh_grid, SpGrid sp_grid, Uabs uabs, YlmCache ylm_cache, int Uxc_lmax = 3, int Uh_lmax = 3, Uxc uxc = UXC_LB, int num_threads=-1):
         pass
 
     def prop_img(self, Orbitals orbs, double dt):

@@ -63,6 +63,7 @@ public:
 
 #ifdef _MPI
     MPI_Comm mpi_comm;
+    MPI_Comm spin_comm;
     int mpi_rank;
     ShWavefunc* mpi_wf;
 #endif

@@ -21,7 +21,7 @@ class Atom {
 			int s;
 			int countElectrons;
 
-			State(const char* id, int m=0, int countElectrons = -1, int s=0): m(m), s(s) {
+            State(const char* id="1s", int m=0, int countElectrons = 0, int s=0): m(m), s(s) {
 				switch (id[1]) {
 					case 's':
 						l = 0;
@@ -49,7 +49,7 @@ class Atom {
 						l = 0;
 				}
 
-				if (countElectrons < -1) {
+                if (countElectrons == 0) {
 					if (s == 0) {
 						this->countElectrons = 2;
 					} else {
@@ -105,22 +105,46 @@ class Atom {
 
 			return countOrbs - ie;
 		}
+
+        bool isSpinPolarized() const {
+            return countOrbs > 1 && orbs[0].s != 0;
+        }
 };
 
 class AtomCache {
 	public:
-        AtomCache(Atom const& atom, ShGrid const* grid): atom(atom), grid(grid) {
-			const int Nr = grid->n[iR];
-			data_u = new double[Nr];
-			data_dudz = new double[Nr];
+        AtomCache(Atom const& atom, ShGrid const* grid, double* u): atom(atom), grid(grid) {
+            const int Nr = grid->n[iR];
+            data_u = new double[Nr];
+            data_dudz = new double[Nr];
 
+            if (u == nullptr) {
 #pragma omp parallel for
-			for (int ir=0; ir<Nr; ir++) {
-                double r = grid->r(ir);
-				data_u[ir] = atom.u(r);
-				data_dudz[ir] = atom.dudz(r);
-			}
-		}
+                for (int ir=0; ir<Nr; ir++) {
+                    double r = grid->r(ir);
+                    data_u[ir] = atom.u(r);
+                    data_dudz[ir] = atom.dudz(r);
+                }
+            } else {
+                for (int ir=0; ir<Nr; ir++) {
+                    data_u[ir] = u[ir] + atom.u(grid->r(ir));
+                }
+
+                { int ir = 0;
+                    data_dudz[ir] = atom.dudz(grid->r(ir));
+                }
+
+                for (int ir=1; ir<Nr-1; ir++) {
+                    data_dudz[ir] = (u[ir+1] - u[ir-1])/(2*grid->d[iR]) + atom.dudz(grid->r(ir));
+                }
+
+                { int ir = Nr-1;
+                    data_dudz[ir] = atom.dudz(grid->r(ir)) / atom.Z;
+                }
+            }
+        }
+
+        AtomCache(Atom const& atom, ShGrid const* grid): AtomCache(atom, grid, nullptr) {}
 
         ~AtomCache() {
             delete[] data_u;
@@ -190,6 +214,12 @@ class AtomSGB: public Atom {
 
 			return (Z - countElectrons + 1 + (countElectrons-1)*res1) / (r*r) - (countElectrons-1)*res2/r;
 		}
+};
+
+class MgAtom: public AtomCoulomb {
+public:
+    static const std::vector<State> GroundStateOrbs;
+    MgAtom(): AtomCoulomb(12, GroundStateOrbs, 2) {}
 };
 
 class NaAtom: public AtomCoulomb {

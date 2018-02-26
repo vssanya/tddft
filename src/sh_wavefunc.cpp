@@ -18,7 +18,7 @@ ShWavefunc::ShWavefunc(cdouble *data, const ShGrid *grid, const int m):
     m(m),
     data_own(false) {
     if (data == nullptr) {
-        data = new cdouble[grid->size()]();
+        this->data = new cdouble[grid->size()]();
         data_own = true;
     }
 }

@@ -13,7 +13,7 @@ namespace workspace
 
 	class orbs {
 		public:
-            orbs(Atom const& atom, ShGrid const* sh_grid, SpGrid const* sp_grid, uabs_sh_t const* uabs, ylm_cache_t const* ylm_cache, int Uh_lmax, int Uxc_lmax, potential_xc_f Uxc, int num_threads);
+            orbs(AtomCache const* atom_cache, ShGrid const* sh_grid, SpGrid const* sp_grid, uabs_sh_t const* uabs, ylm_cache_t const* ylm_cache, int Uh_lmax, int Uxc_lmax, potential_xc_f Uxc, int num_threads);
 			virtual ~orbs();
 
 			virtual void init();

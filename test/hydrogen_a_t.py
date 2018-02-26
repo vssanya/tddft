@@ -25,10 +25,12 @@ def calc_wf_az_t():
     r = np.linspace(dr, r_max, r_max/dr)
     g = tdse.grid.ShGrid(Nr=r_max/dr, Nl=Nl, r_max=r_max)
 
+    atom_cache = tdse.atom.AtomCache(atom, g)
+
     uabs = tdse.abs_pot.UabsMultiHump(2.5, 10)
 
-    ws = tdse.workspace.SKnWorkspace(grid=g, uabs=uabs)
-    ws_a = tdse.workspace.SKnAWorkspace(g, uabs)
+    ws = tdse.workspace.SKnWorkspace(atom=atom, grid=g, uabs=uabs)
+    ws_a = tdse.workspace.SKnAWorkspace(atom=atom, grid=g, uabs=uabs)
 
     wf = tdse.ground_state.wf(atom, g, ws, dt*4, Nt=500, n=1, l=0, m=0)
     wf_a = tdse.ground_state.wf(atom, g, ws_a, dt*4, Nt=500, n=1, l=0, m=0)
@@ -43,12 +45,12 @@ def calc_wf_az_t():
 
     def data_gen():
         for i in range(t.size):
-            ws.prop(wf, atom, f, t[i], dt)
-            az[i] = tdse.calc.az(wf, atom, f, t[i])
+            ws.prop(wf, f, t[i], dt)
+            az[i] = tdse.calc.az(wf, atom_cache, f, t[i])
             #az[i] = wf.z()
 
-            ws_a.prop(wf_a, atom, f, t[i], dt)
-            az_a[i] = tdse.calc.az(wf_a, atom, f, t[i])
+            ws_a.prop(wf_a, f, t[i], dt)
+            az_a[i] = tdse.calc.az(wf_a, atom_cache, f, t[i])
             #az_a[i] = wf_a.z()
 
             print("az = ", az[i])

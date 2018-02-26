@@ -25,7 +25,8 @@
 namespace workspace {
     class WfBase {
 		public:
-            WfBase(Atom const& atom, ShGrid const* grid, uabs_sh_t const* uabs, int num_threads);
+            WfBase(AtomCache const* atom_cache, ShGrid const* grid, uabs_sh_t const* uabs, int num_threads);
+
             virtual ~WfBase ();
 
 			/* 
@@ -57,18 +58,20 @@ namespace workspace {
 
 			int num_threads;
 
-            AtomCache atom_cache;
+            AtomCache const* atom_cache;
 	};
 
     class WfE: public WfBase {
 		public:
-            WfE(Atom const& atom, ShGrid const* grid, uabs_sh_t const* uabs, int num_threads): WfBase(atom, grid, uabs, num_threads) {}
+            WfE(AtomCache const* atom_cache, ShGrid const* grid, uabs_sh_t const* uabs, int num_threads):
+                WfBase(atom_cache, grid, uabs, num_threads) {}
             void prop(ShWavefunc& wf, field_t const* field, double t, double dt);
 	};
 
     class WfA: public WfBase {
 		public:
-            WfA(Atom const& atom, ShGrid const* grid, uabs_sh_t const* uabs, int num_threads): WfBase(atom, grid, uabs, num_threads) {}
+            WfA(AtomCache const* atom_cache, ShGrid const* grid, uabs_sh_t const* uabs, int num_threads):
+                WfBase(atom_cache, grid, uabs, num_threads) {}
             void prop(ShWavefunc& wf, field_t const* field, double t, double dt);
 	};
 }

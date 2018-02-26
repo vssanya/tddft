@@ -8,6 +8,11 @@ const std::vector<Atom::State> HAtom::GroundStateOrbs = {
 	State("1s")
 }; 
 
+const std::vector<Atom::State> MgAtom::GroundStateOrbs = {
+    State("1s"), State("2s"), State("3s"),
+    State("2p"), State("2p", 1, 4)
+};
+
 const std::vector<Atom::State> NaAtom::GroundStateOrbs = {
 	State("1s", 0, 1, -1), State("2s", 0, 1, -1), State("3s",  0, 1, -1),
 	State("2p", 0, 1, -1), State("2p", 1, 1, -1), State("2p", -1, 1, -1),
