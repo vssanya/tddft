@@ -18,7 +18,7 @@ double calc_orbs_az(Orbitals const* orbs, const AtomCache &atom_cache, field_t c
 }
 
 void calc_orbs_az_ne(Orbitals const* orbs, const AtomCache& atom_cache, field_t const* field, double t, double* az) {
-    auto func = [atom_cache](ShGrid const* grid, int ir, int il, int m) -> double {
+    auto func = [&](ShGrid const* grid, int ir, int il, int m) -> double {
         return atom_cache.dudz(ir);
     };
 #ifdef _MPI
