@@ -1,11 +1,8 @@
 import numpy as np
-<<<<<<< HEAD
+
 from . import grid, wavefunc, orbitals
 from .atom import AtomCache
-=======
-from . import wavefunc, orbitals
 from .grid import ShGrid
->>>>>>> dab31846d049b87a634e3d4bd6cdc93537cc9573
 
 
 def wf_1(atom, grid, ws, dt, Nt):

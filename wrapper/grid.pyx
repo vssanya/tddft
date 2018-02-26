@@ -50,7 +50,7 @@ cdef class ShGrid:
 
     @property
     def Rmax(self):
-        return sh_grid_r_max(self.data)
+        return self.data.Rmax()
 
     def get_r(self):
         return np.linspace(self.data.d[0], self.data.d[0]*self.data.n[0], self.data.n[0])
