@@ -24,12 +24,12 @@ def wf_1(atom, grid, ws, dt, Nt):
 def wf_n(atom, grid, ws, dt, Nt):
     l = atom.ground_state.l
     m = atom.ground_state.m
-    n = atom.ground_state.n
+    n = atom.ground_state.n + 1
 
     wfs = [wavefunc.ShWavefunc.random(grid, l, m) for i in range(n)]
 
     for i in range(Nt):
-        wavefunc.SWavefunc.ort_l(wfs, l)
+        wavefunc.ShWavefunc.ort_l(wfs, l)
         for j in range(n):
             wf = wfs[j]
             wf.normalize()
@@ -38,7 +38,7 @@ def wf_n(atom, grid, ws, dt, Nt):
     n = np.sqrt(wfs[-1].norm())
     E = 2/dt*(1-n)/(1+n)
 
-    wavefunc.SWavefunc.ort_l(wfs, l)
+    wavefunc.ShWavefunc.ort_l(wfs, l)
     wfs[-1].normalize()
 
     return wfs[-1], E
@@ -46,7 +46,7 @@ def wf_n(atom, grid, ws, dt, Nt):
 def wf(atom, grid, ws, dt, Nt):
     l = atom.ground_state.l
     m = atom.ground_state.m
-    n = atom.ground_state.n
+    n = atom.ground_state.n + 1
 
     small_grid = ShGrid(grid.Nr, l+1, grid.Rmax)
 
@@ -58,7 +58,7 @@ def wf(atom, grid, ws, dt, Nt):
     if small_grid.Nl == grid.Nl:
         wf_full = wf
     else:
-        wf_full = wavefunc.SWavefunc(grid, m)
+        wf_full = wavefunc.ShWavefunc(grid, m)
         wf_full.asarray()[l,:] = wf.asarray()[l,:]
 
     wf_full.asarray()[0:l,:] = 0.0

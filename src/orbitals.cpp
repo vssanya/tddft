@@ -85,8 +85,6 @@ Orbitals::~Orbitals() {
 }
 
 double Orbitals::norm(sh_f mask) const {
-    assert(orbs != NULL);
-
     double res = 0.0;
     double local_res = 0.0;
 
@@ -131,8 +129,6 @@ double Orbitals::z() const {
 }
 
 void Orbitals::norm_ne(double* n, sh_f mask) const {
-    assert(orbs != NULL);
-
 #ifdef _MPI
     if (mpi_comm != MPI_COMM_NULL) {
         double n_local = mpi_wf->norm(mask)*atom.orbs[mpi_rank].countElectrons;
@@ -155,8 +151,6 @@ void Orbitals::normalize() {
 }
 
 double Orbitals::cos(sh_f U) const {
-    assert(orbs != NULL);
-
     double res = 0.0;
     double res_local = 0.0;
 
@@ -179,7 +173,6 @@ double Orbitals::cos(sh_f U) const {
 }
 
 void Orbitals::n_sp(SpGrid const* grid, double* n, double* n_tmp, ylm_cache_t const* ylm_cache) const {
-    assert(orbs != NULL && grid != NULL && n != NULL && ylm_cache != NULL);
 #ifdef _MPI
     if (mpi_comm != MPI_COMM_NULL) {
 #pragma omp parallel for collapse(2)
@@ -212,8 +205,7 @@ void Orbitals::n_sp(SpGrid const* grid, double* n, double* n_tmp, ylm_cache_t co
     }
 }
 
-void Orbitals::n_l0( double* n, double* n_tmp) const {
-    assert(orbs != NULL && n != NULL);
+void Orbitals::n_l0(double* n, double* n_tmp) const {
 #ifdef _MPI
     if (mpi_comm != MPI_COMM_NULL) {
 #pragma omp parallel for

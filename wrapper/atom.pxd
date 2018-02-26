@@ -72,7 +72,7 @@ cdef class State:
 
 cdef class Atom:
     cdef cAtom* cdata
-    cdef State ground_state
+    cdef public State ground_state
     @staticmethod
     cdef Atom from_c(cAtom* atom)
 
