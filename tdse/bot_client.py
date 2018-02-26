@@ -26,3 +26,7 @@ class BotClient(object):
     def send_status(self, status):
         return requests.post('{}/job/{}/status'.format(self.url, self.job_id),
                 params = {'token': self.token}, json={'status': status})
+
+    def send_message(self, message):
+        return requests.post('{}/job/{}/message'.format(self.url, self.job_id),
+                params = {'token': self.token}, json={'message': message})

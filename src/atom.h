@@ -103,6 +103,21 @@ static atom_t const atom_argon = {
   .u_type = POTENTIAL_COULOMB,
 };
 
+static atom_t const atom_mg = {
+	.Z = 12,
+//	.n_orbs = 9,
+//	.m   = (int[]){0,0,0,-1,-1,0,0,1,1},
+//	.l   = (int[]){0,0,0, 1, 1,1,1,1,1},
+//	.n_e = (int[]){2,2,2, 2, 2,2,2,2,2},
+	.n_orbs = 5,
+	.m   = (int[]){0,0,0,0,1},
+	.l   = (int[]){0,0,0,1,1},
+	.n_e = (int[]){2,2,2,2,4},
+	.u    = (pot_f)atom_u_coulomb,
+	.dudz = (pot_f)atom_dudz_coulomb,
+	.u_type = POTENTIAL_COULOMB,
+};
+
 static atom_t const atom_argon_sae = {
 	.Z = 18,
 	.n_orbs = 7,

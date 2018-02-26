@@ -18,15 +18,15 @@ workspace::orbs::orbs(sh_grid_t const* sh_grid, sp_grid_t const* sp_grid, uabs_s
 	lmax = std::max(Uh_lmax, Uxc_lmax);
 	lmax = std::max(lmax, 2);
 
-	Utmp = new double[sh_grid->n[iR]];
-	Utmp_local = new double[sh_grid->n[iR]];
+	Utmp = new double[sh_grid->n[iR]]();
+	Utmp_local = new double[sh_grid->n[iR]]();
 
-	uh_tmp = new double[sh_grid->n[iR]];
+	uh_tmp = new double[sh_grid->n[iR]]();
 
 	Uee = new double[3*sh_grid->n[iR]]();
 
-	n_sp = new double[sp_grid->n[iR]*sp_grid->n[iC]];
-	n_sp_local = new double[sp_grid->n[iR]*sp_grid->n[iC]];
+	n_sp = new double[sp_grid->n[iR]*sp_grid->n[iC]]();
+	n_sp_local = new double[sp_grid->n[iR]*sp_grid->n[iC]]();
 }
 
 workspace::orbs::~orbs() {

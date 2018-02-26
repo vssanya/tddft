@@ -9,6 +9,10 @@ from .bot_client import BotClient
 import tdse
 
 
+class TaskError(Exception):
+    pass
+
+
 class Task(object):
 
     """
@@ -69,6 +73,12 @@ class Task(object):
 
         self.save_path = self._create_save_path(path_res)
 
+    def finish_with_error(self, message):
+        if self.bot_client:
+            self.bot_client.send_message("Error: {}".format(message))
+
+        raise TaskError()
+
     def is_root(self):
         return (not self.is_mpi) or (self.rank == 0)
 
@@ -86,6 +96,9 @@ class Task(object):
         pass
         
     def calc(self, restart_index=0):
+        if self.bot_client is not None:
+            self.bot_client.send_message("Start calc")
+
         self.calc_init()
 
         if restart_index != 0:
@@ -208,10 +221,44 @@ class WavefuncTask(Task):
         if ws is None:
             ws = self.Workspace(self.grid, tdse.abs_pot.UabsZero())
 
-        return tdse.ground_state.wf(self.atom, self.grid, ws, self.dt, 10000, **self.state)
+        return tdse.ground_state.wf(self.atom, self.grid, ws, self.dt, 10000, **self.state)[0]
 
     def calc_prop(self, i, t):
         self.ws.prop(self.wf, self.atom, self.field, t, self.dt)
+
+class WfGroundStateTask(Task):
+    atom = tdse.atom.H
+    state = {'n': 1, 'l': 0, 'm': 0}
+
+    dt = 0.025
+    dr = 0.125
+
+    T = 100
+    r_max = 100
+
+    CALC_DATA = ['wf_gs', 'E']
+
+    def __init__(self, path_res='res', mode=None, is_mpi=False, **kwargs):
+        super().__init__(path_res, mode, is_mpi=False, **kwargs)
+
+        self.Nl = self.atom.l_max + 1
+        self.Nr = int(self.r_max/self.dr)
+        self.Nt = int(self.T / self.dt)
+
+        self.sh_grid = tdse.grid.ShGrid(Nr=self.Nr, Nl=self.Nl, r_max=self.r_max)
+
+    def calc_init(self):
+        super().calc_init()
+
+        self.ws = tdse.workspace.SKnWorkspace(self.sh_grid, tdse.abs_pot.UabsZero())
+
+    def calc(self):
+        self.calc_init()
+
+        self.wf, self.E = tdse.ground_state.wf(self.atom, self.sh_grid, self.ws, self.dt, self.Nt, **self.state)
+
+        self.wf_gs = self.wf.asarray()
+        self.save()
 
 class WavefuncWithSourceTask(Task):
     state = {'n': 1, 'l': 0, 'm': 0}

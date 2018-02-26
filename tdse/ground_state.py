@@ -7,23 +7,33 @@ def wf_1(atom, l, m, grid, ws, dt, Nt):
     wf = wavefunc.SWavefunc.random(grid, l, m)
 
     for i in range(Nt):
-        ws.prop_img(wf, atom, dt)
         wf.normalize()
+        ws.prop_img(wf, atom, dt)
 
-    return wf
+    n = np.sqrt(wf.norm())
+    E = 2/dt*(1-n)/(1+n)
+
+    wf.normalize()
+
+    return wf, E
 
 def wf_n(atom, n, l, m, grid, ws, dt, Nt):
     wfs = [wavefunc.SWavefunc.random(grid, l, m) for i in range(n)]
 
     for i in range(Nt):
+        wavefunc.SWavefunc.ort_l(wfs, l)
         for j in range(n):
             wf = wfs[j]
-            ws.prop_img(wf, atom, dt)
             wf.normalize()
-        wavefunc.SWavefunc.ort_l(wfs, l)
+            ws.prop_img(wf, atom, dt)
 
+    n = np.sqrt(wfs[-1].norm())
+    E = 2/dt*(1-n)/(1+n)
+
+    wavefunc.SWavefunc.ort_l(wfs, l)
     wfs[-1].normalize()
-    return wfs[-1]
+
+    return wfs[-1], E
 
 def wf(atom, grid, ws, dt, Nt, n=1, l=None, m=None):
     if l is None:
@@ -34,9 +44,9 @@ def wf(atom, grid, ws, dt, Nt, n=1, l=None, m=None):
     small_grid = ShGrid(grid.Nr, l+1, grid.Rmax)
 
     if n == 1:
-        wf = wf_1(atom, l, m, small_grid, ws, dt, Nt)
+        wf, E = wf_1(atom, l, m, small_grid, ws, dt, Nt)
     else:
-        wf = wf_n(atom, n, l, m, small_grid, ws, dt, Nt)
+        wf, E = wf_n(atom, n, l, m, small_grid, ws, dt, Nt)
 
     if small_grid.Nl == grid.Nl:
         wf_full = wf
@@ -47,7 +57,7 @@ def wf(atom, grid, ws, dt, Nt, n=1, l=None, m=None):
     wf_full.asarray()[0:l,:] = 0.0
     wf_full.asarray()[l+1:,:] = 0.0
 
-    return wf_full
+    return wf_full, E
 
 
 def orbs(atom, grid, ws, dt=0.125, Nt=10000, print_calc_info=False):

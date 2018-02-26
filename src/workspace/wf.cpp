@@ -21,8 +21,8 @@ workspace::wf_base::wf_base(sh_grid_t const* grid, uabs_sh_t const* uabs, int nu
 	num_threads = 1;
 #endif
 
-	alpha = new cdouble[grid->n[iR]*num_threads];
-	betta = new cdouble[grid->n[iR]*num_threads];
+	alpha = new cdouble[grid->n[iR]*num_threads]();
+	betta = new cdouble[grid->n[iR]*num_threads]();
 }
 
 workspace::wf_base::~wf_base() {
