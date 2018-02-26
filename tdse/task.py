@@ -9,6 +9,10 @@ from .bot_client import BotClient
 import tdse
 
 
+class TaskError(Exception):
+    pass
+
+
 class Task(object):
 
     """
@@ -62,13 +66,24 @@ class Task(object):
         self.is_slurm = os.environ.get('SLURM_JOB_ID', None) is not None
         if mode is Task.MODE_ANALISIS:
             self.send_status = False
-        if self.is_slurm and self.send_status:
+        if self.is_slurm and self.send_status and self.is_root():
             self.bot_client = BotClient()
+        else:
+            self.bot_client = None
 
         self.save_path = self._create_save_path(path_res)
 
+    def finish_with_error(self, message):
+        if self.bot_client:
+            self.bot_client.send_message("Error: {}".format(message))
+
+        raise TaskError()
+
+    def is_root(self):
+        return (not self.is_mpi) or (self.rank == 0)
+
     def calc_init(self):
-        if self.is_slurm and self.send_status:
+        if self.bot_client is not None:
             self.bot_client.start()
 
     def calc_prop(self, i, t):
@@ -81,6 +96,9 @@ class Task(object):
         pass
         
     def calc(self, restart_index=0):
+        if self.bot_client is not None:
+            self.bot_client.send_message("Start calc")
+
         self.calc_init()
 
         if restart_index != 0:
@@ -95,7 +113,7 @@ class Task(object):
             if (i+1) % int(self.t.size*0.01) == 0:
                 self.save()
 
-                if self.is_slurm and self.send_status:
+                if self.bot_client is not None:
                     self.bot_client.send_status(i / self.t.size)
 
             if self.save_state_step is not None and (i+1) % int(self.t.size*self.save_state_step/100) == 0:
@@ -109,7 +127,7 @@ class Task(object):
         self.calc_finish()
 
         self.save()
-        if self.is_slurm and self.send_status:
+        if self.bot_client is not None:
             self.bot_client.finish()
 
     def _create_save_path(self, path_res):
@@ -223,10 +241,44 @@ class WavefuncTask(TaskAtom):
         if ws is None:
             ws = self.Workspace(self.atom_cache, self.sh_grid, tdse.abs_pot.UabsZero())
 
-        return tdse.ground_state.wf(self.atom, self.sh_grid, ws, self.dt, 10000)
+        return tdse.ground_state.wf(self.atom, self.sh_grid, ws, self.dt, 10000)[0]
 
     def calc_prop(self, i, t):
         self.ws.prop(self.wf, self.field, t, self.dt)
+
+class WfGroundStateTask(Task):
+    atom = tdse.atom.H
+    state = {'n': 1, 'l': 0, 'm': 0}
+
+    dt = 0.025
+    dr = 0.125
+
+    T = 100
+    r_max = 100
+
+    CALC_DATA = ['wf_gs', 'E']
+
+    def __init__(self, path_res='res', mode=None, is_mpi=False, **kwargs):
+        super().__init__(path_res, mode, is_mpi=False, **kwargs)
+
+        self.Nl = self.atom.l_max + 1
+        self.Nr = int(self.r_max/self.dr)
+        self.Nt = int(self.T / self.dt)
+
+        self.sh_grid = tdse.grid.ShGrid(Nr=self.Nr, Nl=self.Nl, r_max=self.r_max)
+
+    def calc_init(self):
+        super().calc_init()
+
+        self.ws = tdse.workspace.SKnWorkspace(self.sh_grid, tdse.abs_pot.UabsZero())
+
+    def calc(self):
+        self.calc_init()
+
+        self.wf, self.E = tdse.ground_state.wf(self.atom, self.sh_grid, self.ws, self.dt, self.Nt, **self.state)
+
+        self.wf_gs = self.wf.asarray()
+        self.save()
 
 class WavefuncWithSourceTask(TaskAtom):
     def __init__(self, path_res='res', mode=None, **kwargs):

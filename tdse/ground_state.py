@@ -1,6 +1,11 @@
 import numpy as np
+<<<<<<< HEAD
 from . import grid, wavefunc, orbitals
 from .atom import AtomCache
+=======
+from . import wavefunc, orbitals
+from .grid import ShGrid
+>>>>>>> dab31846d049b87a634e3d4bd6cdc93537cc9573
 
 
 def wf_1(atom, grid, ws, dt, Nt):
@@ -9,10 +14,15 @@ def wf_1(atom, grid, ws, dt, Nt):
     wf = wavefunc.ShWavefunc.random(grid, l, m)
 
     for i in range(Nt):
-        ws.prop_img(wf, dt)
         wf.normalize()
+        ws.prop_img(wf, dt)
 
-    return wf
+    n = np.sqrt(wf.norm())
+    E = 2/dt*(1-n)/(1+n)
+
+    wf.normalize()
+
+    return wf, E
 
 def wf_n(atom, grid, ws, dt, Nt):
     l = atom.ground_state.l
@@ -22,19 +32,42 @@ def wf_n(atom, grid, ws, dt, Nt):
     wfs = [wavefunc.ShWavefunc.random(grid, l, m) for i in range(n)]
 
     for i in range(Nt):
+        wavefunc.SWavefunc.ort_l(wfs, l)
         for j in range(n):
-            ws.prop_img(wfs[j], dt)
-            wfs[j].normalize()
-        wavefunc.ShWavefunc.ort_l(wfs, l)
+            wf = wfs[j]
+            wf.normalize()
+            ws.prop_img(wf, dt)
 
+    n = np.sqrt(wfs[-1].norm())
+    E = 2/dt*(1-n)/(1+n)
+
+    wavefunc.SWavefunc.ort_l(wfs, l)
     wfs[-1].normalize()
-    return wfs[-1]
+
+    return wfs[-1], E
 
 def wf(atom, grid, ws, dt, Nt):
-    if atom.ground_state.n == 1:
-        return wf_1(atom, grid, ws, dt, Nt)
+    l = atom.ground_state.l
+    m = atom.ground_state.m
+    n = atom.ground_state.n
+
+    small_grid = ShGrid(grid.Nr, l+1, grid.Rmax)
+
+    if n == 1:
+        wf, E = wf_1(atom, small_grid, ws, dt, Nt)
     else:
-        return wf_n(atom, grid, ws, dt, Nt)
+        wf, E = wf_n(atom, small_grid, ws, dt, Nt)
+
+    if small_grid.Nl == grid.Nl:
+        wf_full = wf
+    else:
+        wf_full = wavefunc.SWavefunc(grid, m)
+        wf_full.asarray()[l,:] = wf.asarray()[l,:]
+
+    wf_full.asarray()[0:l,:] = 0.0
+    wf_full.asarray()[l+1:,:] = 0.0
+
+    return wf_full, E
 
 
 def orbs(atom, grid, ws, dt=0.125, Nt=10000, print_calc_info=False):

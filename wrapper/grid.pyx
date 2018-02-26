@@ -40,6 +40,18 @@ cdef class ShGrid:
     def shape(self):
         return (self.data.n[1], self.data.n[0])
 
+    @property
+    def Nl(self):
+        return self.data.n[1]
+
+    @property
+    def Nr(self):
+        return self.data.n[0]
+
+    @property
+    def Rmax(self):
+        return sh_grid_r_max(self.data)
+
     def get_r(self):
         return np.linspace(self.data.d[0], self.data.d[0]*self.data.n[0], self.data.n[0])
 

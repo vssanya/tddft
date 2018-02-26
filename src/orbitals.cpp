@@ -17,7 +17,7 @@ Orbitals::Orbitals(Atom const& atom, ShGrid const* grid, MPI_Comm mpi_comm):
 	if (mpi_comm != MPI_COMM_NULL) {
         MPI_Comm_rank(mpi_comm, &mpi_rank);
 
-        data = new cdouble[grid->size()];
+        data = new cdouble[grid->size()]();
         for (int ie = 0; ie < atom.countOrbs; ++ie) {
             if (ie == mpi_rank) {
                 wf[ie] = new ShWavefunc(data, grid, atom.orbs[ie].m);
@@ -33,7 +33,7 @@ Orbitals::Orbitals(Atom const& atom, ShGrid const* grid, MPI_Comm mpi_comm):
 	} else
 #endif
 	{
-        data = new cdouble[grid->size()*atom.countOrbs];
+        data = new cdouble[grid->size()*atom.countOrbs]();
         for (int ie = 0; ie < atom.countOrbs; ++ie) {
             wf[ie] = new ShWavefunc(&data[grid->size()*ie], grid, atom.orbs[ie].m);
 		}
