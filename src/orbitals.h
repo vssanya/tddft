@@ -29,6 +29,8 @@ public:
     double norm(sh_f mask) const;
     void norm_ne(double* n, sh_f mask) const;
 
+    void prod_ne(Orbitals const& orbs, cdouble *n) const;
+
     /*!
      * \brief [MPI support]
      */
@@ -48,8 +50,8 @@ public:
     /*!
      * \brief [MPI not support]
      */
-    double  n(SpGrid const* grid, int i[2], ylm_cache_t const* ylm_cache) const;
-    void n_sp(SpGrid const* grid, double* n, double* n_tmp, ylm_cache_t const* ylm_cache) const;
+    void n_sp(SpGrid const* grid, double* n, double* n_tmp, YlmCache const* ylm_cache) const;
+    double  n(SpGrid const* grid, int i[2], YlmCache const* ylm_cache) const;
     void n_l0(double* n, double* n_tmp) const;
 
     double cos(sh_f U) const;

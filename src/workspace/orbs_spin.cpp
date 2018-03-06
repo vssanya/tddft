@@ -5,7 +5,7 @@ workspace::OrbsSpin::OrbsSpin(
         const ShGrid *sh_grid,
         const SpGrid *sp_grid,
         const uabs_sh_t *uabs,
-        const ylm_cache_t *ylm_cache,
+        const YlmCache *ylm_cache,
         int Uh_lmax,
         int Uxc_lmax,
         potential_xc_f Uxc,

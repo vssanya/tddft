@@ -6,7 +6,7 @@ from wavefunc cimport ShWavefunc, cCtWavefunc, cShWavefunc
 
 from field cimport field_t
 from orbitals cimport cOrbitals
-from sphere_harmonics cimport ylm_cache_t
+from sphere_harmonics cimport cYlmCache
 from atom cimport cAtom, cAtomCache, Atom, AtomCache
 from hartree_potential cimport potential_xc_f
 
@@ -76,7 +76,7 @@ cdef extern from "workspace.h" namespace "workspace":
         void prop_img(cShWavefunc& wf, double dt)
 
     cdef cppclass orbs:
-        orbs(cAtomCache* atom, cShGrid* sh_grid, cSpGrid* sp_grid, uabs_sh_t* uabs, ylm_cache_t* ylm_cache, int Uh_lmax, int Uxc_lmax, potential_xc_f Uxc, int num_threads)
+        orbs(cAtomCache* atom, cShGrid* sh_grid, cSpGrid* sp_grid, uabs_sh_t* uabs, cYlmCache* ylm_cache, int Uh_lmax, int Uxc_lmax, potential_xc_f Uxc, int num_threads)
 
         void prop(cOrbitals* orbs, field_t* field, double t, double dt, bint calc_uee)
         void prop_img(cOrbitals* orbs, double dt)
@@ -90,7 +90,7 @@ cdef extern from "workspace.h" namespace "workspace":
         double* uh_tmp
         double* n_sp
         double* Uee
-        ylm_cache_t* ylm_cache
+        cYlmCache* ylm_cache
         int Uh_lmax
         int Uxc_lmax
 

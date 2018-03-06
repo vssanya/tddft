@@ -10,14 +10,14 @@
 #include <stdio.h>
 
 
-jl_cache_t::jl_cache_t(SpGrid const* grid, int l_max):
+JlCache::JlCache(SpGrid const* grid, int l_max):
 	l_max(l_max),
 	grid(grid)
 {
 	data = new double[(grid->n[iR]+1)*l_max]();
 #pragma omp parallel for collapse(2)
 	for (int il=0; il<l_max; il++) {
-		for (int ir=0; ir<grid->n[iR]; ir++) {
+        for (int ir=-1; ir<grid->n[iR]; ir++) {
 			if (ir == -1) {
 				(*this)(ir, il) = boost::math::sph_bessel(il, 0.0);
 			} else {
@@ -27,11 +27,15 @@ jl_cache_t::jl_cache_t(SpGrid const* grid, int l_max):
 	}
 }
 
-jl_cache_t::~jl_cache_t() {
+double JlCache::calc(double r, int il) {
+    return boost::math::sph_bessel(il, r);
+}
+
+JlCache::~JlCache() {
 	delete[] data;
 }
 
-double jl_cache_t::operator()(double r, int il) const {
+double JlCache::operator()(double r, int il) const {
 	assert(il >= 0 && il < l_max);
 
     int ir = grid->ir(r);
@@ -52,7 +56,7 @@ double y3(int l1, int m1, int l2, int m2, int L, int M) {
 	return sqrt((2*l1 + 1)*(2*l2 + 1)/(4*M_PI*(2*L + 1)))*clebsch_gordan_coef(l1, 0, l2, 0, L, 0)*clebsch_gordan_coef(l1, m1, l2, m2, L, M);
 }
 
-ylm_cache_t::ylm_cache_t(SpGrid const* grid, int l_max):
+YlmCache::YlmCache(SpGrid const* grid, int l_max):
 	l_max(l_max),
 	grid(grid)
 {
@@ -73,23 +77,11 @@ ylm_cache_t::ylm_cache_t(SpGrid const* grid, int l_max):
 	delete[] tmp;
 }
 
-ylm_cache_t::~ylm_cache_t() {
+YlmCache::~YlmCache() {
 	delete[] data;
 }
 
-ylm_cache_t* ylm_cache_new(int l_max, SpGrid const* grid) {
-	return new ylm_cache_t(grid, l_max);
-}
-
-void ylm_cache_del(ylm_cache_t* cache) {
-	delete cache;
-}
-
-double ylm_cache_get(ylm_cache_t const* cache, int l, int m, int ic) {
-	return (*cache)(l, m, ic);
-}
-
-double ylm_cache_t::operator()(int l, int m, double c) const {
+double YlmCache::operator()(int l, int m, double c) const {
     int ic = grid->ic(c);
     double x = (c - grid->c(ic))/grid->d[iC];
 
@@ -100,17 +92,13 @@ double ylm_cache_t::operator()(int l, int m, double c) const {
 	}
 }
 
-double ylm_cache_calc(ylm_cache_t const* cache, int l, int m, double c) {
-	return (*cache)(l, m, c);
-}
-
-double sh_series_r(std::function<double(int, int)> f, int ir, int l, int m, SpGrid const* grid, ylm_cache_t const* ylm_cache) {
+double sh_series_r(std::function<double(int, int)> f, int ir, int l, int m, SpGrid const* grid, YlmCache const* ylm_cache) {
 	return integrate_1d_cpp<double>([f, ir, ylm_cache, l, m](int ic) -> double {
-			return f(ir, ic)*ylm_cache_get(ylm_cache, l, m, ic);
+            return f(ir, ic)*(*ylm_cache)(l, m, ic);
 			}, grid->n[iC], grid->d[iC])*2*M_PI;
 }
 
-void sh_series(std::function<double(int, int)> f, int l, int m, SpGrid const* grid, double* series, ylm_cache_t const* ylm_cache) {
+void sh_series(std::function<double(int, int)> f, int l, int m, SpGrid const* grid, double* series, YlmCache const* ylm_cache) {
 #pragma omp parallel for
 	for (int ir = 0; ir < grid->n[iR]; ++ir) {
 		series[ir] = sh_series_r(f, ir, l, m, grid, ylm_cache);

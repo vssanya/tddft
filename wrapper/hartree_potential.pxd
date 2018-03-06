@@ -1,7 +1,7 @@
 from wavefunc cimport cShWavefunc
 from orbitals cimport cOrbitals
 from grid cimport cSpGrid
-from sphere_harmonics cimport ylm_cache_t
+from sphere_harmonics cimport cYlmCache
 
 cdef extern from "hartree_potential.h":
     ctypedef double (*potential_xc_f)(double n, double x)
@@ -20,7 +20,7 @@ cdef extern from "hartree_potential.h":
         cSpGrid* grid,
         double* n, # for calc using mpi
         double* n_local, # for calc using mpi
-        ylm_cache_t* ylm_cache
+        cYlmCache* ylm_cache
     )
     void uxc_calc_l0(
         potential_xc_f uxc,
@@ -29,7 +29,7 @@ cdef extern from "hartree_potential.h":
         cSpGrid* grid,
         double* n, # for calc using mpi
         double* n_local, # for calc using mpi
-        ylm_cache_t* ylm_cache
+        cYlmCache* ylm_cache
     )
 
 cdef class Uxc:

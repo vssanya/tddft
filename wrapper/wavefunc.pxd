@@ -1,7 +1,7 @@
 from types cimport sh_f, cdouble
 from grid cimport cShGrid, cSpGrid, cGrid2d
 from grid cimport ShGrid, SpGrid2d
-from sphere_harmonics cimport ylm_cache_t
+from sphere_harmonics cimport cYlmCache
 
 
 cdef extern from "wavefunc/cartesian_2d.h":
@@ -41,8 +41,8 @@ cdef extern from "sh_wavefunc.h":
         void normalize()
         double z() 
         void random_l(int l)
-        cdouble get_sp(cSpGrid* grid, int i[3], ylm_cache_t* ylm_cache)
-        void n_sp(cSpGrid* grid, double* n, ylm_cache_t* ylm_cache)
+        cdouble get_sp(cSpGrid* grid, int i[3], cYlmCache* ylm_cache)
+        void n_sp(cSpGrid* grid, double* n, cYlmCache* ylm_cache)
         @staticmethod
         void ort_l(int l, int n, cShWavefunc** wfs)
 

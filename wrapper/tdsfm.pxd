@@ -1,7 +1,7 @@
 from types cimport cdouble
 from grid cimport cShGrid, cSpGrid, SpGrid, ShGrid
 from field cimport field_t
-from sphere_harmonics cimport ylm_cache_t, YlmCache, jl_cache_t
+from sphere_harmonics cimport cYlmCache, YlmCache, cJlCache
 from wavefunc cimport cShWavefunc
 
 from libcpp cimport bool
@@ -19,10 +19,10 @@ cdef extern from "tdsfm.h":
         cdouble* data
 
         cSpGrid* jl_grid
-        jl_cache_t* jl
+        cJlCache* jl
 
         cSpGrid* ylm_grid
-        ylm_cache_t* ylm
+        cYlmCache* ylm
 
         double int_A
         double int_A2

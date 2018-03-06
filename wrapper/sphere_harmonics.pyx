@@ -5,7 +5,7 @@ from grid cimport SpGrid
 
 cdef class JlCache:
     def __cinit__(self, SpGrid grid, int l_max):
-        self.cdata = new jl_cache_t(grid.data, l_max)
+        self.cdata = new cJlCache(grid.data, l_max)
 
     def __init__(self, SpGrid grid, int l_max):
         pass
@@ -18,7 +18,7 @@ cdef class JlCache:
 
 cdef class YlmCache:
     def __cinit__(self, int l_max, SpGrid grid):
-        self.cdata = new ylm_cache_t(grid.data, l_max)
+        self.cdata = new cYlmCache(grid.data, l_max)
 
     def __init__(self, int l_max, SpGrid grid):
         pass

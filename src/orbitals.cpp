@@ -142,6 +142,20 @@ void Orbitals::norm_ne(double* n, sh_f mask) const {
     }
 }
 
+void Orbitals::prod_ne(const Orbitals &orbs, cdouble *res) const {
+#ifdef _MPI
+    if (mpi_comm != MPI_COMM_NULL) {
+        cdouble res_local = (*mpi_wf)*(*orbs.mpi_wf);
+        MPI_Gather(&res_local, 1, MPI_DOUBLE, res, 1, MPI_DOUBLE, 0, mpi_comm);
+    } else
+#endif
+    {
+        for (int ie=0; ie<atom.countOrbs; ++ie) {
+            res[ie] = (*wf[ie])*(*orbs.wf[ie]);
+        }
+    }
+}
+
 void Orbitals::normalize() {
     for (int ie=0; ie<atom.countOrbs; ++ie) {
         if (wf[ie] != nullptr) {
@@ -172,7 +186,7 @@ double Orbitals::cos(sh_f U) const {
     return res;
 }
 
-void Orbitals::n_sp(SpGrid const* grid, double* n, double* n_tmp, ylm_cache_t const* ylm_cache) const {
+void Orbitals::n_sp(SpGrid const* grid, double* n, double* n_tmp, YlmCache const* ylm_cache) const {
 #ifdef _MPI
     if (mpi_comm != MPI_COMM_NULL) {
 #pragma omp parallel for collapse(2)
@@ -235,7 +249,7 @@ void Orbitals::n_l0(double* n, double* n_tmp) const {
     }
 }
 
-double Orbitals::n(SpGrid const* grid, int i[2], ylm_cache_t const* ylm_cache) const {
+double Orbitals::n(SpGrid const* grid, int i[2], YlmCache const* ylm_cache) const {
 #ifdef _MPI
     assert(mpi_comm == MPI_COMM_NULL);
 #endif

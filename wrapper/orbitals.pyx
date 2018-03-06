@@ -126,6 +126,16 @@ cdef class Orbitals:
 
         return norm
 
+    def prod_ne(self, Orbitals orbs, np.ndarray[complex_t, ndim=1, mode='c'] res = None):
+        cdef cdouble* res_ptr = NULL
+        if self.is_root():
+            if res is None:
+                res = np.ndarray(self.cdata.atom.countOrbs, dtype=np.double)
+            res_ptr = <cdouble*>res.data
+
+        self.cdata.prod_ne(orbs.cdata[0], res_ptr)
+
+        return res
 
     def normalize(self):
         self.cdata.normalize()

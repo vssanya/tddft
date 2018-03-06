@@ -50,7 +50,7 @@ void uxc_calc_l(
 		SpGrid const* grid,
 		double* n, // for calc using mpi
 		double* n_tmp, // for calc using mpi
-		ylm_cache_t const* ylm_cache
+		YlmCache const* ylm_cache
 );
 
 void uxc_calc_l0(
@@ -60,7 +60,7 @@ void uxc_calc_l0(
 		SpGrid const* grid,
 		double* n, // for calc using mpi
 		double* n_tmp, // for calc using mpi
-		ylm_cache_t const* ylm_cache
+		YlmCache const* ylm_cache
 );
 
 #ifdef __cplusplus

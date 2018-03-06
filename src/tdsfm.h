@@ -34,10 +34,10 @@ class TDSFM_Base {
 		cdouble* data; //!< data[i + j*grid->Np] = \f$a_{I}(k_{i,j}\f$
 
 		SpGrid* jl_grid;
-		jl_cache_t* jl;
+		JlCache* jl;
 
 		SpGrid* ylm_grid;
-		ylm_cache_t* ylm;
+		YlmCache* ylm;
 
 		double int_A;
 		double int_A2;

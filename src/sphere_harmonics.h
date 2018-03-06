@@ -5,15 +5,15 @@
 #include "grid.h"
 
 
-struct jl_cache_t {
+class JlCache {
+public:
 	double* data;
 
 	int l_max;
 	SpGrid const* grid;
 
-#ifdef __cplusplus
-	jl_cache_t(SpGrid const* grid, int l_max);
-	~jl_cache_t();
+    JlCache(SpGrid const* grid, int l_max);
+    ~JlCache();
 	
 	inline
 	double operator()(int ir, int il) const {
@@ -32,19 +32,26 @@ struct jl_cache_t {
 
 		return data[ir + il*(grid->n[iR]+1) + 1];
 	}
-#endif
+
+    static double calc(double r, int il);
 };
 
 
-struct ylm_cache_t {
-	double* data;
+/*!
+ * \brief [Spherical harmonics](https://en.wikipedia.org/wiki/Spherical_harmonics)\f$Y_l^m(\theta)\f$
+ * \param[in] l
+ * \param[in] m
+ * \param[in] ic index of \f$\cos\theta\f$
+ * */
+struct YlmCache {
+public:
+    double* data;
 	int size;
 	int l_max;
 	SpGrid const* grid;
 
-#ifdef __cplusplus
-	ylm_cache_t(SpGrid const* grid, int l_max);
-	~ylm_cache_t();
+    YlmCache(SpGrid const* grid, int l_max);
+    ~YlmCache();
 	
 	inline
 	double operator()(int l, int m, int ic) const {
@@ -62,16 +69,8 @@ struct ylm_cache_t {
 
 		return data[l + ic*(l_max+1) + m*(l_max+1)*grid->n[iC]];
 	}
-#endif
 };
 
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-typedef struct jl_cache_t jl_cache_t;
-typedef struct ylm_cache_t ylm_cache_t;
 
 /*! \file
  * Свойства сферических функций
@@ -96,22 +95,7 @@ double clebsch_gordan_coef(int j1, int m1, int j2, int m2, int J, int M);
 double y3(int l1, int m1, int l2, int m2, int L, int M);
 
 /*!
- * \brief [Spherical harmonics](https://en.wikipedia.org/wiki/Spherical_harmonics)\f$Y_l^m(\theta)\f$
- * \param[in] l
- * \param[in] m
- * \param[in] ic index of \f$\cos\theta\f$
- * */
-ylm_cache_t* ylm_cache_new(int l_max, SpGrid const* grid);
-void ylm_cache_del(ylm_cache_t* ylm_cache);
-double ylm_cache_get(ylm_cache_t const* cache, int l, int m, int ic);
-double ylm_cache_calc(ylm_cache_t const* cache, int l, int m, double c);
-
-/*!
  * \brief Разложение функции по сферическим гармоникам
  * */
 
-#ifdef __cplusplus
-}
-#endif
-
-void sh_series(std::function<double(int, int)> func, int l, int m, SpGrid const* grid, double* series, ylm_cache_t const* ylm_cache);
+void sh_series(std::function<double(int, int)> func, int l, int m, SpGrid const* grid, double* series, YlmCache const* ylm_cache);

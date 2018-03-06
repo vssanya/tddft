@@ -7,7 +7,6 @@ from types cimport complex_t
 from grid cimport ShGrid, SpGrid
 from field cimport Field
 from wavefunc cimport ShWavefunc
-from sphere_harmonics cimport ylm_cache_get
 
 
 cdef class TDSFM:

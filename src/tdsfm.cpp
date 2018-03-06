@@ -29,9 +29,9 @@ TDSFM_Base::TDSFM_Base(SpGrid const* k_grid, ShGrid const* r_grid, int ir):
 	r_grid(r_grid),
 	ir(ir),
 	jl_grid(nullptr),
-	ylm_grid(nullptr),
+    ylm_grid(nullptr),
 	jl(nullptr),
-	ylm(nullptr),
+    ylm(nullptr),
 	int_A(0.0),
 	int_A2(0.0)
 {
@@ -39,11 +39,11 @@ TDSFM_Base::TDSFM_Base(SpGrid const* k_grid, ShGrid const* r_grid, int ir):
 }
 
 TDSFM_Base::~TDSFM_Base() {
-	if (ylm != NULL) {
+    if (ylm != nullptr) {
 		delete ylm;
 	}
 
-	if (jl != NULL) {
+    if (jl != nullptr) {
 		delete jl;
 	}
 
@@ -51,12 +51,12 @@ TDSFM_Base::~TDSFM_Base() {
 }
 
 void TDSFM_Base::init_cache() {
-	if (jl == NULL) {
-		jl = new jl_cache_t(jl_grid, r_grid->n[iL]+1);
+    if (jl == nullptr) {
+		jl = new JlCache(jl_grid, r_grid->n[iL]+1);
 	}
 
-	if (ylm == NULL) {
-		ylm = new ylm_cache_t(ylm_grid, r_grid->n[iL]);
+    if (ylm == nullptr) {
+		ylm = new YlmCache(ylm_grid, r_grid->n[iL]);
 	}
 }
 
@@ -234,7 +234,7 @@ void TDSFM_A::calc_inner(field_t const* field, ShWavefunc const& wf, double t, i
 				cdouble a_kl = 0.0;
 				for (int ir=ir_min; ir<ir_max; ir++) {
                     double r = wf.grid->r(ir);
-					a_kl += r*wf(ir, il)*(*jl)(ik, il);
+                    a_kl += r*wf(ir, il)*JlCache::calc(r*k, il);
 				}
 				a_k += a_kl*cpow(-I, il)*(*ylm)(il, wf.m, ic);
 			}

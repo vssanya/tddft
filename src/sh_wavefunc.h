@@ -82,9 +82,9 @@ public:
   /*!
  * \return \f$\psi(r, \Omega)\f$
  * */
-  cdouble get_sp(SpGrid const* grid, int i[3], ylm_cache_t const* ylm_cache) const;
+  cdouble get_sp(SpGrid const* grid, int i[3], YlmCache const* ylm_cache) const;
 
-  void n_sp(SpGrid const* grid, double* n, ylm_cache_t const* ylm_cache) const;
+  void n_sp(SpGrid const* grid, double* n, YlmCache const* ylm_cache) const;
 
   void print() const;
 };

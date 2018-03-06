@@ -153,7 +153,7 @@ void ShWavefunc::ort_l(int l, int n, ShWavefunc** wfs) {
 	}
 }
 
-void ShWavefunc::n_sp(SpGrid const* grid, double* n, ylm_cache_t const* ylm_cache) const {
+void ShWavefunc::n_sp(SpGrid const* grid, double* n, YlmCache const* ylm_cache) const {
 #pragma omp parallel for collapse(2)
 	for (int ir = 0; ir < grid->n[iR]; ++ir) {
 		for (int ic = 0; ic < grid->n[iC]; ++ic) {
@@ -224,7 +224,7 @@ double ShWavefunc::z() const {
 	});
 }
 
-cdouble ShWavefunc::get_sp(SpGrid const* grid, int i[3], ylm_cache_t const* ylm_cache) const {
+cdouble ShWavefunc::get_sp(SpGrid const* grid, int i[3], YlmCache const* ylm_cache) const {
 	cdouble res = 0.0;
     for (int il = 0; il < this->grid->n[iL]; ++il) {
         int const l = this->grid->l(il);
