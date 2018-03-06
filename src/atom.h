@@ -85,6 +85,7 @@ class Atom {
 		}
 
         Atom(int Z, std::vector<State> orbs, int groundStateId, PotentialType type): Atom(Z, orbs, orbs[groundStateId], type) {}
+        virtual ~Atom() {}
 
         virtual double u(double r) const = 0;
         virtual double dudz(double r) const = 0;

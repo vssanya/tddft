@@ -191,8 +191,12 @@ void TDSFM_A::calc(field_t const* field, ShWavefunc const& wf, double t, double 
 	}
 }
 
-void TDSFM_E::calc_inner(field_t const* field, ShWavefunc const& wf, double t, int ir_min, int ir_max) {
-	double At = field_A(field, t);
+void TDSFM_E::calc_inner(field_t const* field, ShWavefunc const& wf, double t, int ir_min, int ir_max, int l_max) {
+    if (l_max == -1 || l_max > wf.grid->n[iL]) {
+        l_max = wf.grid->n[iL];
+    }
+
+    double At = field_A(field, t);
 
 #pragma omp parallel for collapse(2)
 	for (int ik=0; ik<k_grid->n[iR]; ik++) {
@@ -220,7 +224,11 @@ void TDSFM_E::calc_inner(field_t const* field, ShWavefunc const& wf, double t, i
 	}
 }
 
-void TDSFM_A::calc_inner(field_t const* field, ShWavefunc const& wf, double t, int ir_min, int ir_max) {
+void TDSFM_A::calc_inner(field_t const* field, ShWavefunc const& wf, double t, int ir_min, int ir_max, int l_max) {
+    if (l_max == -1 || l_max > wf.grid->n[iL]) {
+        l_max = wf.grid->n[iL];
+    }
+
 #pragma omp parallel for collapse(2)
 	for (int ik=0; ik<k_grid->n[iR]; ik++) {
 		for (int ic=0; ic<k_grid->n[iC]; ic++) {
@@ -230,7 +238,7 @@ void TDSFM_A::calc_inner(field_t const* field, ShWavefunc const& wf, double t, i
 			cdouble S = cexp(0.5*I*(k*k*t + 2*kz*int_A));
 
 			cdouble a_k = 0.0;
-			for (int il=0; il<wf.grid->n[iL]; il++) {
+            for (int il=0; il<l_max; il++) {
 				cdouble a_kl = 0.0;
 				for (int ir=ir_min; ir<ir_max; ir++) {
                     double r = wf.grid->r(ir);

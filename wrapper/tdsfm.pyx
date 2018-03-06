@@ -25,10 +25,10 @@ cdef class TDSFM:
     def calc(self, Field field, ShWavefunc wf, double t, double dt):
         self.cdata[0].calc(field.cdata, wf.cdata[0], t, dt)
 
-    def calc_inner(self, Field field, ShWavefunc wf, double t, int ir_min = 0, int ir_max = -1):
+    def calc_inner(self, Field field, ShWavefunc wf, double t, int ir_min = 0, int ir_max = -1, int l_max = -1):
         if ir_max == -1:
             ir_max = self.cdata.ir
-        self.cdata[0].calc_inner(field.cdata, wf.cdata[0], t, ir_min, ir_max)
+        self.cdata[0].calc_inner(field.cdata, wf.cdata[0], t, ir_min, ir_max, l_max)
 
     def asarray(self):
         cdef complex_t[:, ::1] arr = <complex_t[:self.cdata.k_grid.n[1], :self.cdata.k_grid.n[0]]>(<complex_t*>self.cdata.data)
