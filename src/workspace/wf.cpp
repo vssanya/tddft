@@ -284,7 +284,7 @@ void workspace::WfA::prop(ShWavefunc& wf, field_t const* field, double t, double
 	prop_abs(wf, dt);
 }
 
-void workspace::WfBase::prop(ShWavefunc &wf, double dt) {
+void workspace::WfBase::prop_without_field(ShWavefunc &wf, double dt) {
     sh_f Ul[1] = {
             [this](ShGrid const* grid, int ir, int l, int m) -> double {
                 double const r = grid->r(ir);
