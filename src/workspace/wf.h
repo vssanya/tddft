@@ -48,6 +48,7 @@ namespace workspace {
             void prop_common(ShWavefunc& wf, cdouble dt, int l_max, sh_f* Ul, sh_f* Al = nullptr);
 
             void prop(ShWavefunc& wf, field_t const* field, double t, double dt);
+            void prop(ShWavefunc& wf, double dt);
             void prop_img(ShWavefunc& wf, double dt);
 
             ShGrid const* grid;
@@ -66,13 +67,15 @@ namespace workspace {
             WfE(AtomCache const* atom_cache, ShGrid const* grid, uabs_sh_t const* uabs, int num_threads):
                 WfBase(atom_cache, grid, uabs, num_threads) {}
             void prop(ShWavefunc& wf, field_t const* field, double t, double dt);
-	};
+            void prop(ShWavefunc& wf, double dt);
+    };
 
     class WfA: public WfBase {
 		public:
             WfA(AtomCache const* atom_cache, ShGrid const* grid, uabs_sh_t const* uabs, int num_threads):
                 WfBase(atom_cache, grid, uabs, num_threads) {}
             void prop(ShWavefunc& wf, field_t const* field, double t, double dt);
-	};
+            void prop(ShWavefunc& wf, double dt);
+    };
 }
 

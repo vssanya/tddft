@@ -53,7 +53,7 @@ double uabs_multi_hump_func(uabs_multi_hump_t const* self, ShGrid const* grid, i
     double const r = grid->r(ir);
 
 	double result = 0.0;
-	for (int i = 0; i < 3; ++i) {	
+    for (int i = 0; i < 2; ++i) {
 		result += self->u[i]*f[i]((r - r_max + self->l[i]) / self->l[i]);
 	}
 

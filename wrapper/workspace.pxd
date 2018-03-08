@@ -57,6 +57,7 @@ cdef extern from "workspace.h" namespace "workspace":
         void prop_abs(cShWavefunc& wf, double dt)
         #void prop_common(cShWavefunc& wf, cdouble dt, int l_max, sh_f* Ul, int Z, potential_type_e u_type, sh_f* Al)
         void prop(cShWavefunc& wf, field_t* field, double t, double dt)
+        void prop(cShWavefunc& wf, double dt)
         void prop_img(cShWavefunc& wf, double dt)
 
         cShGrid* grid
@@ -73,6 +74,7 @@ cdef extern from "workspace.h" namespace "workspace":
     cdef cppclass WfA:
         WfA(cAtomCache* atom, cShGrid* grid, uabs_sh_t* uabs, int num_threads)
         void prop(cShWavefunc& wf, field_t* field, double t, double dt)
+        void prop(cShWavefunc& wf, double dt)
         void prop_img(cShWavefunc& wf, double dt)
 
     cdef cppclass orbs:

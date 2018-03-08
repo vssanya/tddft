@@ -84,7 +84,10 @@ cdef class SKnWorkspace:
         pass
 
     def prop(self, ShWavefunc wf, Field field, double t, double dt):
-        self.cdata.prop(wf.cdata[0], field.cdata, t, dt)
+        if field is None:
+            self.cdata.prop(wf.cdata[0], dt)
+        else:
+            self.cdata.prop(wf.cdata[0], field.cdata, t, dt)
 
     def prop_img(self, ShWavefunc wf, double dt):
         self.cdata.prop_img(wf.cdata[0], dt)
@@ -103,7 +106,10 @@ cdef class SKnAWorkspace:
         pass
 
     def prop(self, ShWavefunc wf, Field field, double t, double dt):
-        self.cdata.prop(wf.cdata[0], field.cdata, t, dt)
+        if field is None:
+            self.cdata.prop(wf.cdata[0], dt)
+        else:
+            self.cdata.prop(wf.cdata[0], field.cdata, t, dt)
 
     def prop_img(self, ShWavefunc wf, double dt):
         self.cdata.prop_img(wf.cdata[0], dt)
