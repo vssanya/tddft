@@ -26,13 +26,13 @@ const std::vector<Atom::State> ArAtom::GroundStateOrbs = {
 	State("2p", 1, 4), State("3p", 1, 4)   // m = +- 1
 };
 
-constexpr std::array<double, 2*3> Na_B {{
+const std::array<double, 2*3> Na_B {{
     6.46644991, 2.03040457,
     9.07195947, 1.22049052,
     3.66561470, 3.88900584
 }};
 
-constexpr std::array<double, 2*3> Na_C {{
+const std::array<double, 2*3> Na_C {{
     0.35071677, 0.64928323,
     1.00486813, -0.05093639,
     1.06629058, 0.70089565,

@@ -14,14 +14,6 @@ double plm(int l, int m) {
 	return (l*(l+1) - 3*m*m)/(double)((2*l - 1)*(2*l + 3));
 }
 
-double min(double a, double b) {
-	return a < b ? a : b;
-}
-
-double max(double a, double b) {
-	return a > b ? a : b;
-}
-
 double clamp(double x, double lower, double upper) {
 	return min(upper, max(x, lower));
 }

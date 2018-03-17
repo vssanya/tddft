@@ -1,4 +1,15 @@
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall")
+set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -std=c++11")
+
+set( LIB_GPU_SOURCES
+	"sh_wavefunc_gpu.cu"
+	"workspace/wf_gpu.cu"
+	)
+
+set( LIB_GPU_HEADERS
+	"sh_wavefunc_gpu.h"
+	"workspace/wf_gpu.h"
+	)
 
 set( LIB_SOURCES
 	"workspace/wf.cpp"
@@ -68,3 +79,8 @@ set( LIB_HEADERS
 
 add_library( tdse SHARED ${LIB_SOURCES} ${LIB_HEADERS} )
 target_link_libraries( tdse m gsl gslcblas lapacke)
+
+if (CUDA_FOUND)
+	cuda_add_library( tdse_gpu SHARED ${LIB_GPU_SOURCES} ${LIB_GPU_HEADERS})
+	target_link_libraries( tdse_gpu m )
+endif()

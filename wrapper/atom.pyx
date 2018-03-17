@@ -15,6 +15,9 @@ cdef class AtomCache:
         else:
             self.cdata = new cAtomCache(atom.cdata[0], grid.data, &u[0])
 
+    def __init__(self, Atom atom, ShGrid grid, double[::1] u = None):
+        pass
+
     def __dealloc__(self):
         del self.cdata
 
@@ -91,6 +94,10 @@ cdef class Atom:
 
     def getCountElectrons(self, int i):
         return self.cdata.orbs[i].countElectrons
+
+    @property
+    def Z(self):
+        return self.cdata.Z
 
     def u(self, double r):
         return self.cdata.u(r)

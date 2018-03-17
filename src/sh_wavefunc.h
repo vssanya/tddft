@@ -8,10 +8,6 @@
 #include "grid.h"
 #include "sphere_harmonics.h"
 
-#ifdef __cplusplus
-#include "linalg.h"
-#endif
-
 /*!
  * \brief Волновая функция представленная в виде разложения по сферическим гармоникам
  *
@@ -40,6 +36,10 @@ public:
   inline cdouble const& operator() (int ir, int il) const {
 	  assert(ir < grid->n[iR] && il < grid->n[iL]);
 	  return data[ir + il*grid->n[iR]];
+  }
+
+  inline cdouble d_dr(int ir, int il) const {
+	  return (-(*this)(ir+2, il) + 8*(*this)(ir+1, il) - 8*(*this)(ir-1, il) + (*this)(ir-2, il))/(12*grid->d[iR]);
   }
 
   inline double abs_2(int ir, int il) const {

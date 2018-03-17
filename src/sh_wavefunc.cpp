@@ -6,8 +6,6 @@
 #include <assert.h>
 #include <omp.h>
 
-#include <functional>
-
 #include "utils.h"
 #include "integrate.h"
 
@@ -112,7 +110,7 @@ inline double ShWavefunc_integrate_r2(ShWavefunc const* wf, func_wf_t func, int 
 cdouble ShWavefunc::operator*(ShWavefunc const& other) const {
     return integrate<cdouble>([this, &other](ShWavefunc const* wf, int ir, int il) -> cdouble {
 				return (*this)(ir, il)*conj(other(ir, il));
-			}, min(grid->n[iL], other.grid->n[iL]));
+			}, std::min(grid->n[iL], other.grid->n[iL]));
 }
 
 void ShWavefunc::exclude(ShWavefunc const& other) {

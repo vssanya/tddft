@@ -31,6 +31,8 @@ if (LAPACK_FOUND)
 	include_directories(${LAPACK_C_INCLUDE_PATH})
 endif()
 
+find_package(CUDA)
+
 if ("${CMAKE_C_COMPILER_ID}" STREQUAL "Intel")
 	include_directories(/share/intel/mkl/include)
 	link_directories(/share/intel/mkl/lib/intel64)

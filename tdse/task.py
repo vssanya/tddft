@@ -29,7 +29,7 @@ class Task(object):
 
     save_path = None
 
-    def __init__(self, path_res='res', mode=None, save_state_step=None, send_status=True, term_save_state=True, is_mpi=False):
+    def __init__(self, path_res='res', mode=None, save_inter_data=True, save_state_step=None, send_status=True, term_save_state=True, is_mpi=False):
         """
         save_state_step is set in percents
         """
@@ -39,6 +39,7 @@ class Task(object):
 
         self.signal_term = False
 
+        self.save_inter_data = save_inter_data
         self.save_state_step = save_state_step
         self.send_status = send_status
         self.term_save_state = term_save_state
@@ -111,7 +112,8 @@ class Task(object):
             self.calc_data(i, self.t[i])
 
             if (i+1) % int(self.t.size*0.01) == 0:
-                self.save()
+                if self.save_inter_data:
+                    self.save()
 
                 if self.bot_client is not None:
                     self.bot_client.send_status(i / self.t.size)

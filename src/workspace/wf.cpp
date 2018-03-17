@@ -293,6 +293,7 @@ void workspace::WfBase::prop_without_field(ShWavefunc &wf, double dt) {
     };
 
     prop_common(wf, dt, 1, Ul);
+	prop_abs(wf, dt);
 }
 
 void workspace::WfBase::prop_img(ShWavefunc& wf, double dt) {

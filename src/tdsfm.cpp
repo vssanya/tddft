@@ -159,7 +159,7 @@ void TDSFM_A::calc(field_t const* field, ShWavefunc const& wf, double t, double 
 			{
 				int il = 0;
 				cdouble psi = wf(ir, il);
-				cdouble dpsi = (wf(ir+1, il) - wf(ir-1, il))/(2*dr);
+				cdouble dpsi = wf.d_dr(ir, il);
 				a_k += cpow(-I, il+1)*(
 						(*jl)(ik, il)*(dpsi-(il+1)*psi/r) +
 						(*jl)(ik, il+1)*k*psi +
@@ -168,7 +168,7 @@ void TDSFM_A::calc(field_t const* field, ShWavefunc const& wf, double t, double 
 			}
 			for (int il=1; il<wf.grid->n[iL]-1; il++) {
 				cdouble psi = wf(ir, il);
-				cdouble dpsi = (wf(ir+1, il) - wf(ir-1, il))/(2*dr);
+				cdouble dpsi = wf.d_dr(ir, il);
 				a_k += cpow(-I, il+1)*(
 						(*jl)(ik, il)*(dpsi-(il+1)*psi/r) +
 						(*jl)(ik, il+1)*k*psi +
@@ -178,7 +178,7 @@ void TDSFM_A::calc(field_t const* field, ShWavefunc const& wf, double t, double 
 			{
 				int il=wf.grid->n[iL]-1;
 				cdouble psi = wf(ir, il);
-				cdouble dpsi = (wf(ir+1, il) - wf(ir-1, il))/(2*dr);
+				cdouble dpsi = wf.d_dr(ir, il);
 				a_k += cpow(-I, il+1)*(
 						(*jl)(ik, il)*(dpsi-(il+1)*psi/r) +
 						(*jl)(ik, il+1)*k*psi +
