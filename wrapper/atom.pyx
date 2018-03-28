@@ -5,6 +5,11 @@ from types cimport cdouble
 from wavefunc cimport ShWavefunc
 from grid cimport ShGrid
 
+import tdse.utils
+if tdse.utils.is_jupyter_notebook():
+    import matplotlib.pyplot as plt
+    from IPython.core.pylabtools import print_figure
+
 
 cdef class AtomCache:
     def __cinit__(self, Atom atom, ShGrid grid, double[::1] u = None):
@@ -21,13 +26,31 @@ cdef class AtomCache:
     def __dealloc__(self):
         del self.cdata
 
-    def get_u(self):
-        cdef double[::1] array = <double[:self.cdata.grid.n[0]]>(self.cdata.data_u)
-        return np.asarray(array)
+    @property
+    def u(self):
+        return np.asarray(<double[:self.grid.Nr]>(self.cdata.data_u))
 
-    def get_dudz(self):
-        cdef double[::1] array = <double[:self.cdata.grid.n[0]]>(self.cdata.data_dudz)
-        return np.asarray(array)
+    @property
+    def dudz(self):
+        return np.asarray(<double[:self.grid.Nr]>(self.cdata.data_dudz))
+
+    def _figure_data(self, format):
+        fig, ax = plt.subplots()
+        fig.set_size_inches((6,3))
+
+        ax.plot(self.grid.r, self.u)
+
+        ax.set_xlabel('r, (a.u.)')
+        ax.set_ylabel('U, (a.u.)')
+
+        ax.set_yscale('log')
+
+        data = print_figure(fig, format)
+        plt.close(fig)
+        return data
+
+    def _repr_png_(self):
+        return self._figure_data('png')
 
 
 cdef class State:

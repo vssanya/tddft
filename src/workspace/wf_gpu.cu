@@ -1,19 +1,50 @@
 #include "wf_gpu.h"
-#include "../pycuda-complex.hpp"
 
-workspace::WfGPUBase::WfGPUBase(AtomCache const* atom_cache, ShGrid const* grid, uabs_sh_t const* uabs, int num_threads):
+#include "../pycuda-complex.hpp"
+typedef pycuda::complex<double> cuComplex;
+
+#include <cuda_runtime.h>
+
+workspace::WfGPUBase::WfGPUBase(AtomCache const* atom_cache, ShGrid const* grid, UabsCache const* uabs_cache, int num_threads):
     atom_cache(atom_cache),
 	grid(grid),
-	uabs(uabs),
+    uabs_cache(uabs_cache),
 	num_threads(num_threads)
 {
-	cudaMalloc(&alpha, sizeof(cuComplex)*grid->n[iR]*grid->n[iL]);
-	cudaMalloc(&betta, sizeof(cuComplex)*grid->n[iR]*grid->n[iL]);
+    cudaMalloc(&alpha, sizeof(cdouble)*grid->n[iR]*grid->n[iL]);
+    cudaMalloc(&betta, sizeof(cdouble)*grid->n[iR]*grid->n[iL]);
+
+    cudaMalloc(&uabs_data, sizeof(double)*grid->n[iR]);
+    cudaMemcpy(uabs_data, uabs_cache->data, sizeof(double)*grid->n[iR], cudaMemcpyHostToDevice);
 }
 
 workspace::WfGPUBase::~WfGPUBase() {
 	cudaFree(alpha);
 	cudaFree(betta);
+}
+
+template<class matrix_f, cuComplex const eigenval[2]>
+__global__ void wf_prop_ang_l(cuComplex* wf, cuComplex dt, matrix_f dot, matrix_f dot_T, int l, int l1, double* Ul, int Nr) {
+    int ir = blockIdx.x*blockDim.x + threadIdx.x;
+
+    cuComplex* psi_l0 = &wf[Nr*l];
+    cuComplex* psi_l1 = &wf[Nr*(l+l1)];
+
+    cuComplex i = cuComplex(0.0, 1.0);
+
+    if (ir < Nr) {
+        double const E = Ul[ir];
+
+        cuComplex x[2] = {psi_l0[ir], psi_l1[ir]};
+
+        dot(x);
+        x[0] *= exp(i*E*dt*eigenval[0]);
+        x[1] *= exp(i*E*dt*eigenval[1]);
+        dot_T(x);
+
+        psi_l0[ir] = x[0];
+        psi_l1[ir] = x[1];
+    }
 }
 
 /*void workspace::WfGPUBase::prop_mix(ShWavefuncGPU& wf, sh_f Al, double dt, int l) {*/
@@ -148,17 +179,11 @@ __global__ void kernel_prop_at(cuComplex* wf, double* Ur, cuComplex* alpha, cuCo
 	}
 }
 
-//__global__ void kernel_prop_at(cuComplex* wf, double* Ur, cuComplex* alpha, cuComplex* betta, int Nr, int Nl, double dr, cuComplex dt, int Z) {
-
 void workspace::WfGPUBase::prop_at(ShWavefuncGPU& wf, cdouble dt, double* Ur) {
-	/*dim3 blockDim(1);*/
-	/*dim3 gridDim(wf.grid->n[iL]);*/
+    dim3 blockDim(1);
+    dim3 gridDim(wf.grid->n[iL]);
 
-	kernel_prop_at<<<1,1>>>(
-			wf.data,
-			Ur,
-			alpha,
-			betta,
+    kernel_prop_at<<<gridDim, blockDim>>>((cuComplex*) wf.data, Ur, (cuComplex*) alpha, (cuComplex*) betta,
 			wf.grid->n[iR], wf.grid->n[iL], wf.grid->d[iR], dt, atom_cache->atom.Z);
 }
 
@@ -221,7 +246,7 @@ void workspace::WfGPUBase::prop_abs(ShWavefuncGPU& wf, double dt) {
 	dim3 blockDim(1,1);
 	dim3 gridDim(wf.grid->n[iR], wf.grid->n[iL]);
 
-	kernel_prop_abs<<<gridDim, blockDim>>>((cuComplex*)wf.data, uabs->data, dt, wf.grid->n[iR], wf.grid->n[iL]);
+    kernel_prop_abs<<<gridDim, blockDim>>>((cuComplex*)wf.data, uabs_data, dt, wf.grid->n[iR], wf.grid->n[iL]);
 }
 
 /*void workspace::WfGPUBase::prop(ShWavefuncGPU& wf, field_t const* field, double t, double dt) {*/

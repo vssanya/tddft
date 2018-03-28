@@ -1,4 +1,5 @@
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall")
+
 set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -std=c++11")
 
 set( LIB_GPU_SOURCES
@@ -16,7 +17,6 @@ set( LIB_SOURCES
 	"workspace/wf_with_source.cpp"
 	"workspace/orbs.cpp"
 	"workspace/orbs_spin.cpp"
-	#"workspace/sae.cpp"
 	"workspace/gps.cpp"
 	"workspace/common_alg.cpp"
 	"workspace/sfa.cpp"
@@ -47,7 +47,6 @@ set( LIB_HEADERS
 	"workspace/wf_with_source.h"
 	"workspace/orbs.h"
 	"workspace/orbs_spin.h"
-	"workspace/sae.h"
 	"workspace/gps.h"
 	"workspace/common_alg.h"
 	"workspace/sfa.h"

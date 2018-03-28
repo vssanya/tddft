@@ -1,26 +1,32 @@
-from grid cimport cShGrid
+from grid cimport cShGrid, ShGrid
 
 cdef extern from "abs_pot.h":
-    ctypedef struct uabs_sh_t:
-        double (*func)(void* self, cShGrid* grid, int ir, int il, int im)
-
-    ctypedef struct uabs_multi_hump_t:
-        double (*func)(void* self, cShGrid* grid, int ir, int il, int im)
-        double l[3]
-        double u[3]
-        double r0[3]
-
     double uabs(cShGrid* grid, int ir, int il, int im)
-    double uabs_zero(cShGrid* grid, int ir, int il, int im)
     double mask_core(cShGrid* grid, int ir, int il, int im)
 
-    double uabs_get(uabs_sh_t* self, cShGrid* grid, int ir, int il, int im)
+    cdef cppclass cUabs "Uabs":
+        double u(cShGrid& grid, double r)
 
-    uabs_multi_hump_t* uabs_multi_hump_new(double lambda_min, double lambda_max)
-    double uabs_multi_hump_func(uabs_multi_hump_t* self, cShGrid* grid, int ir, int il, int im)
+    cdef cppclass cUabsZero "UabsZero":
+        pass
 
-    uabs_sh_t uabs_zero;
+    cdef cppclass cUabsMultiHump "UabsMultiHump":
+        cUabsMultiHump(double l_min, double l_max)
+
+    cdef cppclass cUabsCache "UabsCache":
+        cUabsCache(cUabs& uabs, cShGrid& grid, double* u)
+        double* data
 
 cdef class Uabs:
-    cdef uabs_sh_t* cdata
-    cdef bint _dealloc
+    cdef cUabs* cdata
+
+cdef class UabsCache:
+    cdef cUabsCache* cdata
+    cdef public ShGrid grid
+    cdef public Uabs uabs
+
+cdef class UabsZero(Uabs):
+    pass
+
+cdef class UabsMultiHump(Uabs):
+    pass

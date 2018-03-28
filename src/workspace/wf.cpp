@@ -7,7 +7,7 @@
 #include "../linalg.h"
 
 
-workspace::WfBase::WfBase(AtomCache const* atom_cache, ShGrid const* grid, uabs_sh_t const* uabs, int num_threads):
+workspace::WfBase::WfBase(AtomCache const* atom_cache, ShGrid const* grid, UabsCache const* uabs, int num_threads):
     atom_cache(atom_cache),
 	grid(grid),
 	uabs(uabs),
@@ -214,7 +214,7 @@ void workspace::WfBase::prop_abs(ShWavefunc& wf, double dt) {
 #pragma omp parallel for collapse(2)
 	for (int il = 0; il < wf.grid->n[iL]; ++il) {
 		for (int ir = 0; ir < wf.grid->n[iR]; ++ir) {
-			wf(ir, il) *= exp(-uabs_get(uabs, grid, ir, il, wf.m)*dt);
+            wf(ir, il) *= exp(-uabs->u(ir)*dt);
 		}
 	}
 }
@@ -255,7 +255,6 @@ void workspace::WfE::prop(ShWavefunc& wf, field_t const* field, double t, double
 
 
     prop_common(wf, dt, 2, Ul);
-
 	prop_abs(wf, dt);
 }
 

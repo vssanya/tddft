@@ -1,8 +1,10 @@
 *.npy
 *.dat
 *.pyc
+*.pyi
 a.out
 .ropeproject
+.mypy_cache
 __pycache__
 build
 

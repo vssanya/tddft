@@ -6,7 +6,7 @@
 #include "common_alg.h"
 
 
-workspace::orbs::orbs(const AtomCache* atom_cache, ShGrid const* sh_grid, SpGrid const* sp_grid, uabs_sh_t const* uabs, YlmCache const* ylm_cache, int Uh_lmax, int Uxc_lmax, potential_xc_f Uxc, int num_threads):
+workspace::orbs::orbs(const AtomCache* atom_cache, ShGrid const* sh_grid, SpGrid const* sp_grid, UabsCache const* uabs, YlmCache const* ylm_cache, int Uh_lmax, int Uxc_lmax, potential_xc_f Uxc, int num_threads):
     wf_ws(atom_cache, sh_grid, uabs, num_threads),
 	Uh_lmax(Uh_lmax),
 	Uxc(Uxc),

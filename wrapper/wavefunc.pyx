@@ -100,7 +100,7 @@ cdef class ShWavefunc:
         fig, ax = plt.subplots()
         fig.set_size_inches((6,3))
 
-        ax.plot(self.grid.get_r(), np.sum(np.abs(self.asarray())**2,axis=0))
+        ax.plot(self.grid.r, np.sum(np.abs(self.asarray())**2,axis=0))
 
         ax.set_xlabel('r, (a.u.)')
         ax.set_ylabel(r'$\left|\psi\right|^2$, (a.u.)')

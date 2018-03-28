@@ -95,7 +95,7 @@ class Task(object):
 
     def calc_finish(self):
         pass
-        
+
     def calc(self, restart_index=0):
         if self.bot_client is not None:
             self.bot_client.send_message("Start calc")
@@ -142,7 +142,7 @@ class Task(object):
 
         if self.rank == 0 and not os.path.exists(save_path):
             os.mkdir(save_path)
-        
+
         return save_path
 
     def _get_data_path(self, calc_data_name):
@@ -173,6 +173,8 @@ class TaskAtom(Task):
     r_max = 100
     Nl = 2
 
+    uabs = None
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
@@ -185,6 +187,9 @@ class TaskAtom(Task):
             atom_u_data = np.load(self.atom_u_data_path)
 
         self.atom_cache = tdse.atom.AtomCache(self.atom, self.sh_grid, atom_u_data)
+
+        if self.uabs not is None:
+            self.uabs_cache = tdse.abs_pot.UabsCache(self.uabs, self.sh_grid)
 
 
 class SFATask(Task):
@@ -229,7 +234,7 @@ class WavefuncTask(TaskAtom):
     def calc_init(self):
         super().calc_init()
 
-        self.ws = self.Workspace(self.atom_cache, self.sh_grid, self.uabs)
+        self.ws = self.Workspace(self.atom_cache, self.sh_grid, self.uabs_cache)
 
         if self.is_calc_ground_state:
             print("Start calc ground state")
@@ -298,7 +303,7 @@ class WavefuncWithSourceTask(TaskAtom):
         self.wf = tdse.wavefunc.ShWavefunc(self.sh_grid)
         self.wf.asarray()[:] = 0.0
 
-        self.ws = tdse.workspace.SKnWithSourceWorkspace(self.atom_cache, self.sh_grid, self.uabs, self.wf_source, -0.5)
+        self.ws = tdse.workspace.SKnWithSourceWorkspace(self.atom_cache, self.sh_grid, self.uabs_cache, self.wf_source, -0.5)
 
 
         self.t = self.field.get_t(self.dt, dT=self.dT)
@@ -347,7 +352,7 @@ class OrbitalsTask(TaskAtom):
         self.orbs = tdse.orbitals.Orbitals(self.atom, self.sh_grid, self.comm)
         self.orbs.load(self.ground_state)
 
-        self.ws = tdse.workspace.SOrbsWorkspace(self.atom_cache, self.sh_grid, self.sp_grid, self.uabs, self.ylm_cache, Uxc_lmax=self.Uxc_lmax, Uh_lmax = self.Uh_lmax, uxc=self.uxc)
+        self.ws = tdse.workspace.SOrbsWorkspace(self.atom_cache, self.sh_grid, self.sp_grid, self.uabs_cache, self.ylm_cache, Uxc_lmax=self.Uxc_lmax, Uh_lmax = self.Uh_lmax, uxc=self.uxc)
 
         self.t = self.field.get_t(self.dt, dT=self.dT)
 

@@ -24,7 +24,7 @@
 namespace workspace {
     class WfGPUBase {
 		public:
-            WfGPUBase(AtomCache const* atom_cache, ShGrid const* grid, uabs_sh_t const* uabs, int num_threads);
+            WfGPUBase(AtomCache const* atom_cache, ShGrid const* grid, UabsCache const* uabs_cache, int num_threads);
 
             virtual ~WfGPUBase ();
 
@@ -51,10 +51,11 @@ namespace workspace {
             void prop_img(ShWavefuncGPU& wf, double dt);
 
             ShGrid const* grid;
-			uabs_sh_t const* uabs;
+            UabsCache const* uabs_cache;
 
-			cuComplex* alpha;
-			cuComplex* betta;
+            cdouble* alpha;
+            cdouble* betta;
+            double* uabs_data;
 
 			int num_threads;
 

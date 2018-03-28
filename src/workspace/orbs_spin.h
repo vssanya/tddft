@@ -26,7 +26,7 @@ namespace workspace {
                 AtomCache const* atom_cache,
                 ShGrid const* sh_grid,
                 SpGrid const* sp_grid,
-                uabs_sh_t const* uabs,
+                UabsCache const* uabs,
                 YlmCache const* ylm_cache,
                 int Uh_lmax, int Uxc_lmax,
                 potential_xc_f Uxc,

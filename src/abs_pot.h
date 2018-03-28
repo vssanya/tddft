@@ -1,35 +1,47 @@
 #pragma once
 
 #include "grid.h"
-
-#ifdef __cplusplus
-extern "C" {
-#endif
+#include <array>
 
 double uabs(ShGrid const* grid, int ir, int il, int im) __attribute__((pure));
 
 __attribute__((pure))
 double mask_core(ShGrid const* grid, int ir, int il, int im);
 
-typedef double (*uabs_func_t)(void const* self, ShGrid const* grid, int ir, int il, int im);
-typedef struct uabs_sh_s {
-	uabs_func_t func;
-} uabs_sh_t;
+class Uabs {
+public:
+    virtual ~Uabs() {}
 
-double uabs_get(uabs_sh_t const* self, ShGrid const* grid, int ir, int il, int im);
+    virtual double u(ShGrid const& grid, double r) const = 0;
+};
 
-typedef struct {
-	uabs_func_t func;
-	double l[3];
-	double u[3];
-} uabs_multi_hump_t;
+class UabsZero: public Uabs {
+public:
+    double u(ShGrid const& grid, double r) const {
+        return 0.0;
+    }
+};
 
-uabs_multi_hump_t* uabs_multi_hump_new(double lambda_min, double lambda_max);
-double uabs_multi_hump_func(uabs_multi_hump_t const* self, ShGrid const* grid, int ir, int il, int im);
+class UabsMultiHump: public Uabs {
+public:
+    UabsMultiHump(double l_min, double l_max);
+    double u(ShGrid const& grid, double r) const;
 
-double uabs_zero_func(uabs_sh_t const* uabs, ShGrid const* grid, int ir, int il, int im);
-static const uabs_sh_t uabs_zero = {.func = (uabs_func_t)uabs_zero_func};
+    std::array<double, 2> l;
+    std::array<double, 2> a;
+};
 
-#ifdef __cplusplus
-}
-#endif
+class UabsCache {
+public:
+    UabsCache(Uabs const& uabs, ShGrid const& grid, double* u = nullptr);
+    ~UabsCache();
+
+    inline double u(int ir) const {
+        return data[ir];
+    }
+
+    Uabs const& uabs;
+    ShGrid const& grid;
+
+    double* data;
+};

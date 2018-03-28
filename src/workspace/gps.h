@@ -36,7 +36,7 @@ void ws_gps_prop(ws_gps_t const* ws, ShWavefunc* wf);
 void ws_gps_prop_common(
 		ws_gps_t* ws,
 		ShWavefunc* wf,
-		uabs_sh_t const* uabs,
+		UabsCache const* uabs,
 		field_t const* field,
 		double t
 );

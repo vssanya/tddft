@@ -7,7 +7,7 @@ ShWavefuncGPU::ShWavefuncGPU(cdouble *data, const ShGrid *grid, const int m):
     m(m),
     data_own(false) {
     if (data == nullptr) {
-		cudaMalloc(&data, sizeof(cuComplex)*grid->size());
+        cudaMalloc(&data, sizeof(cdouble)*grid->size());
         data_own = true;
     }
 }
