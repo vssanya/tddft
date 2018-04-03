@@ -1,6 +1,7 @@
 #include "utils.h"
 
 #include <math.h>
+#include <algorithm>
 
 double clm(int l, int m) {
 	return sqrt((double)((l+1)*(l+1) - m*m)/(double)((2*l + 1)*(2*l + 3)));
@@ -15,7 +16,7 @@ double plm(int l, int m) {
 }
 
 double clamp(double x, double lower, double upper) {
-	return min(upper, max(x, lower));
+    return std::min(upper, std::max(x, lower));
 }
 
 double smoothstep(double x, double x0, double x1) {

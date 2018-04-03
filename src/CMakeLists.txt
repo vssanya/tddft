@@ -24,9 +24,9 @@ set( LIB_SOURCES
 	sh_wavefunc.cpp
 	hartree_potential.cpp
 	integrate.c
-	utils.c
+        utils.cpp
 	abs_pot.cpp
-	fields.c
+        fields.cpp
 	calc.cpp
 	sphere_harmonics.cpp
 	orbitals.cpp
