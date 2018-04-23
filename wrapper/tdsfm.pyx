@@ -22,8 +22,8 @@ cdef class TDSFM:
     def init_cache(self):
         self.cdata.init_cache()
 
-    def calc(self, Field field, ShWavefunc wf, double t, double dt):
-        self.cdata[0].calc(field.cdata, wf.cdata[0], t, dt)
+    def calc(self, Field field, ShWavefunc wf, double t, double dt, double mask = 1.0):
+        self.cdata[0].calc(field.cdata, wf.cdata[0], t, dt, mask)
 
     def calc_inner(self, Field field, ShWavefunc wf, double t, int ir_min = 0, int ir_max = -1, int l_max = -1):
         if ir_max == -1:

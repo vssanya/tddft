@@ -102,7 +102,7 @@ TDSFM_A::~TDSFM_A() {
     delete ylm_grid;
 }
 
-void TDSFM_E::calc(field_t const* field, ShWavefunc const& wf, double t, double dt) {
+void TDSFM_E::calc(field_t const* field, ShWavefunc const& wf, double t, double dt, double mask) {
     double r  = wf.grid->r(ir);
 	double dr = wf.grid->d[iR];
 
@@ -133,12 +133,12 @@ void TDSFM_E::calc(field_t const* field, ShWavefunc const& wf, double t, double 
 						)*(*ylm)(il, wf.m, k_A_z/k_A);
 			}
 
-			(*this)(ik, ic) += a_k*r/sqrt(2.0*M_PI)*S*dt;
+            (*this)(ik, ic) += a_k*r/sqrt(2.0*M_PI)*S*dt*mask;
 		}
 	}
 }
 
-void TDSFM_A::calc(field_t const* field, ShWavefunc const& wf, double t, double dt) {
+void TDSFM_A::calc(field_t const* field, ShWavefunc const& wf, double t, double dt, double mask) {
     double r  = wf.grid->r(ir);
 	double dr = wf.grid->d[iR];
 
@@ -186,7 +186,7 @@ void TDSFM_A::calc(field_t const* field, ShWavefunc const& wf, double t, double 
 						)*(*ylm)(il, wf.m, ic);
 			}
 
-			(*this)(ik, ic) += a_k*r/sqrt(2.0*M_PI)*S*dt;
+            (*this)(ik, ic) += a_k*r/sqrt(2.0*M_PI)*S*dt*mask;
 		}
 	}
 }

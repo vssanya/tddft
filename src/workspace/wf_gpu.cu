@@ -187,10 +187,10 @@ void workspace::WfGPUBase::prop_at(ShWavefuncGPU& wf, cdouble dt, double* Ur) {
 			wf.grid->n[iR], wf.grid->n[iL], wf.grid->d[iR], dt, atom_cache->atom.Z);
 }
 
-/*void workspace::WfGPUBase::prop_common(ShWavefuncGPU& wf, cdouble dt, int l_max, sh_f* Ul, sh_f* Al) {*/
-	/*assert(wf.grid->n[iR] == grid->n[iR]);*/
-	/*assert(wf.grid->n[iL] <= grid->n[iL]);*/
-	/*const int Nl = wf.grid->n[iL];*/
+void workspace::WfGPUBase::prop_common(ShWavefuncGPU& wf, cdouble dt, int l_max, sh_f* Ul, sh_f* Al) {
+    assert(wf.grid->n[iR] == grid->n[iR]);
+    assert(wf.grid->n[iL] <= grid->n[iL]);
+    const int Nl = wf.grid->n[iL];
 /*#pragma omp parallel*/
 	/*{*/
 		/*for (int l1 = 1; l1 < l_max; ++l1) {*/
@@ -228,7 +228,7 @@ void workspace::WfGPUBase::prop_at(ShWavefuncGPU& wf, cdouble dt, double* Ur) {
 		/*}*/
 
 	/*}*/
-/*}*/
+}
 
 __global__ void kernel_prop_abs(cuComplex* wf, double* uabs, double dt, int Nr, int Nl) {
 	int ir = blockIdx.x*blockDim.x + threadIdx.x;

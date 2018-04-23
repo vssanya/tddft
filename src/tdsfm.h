@@ -47,7 +47,7 @@ class TDSFM_Base {
 
 		void init_cache();
 
-		virtual void calc(field_t const* field, ShWavefunc const& wf, double t, double dt) = 0;
+        virtual void calc(field_t const* field, ShWavefunc const& wf, double t, double dt, double mask = 1.0) = 0;
         virtual void calc_inner(field_t const* field, ShWavefunc const& wf, double t, int ir_min, int ir_max, int l_max = -1) = 0;
 
 		double pz() const;
@@ -67,7 +67,7 @@ struct TDSFM_E: public TDSFM_Base {
 	TDSFM_E(SpGrid const* k_grid, ShGrid const* r_grid, double A_max, int ir, bool init_cache=true);
 	~TDSFM_E();
 
-	void calc(field_t const* field, ShWavefunc const& wf, double t, double dt);
+    void calc(field_t const* field, ShWavefunc const& wf, double t, double dt, double mask);
     void calc_inner(field_t const* field, ShWavefunc const& wf, double t, int ir_min, int ir_max, int l_max = -1);
 };
 
@@ -76,6 +76,6 @@ struct TDSFM_A: public TDSFM_Base {
 	TDSFM_A(SpGrid const* k_grid, ShGrid const* r_grid, int ir, bool init_cache=true);
 	~TDSFM_A();
 
-	void calc(field_t const* field, ShWavefunc const& wf, double t, double dt);
+    void calc(field_t const* field, ShWavefunc const& wf, double t, double dt, double mask);
     void calc_inner(field_t const* field, ShWavefunc const& wf, double t, int ir_min, int ir_max, int l_max = -1);
 };
