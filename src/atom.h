@@ -264,10 +264,16 @@ class HSmothAtom: public Atom {
 		}
 };
 
+class NeAtom: public AtomCoulomb {
+	public:
+		static const std::vector<State> GroundStateOrbs;
+		NeAtom(): AtomCoulomb(10, GroundStateOrbs, 2) {}
+};
+
 class ArAtom: public AtomCoulomb {
 	public:
 		static const std::vector<State> GroundStateOrbs;
-		ArAtom(): AtomCoulomb(18, GroundStateOrbs, 5) {}
+		ArAtom(): AtomCoulomb(18, GroundStateOrbs, 4) {}
 };
 
 class ArSaeAtom: public Atom {
@@ -276,7 +282,7 @@ class ArSaeAtom: public Atom {
 		static constexpr double B = 1;
 		static constexpr double C = 3.682;
 
-        ArSaeAtom(): Atom(18, ArAtom::GroundStateOrbs, 5, POTENTIAL_COULOMB) {}
+        ArSaeAtom(): Atom(18, ArAtom::GroundStateOrbs, 4, POTENTIAL_COULOMB) {}
 
         double u(double r) const {
 			return - (1.0 + (A*exp(-B*r) + (17 - A)*exp(-C*r)))/r;

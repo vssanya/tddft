@@ -20,6 +20,12 @@ const std::vector<Atom::State> NaAtom::GroundStateOrbs = {
 	State("2p", 0, 1,  1), State("2p", 1, 1,  1), State("2p",  1, 1,  1)
 };
 
+const std::vector<Atom::State> NeAtom::GroundStateOrbs = {
+	State("1s"), State("2s"), // m = 0
+	State("2p"),              // m = 0
+	State("2p", 1, 4)         // m = +- 1
+};
+
 const std::vector<Atom::State> ArAtom::GroundStateOrbs = {
 	State("1s"), State("2s"), State("3s"), // m = 0
 	State("2p"), State("3p"),              // m = 0

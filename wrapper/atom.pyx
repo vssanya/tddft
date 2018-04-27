@@ -131,6 +131,7 @@ cdef class Atom:
 H        = Atom.from_c(<cAtom*> new HAtom())
 H_smooth = Atom.from_c(<cAtom*> new HSmothAtom())
 
+Ne       = Atom.from_c(<cAtom*> new NeAtom())
 Ar       = Atom.from_c(<cAtom*> new ArAtom())
 Ar_sae   = Atom.from_c(<cAtom*> new ArSaeAtom())
 Ar_sae_smooth = Atom.from_c(<cAtom*> new ArSaeSmoothAtom())

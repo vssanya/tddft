@@ -53,7 +53,7 @@ cdef class ShGrid:
         return self.data.Rmax()
 
     @property
-    def get_r(self):
+    def r(self):
         return np.linspace(self.data.d[0], self.data.d[0]*self.data.n[0], self.data.n[0])
 
 cdef class SpGrid:
@@ -66,7 +66,8 @@ cdef class SpGrid:
     def __dealloc__(self):
         del self.data
 
-    def get_r(self):
+    @property
+    def r(self):
         return np.linspace(self.data.d[0], self.data.d[0]*self.data.n[0], self.data.n[0])
 
     @property

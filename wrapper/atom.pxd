@@ -53,6 +53,9 @@ cdef extern from "atom.h":
     cdef cppclass HSmothAtom:
         HSmothAtom()
 
+    cdef cppclass NeAtom:
+        NeAtom()
+
     cdef cppclass ArAtom:
         ArAtom()
 

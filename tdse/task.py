@@ -188,7 +188,7 @@ class TaskAtom(Task):
 
         self.atom_cache = tdse.atom.AtomCache(self.atom, self.sh_grid, atom_u_data)
 
-        if self.uabs not is None:
+        if self.uabs is not None:
             self.uabs_cache = tdse.abs_pot.UabsCache(self.uabs, self.sh_grid)
 
 
