@@ -66,6 +66,10 @@ double field_sum_A(field_op_t const* field, double t);
 double field_sum_E(field_op_t const* field, double t);
 double field_op_T(field_op_t const* field);
 
+FIELD( time_delay,
+		field_t const* f;
+		double delay;
+		)
 
 FIELD( gauss_env,
 		double tp;

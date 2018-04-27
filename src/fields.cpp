@@ -119,6 +119,18 @@ double field_sum_E(field_op_t const* field, double t) {
 	return field_E(field->f1, t) + field_E(field->f2, t);
 }
 
+double field_time_delay_E(field_time_delay_t const* field, double t) {
+	return field_E(field->f, t - field->delay);
+}
+
+double field_time_delay_A(field_time_delay_t const* field, double t) {
+	return field_A(field->f, t - field->delay);
+}
+
+double field_time_delay_T(field_time_delay_t const* field) {
+	return field_T(field->f) + field->delay;
+}
+
 double field_gauss_env_A(field_gauss_env_t const* field, double t) {
 	t -= field_T((field_t*)field)*0.5;
 	return exp(-pow(t/field->tp, 2));

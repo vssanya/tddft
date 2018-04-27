@@ -101,6 +101,7 @@ cdef class FieldBaseFromA(FieldBase):
     def _func(self, t):
         return 0.0
 
+
 cdef class OpField(Field):
     def __cinit__(self, Field f1, Field f2):
         self.f1 = f1
@@ -109,6 +110,17 @@ cdef class OpField(Field):
         self.cfield.f1 = f1.cdata
         self.cfield.f2 = f2.cdata
         self.cfield.pT = <field_prop_t>field_op_T
+
+        self.cdata = <field_t*>(&self.cfield)
+
+cdef class TimeDelayField(Field):
+    def __cinit__(self, Field f, double delay):
+        self.f = f
+        self.cfield.f = f.cdata
+        self.cfield.delay = delay
+        self.cfield.fE = <field_func_t>field_time_delay_E
+        self.cfield.fA = <field_func_t>field_time_delay_A
+        self.cfield.pT = <field_prop_t>field_time_delay_T
 
         self.cdata = <field_t*>(&self.cfield)
 
@@ -284,7 +296,7 @@ cdef class TrSinEnvField(Field):
 
 cdef class ConstEnvField(Field):
     def __init__(self, double tp):
-        self.cfield.tp = tp 
+        self.cfield.tp = tp
         self.cfield.fA = <field_func_t>field_const_env_A
         self.cfield.fE = <field_func_t>field_const_env_E
         self.cfield.pT = <field_prop_t>field_const_env_T

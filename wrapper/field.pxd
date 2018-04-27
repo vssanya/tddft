@@ -29,6 +29,18 @@ cdef extern from "fields.h":
     double field_sum_E(field_op_t* field, double t)
     double field_op_T(field_op_t* field)
 
+    ctypedef struct field_time_delay_t:
+        field_func_t fA
+        field_func_t fE
+        field_prop_t pT
+
+        field_t* f
+        double delay
+
+    double field_time_delay_A(field_op_t* field, double t)
+    double field_time_delay_E(field_op_t* field, double t)
+    double field_time_delay_T(field_op_t* field)
+
     ctypedef struct field_gauss_env_t:
         field_func_t fA
         field_func_t fE
@@ -143,6 +155,10 @@ cdef class MulField(OpField):
 
 cdef class SumField(OpField):
     pass
+
+cdef class TimeDelayField(Field):
+    cdef field_time_delay_t cfield
+    cdef public Field f
 
 cdef class GaussEnvField(Field):
     cdef field_gauss_env_t cfield
