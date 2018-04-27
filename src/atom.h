@@ -299,7 +299,7 @@ public:
     static constexpr double A = 0.3;
     static constexpr double ALPHA = 3.88;
 
-    ArSaeSmoothAtom(): Atom(18, ArAtom::GroundStateOrbs, 5, POTENTIAL_SMOOTH) {}
+    ArSaeSmoothAtom(): Atom(18, ArAtom::GroundStateOrbs, 4, POTENTIAL_SMOOTH) {}
 
     double u(double r) const {
         return -ALPHA*pow(cosh(r/A), -2) - tanh(r/A)/r;
