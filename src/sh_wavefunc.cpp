@@ -223,27 +223,23 @@ double ShWavefunc::z() const {
 }
 
 cdouble ShWavefunc::pz() const {
-    return integrate<cdouble>([](ShWavefunc const* wf, int ir, int il) -> cdouble {
+    return I*integrate<cdouble>([](ShWavefunc const* wf, int ir, int il) -> cdouble {
         double r = wf->grid->r(ir);
-        cdouble psi_0 = (*wf)(ir, il-1);
-        cdouble psi_1 = conj((*wf)(ir, il));
+        cdouble psi_0 = conj((*wf)(ir, il));
+        cdouble psi_1 = (*wf)(ir, il-1);
 
-        return -clm(il-1, wf->m)*(
-                    psi_0*conj(wf->d_dr_save(ir, il)) -
-                    psi_0*psi_1/r
-                    ) +
-                (il - 1)*clm(il-1, wf->m)*psi_0*psi_1/r;
+        return -clm(il-1, wf->m)*psi_0*(
+                    wf->d_dr_save(ir, il-1) -
+                    il*psi_1/r);
     }, grid->n[iL], 1) +
-            integrate<cdouble>([](ShWavefunc const* wf, int ir, int il) -> cdouble {
+            I*integrate<cdouble>([](ShWavefunc const* wf, int ir, int il) -> cdouble {
         double r = wf->grid->r(ir);
-        cdouble psi_0 = (*wf)(ir, il+1);
-        cdouble psi_1 = conj((*wf)(ir, il));
+        cdouble psi_0 = conj((*wf)(ir, il));
+        cdouble psi_1 = (*wf)(ir, il+1);
 
-        return -clm(il, wf->m)*(
-                    psi_0*conj(wf->d_dr_save(ir, il)) -
-                    psi_0*psi_1/r
-                    ) -
-                (il + 2)*clm(il, wf->m)*psi_0*psi_1/r;
+        return -clm(il, wf->m)*psi_0*(
+                    wf->d_dr_save(ir, il+1)
+                    + (il + 1)*psi_1/r);
     }, grid->n[iL] - 1, 0);
 }
 
