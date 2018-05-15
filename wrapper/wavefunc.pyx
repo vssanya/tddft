@@ -81,6 +81,10 @@ cdef class ShWavefunc:
     def z(self):
         return self.cdata.z()
 
+    def pz(self):
+        cdef cdouble res = self.cdata.pz()
+        return (<complex_t*>(&res))[0]
+
     def __mul__(ShWavefunc self, ShWavefunc other):
         cdef cdouble res = self.cdata[0]*other.cdata[0]
         return (<complex_t*>(&res))[0]

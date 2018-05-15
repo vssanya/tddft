@@ -42,6 +42,16 @@ public:
 	  return (-(*this)(ir+2, il) + 8*(*this)(ir+1, il) - 8*(*this)(ir-1, il) + (*this)(ir-2, il))/(12*grid->d[iR]);
   }
 
+  inline cdouble d_dr_save(int ir, int il) const {
+      if (ir == 0) {
+          return (-(*this)(ir+2, il) + 8*(*this)(ir+1, il))/(12*grid->d[iR]);
+      } else if (ir == 1) {
+          return (-(*this)(ir+2, il) + 8*(*this)(ir+1, il) - 8*(*this)(ir-1, il))/(12*grid->d[iR]);
+      } else {
+          return d_dr(ir, il);
+      }
+  }
+
   inline double abs_2(int ir, int il) const {
 	  cdouble const value = (*this)(ir, il);
 	  return pow(creal(value), 2) + pow(cimag(value), 2);
@@ -62,14 +72,15 @@ public:
   void normalize();
 
   double z() const;
+  cdouble pz() const;
 
   void random_l(int l);
 
   template<class T>
-  inline T integrate(std::function<T(ShWavefunc const*, int, int)> func, int l_max) const {
+  inline T integrate(std::function<T(ShWavefunc const*, int, int)> func, int l_max, int l_min = 0) const {
       T res = 0.0;
 #pragma omp parallel for reduction(+:res) collapse(2)
-      for (int il = 0; il < l_max; ++il) {
+      for (int il = l_min; il < l_max; ++il) {
           for (int ir = 0; ir < grid->n[iR]; ++ir) {
               res += func(this, ir, il);
           }

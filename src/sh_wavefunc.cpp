@@ -222,6 +222,31 @@ double ShWavefunc::z() const {
 	});
 }
 
+cdouble ShWavefunc::pz() const {
+    return integrate<cdouble>([](ShWavefunc const* wf, int ir, int il) -> cdouble {
+        double r = wf->grid->r(ir);
+        cdouble psi_0 = (*wf)(ir, il-1);
+        cdouble psi_1 = conj((*wf)(ir, il));
+
+        return -clm(il-1, wf->m)*(
+                    psi_0*conj(wf->d_dr_save(ir, il)) -
+                    psi_0*psi_1/r
+                    ) +
+                (il - 1)*clm(il-1, wf->m)*psi_0*psi_1/r;
+    }, grid->n[iL], 1) +
+            integrate<cdouble>([](ShWavefunc const* wf, int ir, int il) -> cdouble {
+        double r = wf->grid->r(ir);
+        cdouble psi_0 = (*wf)(ir, il+1);
+        cdouble psi_1 = conj((*wf)(ir, il));
+
+        return -clm(il, wf->m)*(
+                    psi_0*conj(wf->d_dr_save(ir, il)) -
+                    psi_0*psi_1/r
+                    ) -
+                (il + 2)*clm(il, wf->m)*psi_0*psi_1/r;
+    }, grid->n[iL] - 1, 0);
+}
+
 cdouble ShWavefunc::get_sp(SpGrid const* grid, int i[3], YlmCache const* ylm_cache) const {
 	cdouble res = 0.0;
     for (int il = 0; il < this->grid->n[iL]; ++il) {
