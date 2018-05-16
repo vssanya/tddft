@@ -81,6 +81,10 @@ YlmCache::~YlmCache() {
 	delete[] data;
 }
 
+double YlmCache::calc(int l, int m, double theta) {
+    return boost::math::spherical_harmonic_r(l, m, theta, 0.0);
+}
+
 double YlmCache::operator()(int l, int m, double c) const {
     int ic = grid->ic(c);
     double x = (c - grid->c(ic))/grid->d[iC];

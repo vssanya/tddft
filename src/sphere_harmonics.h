@@ -69,6 +69,8 @@ public:
 
 		return data[l + ic*(l_max+1) + m*(l_max+1)*grid->n[iC]];
 	}
+
+    static double calc(int l, int m, double theta);
 };
 
 

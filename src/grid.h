@@ -93,6 +93,7 @@ public:
 };
 
 class SpGrid: public Grid3d {
+    double dtheta;
 public:
     SpGrid(int n[3], double Rmax) {
         for (int i=0; i<3; ++i) {
@@ -102,6 +103,8 @@ public:
         d[iR] = Rmax/n[iR];
         d[iC] = 2.0/(n[iC]-1.0);
         d[iP] = 2.0*M_PI/n[iP];
+
+        dtheta = M_PI/(n[iC]-1.0);
     }
 
     double r(int ir) const {
@@ -116,6 +119,11 @@ public:
     double c(int ic) const {
         check_index(iC, ic);
         return d[iC]*ic - 1.0;
+    }
+
+    double theta(int ic) const {
+        check_index(iC, ic);
+        return dtheta*ic;
     }
 
     double phi(int ip) const {

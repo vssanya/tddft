@@ -244,8 +244,9 @@ void TDSFM_A::calc_inner(field_t const* field, ShWavefunc const& wf, double t, i
                     double r = wf.grid->r(ir);
                     a_kl += r*wf(ir, il)*JlCache::calc(r*k, il);
 				}
-				a_k += a_kl*cpow(-I, il)*(*ylm)(il, wf.m, ic);
-			}
+                //a_k += a_kl*cpow(-I, il)*(*ylm)(il, wf.m, ic);
+                a_k += a_kl*cpow(-I, il)*YlmCache::calc(il, wf->m, k_grid->theta(ic));
+            }
 
 			(*this)(ik, ic) += a_k*sqrt(2.0/M_PI)*wf.grid->d[iR]*S;
 		}
@@ -259,11 +260,12 @@ double TDSFM_Base::pz() const {
 	for (int ik=0; ik<k_grid->n[iR]; ik++) {
 		for (int ic=0; ic<k_grid->n[iC]; ic++) {
             double k  = k_grid->r(ik);
-            double kz = k_grid->c(ic)*k;
+            //double kz = k_grid->c(ic)*k;
+            double kz = cos(k_grid->theta(ic))*k;
 
-			pz += kz*(pow(creal((*this)(ik, ic)), 2) + pow(cimag((*this)(ik, ic)), 2))*k*k;
+            pz += kz*(pow(creal((*this)(ik, ic)), 2) + pow(cimag((*this)(ik, ic)), 2))*k*k*sin(k_grid->theta(ic));
 		}
 	}
 
-	return pz*k_grid->d[iR]*k_grid->d[iC]*2*M_PI;
+    return pz*k_grid->d[iR]*k_grid->dtheta*2*M_PI;
 }
