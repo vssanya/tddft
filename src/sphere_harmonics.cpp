@@ -1,6 +1,7 @@
 #include "sphere_harmonics.h"
 
 #include <boost/math/special_functions/bessel.hpp>
+#include <boost/math/special_functions/spherical_harmonic.hpp>
 
 #include <gsl/gsl_math.h>
 #include <gsl/gsl_sf_coupling.h>
@@ -60,21 +61,15 @@ YlmCache::YlmCache(SpGrid const* grid, int l_max):
 	l_max(l_max),
 	grid(grid)
 {
-	size = gsl_sf_legendre_array_n(l_max);
-	data = new double[2*(l_max+1)*grid->n[iC]]();
-
 	double* tmp = new double[size]();
 	for (int ic=0; ic<grid->n[iC]; ++ic) {
-        double x = grid->c(ic);
-		gsl_sf_legendre_array(GSL_SF_LEGENDRE_SPHARM, l_max, x, tmp);
+        double theta = grid->theta(ic);
 		for (int m=0; m<2; ++m) {
 			for (int l=0; l<=l_max; ++l) {
-				(*this)(l, m, ic) = tmp[gsl_sf_legendre_array_index(l, m)];
+                (*this)(l, m, ic) = YlmCache::calc(l, m, theta);
 			}
 		}
 	}
-
-	delete[] tmp;
 }
 
 YlmCache::~YlmCache() {

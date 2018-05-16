@@ -93,8 +93,9 @@ public:
 };
 
 class SpGrid: public Grid3d {
-    double dtheta;
 public:
+    double dtheta;
+
     SpGrid(int n[3], double Rmax) {
         for (int i=0; i<3; ++i) {
             this->n[i] = n[i];

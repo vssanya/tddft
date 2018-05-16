@@ -151,7 +151,7 @@ void TDSFM_A::calc(field_t const* field, ShWavefunc const& wf, double t, double 
 	for (int ik=0; ik<k_grid->n[iR]; ik++) {
 		for (int ic=0; ic<k_grid->n[iC]; ic++) {
             double k  = k_grid->r(ik);
-            double kz = k_grid->c(ic)*k;
+            double kz = k*cos(k_grid->theta(ic));
 
 			cdouble S = cexp(0.5*I*(k*k*t + 2*kz*int_A));
 
@@ -245,7 +245,7 @@ void TDSFM_A::calc_inner(field_t const* field, ShWavefunc const& wf, double t, i
                     a_kl += r*wf(ir, il)*JlCache::calc(r*k, il);
 				}
                 //a_k += a_kl*cpow(-I, il)*(*ylm)(il, wf.m, ic);
-                a_k += a_kl*cpow(-I, il)*YlmCache::calc(il, wf->m, k_grid->theta(ic));
+                a_k += a_kl*cpow(-I, il)*YlmCache::calc(il, wf.m, k_grid->theta(ic));
             }
 
 			(*this)(ik, ic) += a_k*sqrt(2.0/M_PI)*wf.grid->d[iR]*S;

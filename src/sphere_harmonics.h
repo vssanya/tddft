@@ -60,7 +60,7 @@ public:
 
 		return data[l + ic*(l_max+1) + m*(l_max+1)*grid->n[iC]];
 	}
-	double operator()(int l, int m, double c) const;
+    double operator()(int l, int m, double theta) const;
 
 	inline
 	double& operator()(int l, int m, int ic) {
