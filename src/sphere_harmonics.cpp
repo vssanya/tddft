@@ -6,6 +6,7 @@
 #include <gsl/gsl_math.h>
 #include <gsl/gsl_sf_coupling.h>
 #include <gsl/gsl_sf_legendre.h>
+#include <gsl/gsl_sf_bessel.h>
 
 #include "integrate.h"
 #include <stdio.h>
@@ -61,7 +62,7 @@ YlmCache::YlmCache(SpGrid const* grid, int l_max):
 	l_max(l_max),
 	grid(grid)
 {
-	double* tmp = new double[size]();
+	data = new double[2*(l_max+1)*grid->n[iC]]();
 	for (int ic=0; ic<grid->n[iC]; ++ic) {
         double theta = grid->theta(ic);
 		for (int m=0; m<2; ++m) {

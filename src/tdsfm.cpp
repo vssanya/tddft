@@ -191,7 +191,7 @@ void TDSFM_A::calc(field_t const* field, ShWavefunc const& wf, double t, double 
 	}
 }
 
-void TDSFM_E::calc_inner(field_t const* field, ShWavefunc const& wf, double t, int ir_min, int ir_max, int l_max) {
+void TDSFM_E::calc_inner(field_t const* field, ShWavefunc const& wf, double t, int ir_min, int ir_max, int l_min, int l_max) {
     if (l_max == -1 || l_max > wf.grid->n[iL]) {
         l_max = wf.grid->n[iL];
     }
@@ -210,7 +210,7 @@ void TDSFM_E::calc_inner(field_t const* field, ShWavefunc const& wf, double t, i
 			double k_A_z = kz + At;
 
 			cdouble a_k = 0.0;
-			for (int il=0; il<wf.grid->n[iL]; il++) {
+			for (int il=l_min; il<l_max; il++) {
 				cdouble a_kl = 0.0;
 				for (int ir=ir_min; ir<ir_max; ir++) {
                     double r = wf.grid->r(ir);
@@ -224,7 +224,7 @@ void TDSFM_E::calc_inner(field_t const* field, ShWavefunc const& wf, double t, i
 	}
 }
 
-void TDSFM_A::calc_inner(field_t const* field, ShWavefunc const& wf, double t, int ir_min, int ir_max, int l_max) {
+void TDSFM_A::calc_inner(field_t const* field, ShWavefunc const& wf, double t, int ir_min, int ir_max, int l_min, int l_max) {
     if (l_max == -1 || l_max > wf.grid->n[iL]) {
         l_max = wf.grid->n[iL];
     }
@@ -238,18 +238,40 @@ void TDSFM_A::calc_inner(field_t const* field, ShWavefunc const& wf, double t, i
 			cdouble S = cexp(0.5*I*(k*k*t + 2*kz*int_A));
 
 			cdouble a_k = 0.0;
-            for (int il=0; il<l_max; il++) {
+            for (int il=l_min; il<l_max; il++) {
 				cdouble a_kl = 0.0;
 				for (int ir=ir_min; ir<ir_max; ir++) {
                     double r = wf.grid->r(ir);
                     a_kl += r*wf(ir, il)*JlCache::calc(r*k, il);
 				}
-                //a_k += a_kl*cpow(-I, il)*(*ylm)(il, wf.m, ic);
-                a_k += a_kl*cpow(-I, il)*YlmCache::calc(il, wf.m, k_grid->theta(ic));
+                a_k += a_kl*cpow(-I, il)*(*ylm)(il, wf.m, ic);
             }
 
 			(*this)(ik, ic) += a_k*sqrt(2.0/M_PI)*wf.grid->d[iR]*S;
 		}
+	}
+}
+
+void TDSFM_Base::calc_norm_k(ShWavefunc const& wf, int ir_min, int ir_max, int l_min, int l_max) {
+    if (l_max == -1 || l_max > wf.grid->n[iL]) {
+        l_max = wf.grid->n[iL];
+    }
+
+#pragma omp parallel for
+	for (int ik=0; ik<k_grid->n[iR]; ik++) {
+		double k  = k_grid->r(ik);
+
+		double a_k = 0.0;
+		for (int il=l_min; il<l_max; il++) {
+			cdouble a_kl = 0.0;
+			for (int ir=ir_min; ir<ir_max; ir++) {
+				double r = wf.grid->r(ir);
+				a_kl += r*wf(ir, il)*JlCache::calc(r*k, il);
+			}
+			a_k += pow(creal(a_kl), 2) + pow(cimag(a_kl), 2);
+		}
+
+		(*this)(ik, 0) = a_k*(2.0/M_PI)*pow(wf.grid->d[iR], 2);
 	}
 }
 
@@ -268,4 +290,18 @@ double TDSFM_Base::pz() const {
 	}
 
     return pz*k_grid->d[iR]*k_grid->dtheta*2*M_PI;
+}
+
+double TDSFM_Base::norm() const {
+	double norm = 0.0;
+
+#pragma omp parallel for reduction(+:norm) collapse(2)
+	for (int ik=0; ik<k_grid->n[iR]; ik++) {
+		for (int ic=0; ic<k_grid->n[iC]; ic++) {
+            double k  = k_grid->r(ik);
+            norm += (pow(creal((*this)(ik, ic)), 2) + pow(cimag((*this)(ik, ic)), 2))*k*k*sin(k_grid->theta(ic));
+		}
+	}
+
+    return norm*k_grid->d[iR]*k_grid->dtheta*2*M_PI;
 }

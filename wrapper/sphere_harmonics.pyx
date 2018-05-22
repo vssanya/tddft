@@ -16,6 +16,10 @@ cdef class JlCache:
     def __call__(self, double r, int l):
         return self.cdata[0](r, l)
 
+    @staticmethod
+    def calc(double r, int l):
+        return cJlCache.calc(r, l)
+
 cdef class YlmCache:
     def __cinit__(self, int l_max, SpGrid grid):
         self.cdata = new cYlmCache(grid.data, l_max)
@@ -27,7 +31,6 @@ cdef class YlmCache:
         if self.cdata != NULL:
             del self.cdata
 
-    @np.vectorize
     def get(self, int l, int m, int ic):
         return self.cdata[0](l, m, ic)
 

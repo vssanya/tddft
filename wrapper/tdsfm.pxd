@@ -30,8 +30,11 @@ cdef extern from "tdsfm.h":
         void init_cache()
 
         void calc(field_t* field, cShWavefunc& wf, double t, double dt, double mask)
-        void calc_inner(field_t* field, cShWavefunc& wf, double t, int ir_min, int ir_max, int l_max)
+        void calc_inner(field_t* field, cShWavefunc& wf, double t, int ir_min, int ir_max, int l_min, int l_max)
+
         double pz()
+        double norm()
+        void calc_norm_k(cShWavefunc& wf, int ir_min, int ir_max, int l_min, int l_max)
 
     cdef cppclass TDSFM_E:
         TDSFM_E(cSpGrid* k_grid, cShGrid* r_grid, double A_max, int ir, bool init_cache)

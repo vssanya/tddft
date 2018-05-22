@@ -48,9 +48,12 @@ class TDSFM_Base {
 		void init_cache();
 
         virtual void calc(field_t const* field, ShWavefunc const& wf, double t, double dt, double mask = 1.0) = 0;
-        virtual void calc_inner(field_t const* field, ShWavefunc const& wf, double t, int ir_min, int ir_max, int l_max = -1) = 0;
+        virtual void calc_inner(field_t const* field, ShWavefunc const& wf, double t, int ir_min, int ir_max, int l_min = 0, int l_max = -1) = 0;
 
 		double pz() const;
+		double norm() const;
+
+		void calc_norm_k(ShWavefunc const& wf, int ir_min, int ir_max, int l_min, int l_max);
 
 		inline
 			cdouble operator()(int ik, int ic) const {
@@ -68,7 +71,7 @@ struct TDSFM_E: public TDSFM_Base {
 	~TDSFM_E();
 
     void calc(field_t const* field, ShWavefunc const& wf, double t, double dt, double mask);
-    void calc_inner(field_t const* field, ShWavefunc const& wf, double t, int ir_min, int ir_max, int l_max = -1);
+    void calc_inner(field_t const* field, ShWavefunc const& wf, double t, int ir_min, int ir_max, int l_min = 0, int l_max = -1);
 };
 
 
@@ -77,5 +80,5 @@ struct TDSFM_A: public TDSFM_Base {
 	~TDSFM_A();
 
     void calc(field_t const* field, ShWavefunc const& wf, double t, double dt, double mask);
-    void calc_inner(field_t const* field, ShWavefunc const& wf, double t, int ir_min, int ir_max, int l_max = -1);
+    void calc_inner(field_t const* field, ShWavefunc const& wf, double t, int ir_min, int ir_max, int l_min = 0, int l_max = -1);
 };

@@ -6,6 +6,8 @@ cdef extern from "sphere_harmonics.h":
         cJlCache(cSpGrid* grid, int l_max)
         double operator()(int ir, int il)
         double operator()(double r, int il)
+        @staticmethod
+        double calc(double r, int il)
 
     cdef cppclass cYlmCache "YlmCache":
         double* data

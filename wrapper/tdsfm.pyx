@@ -19,16 +19,25 @@ cdef class TDSFM:
     def pz(self):
         return self.cdata.pz()
 
+    def norm(self):
+        return self.cdata.norm()
+
     def init_cache(self):
         self.cdata.init_cache()
 
     def calc(self, Field field, ShWavefunc wf, double t, double dt, double mask = 1.0):
         self.cdata[0].calc(field.cdata, wf.cdata[0], t, dt, mask)
 
-    def calc_inner(self, Field field, ShWavefunc wf, double t, int ir_min = 0, int ir_max = -1, int l_max = -1):
+    def calc_inner(self, Field field, ShWavefunc wf, double t, int ir_min = 0, int ir_max = -1, int l_min = 0, int l_max = -1):
         if ir_max == -1:
             ir_max = self.cdata.ir
-        self.cdata[0].calc_inner(field.cdata, wf.cdata[0], t, ir_min, ir_max, l_max)
+        self.cdata[0].calc_inner(field.cdata, wf.cdata[0], t, ir_min, ir_max, l_min, l_max)
+
+    def calc_norm_k(self, ShWavefunc wf, int ir_min = 0, int ir_max = -1, int l_min = 0, int l_max = -1):
+        if ir_max == -1:
+            ir_max = wf.grid.Nr
+
+        self.cdata[0].calc_norm_k(wf.cdata[0], ir_min, ir_max, l_min, l_max)
 
     def asarray(self):
         cdef complex_t[:, ::1] arr = <complex_t[:self.cdata.k_grid.n[1], :self.cdata.k_grid.n[0]]>(<complex_t*>self.cdata.data)

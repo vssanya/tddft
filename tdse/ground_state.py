@@ -73,7 +73,6 @@ def orbs(atom, grid, ws, dt=0.125, Nt=10000, print_calc_info=False):
     data = orbs.asarray()
 
     atom_cache = AtomCache(atom, grid)
-    print(atom_cache.get_u())
 
     for i in range(Nt):
         if print_calc_info and i % (Nt // 100) == 0:

@@ -331,7 +331,18 @@ class OrbitalsTask(TaskAtom):
     Uxc_lmax = 1
     Uh_lmax = 3
 
+    ground_state = None
+    ground_state_task = None
+
     def __init__(self, path_res='res', mode=None, is_mpi=True, **kwargs):
+        if self.ground_state_task is not None:
+            self.dt    = self.ground_state_task.dt
+            self.dr    = self.ground_state_task.dr
+            self.r_max = self.ground_state_task.r_max
+            self.uxc   = self.ground_state_task.uxc
+            self.Nc    = self.ground_state_task.Nc
+            self.atom  = self.ground_state_task.atom
+
         super().__init__(path_res, mode, is_mpi=is_mpi, **kwargs)
 
         self.sp_grid = tdse.grid.SpGrid(Nr=self.r_max/self.dr, Nc=self.Nc, Np=1, r_max=self.r_max)
@@ -370,6 +381,7 @@ class OrbitalsGroundStateTask(TaskAtom):
     Nc = 33
 
     uxc = tdse.hartree_potential.UXC_LB
+    uabs = tdse.abs_pot.UabsZero()
 
     Uxc_lmax = 1
     Uh_lmax = 1
@@ -389,7 +401,7 @@ class OrbitalsGroundStateTask(TaskAtom):
     def calc_init(self):
         super().calc_init()
 
-        self.ws = tdse.workspace.SOrbsWorkspace(self.atom_cache, self.sh_grid, self.sp_grid, tdse.abs_pot.UabsZero(), self.ylm_cache, Uxc_lmax=self.Uxc_lmax, Uh_lmax = self.Uh_lmax, uxc=self.uxc)
+        self.ws = tdse.workspace.SOrbsWorkspace(self.atom_cache, self.sh_grid, self.sp_grid, self.uabs_cache, self.ylm_cache, Uxc_lmax=self.Uxc_lmax, Uh_lmax = self.Uh_lmax, uxc=self.uxc)
 
     def calc(self):
         self.calc_init()
@@ -399,5 +411,41 @@ class OrbitalsGroundStateTask(TaskAtom):
 
         self.ws.calc_uee(self.orbs)
         self.uee = self.ws.uee[0]
+
+        self.save()
+
+class TdsfmInnerTask(Task):
+    CALC_DATA = ['p',]
+
+    sp_grid = None
+    l_min = 0
+    l_max = -1
+
+    without_ground_state = False
+
+    def __init__(self, tdsfm_task, **kwargs):
+        super().__init__(is_mpi=False, **kwargs)
+
+        self.task = tdsfm_task
+
+    def calc_init(self):
+        self.task.calc_init()
+        self.task.load()
+        self.task.wf.asarray()[:] = self.task.psi[:]
+
+        if self.sp_grid is None:
+            self.tdsfm = self.task.tdsfm
+        else:
+            self.tdsfm = tdse.tdsfm.TDSFM_VG(self.sp_grid, self.task.sh_grid, 0)
+
+        self.p = self.tdsfm.asarray()
+
+    def calc(self):
+        self.calc_init()
+
+        if (self.without_ground_state):
+            self.task.wf.asarray()[:] = self.task.wf.asarray()[:] - (self.task.wf*self.task.wf_gs)*self.task.wf_gs.asarray()[:]
+
+        self.tdsfm.calc_inner(self.task.field, self.task.wf, 0, 0, self.task.sh_grid.Nr, self.l_min, self.l_max)
 
         self.save()
