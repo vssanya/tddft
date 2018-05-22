@@ -194,11 +194,11 @@ void hartree_potential(
 		U_calc = U;
 	}
 
-  if (order == 3) {
-    integrate_rmin_rmax_o3(l, grid, f, U_calc);
-  } else {
-    integrate_rmin_rmax_o5(l, grid, f, U_calc);
-  }
+    if (order == 3) {
+        integrate_rmin_rmax_o3(l, grid, f, U_calc);
+    } else {
+        integrate_rmin_rmax_o5(l, grid, f, U_calc);
+    }
 
 #ifdef _MPI
 	if (orbs->mpi_comm != MPI_COMM_NULL) {

@@ -41,6 +41,7 @@ UXC_LDA_X = Uxc.from_c_func(uxc_lda_x)
 def uc_lda(double n):
     return uc_lda_func(n)
 
+
 def potential(Orbitals orbs, int l = 0, np.ndarray[np.double_t, ndim=1] uh = None, int order=3) -> np.ndarray:
     if uh is None:
         uh = np.ndarray((orbs.cdata.wf[0].grid.n[0]), np.double)
@@ -49,6 +50,7 @@ def potential(Orbitals orbs, int l = 0, np.ndarray[np.double_t, ndim=1] uh = Non
     hartree_potential(orbs.cdata, l, &uh[0], &uh[0], &f[0], order)
 
     return uh
+
 
 def wf_l0(ShWavefunc wf, np.ndarray[np.double_t, ndim=1] uh = None, int order=3) -> np.ndarray:
     if uh is None:

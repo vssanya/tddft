@@ -23,6 +23,9 @@ cdef class UabsCache:
         self.uabs = uabs
         self.grid = grid
 
+    def __init__(self, Uabs uabs, ShGrid grid, double[::1] u = None):
+        pass
+
     def __dealloc__(self):
         del self.cdata
 
