@@ -8,6 +8,7 @@ void _hartree_potential_calc_f_l0(Orbitals const* orbs, double* f) {
 #ifdef _MPI
   if (orbs->mpi_comm != MPI_COMM_NULL) {
     for (int il = 0; il < grid->n[iL]; ++il) {
+#pragma omp parallel for
       for (int ir = 0; ir < grid->n[iR]; ++ir) {
         f[ir] += orbs->mpi_wf->abs_2(ir, il)*orbs->atom.orbs[orbs->mpi_rank].countElectrons;
       }
@@ -18,6 +19,7 @@ void _hartree_potential_calc_f_l0(Orbitals const* orbs, double* f) {
       for (int ie = 0; ie < orbs->atom.countOrbs; ++ie) {
         ShWavefunc const* wf = orbs->wf[ie];
         for (int il = 0; il < grid->n[iL]; ++il) {
+#pragma omp parallel for
           for (int ir = 0; ir < grid->n[iR]; ++ir) {
             f[ir] += wf->abs_2(ir, il)*orbs->atom.orbs[ie].countElectrons;
           }
@@ -35,6 +37,7 @@ void _hartree_potential_calc_f_l1(Orbitals const* orbs, double* f) {
 
 		{
 			int il = 0;
+#pragma omp parallel for
 			for (int ir = 0; ir < grid->n[iR]; ++ir) {
 				f[ir] += creal(n_e*wf(ir, il) *
 					clm(il, wf.m)*conj(wf(ir, il+1)));
@@ -42,6 +45,7 @@ void _hartree_potential_calc_f_l1(Orbitals const* orbs, double* f) {
 		}
 
 		for (int il = 1; il < grid->n[iL]-1; ++il) {
+#pragma omp parallel for
 			for (int ir = 0; ir < grid->n[iR]; ++ir) {
 				f[ir] += creal(n_e*wf(ir, il) * (
 						clm(il-1, wf.m)*conj(wf(ir, il-1)) +
@@ -52,6 +56,7 @@ void _hartree_potential_calc_f_l1(Orbitals const* orbs, double* f) {
 
 		{
 			int il = grid->n[iL]-1;
+#pragma omp parallel for
 			for (int ir = 0; ir < grid->n[iR]; ++ir) {
 				f[ir] += creal(n_e*wf(ir, il) *
 					clm(il-1, wf.m)*conj(wf(ir, il-1)));
@@ -66,6 +71,7 @@ void _hartree_potential_calc_f_l1(Orbitals const* orbs, double* f) {
 
 			{
 				int il = 0;
+#pragma omp parallel for
 				for (int ir = 0; ir < grid->n[iR]; ++ir) {
 					f[ir] += creal(n_e*wf(ir, il) *
 						clm(il, wf.m)*conj(wf(ir, il+1)));
@@ -73,6 +79,7 @@ void _hartree_potential_calc_f_l1(Orbitals const* orbs, double* f) {
 			}
 
 			for (int il = 1; il < grid->n[iL]-1; ++il) {
+#pragma omp parallel for
 				for (int ir = 0; ir < grid->n[iR]; ++ir) {
 					f[ir] += creal(n_e*wf(ir, il) * (
 							clm(il-1, wf.m)*conj(wf(ir, il-1)) +
@@ -83,6 +90,7 @@ void _hartree_potential_calc_f_l1(Orbitals const* orbs, double* f) {
 
 			{
 				int il = grid->n[iL]-1;
+#pragma omp parallel for
 				for (int ir = 0; ir < grid->n[iR]; ++ir) {
 					f[ir] += creal(n_e*wf(ir, il) *
 						clm(il-1, wf.m)*conj(wf(ir, il-1)));
@@ -100,6 +108,7 @@ void _hartree_potential_calc_f_l2(Orbitals const* orbs, double* f) {
         int const n_e = orbs->atom.orbs[orbs->mpi_rank].countElectrons;
 
 		for (int il = 0; il < 2; ++il) {
+#pragma omp parallel for
 			for (int ir = 0; ir < grid->n[iR]; ++ir) {
 				f[ir] += creal(n_e*wf(ir, il) * (
 						plm(il, wf.m)*conj(wf(ir, il)) +
@@ -108,6 +117,7 @@ void _hartree_potential_calc_f_l2(Orbitals const* orbs, double* f) {
 			}
 		}
 		for (int il = 2; il < grid->n[iL]-2; ++il) {
+#pragma omp parallel for
 			for (int ir = 0; ir < grid->n[iR]; ++ir) {
 				f[ir] += creal(n_e*wf(ir, il) * (
 						plm(il,   wf.m)*conj(wf(ir, il)) +
@@ -117,6 +127,7 @@ void _hartree_potential_calc_f_l2(Orbitals const* orbs, double* f) {
 			}
 		}
 		for (int il = grid->n[iL]-2; il < grid->n[iL]; ++il) {
+#pragma omp parallel for
 			for (int ir = 0; ir < grid->n[iR]; ++ir) {
 				f[ir] += creal(n_e*wf(ir, il) * (
 						plm(il,   wf.m)*conj(wf(ir, il)) +
@@ -131,6 +142,7 @@ void _hartree_potential_calc_f_l2(Orbitals const* orbs, double* f) {
 			ShWavefunc const& wf = *orbs->wf[ie];
             int const n_e = orbs->atom.orbs[ie].countElectrons;
 			for (int il = 0; il < 2; ++il) {
+#pragma omp parallel for
 				for (int ir = 0; ir < grid->n[iR]; ++ir) {
 					f[ir] += creal(n_e*wf(ir, il) * (
 							plm(il, wf.m)*conj(wf(ir, il)) +
@@ -139,6 +151,7 @@ void _hartree_potential_calc_f_l2(Orbitals const* orbs, double* f) {
 				}
 			}
 			for (int il = 2; il < grid->n[iL]-2; ++il) {
+#pragma omp parallel for
 				for (int ir = 0; ir < grid->n[iR]; ++ir) {
 					f[ir] += creal(n_e*wf(ir, il) * (
 							plm(il,   wf.m)*conj(wf(ir, il)) +
@@ -148,6 +161,7 @@ void _hartree_potential_calc_f_l2(Orbitals const* orbs, double* f) {
 				}
 			}
 			for (int il = grid->n[iL]-2; il < grid->n[iL]; ++il) {
+#pragma omp parallel for
 				for (int ir = 0; ir < grid->n[iR]; ++ir) {
 					f[ir] += creal(n_e*wf(ir, il) * (
 							plm(il,   wf.m)*conj(wf(ir, il)) +

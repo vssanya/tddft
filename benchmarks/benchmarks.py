@@ -28,14 +28,13 @@ import tdse
     # def time_ionization_prob(self):
         # tdse.calc.ionization_prob(self.orbs)
 
-
 class OrbitalsPropagate:
     timer = time.time
 
     def setup(self):
         dr = 0.02
         r_max = 200
-        Nr = int(r_max/dr)
+        Nr = 10000
         Nl = 512
 
         self.grid = tdse.grid.ShGrid(Nr, Nl, r_max)
@@ -54,6 +53,18 @@ class OrbitalsPropagate:
 
     def time_hartree_potential_l0(self):
         tdse.hartree_potential.potential(self.orbs, 0, self.uh)
+    
+    def time_hartree_potential_l1(self):
+        tdse.hartree_potential.potential(self.orbs, 1, self.uh)
+
+    def time_hartree_potential_l2(self):
+        tdse.hartree_potential.potential(self.orbs, 2, self.uh)
+
+    def time_uxc_l0(self):
+        tdse.hartree_potential.UXC_LB.calc_l0(0, self.orbs, self.sp_grid, self.ylm_cache, self.uh, self.n)
+
+    def time_n_l0(self):
+        self.orbs.n_l0(self.n[0])
 
     # def time_lda(self):
         # tdse.hartree_potential.lda(0, self.orbs, self.sp_grid, self.ylm_cache, self.uh)
@@ -72,7 +83,7 @@ class WavefuncPropagate:
         dr = 0.02
         r_max = 200
         Nr = int(r_max/dr)
-        Nl = 128
+        Nl = 512
 
         self.grid = tdse.grid.ShGrid(Nr, Nl, r_max)
         # self.sp_grid = tdse.grid.SpGrid(Nr, 32, 1, r_max)
@@ -81,11 +92,11 @@ class WavefuncPropagate:
         # self.n = np.ndarray((Nr, 32))
         self.wf = tdse.wavefunc.ShWavefunc(self.grid)
         self.uabs = tdse.abs_pot.UabsMultiHump(0.1, 10)
-        self.ws = tdse.workspace.SKnWorkspace(grid=self.grid, uabs=self.uabs)
+        self.ws = tdse.workspace.SKnWorkspace(tdse.atom.AtomCache(self.atom, self.grid), self.grid, tdse.abs_pot.UabsCache(self.uabs, self.grid))
         self.field = tdse.field.TwoColorSinField()
 
-    # def time_propagate(self):
-        # self.ws.prop(self.wf, self.atom, self.field, 0.0, 0.1)
+    def time_propagate(self):
+        self.ws.prop(self.wf, self.field, 0.0, 0.1)
 
     # def time_z(self):
         # self.wf.z()

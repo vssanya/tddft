@@ -134,8 +134,7 @@ metadata = dict(
     version = "0.1",
     author = "Romanov Alexander",
     author_email = "vssanya@yandex.ru",
-    setup_requires = build_requires,
-    install_requires = build_requires,
+    packages = build_requires
 )
 
 run_build = parse_setuppy_commands()
