@@ -31,6 +31,7 @@ class Atom {
 						break;
 					case 'd':
 						l = 2;
+						break;
 					default:
 						l = 0;
 				}
@@ -44,6 +45,9 @@ class Atom {
 						break;
 					case '3':
 						n = 2 - l;
+						break;
+					case '4':
+						n = 3 - l;
 						break;
 					default:
 						l = 0;
@@ -274,6 +278,12 @@ class ArAtom: public AtomCoulomb {
 	public:
 		static const std::vector<State> GroundStateOrbs;
 		ArAtom(): AtomCoulomb(18, GroundStateOrbs, 4) {}
+};
+
+class KrAtom: public AtomCoulomb {
+	public:
+		static const std::vector<State> GroundStateOrbs;
+		KrAtom(): AtomCoulomb(36, GroundStateOrbs, 6) {}
 };
 
 class ArSaeAtom: public Atom {

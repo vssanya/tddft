@@ -111,7 +111,7 @@ class Task(object):
             self.calc_prop(i, self.t[i])
             self.calc_data(i, self.t[i])
 
-            if (i+1) % int(self.t.size*0.01) == 0:
+            if (self.save_inter_data or self.bot_client is not None) and (i+1) % int(self.t.size*0.01) == 0:
                 if self.save_inter_data:
                     self.save()
 
@@ -287,8 +287,7 @@ class WavefuncWithSourceTask(TaskAtom):
     def __init__(self, path_res='res', mode=None, **kwargs):
         super().__init__(path_res, mode, is_mpi=False, **kwargs)
 
-        Nr = int(self.r_max/self.dr)
-        self.grid_source = tdse.grid.ShGrid(Nr=Nr, Nl=self.state['l']+1, r_max=self.r_max)
+        self.grid_source = tdse.grid.ShGrid(Nr=self.sh_grid.Nr, Nl=self.atom.l_max+1, r_max=self.r_max)
 
     def save_state(self, i):
         np.save(os.path.join(self.save_path, 'wf_{}.npy'.format(i)), self.wf.asarray())
@@ -299,23 +298,22 @@ class WavefuncWithSourceTask(TaskAtom):
     def calc_init(self):
         super().calc_init()
 
-        self.wf_source = self.calc_ground_state()
+        self.wf_source, self.Ip = self.calc_ground_state()
         self.wf = tdse.wavefunc.ShWavefunc(self.sh_grid)
         self.wf.asarray()[:] = 0.0
 
-        self.ws = tdse.workspace.SKnWithSourceWorkspace(self.atom_cache, self.sh_grid, self.uabs_cache, self.wf_source, -0.5)
-
+        self.ws = tdse.workspace.SKnWithSourceWorkspace(tdse.atom.AtomCache(tdse.atom.NONE, self.sh_grid), self.sh_grid, self.uabs_cache, self.wf_source, self.Ip)
 
         self.t = self.field.get_t(self.dt, dT=self.dT)
 
     def calc_ground_state(self, ws=None):
         if ws is None:
-            ws = tdse.workspace.SKnWorkspace(self.grid_source, tdse.abs_pot.UabsZero())
+            ws = tdse.workspace.SKnWorkspace(self.atom_cache, self.grid_source, tdse.abs_pot.UabsCache(tdse.abs_pot.UabsZero(), self.grid_source))
 
-        return tdse.ground_state.wf(self.atom, self.sh_grid, ws, self.dt, 10000)
+        return tdse.ground_state.wf(self.atom, self.grid_source, ws, self.dt, 10000)
 
     def calc_prop(self, i, t):
-        self.ws.prop(self.wf, tdse.atom.NONE, self.field, t, self.dt)
+        self.ws.prop(self.wf, self.field, t, self.dt)
 
 class OrbitalsTask(TaskAtom):
     atom = tdse.atom.Ar

@@ -6,6 +6,7 @@ from sphere_harmonics cimport cYlmCache
 cdef extern from "hartree_potential.h":
     ctypedef double (*potential_xc_f)(double n, double x)
     void hartree_potential(cOrbitals* orbs, int l, double* U, double* U_local, double* f, int order)
+    void hartree_potential_calc_int_func(cOrbitals* orbs, int l, double* f);
     void hartree_potential_wf_l0(cShWavefunc* wf, double* U, double* f, int order)
     double mod_grad_n(cSpGrid* grid, double* n, int ir, int ic)
     double ux_lda_func(double n)

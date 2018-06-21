@@ -130,6 +130,10 @@ cdef class SKnWithSourceWorkspace:
     def prop(self, ShWavefunc wf, Field field, double t, double dt):
         self.cdata.prop(wf.cdata[0], field.cdata, t, dt)
 
+    @property
+    def abs_norm(self):
+        return self.cdata.abs_norm
+
 
 cdef class SOrbsWorkspace:
     def __cinit__(self, AtomCache atom_cache, ShGrid sh_grid, SpGrid sp_grid, UabsCache uabs, YlmCache ylm_cache, int Uxc_lmax = 3, int Uh_lmax = 3, Uxc uxc = UXC_LB, int num_threads=-1):
@@ -148,6 +152,9 @@ cdef class SOrbsWorkspace:
 
     def prop_img(self, Orbitals orbs, double dt):
         self.cdata.prop_img(orbs.cdata, dt)
+
+    def prop_ha(self, Orbitals orbs, double dt):
+        self.cdata.prop_ha(orbs.cdata, dt)
 
     def prop(self, Orbitals orbs, Field field, double t, double dt, bint calc_uee=True):
         self.cdata.prop(orbs.cdata, field.cdata, t, dt, calc_uee)

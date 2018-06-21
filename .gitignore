@@ -15,3 +15,5 @@ tdse/*.so
 .asv
 
 CMakeLists.txt.user
+
+.ipynb_checkpoints

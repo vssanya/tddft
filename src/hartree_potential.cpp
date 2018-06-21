@@ -4,53 +4,54 @@
 
 
 void _hartree_potential_calc_f_l0(Orbitals const* orbs, double* f) {
-  ShGrid const* grid = orbs->grid;
-#ifdef _MPI
-  if (orbs->mpi_comm != MPI_COMM_NULL) {
-    for (int il = 0; il < grid->n[iL]; ++il) {
-#pragma omp parallel for
-      for (int ir = 0; ir < grid->n[iR]; ++ir) {
-        f[ir] += orbs->mpi_wf->abs_2(ir, il)*orbs->atom.orbs[orbs->mpi_rank].countElectrons;
-      }
-    }
-  } else
-#endif
-    {
-      for (int ie = 0; ie < orbs->atom.countOrbs; ++ie) {
-        ShWavefunc const* wf = orbs->wf[ie];
-        for (int il = 0; il < grid->n[iL]; ++il) {
-#pragma omp parallel for
-          for (int ir = 0; ir < grid->n[iR]; ++ir) {
-            f[ir] += wf->abs_2(ir, il)*orbs->atom.orbs[ie].countElectrons;
-          }
-        }
-      }
-    }
-}
-
-void _hartree_potential_calc_f_l1(Orbitals const* orbs, double* f) {
-  ShGrid const* grid = orbs->grid;
+	ShGrid const* grid = orbs->grid;
 #ifdef _MPI
 	if (orbs->mpi_comm != MPI_COMM_NULL) {
 		ShWavefunc const& wf = *orbs->mpi_wf;
-        int const n_e = orbs->atom.orbs[orbs->mpi_rank].countElectrons;
+		for (int il = wf.m; il < grid->n[iL]; ++il) {
+#pragma omp parallel for
+			for (int ir = 0; ir < grid->n[iR]; ++ir) {
+				f[ir] += wf.abs_2(ir, il)*orbs->atom.orbs[orbs->mpi_rank].countElectrons;
+			}
+		}
+	} else
+#endif
+	{
+		for (int ie = 0; ie < orbs->atom.countOrbs; ++ie) {
+			ShWavefunc const& wf = *orbs->wf[ie];
+			for (int il = wf.m; il < grid->n[iL]; ++il) {
+#pragma omp parallel for
+				for (int ir = 0; ir < grid->n[iR]; ++ir) {
+					f[ir] += wf.abs_2(ir, il)*orbs->atom.orbs[ie].countElectrons;
+				}
+			}
+		}
+	}
+}
+
+void _hartree_potential_calc_f_l1(Orbitals const* orbs, double* f) {
+	ShGrid const* grid = orbs->grid;
+#ifdef _MPI
+	if (orbs->mpi_comm != MPI_COMM_NULL) {
+		ShWavefunc const& wf = *orbs->mpi_wf;
+		int const n_e = orbs->atom.orbs[orbs->mpi_rank].countElectrons;
 
 		{
-			int il = 0;
+			int il = wf.m;
 #pragma omp parallel for
 			for (int ir = 0; ir < grid->n[iR]; ++ir) {
 				f[ir] += creal(n_e*wf(ir, il) *
-					clm(il, wf.m)*conj(wf(ir, il+1)));
+						clm(il, wf.m)*conj(wf(ir, il+1)));
 			}
 		}
 
-		for (int il = 1; il < grid->n[iL]-1; ++il) {
+		for (int il = wf.m + 1; il < grid->n[iL]-1; ++il) {
 #pragma omp parallel for
 			for (int ir = 0; ir < grid->n[iR]; ++ir) {
 				f[ir] += creal(n_e*wf(ir, il) * (
-						clm(il-1, wf.m)*conj(wf(ir, il-1)) +
-						clm(il  , wf.m)*conj(wf(ir, il+1))
-						));
+							clm(il-1, wf.m)*conj(wf(ir, il-1)) +
+							clm(il  , wf.m)*conj(wf(ir, il+1))
+							));
 			}
 		}
 
@@ -59,32 +60,32 @@ void _hartree_potential_calc_f_l1(Orbitals const* orbs, double* f) {
 #pragma omp parallel for
 			for (int ir = 0; ir < grid->n[iR]; ++ir) {
 				f[ir] += creal(n_e*wf(ir, il) *
-					clm(il-1, wf.m)*conj(wf(ir, il-1)));
+						clm(il-1, wf.m)*conj(wf(ir, il-1)));
 			}
 		}
 	} else
 #endif
 	{
-        for (int ie = 0; ie < orbs->atom.countOrbs; ++ie) {
+		for (int ie = 0; ie < orbs->atom.countOrbs; ++ie) {
 			ShWavefunc const& wf = *orbs->wf[ie];
-            int const n_e = orbs->atom.orbs[ie].countElectrons;
+			int const n_e = orbs->atom.orbs[ie].countElectrons;
 
 			{
-				int il = 0;
+				int il = wf.m;
 #pragma omp parallel for
 				for (int ir = 0; ir < grid->n[iR]; ++ir) {
 					f[ir] += creal(n_e*wf(ir, il) *
-						clm(il, wf.m)*conj(wf(ir, il+1)));
+							clm(il, wf.m)*conj(wf(ir, il+1)));
 				}
 			}
 
-			for (int il = 1; il < grid->n[iL]-1; ++il) {
+			for (int il = wf.m+1; il < grid->n[iL]-1; ++il) {
 #pragma omp parallel for
 				for (int ir = 0; ir < grid->n[iR]; ++ir) {
 					f[ir] += creal(n_e*wf(ir, il) * (
-							clm(il-1, wf.m)*conj(wf(ir, il-1)) +
-							clm(il  , wf.m)*conj(wf(ir, il+1))
-							));
+								clm(il-1, wf.m)*conj(wf(ir, il-1)) +
+								clm(il  , wf.m)*conj(wf(ir, il+1))
+								));
 				}
 			}
 
@@ -93,7 +94,7 @@ void _hartree_potential_calc_f_l1(Orbitals const* orbs, double* f) {
 #pragma omp parallel for
 				for (int ir = 0; ir < grid->n[iR]; ++ir) {
 					f[ir] += creal(n_e*wf(ir, il) *
-						clm(il-1, wf.m)*conj(wf(ir, il-1)));
+							clm(il-1, wf.m)*conj(wf(ir, il-1)));
 				}
 			}
 		}
@@ -101,72 +102,72 @@ void _hartree_potential_calc_f_l1(Orbitals const* orbs, double* f) {
 }
 
 void _hartree_potential_calc_f_l2(Orbitals const* orbs, double* f) {
-  ShGrid const* grid = orbs->grid;
+	ShGrid const* grid = orbs->grid;
 #ifdef _MPI
 	if (orbs->mpi_comm != MPI_COMM_NULL) {
 		ShWavefunc const& wf = *orbs->mpi_wf;
-        int const n_e = orbs->atom.orbs[orbs->mpi_rank].countElectrons;
+		int const n_e = orbs->atom.orbs[orbs->mpi_rank].countElectrons;
 
-		for (int il = 0; il < 2; ++il) {
+		for (int il = wf.m; il < wf.m + 2; ++il) {
 #pragma omp parallel for
 			for (int ir = 0; ir < grid->n[iR]; ++ir) {
 				f[ir] += creal(n_e*wf(ir, il) * (
-						plm(il, wf.m)*conj(wf(ir, il)) +
-						qlm(il, wf.m)*conj(wf(ir, il+2))
-						));
+							plm(il, wf.m)*conj(wf(ir, il)) +
+							qlm(il, wf.m)*conj(wf(ir, il+2))
+							));
 			}
 		}
-		for (int il = 2; il < grid->n[iL]-2; ++il) {
+		for (int il = wf.m + 2; il < grid->n[iL]-2; ++il) {
 #pragma omp parallel for
 			for (int ir = 0; ir < grid->n[iR]; ++ir) {
 				f[ir] += creal(n_e*wf(ir, il) * (
-						plm(il,   wf.m)*conj(wf(ir, il)) +
-						qlm(il,   wf.m)*conj(wf(ir, il+2)) +
-						qlm(il-2, wf.m)*conj(wf(ir, il-2))
-						));
+							plm(il,   wf.m)*conj(wf(ir, il)) +
+							qlm(il,   wf.m)*conj(wf(ir, il+2)) +
+							qlm(il-2, wf.m)*conj(wf(ir, il-2))
+							));
 			}
 		}
 		for (int il = grid->n[iL]-2; il < grid->n[iL]; ++il) {
 #pragma omp parallel for
 			for (int ir = 0; ir < grid->n[iR]; ++ir) {
 				f[ir] += creal(n_e*wf(ir, il) * (
-						plm(il,   wf.m)*conj(wf(ir, il)) +
-						qlm(il-2, wf.m)*conj(wf(ir, il-2))
-						));
+							plm(il,   wf.m)*conj(wf(ir, il)) +
+							qlm(il-2, wf.m)*conj(wf(ir, il-2))
+							));
 			}
 		}
 	} else
 #endif
 	{
-        for (int ie = 0; ie < orbs->atom.countOrbs; ++ie) {
+		for (int ie = 0; ie < orbs->atom.countOrbs; ++ie) {
 			ShWavefunc const& wf = *orbs->wf[ie];
-            int const n_e = orbs->atom.orbs[ie].countElectrons;
+			int const n_e = orbs->atom.orbs[ie].countElectrons;
 			for (int il = 0; il < 2; ++il) {
 #pragma omp parallel for
 				for (int ir = 0; ir < grid->n[iR]; ++ir) {
 					f[ir] += creal(n_e*wf(ir, il) * (
-							plm(il, wf.m)*conj(wf(ir, il)) +
-							qlm(il, wf.m)*conj(wf(ir, il+2))
-							));
+								plm(il, wf.m)*conj(wf(ir, il)) +
+								qlm(il, wf.m)*conj(wf(ir, il+2))
+								));
 				}
 			}
 			for (int il = 2; il < grid->n[iL]-2; ++il) {
 #pragma omp parallel for
 				for (int ir = 0; ir < grid->n[iR]; ++ir) {
 					f[ir] += creal(n_e*wf(ir, il) * (
-							plm(il,   wf.m)*conj(wf(ir, il)) +
-							qlm(il,   wf.m)*conj(wf(ir, il+2)) +
-							qlm(il-2, wf.m)*conj(wf(ir, il-2))
-							));
+								plm(il,   wf.m)*conj(wf(ir, il)) +
+								qlm(il,   wf.m)*conj(wf(ir, il+2)) +
+								qlm(il-2, wf.m)*conj(wf(ir, il-2))
+								));
 				}
 			}
 			for (int il = grid->n[iL]-2; il < grid->n[iL]; ++il) {
 #pragma omp parallel for
 				for (int ir = 0; ir < grid->n[iR]; ++ir) {
 					f[ir] += creal(n_e*wf(ir, il) * (
-							plm(il,   wf.m)*conj(wf(ir, il)) +
-							qlm(il-2, wf.m)*conj(wf(ir, il-2))
-							));
+								plm(il,   wf.m)*conj(wf(ir, il)) +
+								qlm(il-2, wf.m)*conj(wf(ir, il-2))
+								));
 				}
 			}
 		}
@@ -175,10 +176,21 @@ void _hartree_potential_calc_f_l2(Orbitals const* orbs, double* f) {
 
 typedef void (*calc_func_t)(Orbitals const* orbs, double* f);
 calc_func_t const calc_funcs[3] = {
-  _hartree_potential_calc_f_l0,
-  _hartree_potential_calc_f_l1,
-  _hartree_potential_calc_f_l2
+	_hartree_potential_calc_f_l0,
+	_hartree_potential_calc_f_l1,
+	_hartree_potential_calc_f_l2
 };
+
+void hartree_potential_calc_int_func(Orbitals const* orbs, int l, double* f) {
+	ShGrid const* grid = orbs->grid;
+
+#pragma omp parallel for
+	for (int ir = 0; ir < grid->n[iR]; ++ir) {
+		f[ir] = 0.0;
+	}
+
+	calc_funcs[l](orbs, f);
+}
 
 void hartree_potential(
 		Orbitals const* orbs,
@@ -187,11 +199,12 @@ void hartree_potential(
 		double* U_local,
 		double* f,
 		int order
-) {
-  assert(l >= 0 && l <= 2);
+		) {
+	assert(l >= 0 && l <= 2);
 
 	ShGrid const* grid = orbs->grid;
 
+#pragma omp parallel for
 	for (int ir = 0; ir < grid->n[iR]; ++ir) {
 		f[ir] = 0.0;
 	}
@@ -208,11 +221,11 @@ void hartree_potential(
 		U_calc = U;
 	}
 
-    if (order == 3) {
-        integrate_rmin_rmax_o3(l, grid, f, U_calc);
-    } else {
-        integrate_rmin_rmax_o5(l, grid, f, U_calc);
-    }
+	if (order == 3) {
+		integrate_rmin_rmax_o3(l, grid, f, U_calc);
+	} else {
+		integrate_rmin_rmax_o5(l, grid, f, U_calc);
+	}
 
 #ifdef _MPI
 	if (orbs->mpi_comm != MPI_COMM_NULL) {
@@ -226,24 +239,24 @@ void hartree_potential_wf_l0(
 		double* U,
 		double* f,
 		int order
-) {
+		) {
 	ShGrid const* grid = wf->grid;
 
 	for (int ir = 0; ir < grid->n[iR]; ++ir) {
 		f[ir] = 0.0;
 	}
 
-  for (int il = 0; il < grid->n[iL]; ++il) {
-    for (int ir = 0; ir < grid->n[iR]; ++ir) {
-      f[ir] += wf->abs_2(ir, il);
-    }
-  }
+	for (int il = wf->m; il < grid->n[iL]; ++il) {
+		for (int ir = 0; ir < grid->n[iR]; ++ir) {
+			f[ir] += wf->abs_2(ir, il);
+		}
+	}
 
-  if (order == 3) {
-    integrate_rmin_rmax_o3(0, grid, f, U);
-  } else {
-    integrate_rmin_rmax_o5(0, grid, f, U);
-  }
+	if (order == 3) {
+		integrate_rmin_rmax_o3(0, grid, f, U);
+	} else {
+		integrate_rmin_rmax_o5(0, grid, f, U);
+	}
 }
 
 void uxc_calc_l(
@@ -255,19 +268,19 @@ void uxc_calc_l(
 		double* n_tmp, // for calc using mpi
 		YlmCache const* ylm_cache
 		) {
-        orbs->n_sp(grid, n, n_tmp, ylm_cache);
+	orbs->n_sp(grid, n, n_tmp, ylm_cache);
 
 #ifdef _MPI
-		if (orbs->mpi_rank == 0 || orbs->mpi_comm == MPI_COMM_NULL)
+	if (orbs->mpi_rank == 0 || orbs->mpi_comm == MPI_COMM_NULL)
 #endif
-		{
-			auto func = [grid, uxc, n](int ir, int ic) -> double {
-				double x = mod_grad_n(grid, n, ir, ic);
-				return uxc(n[ir + ic*grid->n[iR]], x);
-			};
+	{
+		auto func = [grid, uxc, n](int ir, int ic) -> double {
+			double x = mod_grad_n(grid, n, ir, ic);
+			return uxc(n[ir + ic*grid->n[iR]], x);
+		};
 
-			sh_series(func, l, 0, grid, U, ylm_cache);
-		}
+		sh_series(func, l, 0, grid, U, ylm_cache);
+	}
 }
 
 void uxc_calc_l0(
@@ -280,7 +293,7 @@ void uxc_calc_l0(
 		YlmCache const* ylm_cache
 		) {
 	if (l==0) {
-        orbs->n_l0(n, n_tmp);
+		orbs->n_l0(n, n_tmp);
 
 #ifdef _MPI
 		if (orbs->mpi_rank == 0 || orbs->mpi_comm == MPI_COMM_NULL)
@@ -288,8 +301,8 @@ void uxc_calc_l0(
 		{
 			for (int ir=0; ir<grid->n[iR]; ++ir) {
 				double x = mod_dndr(grid, n, ir);
-                double r = orbs->grid->r(ir);
-                double r_max = orbs->grid->Rmax();
+				double r = orbs->grid->r(ir);
+				double r_max = orbs->grid->Rmax();
 				U[ir] = uxc(n[ir], x)*sqrt(4*M_PI);//*(1.0 - smoothstep(r, 20, 40));
 			}
 		}
@@ -321,10 +334,12 @@ double ux_lda_func(double n) {
 
 double uxc_lb(double n, double x) {
 	double const betta = 0.05;
+	double const ksi = pow(2, 1.0/3.0);
 	if (n < 1e-20) {
 		return ux_lda_func(n) + uc_lda_func(n);
 	}
-	return ux_lda_func(n) + uc_lda_func(n) - betta*x*x*pow(n, 1.0/3.0)/(1.0 + 3.0*betta*x*log(x + sqrt(x*x + 1.0)));
+	x *= ksi;
+	return ux_lda_func(n) + uc_lda_func(n) - betta*x*x*pow(n, 1.0/3.0)/ksi/(1.0 + 3.0*betta*x*log(x + sqrt(x*x + 1.0)));
 	//return ux_lda_func(n) + uc_lda_func(n) - betta*x*x/(pow(n, 7.0/3.0) + 3.0*betta*x*n*(log(x + sqrt(x*x + pow(n, 8.0/3.0))) - 4.0*log(n)/3.0));
 }
 
@@ -356,8 +371,8 @@ double mod_grad_n(SpGrid const* grid, double* n, int ir, int ic) {
 		dn_dc = (n[ir + (ic-1)*grid->n[iR]] - n[ir + (ic+1)*grid->n[iR]])/(2*grid->d[iC]);
 	}
 
-    double c = grid->c(ic);
-    double r = grid->r(ir);
+	double c = grid->c(ic);
+	double r = grid->r(ir);
 
 	return sqrt(pow(dn_dr,2) + pow(dn_dc/r,2)*(1.0 - c*c))/pow(n[ir + ic*grid->n[iR]], 4.0/3.0);
 }

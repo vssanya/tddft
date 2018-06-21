@@ -28,7 +28,9 @@ class TestAtom(unittest.TestCase):
 
     def test_ne(self):
         atom = tdse.atom.Ne
+
         self.assertEqual(atom.countOrbs, 4)
+        self.assertEqual(atom.l_max, 1)
 
         self.assertEqual(atom.ground_state.l, 1)
         self.assertEqual(atom.ground_state.m, 0)
@@ -36,14 +38,25 @@ class TestAtom(unittest.TestCase):
 
     def test_ar(self):
         atom = tdse.atom.Ar
+
         self.assertEqual(atom.countOrbs, 7)
+        self.assertEqual(atom.l_max, 1)
 
         self.assertEqual(atom.ground_state.l, 1)
         self.assertEqual(atom.ground_state.m, 0)
         self.assertEqual(atom.ground_state.n, 1)
+
+    def test_kr(self):
+        atom = tdse.atom.Kr
+
+        self.assertEqual(atom.l_max, 2)
 
     def test_ar_sae(self):
         atom = tdse.atom.Ar_sae
         self.assertEqual(atom.ground_state.l, 1)
         self.assertEqual(atom.ground_state.m, 0)
         self.assertEqual(atom.ground_state.n, 1)
+
+    def test_h(self):
+        atom = tdse.atom.H
+        self.assertEqual(atom.l_max, 0)

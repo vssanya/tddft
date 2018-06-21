@@ -51,6 +51,12 @@ def potential(Orbitals orbs, int l = 0, np.ndarray[np.double_t, ndim=1] uh = Non
 
     return uh
 
+def potential_int_func(Orbitals orbs, int l = 0) -> np.ndarray:
+    cdef np.ndarray[np.double_t, ndim=1] f = np.ndarray((orbs.cdata.wf[0].grid.n[0]), np.double)
+    hartree_potential_calc_int_func(orbs.cdata, l, &f[0])
+
+    return f
+
 
 def wf_l0(ShWavefunc wf, np.ndarray[np.double_t, ndim=1] uh = None, int order=3) -> np.ndarray:
     if uh is None:

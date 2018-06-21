@@ -148,3 +148,27 @@ void workspace::orbs::prop_img(Orbitals* orbs, double dt) {
         }
     }
 }
+
+void workspace::orbs::prop_ha(Orbitals* orbs, double dt) {
+    auto lmax = std::max(std::max(1, Uxc_lmax), Uh_lmax);
+    calc_Uee(orbs, Uxc_lmax, Uh_lmax);
+
+    sh_f Ul[3] = {
+        [this](ShGrid const* grid, int ir, int l, int m) -> double {
+			double const r = grid->r(ir);
+            return l*(l+1)/(2*r*r) + wf_ws.atom_cache->u(ir) + Uee[ir];
+        },
+        [this](ShGrid const* grid, int ir, int l, int m) -> double {
+            return clm(l, m)*Uee[ir + grid->n[iR]];
+        },
+        [this](ShGrid const* grid, int ir, int l, int m) -> double {
+            return qlm(l, m)*Uee[ir + 2*grid->n[iR]];
+        }
+    };
+
+    for (int ie = 0; ie < orbs->atom.countOrbs; ++ie) {
+        if (orbs->wf[ie] != nullptr) {
+            wf_ws.prop_common(*orbs->wf[ie], dt, lmax, Ul);
+        }
+    }
+}

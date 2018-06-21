@@ -71,6 +71,8 @@ cdef extern from "workspace.h" namespace "workspace":
         WfEWithSource(cAtomCache* atom_cache, cShGrid* grid, cUabsCache* uabs, cShWavefunc& source, double E, int num_threads)
         void prop(cShWavefunc& wf, field_t* field, double t, double dt)
 
+        double abs_norm
+
     cdef cppclass WfA:
         WfA(cAtomCache* atom, cShGrid* grid, cUabsCache* uabs, int num_threads)
         void prop(cShWavefunc& wf, field_t* field, double t, double dt)
@@ -82,6 +84,7 @@ cdef extern from "workspace.h" namespace "workspace":
 
         void prop(cOrbitals* orbs, field_t* field, double t, double dt, bint calc_uee)
         void prop_img(cOrbitals* orbs, double dt)
+        void prop_ha(cOrbitals* orbs, double dt)
         void calc_Uee(cOrbitals* orbs, int Uxc_lmax, int Uh_lmax)
 
         WfBase* wf_ws

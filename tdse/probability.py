@@ -1,4 +1,5 @@
 import numpy as np
+from tdse.atom import Atom
 
 def probability(n, j):
     res = 1.0
@@ -9,7 +10,23 @@ def probability(n, j):
             res *= n[i]
     return res
 
-def n0(n):
+def transform_nsum(func):
+    def new_func(atom: Atom, n):
+        n_new = np.ndarray((n.shape[0], atom.countElectrons))
+        for i in range(n.shape[0]):
+            j = 0
+            for orb in range(n.shape[1]):
+                ne = atom.getCountElectrons(orb)
+                for ni in range(ne):
+                    n_new[i, j+ni] = n[i, orb] / ne
+                j += ne
+
+        return func(atom, n_new)
+
+    return new_func
+
+@transform_nsum
+def n0(atom, n):
     res = np.ndarray(n.shape[0])
 
     for i in range(n.shape[0]):
@@ -17,7 +34,8 @@ def n0(n):
 
     return res
 
-def n1(n):
+@transform_nsum
+def n1(atom, n):
     res = np.ndarray(n.shape[0])
     for i in range(n.shape[0]):
         res[i] = 0
@@ -26,7 +44,8 @@ def n1(n):
 
     return res
 
-def n2(n):
+@transform_nsum
+def n2(atom, n):
     res = np.ndarray(n.shape[0])
     for i in range(n.shape[0]):
         res[i] = 0
@@ -35,7 +54,8 @@ def n2(n):
                 res[i] += probability(n[i], [j1, j2])
     return res
 
-def n3(n):
+@transform_nsum
+def n3(atom, n):
     res = np.ndarray(n.shape[0])
     for i in range(n.shape[0]):
         res[i] = 0
@@ -45,7 +65,8 @@ def n3(n):
                     res[i] += probability(n[i], [j1,j2,j3])
     return res
 
-def n4(n):
+@transform_nsum
+def n4(atom, n):
     res = np.ndarray(n.shape[0])
     for i in range(n.shape[0]):
         res[i] = 0

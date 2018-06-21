@@ -23,6 +23,7 @@ extern "C" {
  * U0(r,t) = 2*\sum_{i,l} \int |\theta_{ilm}(r', t)|^2 / r> dr'
  * */
 void hartree_potential(Orbitals const* orbs, int l, double* U, double* U_local, double* f, int order);
+void hartree_potential_calc_int_func(Orbitals const* orbs, int l, double* f);
 
 void hartree_potential_wf_l0(ShWavefunc const* wf, double* U, double* f, int order);
 

@@ -103,9 +103,9 @@ cdef class Atom:
 
         for i in range(self.cdata.countOrbs):
             if lmax < self.cdata.orbs[i].l:
-                l = self.cdata.orbs[i].l
+                lmax = self.cdata.orbs[i].l
 
-        return l
+        return lmax
 
     def get_l(self, int i):
         assert(i<self.cdata.countOrbs)
@@ -133,6 +133,7 @@ H_smooth = Atom.from_c(<cAtom*> new HSmothAtom())
 
 Ne       = Atom.from_c(<cAtom*> new NeAtom())
 Ar       = Atom.from_c(<cAtom*> new ArAtom())
+Kr       = Atom.from_c(<cAtom*> new KrAtom())
 Ar_sae   = Atom.from_c(<cAtom*> new ArSaeAtom())
 Ar_sae_smooth = Atom.from_c(<cAtom*> new ArSaeSmoothAtom())
 

@@ -40,7 +40,7 @@ namespace workspace {
             void prop_at(ShWavefunc& wf, cdouble dt, sh_f Ul);
 			void prop_mix(ShWavefunc& wf, sh_f Al, double dt, int l);
 
-			void prop_abs(ShWavefunc& wf, double dt);
+			virtual void prop_abs(ShWavefunc& wf, double dt);
 			/*!
 			 * \f[U(r,t) = \sum_l U_l(r, t)\f]
 			 * \param[in] Ul = \f[U_l(r, t=t+dt/2)\f]

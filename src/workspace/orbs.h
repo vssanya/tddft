@@ -20,6 +20,7 @@ namespace workspace
 
             void prop(Orbitals* orbs, field_t const* field, double t, double dt, bool calc_uee);
             void prop_img(Orbitals* orbs, double dt);
+			void prop_ha(Orbitals* orbs, double dt);
 			void calc_Uee(Orbitals const* orbs, int Uxc_lmax, int Uh_lmax);
 
 			workspace::WfBase wf_ws;
