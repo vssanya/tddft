@@ -31,8 +31,18 @@ def length_to_freq(length, u='nm', u_to='au'):
 def t_shift(tp, I0, Imin):
     return np.sqrt(0.5*tp**2*np.log(I0/Imin))
 
+def r_osc(E, alpha, freq):
+    return E/freq**2*(1 + alpha/4)
+
 def r_max(E, alpha, freq):
-    return 3*E/freq**2*(1 + alpha/4)
+    return 2*r_osc(E, alpha, freq)
+
+def Up(E, alpha, freq):
+    return (E/(2*freq))**2*(1 + alpha**2/4)
+
+def Lmax(Ip, E, alpha, freq):
+    pmax = 2*np.sqrt(Ip + 3.17*Up(E, alpha, freq))
+    return pmax*r_max(E, alpha, freq)
 
 """
     I (W/cm^2)
