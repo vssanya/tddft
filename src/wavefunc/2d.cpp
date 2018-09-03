@@ -15,7 +15,6 @@ Wavefunc2d::Wavefunc2d(cdouble* data, Grid2d const* grid): Wavefunc2d(data, fals
 }
 
 Wavefunc2d::Wavefunc2d(Grid2d const* grid): Wavefunc2d(NULL, false, grid) {
-	std::cout << "Call constructor";
 	data = new cdouble[grid->size()]();
 }
 
@@ -33,10 +32,11 @@ double CtWavefunc::norm() const {
     for (int ir=0; ir<sp_grid->n[iX]; ++ir) {
         for (int ic=0; ic<sp_grid->n[iY]; ++ic) {
             double p = sp_grid->r(ir);
+			double theta = sp_grid->theta(ic);
 
-			norm += pow(cabs((*this)(ir,ic))*p, 2);
+			norm += pow(cabs((*this)(ir,ic))*p, 2)*sin(theta);
 		}
 	}
 
-	return norm*grid->d[iX]*grid->d[iY];
+	return norm*sp_grid->d[iR]*sp_grid->d[iC];
 }

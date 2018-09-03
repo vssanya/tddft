@@ -35,5 +35,7 @@ cdef extern from "hartree_potential.h":
 
 cdef class Uxc:
     cdef potential_xc_f cdata
+    cdef str name
+
     @staticmethod
-    cdef Uxc from_c_func(potential_xc_f func)
+    cdef Uxc from_c_func(potential_xc_f func, str name)

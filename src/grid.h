@@ -78,7 +78,7 @@ public:
         }
 
         d[iR] = Rmax/n[iR];
-        d[iC] = 2.0/(n[iC]-1);
+        d[iC] = M_PI/(n[iC]-1.0);
     }
 
     double r(int ir) const {
@@ -86,9 +86,9 @@ public:
         return d[iR]*(ir+1);
     }
 
-    double c(int ic) const {
+    double theta(int ic) const {
         check_index(iC, ic);
-        return d[iC]*ic - 1.0;
+        return d[iC]*ic;
     }
 };
 

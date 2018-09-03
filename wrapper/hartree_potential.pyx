@@ -8,9 +8,11 @@ from sphere_harmonics cimport YlmCache
 
 cdef class Uxc:
     @staticmethod
-    cdef Uxc from_c_func(potential_xc_f func):
+    cdef Uxc from_c_func(potential_xc_f func, str name):
         obj = <Uxc>Uxc.__new__(Uxc)
         obj.cdata = func
+        obj.name = name
+
         return obj
 
     def calc_l(self, int l, Orbitals orbs, SpGrid grid, YlmCache ylm_cache, np.ndarray[np.double_t, ndim=1] uxc = None, np.ndarray[np.double_t, ndim=2] n = None) -> np.ndarray:
@@ -33,9 +35,12 @@ cdef class Uxc:
 
         return uxc
 
-UXC_LB    = Uxc.from_c_func(uxc_lb)
-UXC_LDA   = Uxc.from_c_func(uxc_lda)
-UXC_LDA_X = Uxc.from_c_func(uxc_lda_x)
+    def write_params(self, params_grp):
+        params_grp.attrs['Uxc_type'] = self.name
+
+UXC_LB    = Uxc.from_c_func(uxc_lb, "LB")
+UXC_LDA   = Uxc.from_c_func(uxc_lda, "LDA")
+UXC_LDA_X = Uxc.from_c_func(uxc_lda_x, "LDA_X")
 
 @np.vectorize
 def uc_lda(double n):

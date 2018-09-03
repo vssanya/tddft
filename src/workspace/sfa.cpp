@@ -21,7 +21,7 @@ void momentum_space::propagate(CtWavefunc& wf, field_t const* field, double t, d
     for (int ir=0; ir<grid.n[iX]; ++ir) {
         for (int ic=0; ic<grid.n[iY]; ++ic) {
             double mod_p = grid.r(ir);
-            double px = grid.c(ic)*mod_p;
+            double px = cos(grid.theta(ic))*mod_p;
 			double py = sqrt(mod_p*mod_p - px*px);
 
 			double p[2] = {px, py};

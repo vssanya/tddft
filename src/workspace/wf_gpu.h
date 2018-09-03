@@ -21,6 +21,12 @@
  * 
  * */
 
+#include "../pycuda-complex.hpp"
+typedef pycuda::complex<double> cuComplex;
+
+typedef void(*cuMatrix_f)(cuComplex[2]);
+typedef double(*cuSh_f)(double r, int l, int m);
+
 namespace workspace {
     class WfGPUBase {
 		public:
@@ -44,7 +50,7 @@ namespace workspace {
 			 * \f[U(r,t) = \sum_l U_l(r, t)\f]
 			 * \param[in] Ul = \f[U_l(r, t=t+dt/2)\f]
 			 * */
-            void prop_common(ShWavefuncGPU& wf, cdouble dt, int l_max, sh_f* Ul, sh_f* Al = nullptr);
+            void prop_common(ShWavefuncGPU& wf, cdouble dt, int l_max, double** Ul, cuSh_f* Ulfunc);
 
             void prop(ShWavefuncGPU& wf, field_t const* field, double t, double dt);
             void prop_without_field(ShWavefuncGPU& wf, double dt);

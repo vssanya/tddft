@@ -49,7 +49,7 @@ cdef extern from "atom.h":
 
     cdef cppclass HAtom:
         HAtom()
-    
+
     cdef cppclass HSmothAtom:
         HSmothAtom()
 
@@ -79,8 +79,10 @@ cdef class State:
 cdef class Atom:
     cdef cAtom* cdata
     cdef public State ground_state
+    cdef str name
+
     @staticmethod
-    cdef Atom from_c(cAtom* atom)
+    cdef Atom from_c(cAtom* atom, str name)
 
 cdef class AtomCache:
     cdef cAtomCache* cdata

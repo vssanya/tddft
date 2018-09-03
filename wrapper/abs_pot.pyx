@@ -51,6 +51,12 @@ cdef class UabsCache:
     def _repr_png_(self):
         return self._figure_data('png')
 
+    def write_params(self, params_grp):
+        subgrp = params_grp.create_group("uabs")
+
+        subgrp.create_dataset("u", (self.grid.Nr,), dtype='double')[:] = self.u
+        self.uabs.write_params(subgrp)
+
 cdef class UabsMultiHump(Uabs):
     def __cinit__(self, double l_min, double l_max):
         self.cdata = <cUabs*> new cUabsMultiHump(l_min, l_max)
@@ -58,6 +64,12 @@ cdef class UabsMultiHump(Uabs):
     def __init__(self, double l_min, double l_max):
         pass
 
+    def write_params(self, params_grp):
+        params_grp.attrs['type'] = "MultiHump"
+
 cdef class UabsZero(Uabs):
     def __cinit__(self):
         self.cdata = <cUabs*> new cUabsZero()
+
+    def write_params(self, params_grp):
+        params_grp.attrs['type'] = "Zero"

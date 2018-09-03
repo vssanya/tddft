@@ -52,6 +52,14 @@ cdef class AtomCache:
     def _repr_png_(self):
         return self._figure_data('png')
 
+    def write_params(self, params_grp):
+        subgrp = params_grp.create_group('atom')
+
+        self.atom.write_params(subgrp)
+
+        subgrp.create_dataset('u'   , (self.grid.Nr,), dtype="d")[:] = self.u
+        subgrp.create_dataset('dudz', (self.grid.Nr,), dtype="d")[:] = self.dudz
+
 
 cdef class State:
     @staticmethod
@@ -79,9 +87,10 @@ cdef class State:
 
 cdef class Atom:
     @staticmethod
-    cdef Atom from_c(cAtom* atom):
+    cdef Atom from_c(cAtom* atom, str name):
         obj = <Atom>Atom.__new__(Atom)
         obj.cdata = atom
+        obj.name = name
         obj.ground_state = State.from_c(atom.groundState)
         return obj
 
@@ -128,18 +137,22 @@ cdef class Atom:
     def dudz(self, double r):
         return self.cdata.dudz(r)
 
-H        = Atom.from_c(<cAtom*> new HAtom())
-H_smooth = Atom.from_c(<cAtom*> new HSmothAtom())
+    def write_params(self, params_grp):
+        params_grp.attrs['type'] = self.name
 
-Ne       = Atom.from_c(<cAtom*> new NeAtom())
-Ar       = Atom.from_c(<cAtom*> new ArAtom())
-Kr       = Atom.from_c(<cAtom*> new KrAtom())
-Ar_sae   = Atom.from_c(<cAtom*> new ArSaeAtom())
-Ar_sae_smooth = Atom.from_c(<cAtom*> new ArSaeSmoothAtom())
 
-Na = Atom.from_c(<cAtom*> new NaAtom())
-Na_sae   = Atom.from_c(<cAtom*> new NaAtomSGB())
+H        = Atom.from_c(<cAtom*> new HAtom(), "H")
+H_smooth = Atom.from_c(<cAtom*> new HSmothAtom(), "H_smooth")
 
-Mg = Atom.from_c(<cAtom*> new MgAtom())
+Ne       = Atom.from_c(<cAtom*> new NeAtom(), "Ne")
+Ar       = Atom.from_c(<cAtom*> new ArAtom(), "Ar")
+Kr       = Atom.from_c(<cAtom*> new KrAtom(), "Kr")
+Ar_sae   = Atom.from_c(<cAtom*> new ArSaeAtom(), "Ar_sae")
+Ar_sae_smooth = Atom.from_c(<cAtom*> new ArSaeSmoothAtom(), "Ar_sae_smooth")
 
-NONE = Atom.from_c(<cAtom*> new NoneAtom())
+Na = Atom.from_c(<cAtom*> new NaAtom(), "Na")
+Na_sae   = Atom.from_c(<cAtom*> new NaAtomSGB(), "Na_sae")
+
+Mg = Atom.from_c(<cAtom*> new MgAtom(), "Mg")
+
+NONE = Atom.from_c(<cAtom*> new NoneAtom(), "None")

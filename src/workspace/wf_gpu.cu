@@ -1,8 +1,5 @@
 #include "wf_gpu.h"
 
-#include "../pycuda-complex.hpp"
-typedef pycuda::complex<double> cuComplex;
-
 #include <cuda_runtime.h>
 
 workspace::WfGPUBase::WfGPUBase(AtomCache const* atom_cache, ShGrid const* grid, UabsCache const* uabs_cache, int num_threads):
@@ -23,8 +20,27 @@ workspace::WfGPUBase::~WfGPUBase() {
 	cudaFree(betta);
 }
 
-template<class matrix_f, cuComplex const eigenval[2]>
-__global__ void wf_prop_ang_l(cuComplex* wf, cuComplex dt, matrix_f dot, matrix_f dot_T, int l, int l1, double* Ul, int Nr) {
+__device__ void E_dot(cuComplex v[2]) {
+    cuComplex res[2] = {
+        v[0] + v[1],
+        -v[0] + v[1]
+    };
+
+    v[0] = res[0];
+    v[1] = res[1];
+}
+
+__device__ void E_dot_T(cuComplex v[2]) {
+    cuComplex res[2] = {
+        0.5*(v[0] - v[1]),
+        0.5*(v[0] + v[1])
+    };
+
+    v[0] = res[0];
+    v[1] = res[1];
+}
+
+__global__ void kernel_prop_ang_l(cuComplex* wf, cuComplex dt, cuMatrix_f dot, cuMatrix_f dot_T, const cuComplex eigenval[2], int l, int l1, double* Ul, cuSh_f Ulfunc, int Nr) {
     int ir = blockIdx.x*blockDim.x + threadIdx.x;
 
     cuComplex* psi_l0 = &wf[Nr*l];
@@ -187,47 +203,29 @@ void workspace::WfGPUBase::prop_at(ShWavefuncGPU& wf, cdouble dt, double* Ur) {
 			wf.grid->n[iR], wf.grid->n[iL], wf.grid->d[iR], dt, atom_cache->atom.Z);
 }
 
-void workspace::WfGPUBase::prop_common(ShWavefuncGPU& wf, cdouble dt, int l_max, sh_f* Ul, sh_f* Al) {
+void workspace::WfGPUBase::prop_common(ShWavefuncGPU& wf, cdouble dt, int l_max, double** Ul, cuSh_f* Ulfunc) {
     assert(wf.grid->n[iR] == grid->n[iR]);
     assert(wf.grid->n[iL] <= grid->n[iL]);
+
     const int Nl = wf.grid->n[iL];
-/*#pragma omp parallel*/
-	/*{*/
-		/*for (int l1 = 1; l1 < l_max; ++l1) {*/
-			/*for (int il = 0; il < Nl - l1; ++il) {*/
-				/*wf_prop_ang_E_l(wf, 0.5*dt, il, l1, Ul[l1]);*/
-			/*}*/
-		/*}*/
+    const int Nr = wf.grid->n[iR];
 
-		/*if (Al != nullptr) {*/
-			/*for (int il=0; il<Nl-1; ++il) {*/
-				/*wf_prop_ang_A_l(wf, dt*0.5, il, 1, Al[1]);*/
-			/*}*/
+    dim3 blockDim(1);
+    dim3 gridDim(Nr);
 
-			/*for (int il=0; il<Nl-1; ++il) {*/
-				/*prop_mix(wf, Al[0], creal(dt*0.5), il);*/
-			/*}*/
-		/*}*/
+    for (int l1 = 1; l1 < l_max; ++l1) {
+        for (int il = 0; il < Nl - l1; ++il) {
+			// kernel_prop_ang_l<<<gridDim, blockDim>>>((cuComplex*) wf.data, 0.5*dt, E_dot, E_dot_T, E_eigenval, il, l1, Ul[l1], Ulfunc[l1], Nr);
+        }
+    }
 
-        /*prop_at(wf, dt, Ul[0]);*/
+    prop_at(wf, dt, Ul[0]);
 
-		/*if (Al != nullptr) {*/
-			/*for (int il=Nl-2; il>=0; --il) {*/
-				/*prop_mix(wf, Al[0], creal(dt*0.5), il);*/
-			/*}*/
-
-			/*for (int il=Nl-2; il>=0; --il) {*/
-				/*wf_prop_ang_A_l(wf, dt*0.5, il, 1, Al[1]);*/
-			/*}*/
-		/*}*/
-
-		/*for (int l1 = l_max-1; l1 > 0; --l1) {*/
-			/*for (int il = Nl - 1 - l1; il >= 0; --il) {*/
-				/*wf_prop_ang_E_l(wf, 0.5*dt, il, l1, Ul[l1]);*/
-			/*}*/
-		/*}*/
-
-	/*}*/
+    for (int l1 = l_max-1; l1 > 0; --l1) {
+        for (int il = Nl - 1 - l1; il >= 0; --il) {
+			// kernel_prop_ang_l<<<gridDim, blockDim>>>((cuComplex*) wf.data, 0.5*dt, E_dot, E_dot_T, E_eigenval, il, l1, Ul[l1], Ulfunc[l1], Nr);
+        }
+    }
 }
 
 __global__ void kernel_prop_abs(cuComplex* wf, double* uabs, double dt, int Nr, int Nl) {

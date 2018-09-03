@@ -1,0 +1,159 @@
+import tdse
+import h5py
+
+from .task import CalcData, TaskAtom
+
+class AzOrbData(CalcData):
+    NAME = "az"
+
+    def get_shape(self, task):
+        return (task.t.size, task.atom.n_orbs)
+
+    def calc_init(self, task, file):
+        super().calc_init(task, file)
+        self.az_ne = np.zeros(self.dset.shape[1])
+
+    def calc(self, task, i, t):
+        if task.rank == 0:
+            tdse.calc.az_ne(task.orbs, task.field, t, az=self.az_ne)
+            if np.isnan(self.az_ne):
+                task.finish_with_error("calc az is Nan")
+
+            self.dset[i] = self.az_ne
+        else:
+            tdse.calc.az_ne(self.task.orbs, self.task.field, t, az=None)
+
+
+class NormOrbData(CalcData):
+    NAME = "n"
+
+    def __init__(self, masked=False, **kwargs):
+        super().__init__(**kwargs)
+
+        self.masked = masked
+
+    def get_shape(self, task):
+        return (task.t.size, task.atom.n_orbs)
+
+    def calc_init(self, task, file):
+        super().calc_init(task, file)
+
+        self.n_ne = np.zeros(self.dset.shape[1])
+        self.dset.attrs['masked'] = self.masked
+
+    def calc(self, task, i, t):
+        if task.rank == 0:
+            task.orbs.norm_ne(self.n_ne, self.masked)
+            self.dset[i] = self.n_ne
+        else:
+            task.orbs.norm_ne(None, self.masked)
+
+
+class OrbitalsTask(TaskAtom):
+    atom = tdse.atom.Ar
+
+    dt = 0.008
+    dr = 0.025
+
+    r_max = 100
+    Nl = 2
+    Nc = 33
+
+    uxc = tdse.hartree_potential.UXC_LB
+    Uxc_lmax = 1
+    Uh_lmax = 3
+
+    ground_state = None
+    ground_state_task = None
+
+    def __init__(self, path_res='res', mode=None, is_mpi=True, **kwargs):
+        if self.ground_state_task is not None:
+            self.dt    = self.ground_state_task.dt
+            self.dr    = self.ground_state_task.dr
+            self.r_max = self.ground_state_task.r_max
+            self.uxc   = self.ground_state_task.uxc
+            self.Nc    = self.ground_state_task.Nc
+            self.atom  = self.ground_state_task.atom
+
+        super().__init__(path_res, mode, is_mpi=is_mpi, **kwargs)
+
+        self.sp_grid = tdse.grid.SpGrid(Nr=self.r_max/self.dr, Nc=self.Nc, Np=1, r_max=self.r_max)
+        self.ylm_cache = tdse.sphere_harmonics.YlmCache(self.Nl, self.sp_grid)
+
+    def _get_state_filename(self, i):
+        return os.path.join(self.save_path, 'orbs_{}.npy'.format(i))
+
+    def save_state(self, i):
+        self.orbs.save(self._get_state_filename(i))
+
+    def load_state(self, i):
+        self.orbs.load(self._get_state_filename(i))
+
+    def calc_init(self):
+        super().calc_init()
+
+        self.orbs = tdse.orbitals.Orbitals(self.atom, self.sh_grid, self.comm)
+        self.orbs.load(self.ground_state)
+
+        self.ws = tdse.workspace.SOrbsWorkspace(self.atom_cache, self.sh_grid, self.sp_grid, self.uabs_cache, self.ylm_cache, Uxc_lmax=self.Uxc_lmax, Uh_lmax = self.Uh_lmax, uxc=self.uxc)
+
+        self.t = self.field.get_t(self.dt, dT=self.dT)
+
+    def calc_prop(self, i, t):
+        self.ws.prop(self.orbs, self.field, t, self.dt)
+
+    def write_calc_params(self, params_grp: h5py.Group):
+        super().write_calc_params(params_grp)
+
+        params_grp.attrs['dt'] = self.dt
+        params_grp.attrs['Nc'] = self.Nc
+        params_grp.attrs['Uxc_Lmax'] = self.Uxc_lmax
+        params_grp.attrs['Uh_Lmax'] = self.Uh_lmax
+
+        self.uxc.write_params(params_grp)
+
+
+class OrbitalsGroundStateTask(TaskAtom):
+    atom = tdse.atom.Ar
+
+    dt = 0.008
+    dr = 0.025
+
+    T = 100
+    r_max = 100
+    Nc = 33
+
+    uxc = tdse.hartree_potential.UXC_LB
+    uabs = tdse.abs_pot.UabsZero()
+
+    Uxc_lmax = 1
+    Uh_lmax = 1
+
+    CALC_DATA = ['orbs_gs', 'E', 'uee']
+
+    def __init__(self, path_res='res', mode=None, is_mpi=False, **kwargs):
+        self.Nl = self.atom.l_max + 1
+
+        super().__init__(path_res, mode, is_mpi=False, **kwargs)
+
+        self.Nt = int(self.T / self.dt)
+
+        self.sp_grid = tdse.grid.SpGrid(Nr=self.Nr, Nc=self.Nc, Np=1, r_max=self.r_max)
+        self.ylm_cache = tdse.sphere_harmonics.YlmCache(self.Nl, self.sp_grid)
+
+    def calc_init(self):
+        super().calc_init()
+
+        self.ws = tdse.workspace.SOrbsWorkspace(self.atom_cache, self.sh_grid, self.sp_grid, self.uabs_cache, self.ylm_cache, Uxc_lmax=self.Uxc_lmax, Uh_lmax = self.Uh_lmax, uxc=self.uxc)
+
+    def calc(self):
+        self.calc_init()
+
+        self.orbs, self.E = tdse.ground_state.orbs(self.atom, self.sh_grid, self.ws, self.dt, self.Nt, print_calc_info=True)
+        self.orbs_gs = self.orbs.asarray()
+
+        self.ws.calc_uee(self.orbs)
+        self.uee = self.ws.uee[0]
+
+        self.save()
+
