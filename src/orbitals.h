@@ -37,17 +37,22 @@ public:
     void normalize();
 
     /*!
-     * \brief [MPI support]
+     * \brief [Расчет дипольного момента.
+	 * MPI support]
      */
     double z() const;
+
+    /*!
+     * \brief [Расчет дипольного момента для каждой орбитали.
+	 * MPI support]
+     */
+	void z_ne(double* z) const;
 
     /*!
      * Электронная плотность
      * \param ne[in] is count Kohn's orbitals
      * \param wf[in] is wavefunction of Kohn's orbitals
      * \param i is sphere index \f${i_r, i_\Theta, i_\phi}\f$
-     * */
-    /*!
      * \brief [MPI not support]
      */
     void n_sp(SpGrid const* grid, double* n, double* n_tmp, YlmCache const* ylm_cache) const;

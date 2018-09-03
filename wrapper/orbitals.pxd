@@ -26,6 +26,7 @@ cdef extern from "orbitals.h":
         void prod_ne(cOrbitals& orbs, cdouble* res)
         void normalize()
         double z() 
+        void z_ne(double* z)
         double  n(cSpGrid* grid, int i[2], cYlmCache * ylm_cache) 
         void n_sp(cSpGrid* grid, double* n, double* n_tmp, cYlmCache * ylm_cache) 
         void n_l0(double* n, double* n_tmp) 

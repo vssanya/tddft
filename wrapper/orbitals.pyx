@@ -82,6 +82,17 @@ cdef class Orbitals:
     def z(self):
         return self.cdata.z()
 
+    def z_ne(self, np.ndarray[double, ndim=1] z = None):
+        cdef double* res_ptr = NULL
+        if self.is_root():
+            if z is None:
+                z = np.ndarray(self.atom.countOrbs, dtype=np.double)
+            res_ptr = <double*>z.data
+
+        self.cdata.z_ne(res_ptr)
+
+        return z
+
     def n_sp(self, SpGrid grid, YlmCache ylm_cache, np.ndarray[np.double_t, ndim=2] n = None):
         cdef np.ndarray[np.double_t, ndim=2, mode='c'] n_local = np.ndarray(grid.shape, dtype=np.double)
         cdef double* n_ptr = NULL
