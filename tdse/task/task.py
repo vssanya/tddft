@@ -34,6 +34,23 @@ class CalcData(object):
         pass
 
 
+class CalcDataWithMask(CalcData):
+    def __init__(self, mask=None, **kwargs):
+        super().__init__(**kwargs)
+
+        self.mask = mask
+
+    def calc_init(self, task, file):
+        super().calc_init(task, file)
+
+        if self.mask is not None:
+            self.mask.write_params(self.dset)
+
+class TimeShapeMixin(object):
+    def get_shape(self, task):
+        return (task.t.size,)
+
+
 class TaskError(Exception):
     pass
 

@@ -1,16 +1,18 @@
 import numpy as np
 cimport numpy as np
 
-from types cimport cdouble, complex_t
+from libcpp.functional cimport function
+
+from mpi4py.libmpi cimport MPI_COMM_NULL, MPI_Gather, MPI_C_DOUBLE_COMPLEX
+from mpi4py.MPI import COMM_NULL
+
+from types cimport cdouble, complex_t, sh_f
 from abs_pot cimport mask_core
 from grid cimport ShGrid, SpGrid
 from atom cimport Atom
 from wavefunc cimport swavefunc_from_point
 from sphere_harmonics cimport YlmCache
-
-
-from mpi4py.libmpi cimport MPI_COMM_NULL, MPI_Gather, MPI_C_DOUBLE_COMPLEX
-from mpi4py.MPI import COMM_NULL
+from masks cimport CoreMask
 
 
 cdef class Orbitals:
@@ -79,17 +81,23 @@ cdef class Orbitals:
     def n(self, SpGrid grid, YlmCache ylm_cache, int ir, int ic):
         return self.cdata.n(grid.data, [ir, ic], ylm_cache.cdata)
 
-    def z(self):
-        return self.cdata.z()
+    def z(self, CoreMask mask = None):
+        if mask is None:
+            return self.cdata.z()
+        else:
+            return self.cdata.z(<sh_f> mask.cdata[0])
 
-    def z_ne(self, np.ndarray[double, ndim=1] z = None):
+    def z_ne(self, CoreMask mask = None, np.ndarray[double, ndim=1] z = None):
         cdef double* res_ptr = NULL
         if self.is_root():
             if z is None:
                 z = np.ndarray(self.atom.countOrbs, dtype=np.double)
             res_ptr = <double*>z.data
 
-        self.cdata.z_ne(res_ptr)
+        if mask is None:
+            self.cdata.z_ne(res_ptr)
+        else:
+            self.cdata.z_ne(res_ptr, <sh_f> mask.cdata[0])
 
         return z
 
@@ -101,7 +109,7 @@ cdef class Orbitals:
             n = np.ndarray(grid.shape, dtype=np.double)
             n_ptr = <double*>n.data
 
-        self.cdata.n_sp(grid.data, n_ptr, <double*>n_local.data, ylm_cache.cdata) 
+        self.cdata.n_sp(grid.data, n_ptr, <double*>n_local.data, ylm_cache.cdata)
 
         return n
 
@@ -113,27 +121,27 @@ cdef class Orbitals:
             n = np.ndarray(self.cdata.grid.n[0], dtype=np.double)
             n_ptr = <double*>n.data
 
-        self.cdata.n_l0(n_ptr, <double*>n_local.data) 
+        self.cdata.n_l0(n_ptr, <double*>n_local.data)
 
         return n
 
-    def norm(self, masked=False):
-        if masked:
-            return self.cdata.norm(mask_core)
+    def norm(self, CoreMask mask = None):
+        if mask is not None:
+            return self.cdata.norm(<sh_f> mask.cdata[0])
         else:
-            return self.cdata.norm(NULL)
+            return self.cdata.norm()
 
-    def norm_ne(self, np.ndarray[double, ndim=1, mode='c'] norm = None, masked=False):
+    def norm_ne(self, np.ndarray[double, ndim=1, mode='c'] norm = None, CoreMask mask = None):
         cdef double* res_ptr = NULL
         if self.is_root():
             if norm is None:
                 norm = np.ndarray(self.cdata.atom.countOrbs, dtype=np.double)
             res_ptr = <double*>norm.data
 
-        if masked:
-            self.cdata.norm_ne(res_ptr, mask_core)
+        if mask is not None:
+            self.cdata.norm_ne(res_ptr, <sh_f> mask.cdata[0])
         else:
-            self.cdata.norm_ne(res_ptr, NULL)
+            self.cdata.norm_ne(res_ptr)
 
         return norm
 

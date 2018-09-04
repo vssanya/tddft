@@ -1,36 +1,25 @@
 import tdse
 
-from .task import CalcData, TaskAtom
+from .task import CalcData, TaskAtom, CalcDataWithMask, TimeShapeMixin
 
 
-class AzWfData(CalcData):
+class AzWfData(TimeShapeMixin, CalcData):
     NAME = "az"
-
-    def get_shape(self, task):
-        return (task.t.size,)
 
     def calc(self, task, i, t):
         self.dset[i] = tdse.calc.az(task.wf, task.atom_cache, task.field, t)
 
-class NormWfData(CalcData):
+class NormWfData(TimeShapeMixin, CalcDataWithMask):
     NAME = "n"
 
-    def __init__(self, masked=False, **kwargs):
-        super().__init__(**kwargs)
+    def calc(self, task, i, t):
+        self.dset[i] = task.wf.norm(self.mask)
 
-        self.masked = masked
-
-    def get_shape(self, task):
-        return (task.t.size,)
-
-    def calc_init(self, task, file):
-        super().calc_init(task, file)
-
-        self.dset.attrs['masked'] = self.masked
+class ZWfData(TimeShapeMixin, CalcDataWithMask):
+    NAME = "z"
 
     def calc(self, task, i, t):
-        self.dset[i] = task.wf.norm(self.masked)
-
+        self.dset[i] = task.wf.z(self.mask)
 
 class WfGroundStateTask(TaskAtom):
     atom = tdse.atom.H

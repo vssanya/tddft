@@ -11,6 +11,8 @@ from abs_pot cimport mask_core
 from grid cimport ShGrid, SpGrid
 from sphere_harmonics cimport YlmCache
 
+from masks cimport CoreMask
+
 from libc.stdlib cimport malloc, free
 
 
@@ -65,11 +67,11 @@ cdef class ShWavefunc:
 
         return n
 
-    def norm(self, masked=False):
-        if masked:
-            return self.cdata.norm(mask_core)
+    def norm(self, CoreMask mask = None):
+        if mask is None:
+            return self.cdata.norm()
         else:
-            return self.cdata.norm(NULL)
+            return self.cdata.norm(<sh_f> mask.cdata[0])
 
     def norm_l(self):
         arr = self.asarray()
@@ -78,8 +80,11 @@ cdef class ShWavefunc:
     def normalize(self):
         self.cdata.normalize()
 
-    def z(self):
-        return self.cdata.z()
+    def z(self, CoreMask mask=None):
+        if mask is None:
+            return self.cdata.z()
+        else:
+            return self.cdata.z(<sh_f> mask.cdata[0])
 
     def pz(self):
         cdef cdouble res = self.cdata.pz()

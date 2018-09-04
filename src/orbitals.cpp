@@ -106,13 +106,13 @@ double Orbitals::norm(sh_f mask) const {
     return res;
 }
 
-double Orbitals::z() const {
+double Orbitals::z(sh_f mask) const {
     double res = 0.0;
     double local_res = 0.0;
 
     for (int ie=0; ie<atom.countOrbs; ++ie) {
         if (wf[ie] != nullptr) {
-            local_res += wf[ie]->z()*atom.orbs[ie].countElectrons;
+            local_res += wf[ie]->z(mask)*atom.orbs[ie].countElectrons;
         }
     }
 
@@ -128,16 +128,16 @@ double Orbitals::z() const {
     return res;
 }
 
-void Orbitals::z_ne(double* z) const {
+void Orbitals::z_ne(double* z, sh_f mask) const {
 #ifdef _MPI
     if (mpi_comm != MPI_COMM_NULL) {
-		double local_res = mpi_wf->z()*atom.orbs[mpi_rank].countElectrons;
+		double local_res = mpi_wf->z(mask)*atom.orbs[mpi_rank].countElectrons;
 		MPI_Gather(&local_res, 1, MPI_DOUBLE, z, 1, MPI_DOUBLE, 0, mpi_comm);
 	} else
 #endif
 	{
 		for (int ie=0; ie<atom.countOrbs; ++ie) {
-			z[ie] = wf[ie]->z()*atom.orbs[ie].countElectrons;
+			z[ie] = wf[ie]->z(mask)*atom.orbs[ie].countElectrons;
 		}
 	}
 }

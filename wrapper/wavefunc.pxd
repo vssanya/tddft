@@ -29,7 +29,6 @@ cdef extern from "sh_wavefunc.h":
         cShWavefunc(cdouble* data, cShGrid* grid, int m)
         cShWavefunc(cShGrid* grid, int m)
 
-        double norm()
         double abs_2(int ir, int il)
         void copy(cShWavefunc* wf_dest)
         cdouble operator*(cShWavefunc& other)
@@ -37,9 +36,15 @@ cdef extern from "sh_wavefunc.h":
         double cos(sh_f func)
         void   cos_r(sh_f U, double* res)
         double cos_r2(sh_f U, int Z)
+
         double norm(sh_f mask)
+        double norm()
+
         void normalize()
+
+        double z(sh_f mask)
         double z()
+
         cdouble pz()
         void random_l(int l)
         cdouble get_sp(cSpGrid* grid, int i[3], cYlmCache* ylm_cache)

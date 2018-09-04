@@ -26,8 +26,8 @@ public:
     /*!
      * \brief [MPI support]
      */
-    double norm(sh_f mask) const;
-    void norm_ne(double* n, sh_f mask) const;
+    double norm(sh_f mask = nullptr) const;
+    void norm_ne(double* n, sh_f mask = nullptr) const;
 
     void prod_ne(Orbitals const& orbs, cdouble *n) const;
 
@@ -40,13 +40,13 @@ public:
      * \brief [Расчет дипольного момента.
 	 * MPI support]
      */
-    double z() const;
+    double z(sh_f mask = nullptr) const;
 
     /*!
      * \brief [Расчет дипольного момента для каждой орбитали.
 	 * MPI support]
      */
-	void z_ne(double* z) const;
+	void z_ne(double* z, sh_f mask = nullptr) const;
 
     /*!
      * Электронная плотность

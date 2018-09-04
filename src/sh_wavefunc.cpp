@@ -216,10 +216,16 @@ void ShWavefunc::cos_r(sh_f U, double* res) const {
 	}
 }
 
-double ShWavefunc::z() const {
-    return cos([](ShGrid const* grid, int ir, int il, int im) {
-			return grid->r(ir);
-	});
+double ShWavefunc::z(sh_f mask) const {
+	if (mask == nullptr) {
+		return cos([](ShGrid const* grid, int ir, int il, int im) {
+				return grid->r(ir);
+				});
+	} else {
+		return cos([&mask](ShGrid const* grid, int ir, int il, int im) {
+					return grid->r(ir)*mask(grid, ir, il, im);
+				});
+	}
 }
 
 cdouble ShWavefunc::pz() const {

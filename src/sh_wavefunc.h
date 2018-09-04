@@ -71,7 +71,7 @@ public:
   double norm(sh_f mask = nullptr) const;
   void normalize();
 
-  double z() const;
+  double z(sh_f mask = nullptr) const;
   cdouble pz() const;
 
   void random_l(int l);

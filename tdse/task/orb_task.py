@@ -1,13 +1,15 @@
 import tdse
 import h5py
 
-from .task import CalcData, TaskAtom
+from .task import CalcData, CalcDataWithMask, TaskAtom
 
-class AzOrbData(CalcData):
-    NAME = "az"
 
+class OrbShapeMixin(object):
     def get_shape(self, task):
         return (task.t.size, task.atom.n_orbs)
+
+class AzOrbData(OrbShapeMixin, CalcData):
+    NAME = "az"
 
     def calc_init(self, task, file):
         super().calc_init(task, file)
@@ -23,30 +25,48 @@ class AzOrbData(CalcData):
         else:
             tdse.calc.az_ne(self.task.orbs, self.task.field, t, az=None)
 
-
-class NormOrbData(CalcData):
-    NAME = "n"
-
-    def __init__(self, masked=False, **kwargs):
+class CalcDataWithMask(CalcData):
+    def __init__(self, mask=None, **kwargs):
         super().__init__(**kwargs)
 
-        self.masked = masked
+        self.mask = mask
 
-    def get_shape(self, task):
-        return (task.t.size, task.atom.n_orbs)
+    def calc_init(self, task, file):
+        super().calc_init(task, file)
+
+        if self.mask is not None:
+            self.mask.write_params(self.dset)
+
+class NormOrbData(OrbShapeMixin, CalcDataWithMask):
+    NAME = "n"
 
     def calc_init(self, task, file):
         super().calc_init(task, file)
 
         self.n_ne = np.zeros(self.dset.shape[1])
-        self.dset.attrs['masked'] = self.masked
 
     def calc(self, task, i, t):
         if task.rank == 0:
-            task.orbs.norm_ne(self.n_ne, self.masked)
+            task.orbs.norm_ne(self.n_ne, self.mask)
             self.dset[i] = self.n_ne
         else:
-            task.orbs.norm_ne(None, self.masked)
+            task.orbs.norm_ne(None, self.mask)
+
+
+class ZOrbData(OrbShapeMixin, CalcDataWithMask):
+    NAME = "z"
+
+    def calc_init(self, task, file):
+        super().calc_init(task, file)
+
+        self.n_ne = np.zeros(self.dset.shape[1])
+
+    def calc(self, task, i, t):
+        if task.rank == 0:
+            task.orbs.norm_ne(self.n_ne, self.mask)
+            self.dset[i] = self.n_ne
+        else:
+            task.orbs.norm_ne(None, self.mask)
 
 
 class OrbitalsTask(TaskAtom):
