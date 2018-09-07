@@ -47,11 +47,15 @@ cdef class Field:
     def T(self):
         return field_T(self.cdata)
 
+    @property
+    def min_scale_t(self):
+        return self.T
+
     def get_t(self, double dt, double dT=0):
         return np.arange(0, self.T+dT, dt)
 
     def _figure_data(self, format):
-        t = self.get_t(self.T/100)
+        t = self.get_t(self.min_scale_t/10)
         E = np.ndarray(t.shape)
         for i in range(t.size):
             E[i] = self.E(t[i])
