@@ -1,29 +1,30 @@
-import tdse
+import numpy as np
 import h5py
+
+import tdse
 
 from .task import CalcData, CalcDataWithMask, TaskAtom
 
 
 class OrbShapeMixin(object):
     def get_shape(self, task):
-        return (task.t.size, task.atom.n_orbs)
+        return (task.t.size, task.atom.countOrbs)
 
 class AzOrbData(OrbShapeMixin, CalcData):
     NAME = "az"
 
     def calc_init(self, task, file):
         super().calc_init(task, file)
-        self.az_ne = np.zeros(self.dset.shape[1])
+        if task.rank == 0:
+            self.az_ne = np.zeros(self.dset.shape[1])
+        else:
+            self.az_ne = None
 
     def calc(self, task, i, t):
-        if task.rank == 0:
-            tdse.calc.az_ne(task.orbs, task.field, t, az=self.az_ne)
-            if np.isnan(self.az_ne):
-                task.finish_with_error("calc az is Nan")
+        tdse.calc.az_ne(task.orbs, task.atom_cache, task.field, t, az = self.az_ne)
 
+        if task.rank == 0:
             self.dset[i] = self.az_ne
-        else:
-            tdse.calc.az_ne(self.task.orbs, self.task.field, t, az=None)
 
 class CalcDataWithMask(CalcData):
     def __init__(self, mask=None, **kwargs):
@@ -34,7 +35,7 @@ class CalcDataWithMask(CalcData):
     def calc_init(self, task, file):
         super().calc_init(task, file)
 
-        if self.mask is not None:
+        if self.mask is not None and task.rank == 0:
             self.mask.write_params(self.dset)
 
 class NormOrbData(OrbShapeMixin, CalcDataWithMask):
@@ -43,14 +44,16 @@ class NormOrbData(OrbShapeMixin, CalcDataWithMask):
     def calc_init(self, task, file):
         super().calc_init(task, file)
 
-        self.n_ne = np.zeros(self.dset.shape[1])
+        if task.rank == 0:
+            self.n_ne = np.zeros(self.dset.shape[1])
+        else:
+            self.n_ne = None
 
     def calc(self, task, i, t):
+        task.orbs.norm_ne(norm=self.n_ne, mask=self.mask)
+
         if task.rank == 0:
-            task.orbs.norm_ne(self.n_ne, self.mask)
             self.dset[i] = self.n_ne
-        else:
-            task.orbs.norm_ne(None, self.mask)
 
 
 class ZOrbData(OrbShapeMixin, CalcDataWithMask):
@@ -59,14 +62,16 @@ class ZOrbData(OrbShapeMixin, CalcDataWithMask):
     def calc_init(self, task, file):
         super().calc_init(task, file)
 
-        self.n_ne = np.zeros(self.dset.shape[1])
+        if task.rank == 0:
+            self.z_ne = np.zeros(self.dset.shape[1])
+        else:
+            self.z_ne = None
 
     def calc(self, task, i, t):
+        task.orbs.z_ne(mask=self.mask, z = self.z_ne)
+
         if task.rank == 0:
-            task.orbs.norm_ne(self.n_ne, self.mask)
-            self.dset[i] = self.n_ne
-        else:
-            task.orbs.norm_ne(None, self.mask)
+            self.dset[i] = self.z_ne
 
 
 class OrbitalsTask(TaskAtom):
