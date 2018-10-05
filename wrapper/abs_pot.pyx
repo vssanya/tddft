@@ -10,8 +10,15 @@ if tdse.utils.is_jupyter_notebook():
 from libc.stdlib cimport free
 
 
+def test_cos_hump(double x):
+    return CosHump.u(x)
+
+def test_pt_hump(double x):
+    return PTHump.u(x)
+
 cdef class Uabs:
-    pass
+    def u(self, ShGrid grid, double r):
+        return self.cdata.u(grid.data[0], r)
 
 cdef class UabsCache:
     def __cinit__(self, Uabs uabs, ShGrid grid, double[::1] u = None):
@@ -58,14 +65,20 @@ cdef class UabsCache:
         self.uabs.write_params(subgrp)
 
 cdef class UabsMultiHump(Uabs):
-    def __cinit__(self, double l_min, double l_max):
-        self.cdata = <cUabs*> new cUabsMultiHump(l_min, l_max)
+    def __cinit__(self, double l_min, double l_max, int n = 2):
+        self.cdata = <cUabs*> new cUabsMultiHump(l_min, l_max, n)
 
-    def __init__(self, double l_min, double l_max):
+    def __init__(self, double l_min, double l_max, int n = 2):
         pass
 
     def write_params(self, params_grp):
         params_grp.attrs['type'] = "MultiHump"
+
+    def l(self, int i):
+        return (<cUabsMultiHump*>self.cdata).l[i]
+
+    def a(self, int i):
+        return (<cUabsMultiHump*>self.cdata).a[i]
 
 cdef class UabsZero(Uabs):
     def __cinit__(self):

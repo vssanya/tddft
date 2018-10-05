@@ -33,6 +33,9 @@ class CalcData(object):
     def calc(self, task, i, t):
         pass
 
+    def load(self, task, file: h5py.File):
+        setattr(task, self.name, file[self.name])
+
 
 class CalcDataWithMask(CalcData):
     def __init__(self, mask=None, **kwargs):
@@ -207,7 +210,12 @@ class Task(object):
 
     def save(self):
         if self.file is not None:
-            self.file.flush()
+                self.file.flush()
+
+        if self.rank == 0:
+            for data in self.CALC_DATA:
+                if type(data) is str:
+                    np.save(self._get_data_path(data), getattr(self, data))
 
     def save_state(self, i):
         pass
@@ -217,8 +225,14 @@ class Task(object):
 
     def load(self):
         if self.rank == 0:
-            for name in self.CALC_DATA:
-                setattr(self, name, np.load(self._get_data_path(name)))
+            for data in self.CALC_DATA:
+                if type(data) is str:
+                    setattr(self, data, np.load(self._get_data_path(data)))
+                else:
+                    if self.file is None:
+                        self.file = h5py.File("{}.hdf5".format(self.save_path), 'r')
+
+                    data.load(self, self.file)
 
 
 class TaskAtom(Task):

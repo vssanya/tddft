@@ -4,47 +4,35 @@
 #include <math.h>
 
 
-double uabs_func_cos(double x) {
-	if (fabs(x) >= 1) {
-		return 0.0;
-	}
-
-	return pow(cos(M_PI*x/2), 2);
+UabsMultiHump::UabsMultiHump(double l_min, double l_max, std::vector<Hump> humps):
+    humps(humps), l(humps.size()), a(humps.size()) {
+    init(l_min, l_max);
 }
 
-double uabs_func_cos_e_opt(double k) {
-	return 2.15 + 0.65*k*k;
+UabsMultiHump::UabsMultiHump(double l_min, double l_max, int n): humps(n), l(n), a(n) {
+    for (int i=0; i<n-1; i++) {
+        humps[i] = PTHump;
+    }
+
+    humps[n-1] = CosHump;
+
+    init(l_min, l_max);
 }
 
-double uabs_func_pt(double x) {
-	double const alpha = 2.0*acosh(sqrt(2.0));
-	return pow(cosh(alpha*x), -2);
-}
-
-double uabs_func_pt_e_opt(double k) {
-	return 3.7 + 1.14*k*k;
-}
-
-typedef double (*func_t) (double);
-
-UabsMultiHump::UabsMultiHump(double l_min, double l_max) {
-    static func_t const f_e_opt[3] = {uabs_func_cos_e_opt, uabs_func_pt_e_opt, uabs_func_pt_e_opt};
-    static int const N = 2;
-
+void UabsMultiHump::init(double l_min, double l_max) {
+    const int N = humps.size();
     for (int i = 0; i < N; ++i) {
         l[i] = l_max*pow(l_min/l_max, i/(double)(N-1));
-        a[i] = f_e_opt[i](2*M_PI) / (l[i]*l[i]);
+        a[i] = humps[i].a_opt(l[i]);
     }
 }
 
 double UabsMultiHump::u(const ShGrid& grid, double r) const {
-	static func_t const f[3] = {uabs_func_cos, uabs_func_pt, uabs_func_pt};
-
     double const r_max = grid.Rmax();
 
 	double result = 0.0;
-    for (int i = 0; i < 2; ++i) {
-        result += a[i]*f[i]((r - r_max + l[i]) / l[i]);
+    for (int i = 0; i < humps.size(); ++i) {
+        result += a[i]*humps[i].u((r - r_max + l[i]) / l[i]);
 	}
 
 	return result;

@@ -1,4 +1,5 @@
 from grid cimport cShGrid, ShGrid
+from libcpp.vector cimport vector
 
 cdef extern from "abs_pot.h":
     double uabs(cShGrid* grid, int ir, int il, int im)
@@ -10,8 +11,18 @@ cdef extern from "abs_pot.h":
     cdef cppclass cUabsZero "UabsZero":
         pass
 
+    cdef cppclass cHump "Hump":
+        double u(double)
+
+    cdef cHump CosHump
+    cdef cHump PTHump
+
     cdef cppclass cUabsMultiHump "UabsMultiHump":
-        cUabsMultiHump(double l_min, double l_max)
+        cUabsMultiHump(double l_min, double l_max, vector[cHump])
+        cUabsMultiHump(double l_min, double l_max, int n)
+
+        vector[double] l
+        vector[double] a
 
     cdef cppclass cUabsCache "UabsCache":
         cUabsCache(cUabs& uabs, cShGrid& grid, double* u)
