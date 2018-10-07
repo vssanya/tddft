@@ -34,6 +34,28 @@ class UeeOrbData(CalcData):
         if task.rank == 0 and i % self.dNt == 0:
             self.dset[i // self.dNt] = task.ws.uee[:,:self.Nr]
 
+class UpolOrbData(CalcData):
+    NAME = "Upol"
+
+    def __init__(self, is_average=True, dN=100, **kwargs):
+        super().__init__(**kwargs)
+
+        self.is_average = is_average
+        self.dN = dN
+
+    def get_shape(self, task: TaskAtom):
+        return (self.Nr,)
+
+    def calc(self, task, i, t):
+        if task.rank == 0:
+            if self.is_average and (i+1) % self.dN == 0:
+                count = task.t.size // self.dN
+                E = task.field.E(t)
+                self.dset[:] += task.ws.uee[1,:] / E / count
+            elif i == task.t.size-1:
+                E = task.field.E(t)
+                self.dset[:] = task.ws.uee[1,:] / E
+
 class AzOrbData(OrbShapeMixin, CalcData):
     NAME = "az"
 
@@ -160,6 +182,38 @@ class OrbitalsTask(TaskAtom):
         params_grp.attrs['Uh_Lmax'] = self.Uh_lmax
 
         self.uxc.write_params(params_grp)
+
+
+class OrbitalsPolarizationTask(OrbitalsTask):
+    Imax = 1e14
+
+    Nl = 512
+    Uh_lmax = 3
+
+    freq = tdse.utils.length_to_freq(800, 'nm')
+
+    CALC_DATA = [
+        UpolOrbData()
+    ]
+
+    class Field(tdse.field.FieldBase):
+        def __init__(self, Imax, freq):
+            self.E = tdse.utils.I_to_E(Imax)
+            self.T = np.pi/self.freq
+
+            self.CALC_DATA.append(UeeOrbData(dT = self.T/10))
+
+        def _func(self, t):
+            return self.E*np.sin(0.5*np.pi*t/self.T)**2
+
+        @property
+        def T(self):
+            return self.T
+
+    def calc_init(self):
+        super().calc_init()
+
+        self.field = OrbitalsPolarizationTask.Field(self.Imax, self.freq)
 
 
 class OrbitalsGroundStateTask(TaskAtom):
