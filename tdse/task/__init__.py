@@ -1,4 +1,4 @@
-from .orb_task import AzOrbData, NormOrbData, ZOrbData
+from .orb_task import AzOrbData, NormOrbData, ZOrbData, UeeOrbData
 from .orb_task import OrbitalsTask, OrbitalsGroundStateTask
 
 from .wf_task import AzWfData, NormWfData, ZWfData

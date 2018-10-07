@@ -10,6 +10,30 @@ class OrbShapeMixin(object):
     def get_shape(self, task):
         return (task.t.size, task.atom.countOrbs)
 
+class UeeOrbData(CalcData):
+    NAME = "uee"
+
+    def __init__(self, dT, r_max = None, **kwargs):
+        super().__init__(**kwargs)
+
+        self.dT = dT
+        self.r_max = r_max
+
+    def get_shape(self, task: TaskAtom):
+        if self.r_max == None or self.r_max >= task.r_max:
+            self.Nr = task.Nr
+        else:
+            self.Nr = int(self.r_max/task.dr)
+
+        self.Nt = task.t[-1]/self.dT
+        self.dNt = int(self.dT/task.dt)
+
+        return (self.Nt, 3, self.Nr)
+
+    def calc(self, task, i, t):
+        if task.rank == 0 and i % self.dNt == 0:
+            self.dset[i // self.dNt] = task.ws.uee[:,:self.Nr]
+
 class AzOrbData(OrbShapeMixin, CalcData):
     NAME = "az"
 

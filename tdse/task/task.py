@@ -140,7 +140,8 @@ class Task(object):
 
     def data_init(self):
         for data in self.CALC_DATA:
-            data.calc_init(self, self.file)
+            if type(data) is not str:
+                data.calc_init(self, self.file)
 
     def write_calc_params(self, params_grp: h5py.Group):
         pass
@@ -150,7 +151,8 @@ class Task(object):
 
     def calc_data(self, i, t):
         for data in self.CALC_DATA:
-            data.calc(self, i, t)
+            if type(data) is not str:
+                data.calc(self, i, t)
 
     def calc_finish(self):
         pass
