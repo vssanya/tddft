@@ -79,6 +79,12 @@ cdef extern from "workspace.h" namespace "workspace":
         void prop_without_field(cShWavefunc& wf, double dt)
         void prop_img(cShWavefunc& wf, double dt)
 
+    cdef cppclass WfWithPolarization:
+        WfWithPolarization(cAtomCache* atom, cShGrid* grid, cUabsCache* uabs, double* Upot, int num_threads)
+        void prop(cShWavefunc& wf, field_t* field, double t, double dt)
+        void prop_without_field(cShWavefunc& wf, double dt)
+        void prop_img(cShWavefunc& wf, double dt)
+
     cdef cppclass orbs:
         orbs(cAtomCache* atom, cShGrid* sh_grid, cSpGrid* sp_grid, cUabsCache* uabs, cYlmCache* ylm_cache, int Uh_lmax, int Uxc_lmax, potential_xc_f Uxc, int num_threads)
 
@@ -109,6 +115,12 @@ cdef class SKnWorkspace:
 cdef class SKnAWorkspace:
     cdef:
         WfA* cdata
+        UabsCache uabs
+        AtomCache atom_cache
+
+cdef class WfWithPolarizationWorkspace:
+    cdef:
+        WfWithPolarization* cdata
         UabsCache uabs
         AtomCache atom_cache
 

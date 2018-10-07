@@ -20,6 +20,7 @@ set( LIB_SOURCES
 	"workspace/gps.cpp"
 	"workspace/common_alg.cpp"
 	"workspace/sfa.cpp"
+	"workspace/wf_with_polarization.cpp"
 
 	sh_wavefunc.cpp
 	hartree_potential.cpp
@@ -50,6 +51,7 @@ set( LIB_HEADERS
 	"workspace/gps.h"
 	"workspace/common_alg.h"
 	"workspace/sfa.h"
+	"workspace/wf_with_polarization.h"
 
 	fourier.h
 	kn.h

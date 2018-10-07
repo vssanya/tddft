@@ -114,6 +114,27 @@ cdef class SKnAWorkspace:
     def prop_img(self, ShWavefunc wf, double dt):
         self.cdata.prop_img(wf.cdata[0], dt)
 
+cdef class WfWithPolarizationWorkspace:
+    def __cinit__(self, AtomCache atom_cache, ShGrid grid, UabsCache uabs, double[:] Upol, int num_threads = -1):
+        self.cdata = new WfWithPolarization(atom_cache.cdata, grid.data, uabs.cdata, &Upol[0], num_threads)
+        self.uabs = uabs
+        self.atom_cache = atom_cache
+
+    def __dealloc__(self):
+        del self.cdata
+
+    def __init__(self, AtomCache atom_cache, ShGrid grid, UabsCache uabs, double[:] Upol, int num_threads = -1):
+        self.Upol = Upol
+
+    def prop(self, ShWavefunc wf, Field field, double t, double dt):
+        self.cdata.prop(wf.cdata[0], field.cdata, t, dt)
+
+    def prop_without_field(self, ShWavefunc wf, double dt):
+        self.cdata.prop_without_field(wf.cdata[0], dt)
+
+    def prop_img(self, ShWavefunc wf, double dt):
+        self.cdata.prop_img(wf.cdata[0], dt)
+
 cdef class SKnWithSourceWorkspace:
     def __cinit__(self, AtomCache atom_cache, ShGrid grid, UabsCache uabs, ShWavefunc source, double E, int num_threads = -1):
         self.cdata = new WfEWithSource(atom_cache.cdata, grid.data, uabs.cdata, source.cdata[0], E, num_threads)
