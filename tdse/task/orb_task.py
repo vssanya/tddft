@@ -199,11 +199,11 @@ class OrbitalsPolarizationTask(OrbitalsTask):
 
     class Field(tdse.field.FieldBase):
         def __init__(self, Imax, freq):
-            self.E = tdse.utils.I_to_E(Imax)
+            self.E0 = tdse.utils.I_to_E(Imax)
             self.tp = np.pi/freq
 
         def _func(self, t):
-            return self.E*np.sin(0.5*np.pi*t/self.tp)**2
+            return self.E0*np.sin(0.5*np.pi*t/self.tp)**2
 
         @property
         def T(self):

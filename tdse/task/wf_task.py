@@ -100,10 +100,16 @@ class WavefuncTask(TaskAtom):
     def load_state(self, i):
         self.wf.asarray[:] = np.load(os.path.join(self.save_path, 'wf_{}.npy'.format(i)))
 
+    def create_workspace(self, uabs_cache = None):
+        if uabs_cache is None:
+            uabs_cache = self.uabs_cache
+
+        return self.Workspace(self.atom_cache, self.sh_grid, uabs_cache)
+
     def calc_init(self):
         super().calc_init()
 
-        self.ws = self.Workspace(self.atom_cache, self.sh_grid, self.uabs_cache)
+        self.ws = create_workspace()
 
         if self.is_calc_ground_state:
             print("Start calc ground state")
@@ -115,10 +121,30 @@ class WavefuncTask(TaskAtom):
 
     def calc_ground_state(self, ws=None):
         if ws is None:
-            ws = self.Workspace(self.atom_cache, self.sh_grid, tdse.abs_pot.UabsZero())
+            ws = self.create_workspace(tdse.abs_pot.UabsZero())
 
         return tdse.ground_state.wf(self.atom, self.sh_grid, ws, self.dt, 10000)[0]
 
     def calc_prop(self, i, t):
         self.ws.prop(self.wf, self.field, t, self.dt)
 
+class WavefuncWithPolarization(WavefuncTask):
+    orb_polarization_task = None
+
+    Workspace = tdse.workspace.WfWithPolarizationWorkspace
+
+    def __init__(self, path_res='res', mode=None, **kwargs):
+        super().__init__(path_res, mode, is_mpi=False, **kwargs)
+
+        self.orb_polarization_task.load()
+
+        self.dt = self.orb_polarization_task.dt
+        self.dr = self.orb_polarization_task.dr
+        self.r_max = self.orb_polarization_task.r_max
+        self.atom = self.orb_polarization_task.atom
+
+    def create_workspace(self, uabs_cache = None):
+        if uabs_cache is None:
+            uabs_cache = self.uabs_cache
+
+        return self.Workspace(self.atom_cache, self.sh_grid, uabs_cache, self.orb_polarization_task.Upol[:])
