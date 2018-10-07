@@ -25,8 +25,8 @@ class UeeOrbData(CalcData):
         else:
             self.Nr = int(self.r_max/task.dr)
 
-        self.Nt = task.t[-1]/self.dT
         self.dNt = int(self.dT/task.dt)
+        self.Nt = (task.t.size // self.dNt) + 1
 
         return (self.Nt, 3, self.Nr)
 
