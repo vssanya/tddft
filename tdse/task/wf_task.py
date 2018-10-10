@@ -109,7 +109,7 @@ class WavefuncTask(TaskAtom):
     def calc_init(self):
         super().calc_init()
 
-        self.ws = create_workspace()
+        self.ws = self.create_workspace()
 
         if self.is_calc_ground_state:
             print("Start calc ground state")
@@ -134,14 +134,14 @@ class WavefuncWithPolarization(WavefuncTask):
     Workspace = tdse.workspace.WfWithPolarizationWorkspace
 
     def __init__(self, path_res='res', mode=None, **kwargs):
-        super().__init__(path_res, mode, is_mpi=False, **kwargs)
-
         self.orb_polarization_task.load()
 
         self.dt = self.orb_polarization_task.dt
         self.dr = self.orb_polarization_task.dr
         self.r_max = self.orb_polarization_task.r_max
         self.atom = self.orb_polarization_task.atom
+
+        super().__init__(path_res, mode, **kwargs)
 
     def create_workspace(self, uabs_cache = None):
         if uabs_cache is None:

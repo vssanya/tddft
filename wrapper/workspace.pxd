@@ -123,6 +123,7 @@ cdef class WfWithPolarizationWorkspace:
         WfWithPolarization* cdata
         UabsCache uabs
         AtomCache atom_cache
+        double[:] Upol
 
 cdef class SKnWithSourceWorkspace:
     cdef:
