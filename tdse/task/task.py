@@ -34,7 +34,7 @@ class CalcData(object):
         pass
 
     def load(self, task, file: h5py.File):
-        setattr(task, self.name, file[self.name])
+        setattr(task, self.name, file[self.name][:])
 
 
 class CalcDataWithMask(CalcData):

@@ -37,11 +37,12 @@ class UeeOrbData(CalcData):
 class UpolOrbData(CalcData):
     NAME = "Upol"
 
-    def __init__(self, is_average=True, dN=100, **kwargs):
+    def __init__(self, is_average=True, dN=100, l=1, **kwargs):
         super().__init__(**kwargs)
 
         self.is_average = is_average
         self.dN = dN
+        self.l = l
 
     def get_shape(self, task: TaskAtom):
         return (task.Nr,)
@@ -51,10 +52,10 @@ class UpolOrbData(CalcData):
             if self.is_average and (i+1) % self.dN == 0:
                 count = task.t.size // self.dN
                 E = task.field.E(t)
-                self.dset[:] += task.ws.uee[1,:] / E / count
+                self.dset[:] += task.ws.uee[self.l,:] / E**self.l / count
             elif i == task.t.size-1:
                 E = task.field.E(t)
-                self.dset[:] = task.ws.uee[1,:] / E
+                self.dset[:] = task.ws.uee[self.l,:] / E**self.l
 
 class AzOrbData(OrbShapeMixin, CalcData):
     NAME = "az"
@@ -194,7 +195,8 @@ class OrbitalsPolarizationTask(OrbitalsTask):
     dT = 0
 
     CALC_DATA = [
-        UpolOrbData()
+        UpolOrbData(name="upol_1", l=1),
+        UpolOrbData(name="upol_2", l=2)
     ]
 
     class Field(tdse.field.FieldBase):

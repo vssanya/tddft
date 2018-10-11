@@ -147,4 +147,4 @@ class WavefuncWithPolarization(WavefuncTask):
         if uabs_cache is None:
             uabs_cache = self.uabs_cache
 
-        return self.Workspace(self.atom_cache, self.sh_grid, uabs_cache, self.orb_polarization_task.Upol[:])
+        return self.Workspace(self.atom_cache, self.sh_grid, uabs_cache, self.orb_polarization_task.upol_1[:])
