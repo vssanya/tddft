@@ -80,7 +80,7 @@ cdef extern from "workspace.h" namespace "workspace":
         void prop_img(cShWavefunc& wf, double dt)
 
     cdef cppclass WfWithPolarization:
-        WfWithPolarization(cAtomCache* atom, cShGrid* grid, cUabsCache* uabs, double* Upot, int num_threads)
+        WfWithPolarization(cAtomCache* atom, cShGrid* grid, cUabsCache* uabs, double* Upot_1, double* Upol_2, int num_threads)
         void prop(cShWavefunc& wf, field_t* field, double t, double dt)
         void prop_without_field(cShWavefunc& wf, double dt)
         void prop_img(cShWavefunc& wf, double dt)
@@ -123,7 +123,8 @@ cdef class WfWithPolarizationWorkspace:
         WfWithPolarization* cdata
         UabsCache uabs
         AtomCache atom_cache
-        double[:] Upol
+        double[:] Upol_1
+        double[:] Upol_2
 
 cdef class SKnWithSourceWorkspace:
     cdef:

@@ -133,6 +133,8 @@ class WavefuncWithPolarization(WavefuncTask):
 
     Workspace = tdse.workspace.WfWithPolarizationWorkspace
 
+    l_pol = 1
+
     def __init__(self, path_res='res', mode=None, **kwargs):
         self.orb_polarization_task.load()
 
@@ -147,4 +149,8 @@ class WavefuncWithPolarization(WavefuncTask):
         if uabs_cache is None:
             uabs_cache = self.uabs_cache
 
-        return self.Workspace(self.atom_cache, self.sh_grid, uabs_cache, self.orb_polarization_task.upol_1[:])
+
+        if self.l_pol == 1:
+            return self.Workspace(self.atom_cache, self.sh_grid, uabs_cache, self.orb_polarization_task.upol_1[:])
+        else:
+            return self.Workspace(self.atom_cache, self.sh_grid, uabs_cache, self.orb_polarization_task.upol_1[:], self.orb_polarization_task.upol_2[:])

@@ -115,16 +115,21 @@ cdef class SKnAWorkspace:
         self.cdata.prop_img(wf.cdata[0], dt)
 
 cdef class WfWithPolarizationWorkspace:
-    def __cinit__(self, AtomCache atom_cache, ShGrid grid, UabsCache uabs, double[:] Upol, int num_threads = -1):
-        self.cdata = new WfWithPolarization(atom_cache.cdata, grid.data, uabs.cdata, &Upol[0], num_threads)
+    def __cinit__(self, AtomCache atom_cache, ShGrid grid, UabsCache uabs, double[:] Upol_1, double[:] Upol_2 = None, int num_threads = -1):
+        if Upol_2 is None:
+            self.cdata = new WfWithPolarization(atom_cache.cdata, grid.data, uabs.cdata, &Upol_1[0], NULL, num_threads)
+        else:
+            self.cdata = new WfWithPolarization(atom_cache.cdata, grid.data, uabs.cdata, &Upol_1[0], &Upol_2[0], num_threads)
+
         self.uabs = uabs
         self.atom_cache = atom_cache
 
     def __dealloc__(self):
         del self.cdata
 
-    def __init__(self, AtomCache atom_cache, ShGrid grid, UabsCache uabs, double[:] Upol, int num_threads = -1):
-        self.Upol = Upol
+    def __init__(self, AtomCache atom_cache, ShGrid grid, UabsCache uabs, double[:] Upol_1, double[:] Upol_2 = None, int num_threads = -1):
+        self.Upol_1 = Upol_1
+        self.Upol_2 = Upol_2
 
     def prop(self, ShWavefunc wf, Field field, double t, double dt):
         self.cdata.prop(wf.cdata[0], field.cdata, t, dt)
