@@ -9,6 +9,7 @@ from mpi4py import MPI
 from ..bot_client import BotClient
 
 import tdse
+from tdse.ui.progressbar import ProgressBar
 
 
 class CalcData(object):
@@ -48,6 +49,7 @@ class CalcDataWithMask(CalcData):
 
         if self.mask is not None:
             self.mask.write_params(self.dset)
+
 
 class TimeShapeMixin(object):
     def get_shape(self, task):
@@ -168,7 +170,7 @@ class Task(object):
             self.load()
             self.load_state(restart_index)
 
-        print("Start propogation")
+        progressBar = ProgressBar(self.t.size, prefix="Progress of propagation")
         for i in range(restart_index, self.t.size):
             self.calc_prop(i, self.t[i])
             self.calc_data(i, self.t[i])
@@ -182,6 +184,9 @@ class Task(object):
 
             if self.save_state_step is not None and (i+1) % int(self.t.size*self.save_state_step/100) == 0:
                 self.save_state(i)
+
+            if self.is_root() and i%10 == 0:
+                progressBar.print(i)
 
             if self.signal_term:
                 if self.term_save_state:
