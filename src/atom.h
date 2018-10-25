@@ -274,6 +274,11 @@ class NeAtom: public AtomCoulomb {
 		NeAtom(): AtomCoulomb(10, GroundStateOrbs, 2) {}
 };
 
+class FNegativeIon: public AtomCoulomb {
+	public:
+		FNegativeIon(): AtomCoulomb(9, NeAtom::GroundStateOrbs, 2) {}
+};
+
 class ArAtom: public AtomCoulomb {
 	public:
 		static const std::vector<State> GroundStateOrbs;

@@ -150,6 +150,8 @@ Kr       = Atom.from_c(<cAtom*> new KrAtom(), "Kr")
 Ar_sae   = Atom.from_c(<cAtom*> new ArSaeAtom(), "Ar_sae")
 Ar_sae_smooth = Atom.from_c(<cAtom*> new ArSaeSmoothAtom(), "Ar_sae_smooth")
 
+Fm = Atom.from_c(<cAtom*> new FNegativeIon(), "F-")
+
 Na = Atom.from_c(<cAtom*> new NaAtom(), "Na")
 Na_sae   = Atom.from_c(<cAtom*> new NaAtomSGB(), "Na_sae")
 

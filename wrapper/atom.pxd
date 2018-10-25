@@ -56,6 +56,9 @@ cdef extern from "atom.h":
     cdef cppclass NeAtom:
         NeAtom()
 
+    cdef cppclass FNegativeIon:
+        FNegativeIon()
+
     cdef cppclass ArAtom:
         ArAtom()
 
