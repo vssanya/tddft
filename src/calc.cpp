@@ -10,6 +10,23 @@ double calc_wf_az(ShWavefunc const* wf, const AtomCache &atom_cache, field_t con
     return - field_E(field, t) - wf->cos(func);
 }
 
+double calc_wf_az_with_polarization(ShWavefunc const* wf, const AtomCache &atom_cache, double const Upol[], double const dUpol_dr[], field_t const* field, double t) {
+    auto func_cos = [&](ShGrid const* grid, int ir, int il, int m) -> double {
+        return atom_cache.dudz(ir);
+    };
+
+    auto func_cos2 = [&](ShGrid const* grid, int ir, int il, int m) -> double {
+        return dUpol_dr[ir];
+    };
+
+    auto func_sin2 = [&](ShGrid const* grid, int ir, int il, int m) -> double {
+        return Upol[ir]/grid->r(ir);
+    };
+
+	double E = field_E(field, t);
+	return - E*(1 + wf->cos2(func_cos2) + wf->sin2(func_sin2)) - wf->cos(func_cos);
+}
+
 double calc_orbs_az(Orbitals const* orbs, const AtomCache &atom_cache, field_t const* field, double t) {
     auto func = [&](ShGrid const* grid, int ir, int il, int m) -> double {
         return atom_cache.dudz(ir);

@@ -9,7 +9,17 @@ from atom cimport cAtomCache
 cdef extern from "calc.h":
     double calc_wf_ionization_prob(cShWavefunc* wf)
     double calc_orbs_ionization_prob(cOrbitals* orbs)
+
     double calc_wf_az(cShWavefunc* wf, cAtomCache& atom, field_t* field, double t)
+    double calc_wf_az_with_polarization(
+            cShWavefunc* wf,
+            cAtomCache& atom_cache,
+            double* Upol,
+            double* dUpol_dr,
+            field_t* field,
+            double t
+    )
+
     double calc_orbs_az(cOrbitals* orbs, cAtomCache& atom, field_t* field, double t)
     void calc_orbs_az_ne(cOrbitals* orbs, cAtomCache& atom, field_t* field, double t, double* az)
 
@@ -18,7 +28,7 @@ cdef extern from "calc.h":
             cShWavefunc* wf,
             cAtomCache& atom,
             field_t* field,
-            int Nt, 
+            int Nt,
             double dt,
             double t_smooth
     )
@@ -28,7 +38,7 @@ cdef extern from "calc.h":
             cOrbitals* orbs,
             cAtomCache& atom,
             field_t* field,
-            int Nt, 
+            int Nt,
             double dt,
             double t_smooth
     )

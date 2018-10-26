@@ -201,6 +201,34 @@ double ShWavefunc::cos(sh_f func) const {
 	}, grid->n[iL]-1);
 }
 
+double ShWavefunc::cos2(sh_f func) const {
+	double res = 0.0;
+    res += integrate<double>([func](ShWavefunc const* wf, int ir, int il) -> double {
+			cdouble psi = (*wf)(ir, il);
+			return (plm(il, wf->m) + 0.5)*(creal(psi)*creal(psi) + cimag(psi)*cimag(psi))*func(wf->grid, ir, il, wf->m);
+	}, grid->n[iL]);
+
+    res += 2*integrate<double>([func](ShWavefunc const* wf, int ir, int il) -> double {
+		return qlm(il, wf->m)*creal((*wf)(ir, il)*conj((*wf)(ir, il+2)))*func(wf->grid, ir, il, wf->m);
+	}, grid->n[iL]-2);
+
+	return res*(2.0/3.0);
+}
+
+double ShWavefunc::sin2(sh_f func) const {
+	double res = 0.0;
+    res += integrate<double>([func](ShWavefunc const* wf, int ir, int il) -> double {
+			cdouble psi = (*wf)(ir, il);
+			return (0.5 - plm(il, wf->m))*(creal(psi)*creal(psi) + cimag(psi)*cimag(psi))*func(wf->grid, ir, il, wf->m);
+	}, grid->n[iL]);
+
+    res -= 2*integrate<double>([func](ShWavefunc const* wf, int ir, int il) -> double {
+		return qlm(il, wf->m)*creal((*wf)(ir, il)*conj((*wf)(ir, il+2)))*func(wf->grid, ir, il, wf->m);
+	}, grid->n[iL]-2);
+
+	return res*(2.0/3.0);
+}
+
 double ShWavefunc::cos_r2(sh_f U, int Z) const {
     return 2*integrate<double>([U](ShWavefunc const* wf, int ir, int il) -> double {
 		return clm(il, wf->m)*creal((*wf)(ir, il)*conj((*wf)(ir, il+1)))*U(wf->grid, ir, il, wf->m);

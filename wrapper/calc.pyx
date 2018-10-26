@@ -30,6 +30,9 @@ def az(WF wf, AtomCache atom, Field field, double t):
     else:
         return calc_wf_az(wf.cdata, atom.cdata[0], field.cdata, t)
 
+def az_with_polarization(ShWavefunc wf, AtomCache atom, double[:] Upol, double[:] dUpol_dr, Field field, double t):
+    return calc_wf_az_with_polarization(wf.cdata, atom.cdata[0], &Upol[0], &dUpol_dr[0], field.cdata, t)
+
 def az_ne(Orbitals orbs, AtomCache atom, Field field, double t, np.ndarray[double, ndim=1, mode='c'] az = None):
     cdef double* res_ptr = NULL
     if orbs.is_root():

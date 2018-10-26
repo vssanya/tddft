@@ -20,6 +20,15 @@ double calc_wf_az(
 		double t
 );
 
+double calc_wf_az_with_polarization(
+		ShWavefunc const* wf,
+		AtomCache const& atom_cache,
+		double const Upol[],
+		double const dUpol_dr[],
+		field_t const* field,
+		double t
+);
+
 double calc_orbs_az(
 		Orbitals const* orbs,
         AtomCache const& atom_cache,

@@ -63,8 +63,15 @@ public:
   cdouble operator*(ShWavefunc const& other) const;
   void exclude(ShWavefunc const& other);
 
-// <psi|U(r)cos(\theta)|psi>
+  // <psi|U(r)cos(\theta)|psi>
   double cos(sh_f func) const;
+
+  // <psi|U(r)cos^2(\theta)|psi>
+  double cos2(sh_f func) const;
+
+  // <psi|U(r)sin^2(\theta)|psi>
+  double sin2(sh_f func) const;
+
   void   cos_r(sh_f U, double* res) const;
   double cos_r2(sh_f U, int Z) const;
 
