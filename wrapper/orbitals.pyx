@@ -161,7 +161,7 @@ cdef class Orbitals:
 
     def get_wf(self, int ie):
         assert(ie < self.cdata.atom.countOrbs)
-        return swavefunc_from_point(self.cdata.wf[ie], self.grid)
+        return swavefunc_from_point(self.cdata.wf[ie], self.grid, False)
 
     def asarray(self):
         cdef complex_t[:, :, ::1] res

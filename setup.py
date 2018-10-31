@@ -145,7 +145,7 @@ if run_build:
     from Cython.Build import cythonize
 
     ext = Extension("*", ["wrapper/*.pyx"],
-                    libraries=["tdse", "lapack"],
+                    libraries=["tdse", "lapack", "tdse_gpu"],
                     library_dirs=[
                         'build/src',
                     ],

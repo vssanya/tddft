@@ -18,7 +18,6 @@ ShWavefuncGPU::~ShWavefuncGPU() {
 	}
 }
 
-
 ShWavefuncArrayGPU::ShWavefuncArrayGPU(cdouble* data, ShGrid const* grid, int const m, int N):
     grid(grid), N(N),
     data(data), data_own(false),
@@ -27,12 +26,6 @@ ShWavefuncArrayGPU::ShWavefuncArrayGPU(cdouble* data, ShGrid const* grid, int co
         cudaMalloc(&data, sizeof(cdouble)*grid->size()*N);
         data_own = true;
     }
-}
-
-ShWavefuncArrayGPU::~ShWavefuncArrayGPU() {
-	if (data_own) {
-		cudaFree(data);
-	}
 }
 
 ShWavefuncArrayGPU::ShWavefuncArrayGPU(ShWavefunc const& wf, int N):
@@ -51,4 +44,10 @@ ShWavefunc* ShWavefuncArrayGPU::get(int in) {
 	cudaMemcpy(wf->data, &data[in*grid->size()], grid->size()*sizeof(cdouble), cudaMemcpyDeviceToHost);
 
 	return wf;
+}
+
+ShWavefuncArrayGPU::~ShWavefuncArrayGPU() {
+	if (data_own) {
+		cudaFree(data);
+	}
 }
