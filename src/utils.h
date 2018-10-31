@@ -1,8 +1,6 @@
 #pragma once
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+#include <math.h>
 
 /* 
  *
@@ -14,14 +12,16 @@ extern "C" {
  * qlm = <Ylm|Y20|Yl+2m>
  * plm = <Ylm|Y20|Ylm>
  * */
-double clm(int l, int m) __attribute__((pure));
+#ifdef __CUDACC__
+__host__ __device__
+#endif
+inline double clm(int l, int m) {
+	return sqrt((double)((l+1)*(l+1) - m*m)/(double)((2*l + 1)*(2*l + 3)));
+}
+
 double qlm(int l, int m) __attribute__((pure));
 double plm(int l, int m) __attribute__((pure));
 
 double clamp(double x, double lower, double upper) __attribute__((pure));
 double smoothstep(double x, double x0, double x1) __attribute__((pure));
 double smoothpulse(double x, double dx_smooth, double dx_pulse) __attribute__((pure));
-
-#ifdef __cplusplus
-}
-#endif

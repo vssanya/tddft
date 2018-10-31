@@ -3,13 +3,13 @@ set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall")
 set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -std=c++11")
 
 set( LIB_GPU_SOURCES
-	"sh_wavefunc_gpu.cu"
-	"workspace/wf_gpu.cu"
+	"main.cu"
 	)
 
 set( LIB_GPU_HEADERS
 	"sh_wavefunc_gpu.h"
 	"workspace/wf_gpu.h"
+	"workspace/wf_array_gpu.h"
 	)
 
 set( LIB_SOURCES

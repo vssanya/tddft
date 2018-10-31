@@ -4,6 +4,10 @@
 
 #include <functional>
 
+#ifdef __CUDACC__
+#include "pycuda-complex.hpp"
+#endif
+
 
 namespace linalg
 {
@@ -58,6 +62,28 @@ namespace linalg
 			v[0] = res[0];
 			v[1] = res[1];
 		}
+
+#ifdef __CUDACC__
+		__device__ void dot(cuComplex v[2]) {
+			cuComplex res[2] = {
+				v[0] + v[1],
+				-v[0] + v[1]
+			};
+
+			v[0] = res[0];
+			v[1] = res[1];
+		}
+
+		__device__ void dot_T(cuComplex v[2]) {
+			cuComplex res[2] = {
+				0.5*(v[0] - v[1]),
+				0.5*(v[0] + v[1])
+			};
+
+			v[0] = res[0];
+			v[1] = res[1];
+		}
+#endif
 	} /* matrix_bE */ 
 
 	// matrix = [[0, 1], [-1, 0]]

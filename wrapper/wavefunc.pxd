@@ -63,4 +63,4 @@ cdef class CtWavefunc:
     cdef cCtWavefunc* cdata
     cdef public SpGrid2d grid
 
-cdef ShWavefunc swavefunc_from_point(cShWavefunc* data, ShGrid grid)
+cdef ShWavefunc swavefunc_from_point(cShWavefunc* data, ShGrid grid, bint dealloc)

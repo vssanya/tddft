@@ -3,10 +3,6 @@
 #include <math.h>
 #include <algorithm>
 
-double clm(int l, int m) {
-	return sqrt((double)((l+1)*(l+1) - m*m)/(double)((2*l + 1)*(2*l + 3)));
-}
-
 double qlm(int l, int m) {
 	return 1.5/(2*l + 3)*sqrt((pow(l+1, 2) - pow(m, 2))*(pow(l+2, 2) - pow(m, 2))/(double)((2*l + 1)*(2*l + 5)));
 }

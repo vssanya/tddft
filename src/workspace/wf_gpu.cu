@@ -20,26 +20,6 @@ workspace::WfGPUBase::~WfGPUBase() {
 	cudaFree(betta);
 }
 
-__device__ void E_dot(cuComplex v[2]) {
-    cuComplex res[2] = {
-        v[0] + v[1],
-        -v[0] + v[1]
-    };
-
-    v[0] = res[0];
-    v[1] = res[1];
-}
-
-__device__ void E_dot_T(cuComplex v[2]) {
-    cuComplex res[2] = {
-        0.5*(v[0] - v[1]),
-        0.5*(v[0] + v[1])
-    };
-
-    v[0] = res[0];
-    v[1] = res[1];
-}
-
 __global__ void kernel_prop_ang_l(cuComplex* wf, cuComplex dt, cuMatrix_f dot, cuMatrix_f dot_T, const cuComplex eigenval[2], int l, int l1, double* Ul, cuSh_f Ulfunc, int Nr) {
     int ir = blockIdx.x*blockDim.x + threadIdx.x;
 
@@ -215,7 +195,7 @@ void workspace::WfGPUBase::prop_common(ShWavefuncGPU& wf, cdouble dt, int l_max,
 
     for (int l1 = 1; l1 < l_max; ++l1) {
         for (int il = 0; il < Nl - l1; ++il) {
-			// kernel_prop_ang_l<<<gridDim, blockDim>>>((cuComplex*) wf.data, 0.5*dt, E_dot, E_dot_T, E_eigenval, il, l1, Ul[l1], Ulfunc[l1], Nr);
+			 //kernel_prop_ang_l<<<gridDim, blockDim>>>((cuComplex*) wf.data, 0.5*dt, E_dot, E_dot_T, E_eigenval, il, l1, Ul[l1], Ulfunc[l1], Nr);
         }
     }
 

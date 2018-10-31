@@ -59,7 +59,7 @@ namespace workspace {
             ShGrid const* grid;
             UabsCache const* uabs_cache;
 
-            cdouble* alpha;
+			cdouble* alpha;
             cdouble* betta;
             double* uabs_data;
 

@@ -141,7 +141,7 @@ cdef class ShWavefunc:
         cShWavefunc.ort_l(l, len(wfs), wf_arr)
         free(wf_arr)
 
-cdef ShWavefunc swavefunc_from_point(cShWavefunc* data, ShGrid grid):
-    wf = ShWavefunc(grid=grid, dealloc=False)
+cdef ShWavefunc swavefunc_from_point(cShWavefunc* data, ShGrid grid, bint dealloc):
+    wf = ShWavefunc(grid=grid, dealloc=dealloc)
     wf._set_data(data)
     return wf

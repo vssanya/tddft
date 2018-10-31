@@ -33,6 +33,10 @@ endif()
 
 find_package(CUDA)
 
+if (CUDA_FOUND)
+	add_definitions(-DWITH_CUDA)
+endif()
+
 if ("${CMAKE_C_COMPILER_ID}" STREQUAL "Intel")
 	include_directories(/share/intel/mkl/include)
 	link_directories(/share/intel/mkl/lib/intel64)
