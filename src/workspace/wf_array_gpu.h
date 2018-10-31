@@ -5,10 +5,6 @@
 #include "../atom.h"
 #include "../abs_pot.h"
 
-#include "../pycuda-complex.hpp"
-typedef pycuda::complex<double> cuComplex;
-
-
 namespace workspace {
 	class WfArrayGpu {
 		public:

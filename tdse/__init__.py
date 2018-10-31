@@ -16,3 +16,7 @@ from . import ground_state
 from . import tdsfm
 
 from . import sfa
+
+from . import wavefunc_gpu
+from . import workspace_gpu
+from . import calc_gpu

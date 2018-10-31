@@ -14,3 +14,7 @@ cdef class ShWavefuncArrayGPU:
 
     def get(self, int i):
         return swavefunc_from_point(self.cdata.get(i), self.grid, True)
+
+    @property
+    def N(self):
+        return self.cdata.N
