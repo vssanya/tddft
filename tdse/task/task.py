@@ -185,7 +185,7 @@ class Task(object):
             if self.save_state_step is not None and (i+1) % int(self.t.size*self.save_state_step/100) == 0:
                 self.save_state(i)
 
-            if self.is_root() and i%10 == 0:
+            if self.is_root() and i%100 == 0:
                 progressBar.print(i)
 
             if self.signal_term:

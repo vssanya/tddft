@@ -44,6 +44,10 @@ ShWavefuncArrayGPU::ShWavefuncArrayGPU(ShWavefunc const& wf, int N):
 	for (int i = 0; i < N; i++) {
 		cudaMemcpy(&data[grid->size()*i], wf.data, grid->size()*sizeof(cdouble), cudaMemcpyHostToDevice);
 	}
+
+	cudaMalloc(&d_res, sizeof(double)*N);
+	cudaMalloc(&d_ur, sizeof(double)*grid->n[iR]);
+	ur = new double[grid->n[iR]];
 }
 
 ShWavefunc* ShWavefuncArrayGPU::get(int in) {

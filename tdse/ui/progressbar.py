@@ -32,12 +32,3 @@ class ProgressBar():
         # Print New Line on Complete
         if iteration == self.total:
             print()
-
-
-from time import sleep
-
-items = list(range(0, 57))
-bar = ProgressBar(len(items))
-for i, item in enumerate(items):
-    sleep(0.1)
-    bar.print(i)
