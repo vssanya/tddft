@@ -17,3 +17,9 @@ cdef class WfArrayGPUWorkspace:
 
     def prop(self, ShWavefuncArrayGPU wf_array, double[:] E, double dt):
         self.cdata.prop(wf_array.cdata, &E[0], dt)
+
+    def prop_abs(self, ShWavefuncArrayGPU wf_array, double dt):
+        self.cdata.prop_abs(wf_array.cdata,  dt)
+
+    def prop_at(self, ShWavefuncArrayGPU wf_array, double dt):
+        self.cdata.prop_at(wf_array.cdata,  dt)

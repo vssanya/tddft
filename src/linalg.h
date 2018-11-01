@@ -4,10 +4,6 @@
 
 #include <functional>
 
-#ifdef __CUDACC__
-#include "pycuda-complex.hpp"
-#endif
-
 
 namespace linalg
 {

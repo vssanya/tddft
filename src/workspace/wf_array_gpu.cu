@@ -8,16 +8,17 @@ workspace::WfArrayGpu::WfArrayGpu(AtomCache const* atomCache, ShGrid const* grid
 	uabsCache(uabsCache),
 	atomCache(atomCache)
 {
-    cudaMalloc(&d_alpha, sizeof(cdouble)*grid->n[iL]);
-    cudaMalloc(&d_betta, sizeof(cdouble)*grid->n[iL]);
+    int Nr = grid->n[iR];
+    cudaMalloc(&d_alpha, sizeof(cdouble)*Nr*N);
+    cudaMalloc(&d_betta, sizeof(cdouble)*Nr*N);
 
-    cudaMalloc(&d_uabs, sizeof(double)*grid->n[iR]);
-    cudaMemcpy(d_uabs, uabsCache->data, sizeof(double)*grid->n[iR], cudaMemcpyHostToDevice);
+    cudaMalloc(&d_uabs, sizeof(double)*Nr);
+    cudaMemcpy(d_uabs, uabsCache->data, sizeof(double)*Nr, cudaMemcpyHostToDevice);
 
-	cudaMalloc(&d_atomU, sizeof(double)*grid->n[iR]);
-    cudaMemcpy(d_atomU, atomCache->data_u, sizeof(double)*grid->n[iR], cudaMemcpyHostToDevice);
+    cudaMalloc(&d_atomU, sizeof(double)*Nr);
+    cudaMemcpy(d_atomU, atomCache->data_u, sizeof(double)*Nr, cudaMemcpyHostToDevice);
 
-	cudaMalloc(&d_E, sizeof(double)*N);
+    cudaMalloc(&d_E, sizeof(double)*N);
 }
 
 workspace::WfArrayGpu::~WfArrayGpu() {
@@ -155,37 +156,7 @@ void workspace::WfArrayGpu::prop_at(ShWavefuncArrayGPU* wf, double dt) {
 	dim3 blockDim(1);
 	dim3 gridDim(N);
 
-    kernel_wf_array_prop_at<<<gridDim, blockDim>>>((cuComplex*)wf->data, d_atomU, (cuComplex*) d_alpha, (cuComplex*) d_betta, N, grid->n[iR], grid->n[iL], grid->d[iR], dt, atomCache->atom.Z, atomCache->atom.potentialType == Atom::PotentialType::POTENTIAL_COULOMB ? 1 : 0);
-}
-
-__global__ void kernel_wf_array_prop_ang_l(cuComplex* wf_array, cuComplex dt, cuMatrix_f dot, cuMatrix_f dot_T, const cuComplex eigenval0, const cuComplex eigenval1, int m, int l, int l1, double* E, double dr, int N, int Nr, int Nl) {
-    int in = blockIdx.x*blockDim.x + threadIdx.x;
-
-	if (in < N) {
-		cuComplex* wf = &wf_array[N*Nr*Nl];
-
-		cuComplex* psi_l0 = &wf[Nr*l];
-		cuComplex* psi_l1 = &wf[Nr*(l+l1)];
-
-		cuComplex i = cuComplex(0.0, 1.0);
-
-		double Ei = E[in];
-
-		for (int ir = 0; ir < Nr; ir++) {
-			double const r = dr*(ir+1);
-			double const U = r*Ei*clm(l, m);
-
-			cuComplex x[2] = {psi_l0[ir], psi_l1[ir]};
-
-			dot(x);
-			x[0] *= exp(i*U*dt*eigenval0);
-			x[1] *= exp(i*U*dt*eigenval1);
-			dot_T(x);
-
-			psi_l0[ir] = x[0];
-			psi_l1[ir] = x[1];
-		}
-	}
+    kernel_wf_array_prop_at<<<gridDim, blockDim>>>((cuComplex*) wf->data, d_atomU,  (cuComplex*) d_alpha,  (cuComplex*) d_betta, N, grid->n[iR], grid->n[iL], grid->d[iR], dt, atomCache->atom.Z, atomCache->atom.potentialType == Atom::PotentialType::POTENTIAL_COULOMB ? 1 : 0);
 }
 
 __device__ void cu_dot(cuComplex v[2]) {
@@ -208,6 +179,36 @@ __device__ void cu_dot_T(cuComplex v[2]) {
 	v[1] = res[1];
 }
 
+__global__ void kernel_wf_array_prop_ang_l(cuComplex* wf_array, cuComplex dt, const cuComplex eigenval0, const cuComplex eigenval1, int m, int l, int l1, double* E, double dr, int N, int Nr, int Nl) {
+    int in = blockIdx.x*blockDim.x + threadIdx.x;
+
+	if (in < N) {
+		cuComplex* wf = &wf_array[in*Nr*Nl];
+
+		cuComplex* psi_l0 = &wf[Nr*l];
+		cuComplex* psi_l1 = &wf[Nr*(l+l1)];
+
+		cuComplex i = cuComplex(0.0, 1.0);
+
+		double Ei = E[in];
+
+		for (int ir = 0; ir < Nr; ir++) {
+			double const r = dr*(ir+1);
+			double const U = r*Ei*clm(l, m);
+
+			cuComplex x[2] = {psi_l0[ir], psi_l1[ir]};
+
+			cu_dot(x);
+			x[0] *= exp(i*U*dt*eigenval0);
+			x[1] *= exp(i*U*dt*eigenval1);
+			cu_dot_T(x);
+
+			psi_l0[ir] = x[0];
+			psi_l1[ir] = x[1];
+		}
+	}
+}
+
 void workspace::WfArrayGpu::prop(ShWavefuncArrayGPU* wf, double E[], double dt) {
     cudaMemcpy(d_E, E, sizeof(double)*N, cudaMemcpyHostToDevice);
 
@@ -222,7 +223,7 @@ void workspace::WfArrayGpu::prop(ShWavefuncArrayGPU* wf, double E[], double dt) 
 
     for (int l1 = 1; l1 < l_max; ++l1) {
         for (int il = 0; il < Nl - l1; ++il) {
-			 kernel_wf_array_prop_ang_l<<<gridDim, blockDim>>>((cuComplex*) wf->data, 0.5*dt, cu_dot, cu_dot_T, eigenval0, eigenval1, wf->m, il, l1, d_E, grid->d[iR], N, grid->n[iR], Nl);
+			 kernel_wf_array_prop_ang_l<<<gridDim, blockDim>>>((cuComplex*) wf->data, 0.5*dt, eigenval0, eigenval1, wf->m, il, l1, d_E, grid->d[iR], N, grid->n[iR], Nl);
         }
     }
 
@@ -230,7 +231,7 @@ void workspace::WfArrayGpu::prop(ShWavefuncArrayGPU* wf, double E[], double dt) 
 
     for (int l1 = l_max-1; l1 > 0; --l1) {
         for (int il = Nl - 1 - l1; il >= 0; --il) {
-			 kernel_wf_array_prop_ang_l<<<gridDim, blockDim>>>((cuComplex*) wf->data, 0.5*dt, cu_dot, cu_dot_T, eigenval0, eigenval1, wf->m, il, l1, d_E, grid->d[iR], N, grid->n[iR], Nl);
+			 kernel_wf_array_prop_ang_l<<<gridDim, blockDim>>>((cuComplex*) wf->data, 0.5*dt, eigenval0, eigenval1, wf->m, il, l1, d_E, grid->d[iR], N, grid->n[iR], Nl);
         }
     }
 
