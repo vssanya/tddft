@@ -7,6 +7,19 @@
 
 #define check_index(space, index) assert(index >= 0 || index < n[space])
 
+class Grid1d {
+	public:
+		int n;
+		double d;
+
+		double x(int ix) const {
+			return ix*d;
+		}
+
+		Grid1d(int n, double d): n(n), d(d) {}
+		Grid1d(): n(0), d(0.0) {}
+};
+
 /*!
  * \brief Grid for 2D space
  * */

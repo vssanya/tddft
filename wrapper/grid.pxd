@@ -1,4 +1,11 @@
 cdef extern from "grid.h":
+    cdef cppclass cGrid1d "Grid1d":
+        int n
+        double d
+
+        cGrid1d()
+        cGrid1d(int n, double d)
+
     cdef cppclass cGrid2d "Grid2d":
         int n[2]
         double d[2]
@@ -39,6 +46,9 @@ cdef extern from "grid.h":
         cCtGrid(int n[2], double x_max, double y_max)
         double x(int ix)
         double y(int iy)
+
+cdef class Grid1d:
+    cdef cGrid1d cdata
 
 cdef class CtGrid:
     cdef cCtGrid* cdata

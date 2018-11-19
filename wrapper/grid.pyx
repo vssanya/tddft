@@ -2,6 +2,22 @@ import numpy as np
 from libc.stdlib cimport free
 
 
+cdef class Grid1d:
+    def __cinit__(self, int N, double d):
+        self.cdata = cGrid1d(N, d)
+
+    def __init__(self, int N, double d):
+        pass
+
+    @property
+    def d(self):
+        return self.cdata.d
+
+    @property
+    def N(self):
+        return self.cdata.n
+
+
 cdef class CtGrid:
     def __cinit__(self, int Nx, int Ny, double Xmax, double Ymax):
         self.cdata = new cCtGrid([Nx, Ny], Xmax, Ymax)

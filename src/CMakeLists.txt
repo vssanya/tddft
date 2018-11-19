@@ -21,13 +21,12 @@ set( LIB_SOURCES
 	"workspace/common_alg.cpp"
 	"workspace/sfa.cpp"
 	"workspace/wf_with_polarization.cpp"
-
 	sh_wavefunc.cpp
 	hartree_potential.cpp
 	integrate.c
-        utils.cpp
+	utils.cpp
 	abs_pot.cpp
-        fields.cpp
+	fields.cpp
 	calc.cpp
 	sphere_harmonics.cpp
 	orbitals.cpp
@@ -38,8 +37,8 @@ set( LIB_SOURCES
 	"sfa/anal.c"
 	"hartree_potential/hp_o3.cpp"
 	"hartree_potential/hp_o5.cpp"
-
 	"wavefunc/2d.cpp"
+	"maxwell/1d.cpp"
 	)
 
 set( LIB_HEADERS
@@ -52,6 +51,7 @@ set( LIB_HEADERS
 	"workspace/common_alg.h"
 	"workspace/sfa.h"
 	"workspace/wf_with_polarization.h"
+	"maxwell/1d.h"
 
 	fourier.h
 	kn.h

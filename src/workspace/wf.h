@@ -76,4 +76,3 @@ namespace workspace {
             void prop(ShWavefunc& wf, field_t const* field, double t, double dt);
     };
 }
-
