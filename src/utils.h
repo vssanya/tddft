@@ -25,3 +25,9 @@ double plm(int l, int m) __attribute__((pure));
 double clamp(double x, double lower, double upper) __attribute__((pure));
 double smoothstep(double x, double x0, double x1) __attribute__((pure));
 double smoothpulse(double x, double dx_smooth, double dx_pulse) __attribute__((pure));
+
+inline int div_up(int x, int y)
+{
+    return (x - 1) / y + 1;
+}
+

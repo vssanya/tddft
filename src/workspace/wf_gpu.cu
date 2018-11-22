@@ -1,85 +1,54 @@
 #include "wf_gpu.h"
 
 #include <cuda_runtime.h>
+#include "../utils.h"
 
-workspace::WfGPUBase::WfGPUBase(AtomCache const* atom_cache, ShGrid const* grid, UabsCache const* uabs_cache, int num_threads):
-    atom_cache(atom_cache),
+
+workspace::WfGpu::WfGpu(AtomCache const& atomCache, ShGrid const& grid, UabsCache const& uabsCache, int gpuGridNl, int threadsPerBlock):
 	grid(grid),
-    uabs_cache(uabs_cache),
-	num_threads(num_threads)
+	uabsCache(uabsCache),
+	atomCache(atomCache),
+	threadsPerBlock(threadsPerBlock)
 {
-    cudaMalloc(&alpha, sizeof(cdouble)*grid->n[iR]*grid->n[iL]);
-    cudaMalloc(&betta, sizeof(cdouble)*grid->n[iR]*grid->n[iL]);
+    int Nr = grid.n[iR];
 
-    cudaMalloc(&uabs_data, sizeof(double)*grid->n[iR]);
-    cudaMemcpy(uabs_data, uabs_cache->data, sizeof(double)*grid->n[iR], cudaMemcpyHostToDevice);
+	d_gridNl = std::min(grid.n[iL], gpuGridNl);
+
+    cudaMalloc(&d_alpha, sizeof(cdouble)*Nr*d_gridNl);
+    cudaMalloc(&d_betta, sizeof(cdouble)*Nr*d_gridNl);
+
+    cudaMalloc(&d_uabs, sizeof(double)*Nr);
+    cudaMemcpy(d_uabs, uabsCache.data, sizeof(double)*Nr, cudaMemcpyHostToDevice);
+
+    cudaMalloc(&d_atomU, sizeof(double)*Nr);
+    cudaMemcpy(d_atomU, atomCache.data_u, sizeof(double)*Nr, cudaMemcpyHostToDevice);
 }
 
-workspace::WfGPUBase::~WfGPUBase() {
-	cudaFree(alpha);
-	cudaFree(betta);
+workspace::WfGpu::~WfGpu() {
+	cudaFree(d_alpha);
+	cudaFree(d_betta);
+	cudaFree(d_uabs);
+	cudaFree(d_atomU);
 }
 
-__global__ void kernel_prop_ang_l(cuComplex* wf, cuComplex dt, cuMatrix_f dot, cuMatrix_f dot_T, const cuComplex eigenval[2], int l, int l1, double* Ul, cuSh_f Ulfunc, int Nr) {
-    int ir = blockIdx.x*blockDim.x + threadIdx.x;
+__global__ void kernel_wf_prop_abs(cuComplex* wf, double* uabs, double dt, int Nr, int Nl) {
+	int il = blockIdx.x*blockDim.x + threadIdx.x;
 
-    cuComplex* psi_l0 = &wf[Nr*l];
-    cuComplex* psi_l1 = &wf[Nr*(l+l1)];
-
-    cuComplex i = cuComplex(0.0, 1.0);
-
-    if (ir < Nr) {
-        double const E = Ul[ir];
-
-        cuComplex x[2] = {psi_l0[ir], psi_l1[ir]};
-
-        dot(x);
-        x[0] *= exp(i*E*dt*eigenval[0]);
-        x[1] *= exp(i*E*dt*eigenval[1]);
-        dot_T(x);
-
-        psi_l0[ir] = x[0];
-        psi_l1[ir] = x[1];
-    }
+	if (il < Nl) {
+		for (int ir=0; ir<Nr; ir++) {
+			wf[ir + il*Nr] *= exp(-uabs[ir]*dt);
+		}
+	}
 }
 
-/*void workspace::WfGPUBase::prop_mix(ShWavefuncGPU& wf, sh_f Al, double dt, int l) {*/
-	/*int    const Nr = grid->n[iR];*/
-	/*double const dr = grid->d[iR];*/
+void workspace::WfGpu::prop_abs(ShWavefuncGPU& wf, double dt) {
+	kernel_wf_prop_abs<<<grid.size()/threadsPerBlock, threadsPerBlock>>>((cuComplex*)wf.data, d_uabs, dt, grid.n[iR], grid.n[iL]);
+}
 
-	/*cdouble* v[2] = {&wf(0,l), &wf(0,l+1)};*/
-	/*linalg::matrix_dot_vec(Nr, v, linalg::matrix_bE::dot);*/
+// potentialType = 1 (POTENTIAL_COULOMB)
+__global__ void kernel_wf_prop_at(cuComplex* wf, double* Ur, cuComplex* alpha, cuComplex* betta, int N, int Nr, int Nl, double dr, double dt, int Z, int potentialType) {
+	int l0 = blockIdx.x*blockDim.x + threadIdx.x;
 
-	/*double const glm = -dt*Al(grid, 0, l, wf.m)/(4.0*dr);*/
-	/*const double x = sqrt(3.0) - 2.0;*/
-
-	/*linalg::tdm_t M = {(4.0+x)/6.0, (4.0+x)/6.0, {1.0/6.0, 2.0/3.0, 1.0/6.0}, Nr};*/
-
-/*#pragma omp single nowait*/
-	/*{*/
-		/*int tid = omp_get_thread_num();*/
-		/*linalg::eq_solve(v[0], M, {-x*glm,  x*glm, { glm, 0.0, -glm}, Nr}, &alpha[tid*Nr], &betta[tid*Nr]);*/
-	/*}*/
-/*#pragma omp single*/
-	/*{*/
-		/*int tid = omp_get_thread_num();*/
-		/*linalg::eq_solve(v[1], M, { x*glm, -x*glm, {-glm, 0.0,  glm}, Nr}, &alpha[tid*Nr], &betta[tid*Nr]);*/
-	/*}*/
-
-	/*linalg::matrix_dot_vec(Nr, v, linalg::matrix_bE::dot_T);*/
-/*}*/
-
-// O(dr^4)
-/*
- * \brief Расчет функции \f[\psi(t+dt) = exp(-iH_{at}dt)\psi(t)\f]
- *
- * \f[H_{at} = -0.5\frac{d^2}{dr^2} + U(r, l)\f]
- * \f[exp(iAdt) = \frac{1 - iA}{1 + iA} + O(dt^3)\f]
- *
- * \param[in,out] wf
- *
- */
-__global__ void kernel_prop_at(cuComplex* wf, double* Ur, cuComplex* alpha, cuComplex* betta, int Nr, int Nl, double dr, cuComplex dt, int Z) {
 	double const dr2 = dr*dr;
 
 	double const d2[3] = {1.0/dr2, -2.0/dr2, 1.0/dr2};
@@ -98,12 +67,11 @@ __global__ void kernel_prop_at(cuComplex* wf, double* Ur, cuComplex* alpha, cuCo
 	cuComplex ar[3];
 	cuComplex f;
 
-	int l = blockIdx.x*blockDim.x + threadIdx.x;
+	cuComplex* alpha_tid = &alpha[l0*Nr];
+	cuComplex* betta_tid = &betta[l0*Nr];
 
-	if (l < Nl) {
+	for (int l = l0; l < Nl; l+=N) {
 		cuComplex* psi = &wf[l*Nr];
-		cuComplex* alpha_tid = &alpha[l*Nr];
-		cuComplex* betta_tid = &betta[l*Nr];
 
 		auto Ul = [dr, Ur, l](int ir) -> double {
 			double const r = dr*(ir+1);
@@ -123,7 +91,7 @@ __global__ void kernel_prop_at(cuComplex* wf, double* Ur, cuComplex* alpha, cuCo
 				ar[i] = M2[i]*(1.0 - idt_2*U[i]) + 0.5*idt_2*d2[i];
 			}
 
-            if (l == 0) { // && atom_cache->atom.potentialType == Atom::POTENTIAL_COULOMB) {
+			if (l == 0 && potentialType == 1) {
 				al[1] = M2_l0_11*(1.0 + idt_2*U[1]) - 0.5*idt_2*d2_l0_11;
 				ar[1] = M2_l0_11*(1.0 - idt_2*U[1]) + 0.5*idt_2*d2_l0_11;
 			}
@@ -175,117 +143,78 @@ __global__ void kernel_prop_at(cuComplex* wf, double* Ur, cuComplex* alpha, cuCo
 	}
 }
 
-void workspace::WfGPUBase::prop_at(ShWavefuncGPU& wf, cdouble dt, double* Ur) {
-    dim3 blockDim(1);
-    dim3 gridDim(wf.grid->n[iL]);
-
-    kernel_prop_at<<<gridDim, blockDim>>>((cuComplex*) wf.data, Ur, (cuComplex*) alpha, (cuComplex*) betta,
-			wf.grid->n[iR], wf.grid->n[iL], wf.grid->d[iR], dt, atom_cache->atom.Z);
+void workspace::WfGpu::prop_at(ShWavefuncGPU& wf, double dt) {
+	kernel_wf_prop_at<<<d_gridNl/threadsPerBlock, threadsPerBlock>>>((cuComplex*) wf.data, d_atomU,  (cuComplex*) d_alpha,  (cuComplex*) d_betta, d_gridNl, grid.n[iR], grid.n[iL], grid.d[iR], dt, atomCache.atom.Z, atomCache.atom.potentialType == Atom::PotentialType::POTENTIAL_COULOMB ? 1 : 0);
 }
 
-void workspace::WfGPUBase::prop_common(ShWavefuncGPU& wf, cdouble dt, int l_max, double** Ul, cuSh_f* Ulfunc) {
-    assert(wf.grid->n[iR] == grid->n[iR]);
-    assert(wf.grid->n[iL] <= grid->n[iL]);
+__device__ void cu_wf_dot(cuComplex v[2]) {
+	cuComplex res[2] = {
+		v[0] + v[1],
+		-v[0] + v[1]
+	};
 
-    const int Nl = wf.grid->n[iL];
-    const int Nr = wf.grid->n[iR];
-
-    dim3 blockDim(1);
-    dim3 gridDim(Nr);
-
-    for (int l1 = 1; l1 < l_max; ++l1) {
-        for (int il = 0; il < Nl - l1; ++il) {
-			 //kernel_prop_ang_l<<<gridDim, blockDim>>>((cuComplex*) wf.data, 0.5*dt, E_dot, E_dot_T, E_eigenval, il, l1, Ul[l1], Ulfunc[l1], Nr);
-        }
-    }
-
-    prop_at(wf, dt, Ul[0]);
-
-    for (int l1 = l_max-1; l1 > 0; --l1) {
-        for (int il = Nl - 1 - l1; il >= 0; --il) {
-			// kernel_prop_ang_l<<<gridDim, blockDim>>>((cuComplex*) wf.data, 0.5*dt, E_dot, E_dot_T, E_eigenval, il, l1, Ul[l1], Ulfunc[l1], Nr);
-        }
-    }
+	v[0] = res[0];
+	v[1] = res[1];
 }
 
-__global__ void kernel_prop_abs(cuComplex* wf, double* uabs, double dt, int Nr, int Nl) {
+__device__ void cu_wf_dot_T(cuComplex v[2]) {
+	cuComplex res[2] = {
+		0.5*(v[0] - v[1]),
+		0.5*(v[0] + v[1])
+	};
+
+	v[0] = res[0];
+	v[1] = res[1];
+}
+
+__global__ void kernel_wf_prop_ang_l(cuComplex* wf, cuComplex dt, const cuComplex eigenval0, const cuComplex eigenval1, int m, int l, int l1, double E, double dr, int Nr, int Nl) {
 	int ir = blockIdx.x*blockDim.x + threadIdx.x;
-	int l  = blockIdx.y*blockDim.y + threadIdx.y;
 
-	if (ir < Nr && l < Nl) {
-		wf[ir + l*Nr] *= exp(-uabs[ir]*dt);
+	cuComplex* psi_l0 = &wf[Nr*l];
+	cuComplex* psi_l1 = &wf[Nr*(l+l1)];
+
+	cuComplex i = cuComplex(0.0, 1.0);
+
+	if (ir < Nr) {
+		double const r = dr*(ir+1);
+		double const U = r*E*clm(l, m);
+
+		cuComplex x[2] = {psi_l0[ir], psi_l1[ir]};
+
+		cu_wf_dot(x);
+		x[0] *= exp(i*U*dt*eigenval0);
+		x[1] *= exp(i*U*dt*eigenval1);
+		cu_wf_dot_T(x);
+
+		psi_l0[ir] = x[0];
+		psi_l1[ir] = x[1];
 	}
 }
 
-void workspace::WfGPUBase::prop_abs(ShWavefuncGPU& wf, double dt) {
-	assert(wf.grid->n[iR] == grid->n[iR]);
-	assert(wf.grid->n[iL] <= grid->n[iL]);
+void workspace::WfGpu::prop(ShWavefuncGPU& wf, field_t const& field, double t, double dt) {
+	double E = field_E(&field, t + dt/2);
 
-	dim3 blockDim(1,1);
-	dim3 gridDim(wf.grid->n[iR], wf.grid->n[iL]);
+	dim3 gridDim(div_up(grid.n[iR], threadsPerBlock));
 
-    kernel_prop_abs<<<gridDim, blockDim>>>((cuComplex*)wf.data, uabs_data, dt, wf.grid->n[iR], wf.grid->n[iL]);
+	const int l_max = 2;
+	const int Nl = grid.n[iL];
+
+	cdouble eigenval0 = {-1.0, 0.0};
+	cdouble eigenval1 = {1.0, 0.0};
+
+	for (int l1 = 1; l1 < l_max; ++l1) {
+		for (int il = 0; il < Nl - l1; ++il) {
+			kernel_wf_prop_ang_l<<<gridDim, threadsPerBlock>>>((cuComplex*) wf.data, 0.5*dt, eigenval0, eigenval1, wf.m, il, l1, E, grid.d[iR], grid.n[iR], Nl);
+		}
+	}
+
+	prop_at(wf, dt);
+
+	for (int l1 = l_max-1; l1 > 0; --l1) {
+		for (int il = Nl - 1 - l1; il >= 0; --il) {
+			kernel_wf_prop_ang_l<<<gridDim, threadsPerBlock>>>((cuComplex*) wf.data, 0.5*dt, eigenval0, eigenval1, wf.m, il, l1, E, grid.d[iR], grid.n[iR], Nl);
+		}
+	}
+
+	prop_abs(wf, dt);
 }
-
-/*void workspace::WfGPUBase::prop(ShWavefuncGPU& wf, field_t const* field, double t, double dt) {*/
-	/*double Et = field_E(field, t + dt/2);*/
-
-	/*sh_f Ul[2] = {*/
-            /*[this](ShGrid const* grid, int ir, int l, int m) -> double {*/
-				/*double const r = grid->r(ir);*/
-                /*return l*(l+1)/(2*r*r) + atom_cache->u(ir);*/
-			/*},*/
-            /*[Et](ShGrid const* grid, int ir, int l, int m) -> double {*/
-				/*double const r = grid->r(ir);*/
-				/*return r*Et*clm(l,m);*/
-			/*}*/
-	/*};*/
-
-
-    /*prop_common(wf, dt, 2, Ul);*/
-
-	/*prop_abs(wf, dt);*/
-/*}*/
-
-/*void workspace::WfGPUE::prop(ShWavefuncGPU& wf, field_t const* field, double t, double dt) {*/
-	/*double Et = field_E(field, t + dt/2);*/
-
-	/*sh_f Ul[2] = {*/
-            /*[this](ShGrid const* grid, int ir, int l, int m) -> double {*/
-				/*double const r = grid->r(ir);*/
-                /*return l*(l+1)/(2*r*r) + atom_cache->u(ir);*/
-			/*},*/
-            /*[Et](ShGrid const* grid, int ir, int l, int m) -> double {*/
-				/*double const r = grid->r(ir);*/
-				/*return r*Et*clm(l,m);*/
-			/*}*/
-	/*};*/
-
-
-    /*prop_common(wf, dt, 2, Ul);*/
-
-	/*prop_abs(wf, dt);*/
-/*}*/
-
-/*void workspace::WfGPUBase::prop_without_field(ShWavefuncGPU &wf, double dt) {*/
-    /*sh_f Ul[1] = {*/
-            /*[this](ShGrid const* grid, int ir, int l, int m) -> double {*/
-                /*double const r = grid->r(ir);*/
-                /*return l*(l+1)/(2*r*r) + atom_cache->u(ir);*/
-            /*},*/
-    /*};*/
-
-    /*prop_common(wf, dt, 1, Ul);*/
-	/*prop_abs(wf, dt);*/
-/*}*/
-
-/*void workspace::WfGPUBase::prop_img(ShWavefuncGPU& wf, double dt) {*/
-	/*sh_f Ul[1] = {*/
-        /*[this](ShGrid const* grid, int ir, int l, int m) -> double {*/
-			/*double const r = grid->r(ir);*/
-            /*return l*(l+1)/(2*r*r) + atom_cache->u(ir);*/
-		/*}*/
-	/*};*/
-
-    /*prop_common(wf, -I*dt, 1, Ul);*/
-/*}*/
