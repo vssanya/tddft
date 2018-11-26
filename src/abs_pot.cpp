@@ -27,6 +27,14 @@ void UabsMultiHump::init(double l_min, double l_max) {
     }
 }
 
+double UabsMultiHump::getHumpAmplitude(int i) const {
+	return a[i];
+}
+
+void UabsMultiHump::setHumpAmplitude(int i, double value) {
+	a[i] = value;
+}
+
 double UabsMultiHump::u(const ShGrid& grid, double r) const {
     double const r_max = grid.Rmax();
 

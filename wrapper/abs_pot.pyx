@@ -77,8 +77,17 @@ cdef class UabsMultiHump(Uabs):
     def l(self, int i):
         return (<cUabsMultiHump*>self.cdata).l[i]
 
-    def a(self, int i):
+    def getHumpAmplitude(self, int i):
         return (<cUabsMultiHump*>self.cdata).a[i]
+
+    def setHumpAmplitude(self, int i, double value):
+        (<cUabsMultiHump*>self.cdata).a[i] = value
+
+    def getHumpLength(self, int i):
+        return (<cUabsMultiHump*>self.cdata).l[i]
+
+    def setHumpLength(self, int i, double value):
+        (<cUabsMultiHump*>self.cdata).l[i] = value
 
 cdef class UabsZero(Uabs):
     def __cinit__(self):

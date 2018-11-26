@@ -21,6 +21,9 @@ cdef extern from "abs_pot.h":
         cUabsMultiHump(double l_min, double l_max, vector[cHump])
         cUabsMultiHump(double l_min, double l_max, int n)
 
+        double getHumpAmplitude(int i)
+        void setHumpAmplitude(int i, double value)
+
         vector[double] l
         vector[double] a
 

@@ -9,10 +9,14 @@ from workspace cimport SKnWorkspace, SOrbsWorkspace
 from field cimport Field
 from atom cimport AtomCache
 
+from calc_gpu cimport calc_wf_gpu_az
+from wavefunc_gpu cimport ShWavefuncGPU
+
 
 ctypedef fused WF:
     Orbitals
     ShWavefunc
+    ShWavefuncGPU
 
 ctypedef fused WS:
     SKnWorkspace
@@ -21,14 +25,20 @@ ctypedef fused WS:
 def ionization_prob(WF wf):
     if WF is Orbitals:
         return calc_orbs_ionization_prob(wf.cdata)
-    else:
+    elif WF is ShWavefunc:
         return calc_wf_ionization_prob(wf.cdata)
+    else:
+        assert(False)
 
 def az(WF wf, AtomCache atom, Field field, double t):
     if WF is Orbitals:
         return calc_orbs_az(wf.cdata, atom.cdata[0], field.cdata, t)
-    else:
+    elif WF is ShWavefuncGPU:
+        return calc_wf_gpu_az(wf.cdata[0], atom.cdata[0], field.cdata, t)
+    elif WF is ShWavefunc:
         return calc_wf_az(wf.cdata, atom.cdata[0], field.cdata, t)
+    else:
+        assert(False)
 
 def az_with_polarization(ShWavefunc wf, AtomCache atom, double[:] Upol, double[:] dUpol_dr, Field field, double t):
     return calc_wf_az_with_polarization(wf.cdata, atom.cdata[0], &Upol[0], &dUpol_dr[0], field.cdata, t)

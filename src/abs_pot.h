@@ -66,6 +66,9 @@ public:
     UabsMultiHump(double l_min, double l_max, int n);
     double u(ShGrid const& grid, double r) const;
 
+	double getHumpAmplitude(int i) const;
+	void setHumpAmplitude(int i, double value);
+
     std::vector<Hump> humps;
     std::vector<double> l;
     std::vector<double> a;
