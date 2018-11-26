@@ -14,9 +14,22 @@ class ShWavefuncGPU {
 
 		int m;         //!< is magnetic quantum number
 
+		double* d_res; //!< is device results
+		double* d_ur; //!< is device useful memory
+		double* ur; //!< is host useful memory
+
+		ShWavefuncGPU(ShWavefunc const& wf);
 		ShWavefuncGPU(cdouble* data, ShGrid const* grid, int const m);
 		ShWavefuncGPU(ShGrid const* grid, int const m): ShWavefuncGPU(nullptr, grid, m) {}
 		~ShWavefuncGPU();
+
+		ShWavefunc* get();
+
+		double cos_func(sh_f func) const;
+		double cos(double const* u) const;
+
+	private:
+		void init();
 };
 
 class ShWavefuncArrayGPU {

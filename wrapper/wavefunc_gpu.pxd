@@ -19,6 +19,20 @@ cdef extern from "sh_wavefunc_gpu.h":
 
         cShWavefunc* get(int i)
 
+    cdef cppclass cShWavefuncGPU "ShWavefuncGPU":
+        cShGrid* grid
+        cdouble* data
+        bint data_own
+
+        int m
+
+        cShWavefuncGPU(cdouble* data, cShGrid* grid, int m)
+        cShWavefuncGPU(cShWavefunc& wf)
+        cShWavefuncGPU(cShGrid* grid, int m)
+
+        cShWavefunc* get(int i)
+
+
 cdef class ShWavefuncArrayGPU:
     cdef cShWavefuncArrayGPU* cdata
     cdef bint dealloc
