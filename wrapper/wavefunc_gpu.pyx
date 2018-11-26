@@ -18,3 +18,18 @@ cdef class ShWavefuncArrayGPU:
     @property
     def N(self):
         return self.cdata.N
+
+
+cdef class ShWavefuncGPU:
+    def __cinit__(self, ShWavefunc wf):
+        self.grid = wf.grid
+        self.cdata = new cShWavefuncGPU(wf.cdata[0])
+
+    def __init__(self, ShWavefunc wf):
+        pass
+
+    def __dealloc__(self):
+        del self.cdata
+
+    def get(self):
+        return swavefunc_from_point(self.cdata.get(), self.grid, True)
