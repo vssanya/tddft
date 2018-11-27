@@ -49,12 +49,10 @@ ShWavefuncGPU::~ShWavefuncGPU() {
 	delete[] ur;
 }
 
-__global__ void kernel_wf_cos(cuComplex* wf_array, int m, double* u, double* res, int N, int Nr, int Nl, double dr) {
+__global__ void kernel_wf_cos(cuComplex* wf, int m, double* u, double* res, int N, int Nr, int Nl, double dr) {
 	int in = blockIdx.x*blockDim.x + threadIdx.x;
 
 	double sum = 0.0;
-
-	cuComplex* wf = &wf_array[Nr*Nl*in];
 
 	for (int il = 0; il < Nl-1; ++il) {
 		for (int ir = in; ir < Nr; ir+=N) {
