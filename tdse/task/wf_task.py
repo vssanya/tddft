@@ -273,6 +273,24 @@ class AzWfData(TimeShapeMixin, CalcData):
     def calc(self, task, i, t):
         self.dset[i] = tdse.calc.az(task.wf, task.atom_cache, task.field, t)
 
+class AzPolarizationWfData(TimeShapeMixin, CalcData):
+    NAME = "az_pol"
+
+    def calc_init(self, task, file):
+        super().calc_init(task, file)
+
+        self.u = task.orb_polarization_task.upol_1
+        self.dudr = np.zeros(self.u.size)
+
+        dr = task.sh_grid.dr
+        self.dudr[0] = (self.u[1] - self.u[0])/dr
+        self.dudr[-1] = (self.u[-1] - self.u[-2])/dr
+        for i in range(1, self.dudr.size-1):
+            self.dudr[i] = (self.u[i+1] - self.u[i-1])/(2*dr)
+
+    def calc(self, task, i, t):
+        self.dset[i] = tdse.calc.az_with_polarization(task.wf, task.atom_cache, self.u, self.dudr, task.field, t)
+
 class NormWfData(TimeShapeMixin, CalcDataWithMask):
     NAME = "n"
 
