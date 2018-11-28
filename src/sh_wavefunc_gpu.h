@@ -26,7 +26,9 @@ class ShWavefuncGPU {
 		ShWavefunc* get();
 
 		double cos_func(sh_f func) const;
-		double cos(double const* u) const;
+
+		// d_u - data allocated in device
+		double cos(double const* d_u) const;
 
 	private:
 		void init();

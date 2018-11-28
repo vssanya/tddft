@@ -49,7 +49,7 @@ ShWavefuncGPU::~ShWavefuncGPU() {
 	delete[] ur;
 }
 
-__global__ void kernel_wf_cos(cuComplex* wf, int m, double* u, double* res, int N, int Nr, int Nl, double dr) {
+__global__ void kernel_wf_cos(cuComplex const* wf, int m, double const* u, double* tmp, double* res, int N, int Nr, int Nl, double dr) {
 	int in = blockIdx.x*blockDim.x + threadIdx.x;
 
 	double sum = 0.0;
@@ -60,12 +60,12 @@ __global__ void kernel_wf_cos(cuComplex* wf, int m, double* u, double* res, int 
 		}
 	}
 
-	u[in] = sum;
+	tmp[in] = sum;
 
 	if (in == 0) {
 		sum = 0.0;
 		for (int i = 0; i < N; i++) {
-			sum += u[i];
+			sum += tmp[i];
 		}
 
 		res[0] = 2*sum*dr;
@@ -78,17 +78,17 @@ double ShWavefuncGPU::cos_func(sh_f func) const {
 		ur[ir] = func(grid, ir, 0, m);
 	}
 
+	cudaMemcpy(d_ur, ur, sizeof(double)*grid->n[iR], cudaMemcpyHostToDevice);
+
 	return this->cos(ur);
 }
 
-double ShWavefuncGPU::cos(double const* u) const {
+double ShWavefuncGPU::cos(double const* d_u) const {
 	double res;
 
-	cudaMemcpy(d_ur, u, sizeof(double)*grid->n[iR], cudaMemcpyHostToDevice);
+	int N = 1024*2;
 
-	int N = 1024;
-
-	kernel_wf_cos<<<N/32, 32>>>((cuComplex*)data, m, d_ur, d_res, N, grid->n[iR], grid->n[iL], grid->d[iR]);
+	kernel_wf_cos<<<N/8, 8>>>((cuComplex*)data, m, d_u, d_ur, d_res, N, grid->n[iR], grid->n[iL], grid->d[iR]);
 
 	cudaMemcpy(&res, d_res, sizeof(double), cudaMemcpyDeviceToHost);
 
@@ -165,19 +165,19 @@ double* ShWavefuncArrayGPU::cos_func(sh_f func, double* res) const {
 		ur[ir] = func(grid, ir, 0, m);
 	}
 
-	return this->cos(ur, res);
+	cudaMemcpy(d_ur, ur, sizeof(double)*grid->n[iR], cudaMemcpyHostToDevice);
+
+	return this->cos(d_ur, res);
 }
 
-double* ShWavefuncArrayGPU::cos(double const* u, double* res) const {
+double* ShWavefuncArrayGPU::cos(double const* d_u, double* res) const {
 	if (res == nullptr) {
 		res = new double[N];
 	}
 
-	cudaMemcpy(d_ur, u, sizeof(double)*grid->n[iR], cudaMemcpyHostToDevice);
-
 	dim3 blockDim(1);
 	dim3 gridDim(N);
-	kernel_wf_array_cos<<<gridDim, blockDim>>>((cuComplex*)data, m, d_ur, d_res, N, grid->n[iR], grid->n[iL], grid->d[iR]);
+	kernel_wf_array_cos<<<gridDim, blockDim>>>((cuComplex*)data, m, d_u, d_res, N, grid->n[iR], grid->n[iL], grid->d[iR]);
 
 	cudaMemcpy(res, d_res, N*sizeof(double), cudaMemcpyDeviceToHost);
 

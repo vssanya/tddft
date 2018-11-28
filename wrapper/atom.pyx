@@ -95,7 +95,6 @@ cdef class Atom:
         return obj
 
     def __dealloc__(self):
-        print("Free atom")
         del self.cdata
 
     @property

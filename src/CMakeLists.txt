@@ -79,7 +79,7 @@ set( LIB_HEADERS
 	)
 
 add_library( tdse SHARED ${LIB_SOURCES} ${LIB_HEADERS} )
-target_link_libraries( tdse m gsl gslcblas lapacke)
+target_link_libraries( tdse m lapacke ${GSL_LIBRARIES} ${CUDA_LIBRARIES})
 
 if (CUDA_FOUND)
 	cuda_add_library( tdse_gpu SHARED ${LIB_GPU_SOURCES} ${LIB_GPU_HEADERS})

@@ -7,6 +7,7 @@
 
 #include <vector>
 
+
 class Atom {
 	public:
 		enum PotentialType {
@@ -118,57 +119,26 @@ class Atom {
 
 class AtomCache {
 	public:
-        AtomCache(Atom const& atom, ShGrid const* grid, double* u): atom(atom), grid(grid) {
-            const int Nr = grid->n[iR];
-            data_u = new double[Nr];
-            data_dudz = new double[Nr];
-
-            if (u == nullptr) {
-#pragma omp parallel for
-                for (int ir=0; ir<Nr; ir++) {
-                    double r = grid->r(ir);
-                    data_u[ir] = atom.u(r);
-                    data_dudz[ir] = atom.dudz(r);
-                }
-            } else {
-                for (int ir=0; ir<Nr; ir++) {
-                    data_u[ir] = u[ir] + atom.u(grid->r(ir));
-                }
-
-                { int ir = 0;
-                    data_dudz[ir] = atom.dudz(grid->r(ir));
-                }
-
-                for (int ir=1; ir<Nr-1; ir++) {
-                    data_dudz[ir] = (u[ir+1] - u[ir-1])/(2*grid->d[iR]) + atom.dudz(grid->r(ir));
-                }
-
-                { int ir = Nr-1;
-                    data_dudz[ir] = atom.dudz(grid->r(ir)) / atom.Z;
-                }
-            }
-        }
-
+        AtomCache(Atom const& atom, ShGrid const* grid, double* u);
         AtomCache(Atom const& atom, ShGrid const* grid): AtomCache(atom, grid, nullptr) {}
+		~AtomCache();
 
-        ~AtomCache() {
-            delete[] data_u;
-            delete[] data_dudz;
-        }
+        double u(int ir) const { return data_u[ir]; }
+        double dudz(int ir) const { return data_dudz[ir]; }
 
-        double u(int ir) const {
-            return data_u[ir];
-		}
-
-        double dudz(int ir) const {
-            return data_dudz[ir];
-		}
+		double* getGPUDataU();
+		double* getGPUDatadUdz();
 
         Atom const& atom;
         ShGrid const* grid;
 
 		double* data_u;
 		double* data_dudz;
+
+
+	private:
+		double* gpu_data_u;
+		double* gpu_data_dudz;
 };
 
 class AtomCoulomb: public Atom {

@@ -55,7 +55,7 @@ class OrbitalsPropagate:
 
     def time_hartree_potential_l0(self):
         tdse.hartree_potential.potential(self.orbs, 0, self.uh)
-    
+
     def time_hartree_potential_l1(self):
         tdse.hartree_potential.potential(self.orbs, 1, self.uh)
 
@@ -109,8 +109,8 @@ class Wf:
     # def time_z(self):
         # self.wf.z()
 
-    # def time_az(self):
-        # tdse.calc.az(self.wf, self.atom, self.field, 0.0)
+    def time_calc_az(self):
+        tdse.calc.az(self.wf, self.atom, self.field, 0.0)
 
     # def time_n_sp(self):
         # self.wf.n_sp(self.sp_grid, self.ylm_cache, self.n)
@@ -151,3 +151,6 @@ class WfGPU:
 
     def time_copy_wf(self):
         wf = self.wf_device.get()
+
+    def time_calc_az(self):
+        tdse.calc.az(self.wf_device, self.atom, self.field, 0)

@@ -3,6 +3,8 @@
 
 #include <array>
 
+#include <cuda_runtime.h>
+
 
 const std::vector<Atom::State> HAtom::GroundStateOrbs = {
 	State("1s")
@@ -94,4 +96,74 @@ void atom_hydrogen_ground(ShWavefunc* wf) {
 			(*wf)(ir, il) = 0.0;
 		}
 	}
+}
+
+
+AtomCache::AtomCache(Atom const& atom, ShGrid const* grid, double* u): 
+	atom(atom),
+	grid(grid),
+	gpu_data_u(nullptr),
+	gpu_data_dudz(nullptr)
+{
+	const int Nr = grid->n[iR];
+	data_u = new double[Nr];
+	data_dudz = new double[Nr];
+
+	if (u == nullptr) {
+#pragma omp parallel for
+		for (int ir=0; ir<Nr; ir++) {
+			double r = grid->r(ir);
+			data_u[ir] = atom.u(r);
+			data_dudz[ir] = atom.dudz(r);
+		}
+	} else {
+		for (int ir=0; ir<Nr; ir++) {
+			data_u[ir] = u[ir] + atom.u(grid->r(ir));
+		}
+
+		{ int ir = 0;
+			data_dudz[ir] = atom.dudz(grid->r(ir));
+		}
+
+		for (int ir=1; ir<Nr-1; ir++) {
+			data_dudz[ir] = (u[ir+1] - u[ir-1])/(2*grid->d[iR]) + atom.dudz(grid->r(ir));
+		}
+
+		{ int ir = Nr-1;
+			data_dudz[ir] = atom.dudz(grid->r(ir)) / atom.Z;
+		}
+	}
+}
+
+AtomCache::~AtomCache() {
+	delete[] data_u;
+	delete[] data_dudz;
+
+	if (gpu_data_u != nullptr) {
+		cudaFree(gpu_data_u);
+	}
+
+	if (gpu_data_dudz != nullptr) {
+		cudaFree(gpu_data_dudz);
+	}
+}
+
+double* AtomCache::getGPUDataU() {
+	if (gpu_data_u == nullptr) {
+		auto size = sizeof(double)*grid->n[iR];
+		cudaMalloc(&gpu_data_u, size);
+		cudaMemcpy(gpu_data_u, data_u, size, cudaMemcpyHostToDevice);
+	}
+
+	return gpu_data_u;
+}
+
+double* AtomCache::getGPUDatadUdz() {
+	if (gpu_data_dudz == nullptr) {
+		auto size = sizeof(double)*grid->n[iR];
+		cudaMalloc(&gpu_data_dudz, size);
+		cudaMemcpy(gpu_data_dudz, data_dudz, size, cudaMemcpyHostToDevice);
+	}
+
+	return gpu_data_dudz;
 }
