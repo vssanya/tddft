@@ -86,6 +86,9 @@ cdef class SKnWorkspace:
     def prop(self, ShWavefunc wf, Field field, double t, double dt):
         self.cdata.prop(wf.cdata[0], field.cdata, t, dt)
 
+    def prop_abs(self, ShWavefunc wf, double dt):
+        self.cdata.prop_abs(wf.cdata[0], dt)
+
     def prop_without_field(self, ShWavefunc wf, double dt):
         self.cdata.prop_without_field(wf.cdata[0], dt)
 

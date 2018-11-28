@@ -32,17 +32,18 @@ workspace::WfGpu::~WfGpu() {
 }
 
 __global__ void kernel_wf_prop_abs(cuComplex* wf, double* uabs, double dt, int Nr, int Nl) {
-	int il = blockIdx.x*blockDim.x + threadIdx.x;
+	int ir = blockIdx.x*blockDim.x + threadIdx.x;
 
-	if (il < Nl) {
-		for (int ir=0; ir<Nr; ir++) {
-			wf[ir + il*Nr] *= exp(-uabs[ir]*dt);
+	if (ir < Nr) {
+		double u = exp(-uabs[ir]*dt);
+		for (int il=0; il<Nl; il++) {
+			wf[ir + il*Nr] *= u;
 		}
 	}
 }
 
 void workspace::WfGpu::prop_abs(ShWavefuncGPU& wf, double dt) {
-	kernel_wf_prop_abs<<<grid.size()/threadsPerBlock, threadsPerBlock>>>((cuComplex*)wf.data, d_uabs, dt, grid.n[iR], grid.n[iL]);
+	kernel_wf_prop_abs<<<div_up(grid.n[iR], threadsPerBlock), threadsPerBlock>>>((cuComplex*)wf.data, d_uabs, dt, grid.n[iR], grid.n[iL]);
 }
 
 // potentialType = 1 (POTENTIAL_COULOMB)

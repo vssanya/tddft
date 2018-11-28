@@ -45,6 +45,8 @@ class OrbitalsPropagate:
 
         self.atom = tdse.atom.Ar
         self.orbs = tdse.orbitals.Orbitals(self.atom, self.grid)
+        N = self.atom.countOrbs
+        self.orbs.asarray()[:] = np.random.random((N, Nl, Nr)) + 1j*np.random.random((N, Nl, Nr))
         self.orbs.init()
         self.uh = np.ndarray(Nr)
         self.uabs = tdse.abs_pot.UabsCache(tdse.abs_pot.UabsMultiHump(0.1, 10), self.grid)
@@ -76,14 +78,14 @@ class OrbitalsPropagate:
         self.ws.calc_uee(self.orbs)
 
 
-class WavefuncPropagate:
+class Wf:
     timer = time.time
 
     def setup(self):
         dr = 0.02
         r_max = 200
         Nr = int(r_max/dr)
-        Nl = 512
+        Nl = 512*2
 
         self.grid = tdse.grid.ShGrid(Nr, Nl, r_max)
         # self.sp_grid = tdse.grid.SpGrid(Nr, 32, 1, r_max)
@@ -91,12 +93,18 @@ class WavefuncPropagate:
         self.atom = tdse.atom.H
         # self.n = np.ndarray((Nr, 32))
         self.wf = tdse.wavefunc.ShWavefunc(self.grid)
+        self.wf.asarray()[:] = np.random.random((Nl, Nr)) + 1j*np.random.random((Nl, Nr))
         self.uabs = tdse.abs_pot.UabsMultiHump(0.1, 10)
         self.ws = tdse.workspace.SKnWorkspace(tdse.atom.AtomCache(self.atom, self.grid), self.grid, tdse.abs_pot.UabsCache(self.uabs, self.grid))
         self.field = tdse.field.TwoColorSinField()
 
-    def time_propagate(self):
-        self.ws.prop(self.wf, self.field, 0.0, 0.1)
+    def time_prop(self):
+        for i in range(10):
+            self.ws.prop(self.wf, self.field, 0.0, 0.1)
+
+    def time_prop_abs(self):
+        for i in range(100):
+            self.ws.prop_abs(self.wf, 0.1)
 
     # def time_z(self):
         # self.wf.z()
@@ -109,3 +117,37 @@ class WavefuncPropagate:
 
     # def time_norm(self):
         # self.wf.norm()
+
+class WfGPU:
+    timer = time.time
+
+    def setup(self):
+        dr = 0.02
+        r_max = 200
+        Nr = int(r_max/dr)
+        Nl = 512*2
+
+        self.grid = tdse.grid.ShGrid(Nr, Nl, r_max)
+        self.atom = tdse.atom.H
+
+        self.wf = tdse.wavefunc.ShWavefunc(self.grid)
+        self.wf.asarray()[:] = np.random.random((Nl, Nr)) + 1j*np.random.random((Nl, Nr))
+
+        self.wf_device = tdse.wavefunc_gpu.ShWavefuncGPU(self.wf)
+
+        self.uabs = tdse.abs_pot.UabsMultiHump(0.1, 10)
+        self.ws = tdse.workspace_gpu.WfGPUWorkspace(tdse.atom.AtomCache(self.atom, self.grid), self.grid, tdse.abs_pot.UabsCache(self.uabs, self.grid), threadsPerBlock=8)
+        self.field = tdse.field.TwoColorSinField()
+
+    def time_prop(self):
+        for i in range(10):
+            self.ws.prop(self.wf_device, self.field, 0.0, 0.1)
+        wf = self.wf_device.get()
+
+    def time_prop_abs(self):
+        for i in range(100):
+            self.ws.prop_abs(self.wf_device, 0.1)
+        wf = self.wf_device.get()
+
+    def time_copy_wf(self):
+        wf = self.wf_device.get()
