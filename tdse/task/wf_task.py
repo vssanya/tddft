@@ -410,6 +410,20 @@ class WavefuncTask(TaskAtom):
     def calc_prop(self, i, t):
         self.ws.prop(self.wf, self.field, t, self.dt)
 
+class WfGpuTask(WavefuncTask):
+    gpuGridNl = 1024
+    threadsPerBlock = 8
+
+    def create_workspace(self):
+        return tdse.workspace_gpu.WfGPUWorkspace(self.atom_cache, self.sh_grid, self.uabs_cache,
+                                                 self.gpuGridNl, self.threadsPerBlock)
+
+    def calc_ground_state(self, ws=None):
+        ws = super().create_workspace()
+        self.wf_gs = tdse.ground_state.wf(self.atom, self.sh_grid, ws, self.dt, 10000)[0]
+
+        return tdse.wavefunc_gpu.ShWavefuncGPU(self.wf_gs)
+
 class WavefuncWithPolarization(WavefuncTask):
     orb_polarization_task = None
 
