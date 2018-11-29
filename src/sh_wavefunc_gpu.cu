@@ -4,6 +4,7 @@
 
 #include <cuda_runtime.h>
 
+
 void ShWavefuncGPU::init() {
     if (data == nullptr) {
         cudaMalloc(&data, sizeof(cdouble)*grid->size());
@@ -49,26 +50,30 @@ ShWavefuncGPU::~ShWavefuncGPU() {
 	delete[] ur;
 }
 
-__global__ void kernel_wf_cos(cuComplex const* wf, int m, double const* u, double* tmp, double* res, int N, int Nr, int Nl, double dr) {
-	int in = blockIdx.x*blockDim.x + threadIdx.x;
+#include <cub/block/block_load.cuh>
+#include <cub/block/block_store.cuh>
+#include <cub/block/block_reduce.cuh>
+using namespace cub;
 
-	double sum = 0.0;
+template<int BLOCK_THREADS>
+__global__ void kernel_wf_cos(cuComplex const* wf, int m, double const* u, double* res, int Nr, int Nl, double dr) {
+	typedef BlockReduce<double, BLOCK_THREADS> BlockReduceT;
+	__shared__ typename BlockReduceT::TempStorage temp_storage;
+
+	int in = threadIdx.x;
+
+	double data = 0.0;
 
 	for (int il = 0; il < Nl-1; ++il) {
-		for (int ir = in; ir < Nr; ir+=N) {
-			sum += u[ir]*clm(il, m)*real(wf[ir + il*Nr]*conj(wf[ir + (il+1)*Nr]));
+		for (int ir = in; ir < Nr; ir+=BLOCK_THREADS) {
+			data += u[ir]*clm(il, m)*real(wf[ir + il*Nr]*conj(wf[ir + (il+1)*Nr]));
 		}
 	}
 
-	tmp[in] = sum;
+	double aggregate = BlockReduceT(temp_storage).Sum(data);
 
-	if (in == 0) {
-		sum = 0.0;
-		for (int i = 0; i < N; i++) {
-			sum += tmp[i];
-		}
-
-		res[0] = 2*sum*dr;
+	if (threadIdx.x == 0) {
+		*res = aggregate;
 	}
 }
 
@@ -86,9 +91,8 @@ double ShWavefuncGPU::cos_func(sh_f func) const {
 double ShWavefuncGPU::cos(double const* d_u) const {
 	double res;
 
-	int N = 1024*2;
-
-	kernel_wf_cos<<<N/8, 8>>>((cuComplex*)data, m, d_u, d_ur, d_res, N, grid->n[iR], grid->n[iL], grid->d[iR]);
+	const int BLOCK_THREADS = 1024;
+	kernel_wf_cos<BLOCK_THREADS><<<1, BLOCK_THREADS>>>((cuComplex*)data, m, d_u, d_res, grid->n[iR], grid->n[iL], grid->d[iR]);
 
 	cudaMemcpy(&res, d_res, sizeof(double), cudaMemcpyDeviceToHost);
 

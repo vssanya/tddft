@@ -6,6 +6,6 @@ let g:neomake_mymake_maker = {
 let g:neomake_verbose=3
 let g:neomake_logfile='/tmp/neomake.log'
 
-nnoremap ,r :Neomake! make<CR>
+nnoremap ,r :Neomake! mymake<CR>
 
 let g:ycm_python_binary_path = 'python'

@@ -1,4 +1,5 @@
 project(tdse)
+include(ExternalProject)
 
 cmake_minimum_required(VERSION 2.8)
 
@@ -22,7 +23,16 @@ if (MPI_FOUND)
 	add_definitions(-D_MPI)
 endif()
 
-set(CMAKE_EXPORT_COMPILE_COMMANDS 1)
+ExternalProject_Add(CUB
+	GIT_REPOSITORY https://github.com/NVlabs/cub.git
+	GIT_TAG v1.8.0
+	CONFIGURE_COMMAND ""
+	BUILD_COMMAND ""
+	INSTALL_COMMAND ""
+)
+
+ExternalProject_Get_property(CUB SOURCE_DIR)
+include_directories("${SOURCE_DIR}")
 
 find_package(GSL)
 
