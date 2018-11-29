@@ -73,7 +73,7 @@ __global__ void kernel_wf_cos(cuComplex const* wf, int m, double const* u, doubl
 	double aggregate = BlockReduceT(temp_storage).Sum(data);
 
 	if (threadIdx.x == 0) {
-		*res = aggregate;
+		*res = 2*dr*aggregate;
 	}
 }
 
