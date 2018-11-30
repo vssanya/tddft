@@ -65,10 +65,10 @@ cdef class UabsCache:
         self.uabs.write_params(subgrp)
 
 cdef class UabsMultiHump(Uabs):
-    def __cinit__(self, double l_min, double l_max, int n = 2):
-        self.cdata = <cUabs*> new cUabsMultiHump(l_min, l_max, n)
+    def __cinit__(self, double l_min, double l_max, int n = 2, double shift = 0.0):
+        self.cdata = <cUabs*> new cUabsMultiHump(l_min, l_max, n, shift)
 
-    def __init__(self, double l_min, double l_max, int n = 2):
+    def __init__(self, double l_min, double l_max, int n = 2, double shift = 0.0):
         pass
 
     def write_params(self, params_grp):

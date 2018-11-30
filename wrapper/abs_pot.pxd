@@ -18,8 +18,8 @@ cdef extern from "abs_pot.h":
     cdef cHump PTHump
 
     cdef cppclass cUabsMultiHump "UabsMultiHump":
-        cUabsMultiHump(double l_min, double l_max, vector[cHump])
-        cUabsMultiHump(double l_min, double l_max, int n)
+        cUabsMultiHump(double l_min, double l_max, vector[cHump], double shift)
+        cUabsMultiHump(double l_min, double l_max, int n, double shift)
 
         double getHumpAmplitude(int i)
         void setHumpAmplitude(int i, double value)

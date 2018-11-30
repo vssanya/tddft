@@ -4,27 +4,33 @@
 #include <math.h>
 
 
-UabsMultiHump::UabsMultiHump(double l_min, double l_max, std::vector<Hump> humps):
-    humps(humps), l(humps.size()), a(humps.size()) {
-    init(l_min, l_max);
+UabsMultiHump::UabsMultiHump(double l_min, double l_max, std::vector<Hump> humps, double shift):
+    humps(humps), l(humps.size()), a(humps.size()), shifts(humps.size()) {
+    init(l_min, l_max, shift);
 }
 
-UabsMultiHump::UabsMultiHump(double l_min, double l_max, int n): humps(n), l(n), a(n) {
+UabsMultiHump::UabsMultiHump(double l_min, double l_max, int n, double shift): humps(n), l(n), a(n), shifts(n) {
 	humps[0] = CosHump;
 
     for (int i=1; i<n; i++) {
         humps[i] = PTHump;
     }
 
-    init(l_min, l_max);
+    init(l_min, l_max, shift);
 }
 
-void UabsMultiHump::init(double l_min, double l_max) {
+void UabsMultiHump::init(double l_min, double l_max, double shift) {
     const int N = humps.size();
     for (int i = 0; i < N; ++i) {
         l[i] = l_max*pow(l_min/l_max, i/(double)(N-1));
         a[i] = humps[i].a_opt(l[i]);
     }
+
+	shifts[N-1] = 0.0;
+
+	for (int i = N-2; i >= 0; --i) {
+		shifts[i] = shifts[i+1] + l[i+1]*shift;
+	}
 }
 
 double UabsMultiHump::getHumpAmplitude(int i) const {
@@ -40,7 +46,7 @@ double UabsMultiHump::u(const ShGrid& grid, double r) const {
 
 	double result = 0.0;
     for (int i = 0; i < humps.size(); ++i) {
-        result += a[i]*humps[i].u((r - r_max + l[i]) / l[i]);
+        result += a[i]*humps[i].u((r - r_max + l[i] + shifts[i]) / l[i]);
 	}
 
 	return result;

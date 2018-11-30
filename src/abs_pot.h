@@ -60,10 +60,10 @@ const Hump PTHump([](double x) {
 
 class UabsMultiHump: public Uabs {
 private:
-    void init(double l_min, double l_max);
+    void init(double l_min, double l_max, double shift);
 public:
-    UabsMultiHump(double l_min, double l_max, std::vector<Hump> humps);
-    UabsMultiHump(double l_min, double l_max, int n);
+    UabsMultiHump(double l_min, double l_max, std::vector<Hump> humps, double shift = 0.0);
+    UabsMultiHump(double l_min, double l_max, int n, double shift = 0.0);
     double u(ShGrid const& grid, double r) const;
 
 	double getHumpAmplitude(int i) const;
@@ -72,6 +72,7 @@ public:
     std::vector<Hump> humps;
     std::vector<double> l;
     std::vector<double> a;
+    std::vector<double> shifts;
 };
 
 class UabsCache {
