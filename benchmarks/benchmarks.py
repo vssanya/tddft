@@ -91,11 +91,12 @@ class Wf:
         # self.sp_grid = tdse.grid.SpGrid(Nr, 32, 1, r_max)
         # self.ylm_cache = tdse.sphere_harmonics.YlmCache(Nl, self.sp_grid)
         self.atom = tdse.atom.H
+        self.atom_cache = tdse.atom.AtomCache(self.atom, self.grid)
         # self.n = np.ndarray((Nr, 32))
         self.wf = tdse.wavefunc.ShWavefunc(self.grid)
         self.wf.asarray()[:] = np.random.random((Nl, Nr)) + 1j*np.random.random((Nl, Nr))
         self.uabs = tdse.abs_pot.UabsMultiHump(0.1, 10)
-        self.ws = tdse.workspace.SKnWorkspace(tdse.atom.AtomCache(self.atom, self.grid), self.grid, tdse.abs_pot.UabsCache(self.uabs, self.grid))
+        self.ws = tdse.workspace.SKnWorkspace(self.atom_cache, self.grid, tdse.abs_pot.UabsCache(self.uabs, self.grid))
         self.field = tdse.field.TwoColorSinField()
 
     def time_prop(self):
@@ -110,7 +111,7 @@ class Wf:
         # self.wf.z()
 
     def time_calc_az(self):
-        tdse.calc.az(self.wf, self.atom, self.field, 0.0)
+        tdse.calc.az(self.wf, self.atom_cache, self.field, 0.0)
 
     # def time_n_sp(self):
         # self.wf.n_sp(self.sp_grid, self.ylm_cache, self.n)
@@ -129,6 +130,7 @@ class WfGPU:
 
         self.grid = tdse.grid.ShGrid(Nr, Nl, r_max)
         self.atom = tdse.atom.H
+        self.atom_cache = tdse.atom.AtomCache(self.atom, self.grid)
 
         self.wf = tdse.wavefunc.ShWavefunc(self.grid)
         self.wf.asarray()[:] = np.random.random((Nl, Nr)) + 1j*np.random.random((Nl, Nr))
@@ -136,7 +138,7 @@ class WfGPU:
         self.wf_device = tdse.wavefunc_gpu.ShWavefuncGPU(self.wf)
 
         self.uabs = tdse.abs_pot.UabsMultiHump(0.1, 10)
-        self.ws = tdse.workspace_gpu.WfGPUWorkspace(tdse.atom.AtomCache(self.atom, self.grid), self.grid, tdse.abs_pot.UabsCache(self.uabs, self.grid), threadsPerBlock=8)
+        self.ws = tdse.workspace_gpu.WfGPUWorkspace(self.atom_cache, self.grid, tdse.abs_pot.UabsCache(self.uabs, self.grid), threadsPerBlock=8)
         self.field = tdse.field.TwoColorSinField()
 
     def time_prop(self):
@@ -153,4 +155,4 @@ class WfGPU:
         wf = self.wf_device.get()
 
     def time_calc_az(self):
-        tdse.calc.az(self.wf_device, self.atom, self.field, 0)
+        tdse.calc.az(self.wf_device, self.atom_cache, self.field, 0)

@@ -83,6 +83,9 @@ cdef class UabsMultiHump(Uabs):
     def setHumpAmplitude(self, int i, double value):
         (<cUabsMultiHump*>self.cdata).a[i] = value
 
+    def multHumpAmplitude(self, int i, double value):
+        (<cUabsMultiHump*>self.cdata).a[i] *= value
+
     def getHumpLength(self, int i):
         return (<cUabsMultiHump*>self.cdata).l[i]
 
