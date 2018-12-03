@@ -74,3 +74,6 @@ def spectral_density(np.ndarray[double, ndim=1] az, double dt, np.ndarray[double
             mask[i] = 1 - smstep(i, mask.size*(1.0-mask_width), mask.size-1)
 
     return np.abs(numpy.fft.rfft(az*mask)*dt)**2
+
+def setGpuDevice(int id):
+    return selectGpuDevice(id)

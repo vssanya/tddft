@@ -1,13 +1,9 @@
-import tdse
-
-from .task import CalcData, TaskAtom, CalcDataWithMask, TimeShapeMixin
-
 import numpy as np
 import h5py
+import os
 
 import tdse
-
-from .task import CalcData, CalcDataWithMask, TaskAtom
+from .task import CalcData, TaskAtom, CalcDataWithMask, TimeShapeMixin
 
 
 class OrbShapeMixin(object):
@@ -413,6 +409,11 @@ class WavefuncTask(TaskAtom):
 class WfGpuTask(WavefuncTask):
     gpuGridNl = 1024
     threadsPerBlock = 8
+
+    def __init__(self, **kwargs):
+        tdse.calc.setGpuDevice(int(os.environ.get("CUDA_DEVICE", "1")))
+
+        super().__init__(**kwargs)
 
     def create_workspace(self):
         return tdse.workspace_gpu.WfGPUWorkspace(self.atom_cache, self.sh_grid, self.uabs_cache,

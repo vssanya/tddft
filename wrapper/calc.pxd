@@ -45,3 +45,4 @@ cdef extern from "calc.h":
 
 cdef extern from "utils.h":
     double smoothstep(double x, double x0, double x1)
+    void selectGpuDevice(int id)

@@ -25,3 +25,8 @@ double smoothpulse(double x, double dx_smooth, double dx_pulse) {
 	x = x < x_center ? x : 2*x_center - x;
 	return smoothstep(x, 0.0, dx_smooth);
 }
+
+#include <cuda_runtime.h>
+void selectGpuDevice(int id) {
+	cudaSetDevice(id);
+}
