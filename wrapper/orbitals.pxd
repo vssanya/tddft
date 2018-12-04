@@ -1,3 +1,6 @@
+cdef extern from "mpi-compat.h":
+    pass
+
 from types cimport cdouble, sh_f
 from grid cimport cShGrid, cSpGrid, ShGrid
 from atom cimport Atom, cAtom
@@ -9,7 +12,6 @@ from libcpp.functional cimport function
 
 from mpi4py.MPI cimport Comm
 from mpi4py.libmpi cimport MPI_Comm
-
 
 cdef extern from "orbitals.h":
     cdef cppclass cOrbitals "Orbitals":
