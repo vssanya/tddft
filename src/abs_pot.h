@@ -16,13 +16,15 @@ public:
     virtual ~Uabs() {}
 
     virtual double u(ShGrid const& grid, double r) const = 0;
-	virtual double getWidth() const;
+	virtual double getWidth() const = 0;
 
 	void calcAbs(int N, double const* l, double* res) const;
 };
 
 class UabsZero: public Uabs {
 public:
+	~UabsZero() {}
+
     double u(ShGrid const& grid, double r) const {
         return 0.0;
     }
@@ -67,6 +69,8 @@ class UabsMultiHump: public Uabs {
 private:
     void init(double l_min, double l_max, double shift);
 public:
+	~UabsMultiHump() {}
+
     UabsMultiHump(double l_min, double l_max, std::vector<Hump> humps, double shift = 0.0);
     UabsMultiHump(double l_min, double l_max, int n, double shift = 0.0);
     double u(ShGrid const& grid, double r) const;
