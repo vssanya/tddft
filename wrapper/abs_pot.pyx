@@ -1,6 +1,7 @@
 from grid cimport ShGrid
 
 import numpy as np
+cimport numpy as np
 
 import tdse.utils
 if tdse.utils.is_jupyter_notebook():
@@ -19,6 +20,16 @@ def test_pt_hump(double x):
 cdef class Uabs:
     def u(self, ShGrid grid, double r):
         return self.cdata.u(grid.data[0], r)
+
+    @property
+    def width(self):
+        return self.cdata.getWidth()
+
+    def calcAbs(self, double[::1] l):
+        cdef double[::1] res = np.ndarray(l.size)
+        self.cdata.calcAbs(l.size, &l[0], &res[0])
+        return res
+
 
 cdef class UabsCache:
     def __cinit__(self, Uabs uabs, ShGrid grid, double[::1] u = None):

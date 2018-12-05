@@ -7,6 +7,8 @@ cdef extern from "abs_pot.h":
 
     cdef cppclass cUabs "Uabs":
         double u(cShGrid& grid, double r)
+        double getWidth()
+        void calcAbs(int N, double* l, double* res)
 
     cdef cppclass cUabsZero "UabsZero":
         pass

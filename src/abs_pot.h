@@ -16,6 +16,9 @@ public:
     virtual ~Uabs() {}
 
     virtual double u(ShGrid const& grid, double r) const = 0;
+	virtual double getWidth() const;
+
+	void calcAbs(int N, double const* l, double* res) const;
 };
 
 class UabsZero: public Uabs {
@@ -23,6 +26,8 @@ public:
     double u(ShGrid const& grid, double r) const {
         return 0.0;
     }
+
+	double getWidth() const { return 0.0; }
 };
 
 class Hump {
@@ -68,6 +73,8 @@ public:
 
 	double getHumpAmplitude(int i) const;
 	void setHumpAmplitude(int i, double value);
+
+	double getWidth() const;
 
     std::vector<Hump> humps;
     std::vector<double> l;
