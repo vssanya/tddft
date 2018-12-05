@@ -105,12 +105,12 @@ void Uabs::calcAbs(int N, double const* l, double* res) const {
 	int n[2] = {1, 1};
 	auto grid = ShGrid(n, getWidth());
 	
-	auto Uabs = [this, dw, width, grid](const double x) -> double {
+	auto Uabs = [this, dw, width, grid](const double x) -> cdouble {
 		if (x < dw || x > width - dw) {
 			return  0.0;
 		}
 
-		return u(grid, width - dw - x);
+		return -I*u(grid, width - dw - x);
 	};
 
 	auto runge_kutta = [Uabs](const double x, cdouble& phi, cdouble& p, const double dx, const double k) {
