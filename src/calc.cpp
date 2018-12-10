@@ -27,11 +27,11 @@ double calc_wf_az_with_polarization(ShWavefunc const* wf, const AtomCache &atom_
 	return - E*(1 + wf->cos2(func_cos2) + wf->sin2(func_sin2)) - wf->cos(func_cos);
 }
 
-double calc_orbs_az(Orbitals const* orbs, const AtomCache &atom_cache, field_t const* field, double t) {
+double calc_orbs_az(Orbitals const& orbs, const AtomCache &atom_cache, field_t const* field, double t) {
     auto func = [&](ShGrid const* grid, int ir, int il, int m) -> double {
         return atom_cache.dudz(ir);
     };
-    return - field_E(field, t)*atom_cache.atom.countElectrons - orbs->cos(func);
+    return - field_E(field, t)*atom_cache.atom.countElectrons - orbs.cos(func);
 }
 
 void calc_orbs_az_ne(Orbitals const* orbs, const AtomCache& atom_cache, field_t const* field, double t, double* az) {
@@ -82,8 +82,8 @@ double calc_wf_jrcd(
 }
 
 double calc_orbs_jrcd(
-		workspace::orbs* ws,
-		Orbitals* orbs,
+		workspace::orbs& ws,
+		Orbitals& orbs,
         AtomCache const& atom_cache,
 		field_t const* field,
 		int Nt, 
@@ -96,7 +96,7 @@ double calc_orbs_jrcd(
 
 	for (int i = 0; i < Nt; ++i) {
         res += calc_orbs_az(orbs, atom_cache, field, t)*smoothstep(t_max - t, 0, t_smooth);
-        ws->prop(orbs, field, t, dt, true);
+        ws.prop(orbs, field, t, dt, true);
 		t += dt;
 	}
 

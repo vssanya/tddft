@@ -30,7 +30,7 @@ double calc_wf_az_with_polarization(
 );
 
 double calc_orbs_az(
-		Orbitals const* orbs,
+		Orbitals  const& orbs,
         AtomCache const& atom_cache,
 		field_t const* field,
 		double t
@@ -55,8 +55,8 @@ double calc_wf_jrcd(
 );
 
 double calc_orbs_jrcd(
-		workspace::orbs* ws,
-		Orbitals* orbs,
+		workspace::orbs& ws,
+		Orbitals& orbs,
         AtomCache const& atom,
 		field_t const* field,
 		int Nt, 

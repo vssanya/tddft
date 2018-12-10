@@ -23,9 +23,20 @@
  * */
 
 namespace workspace {
+	enum class PropAtType { 
+		Odr3 = 3, // simple Crank-Nicolson scheme
+		Odr4  // Numerov scheme
+	};
+
     class WfBase {
 		public:
-            WfBase(AtomCache const* atom_cache, ShGrid const* grid, UabsCache const* uabs, int num_threads);
+            WfBase( 
+					ShGrid    const& grid,
+					AtomCache const& atom_cache,
+					UabsCache const& uabs,
+					PropAtType propAtType,
+					int num_threads
+					);
 
             virtual ~WfBase ();
 
@@ -37,7 +48,19 @@ namespace workspace {
 			 * */
 			void prop_ang(ShWavefunc& wf, double dt, int l, double E);
 
-            void prop_at(ShWavefunc& wf, cdouble dt, sh_f Ul);
+            void prop_at_Odr4(ShWavefunc& wf, cdouble dt, sh_f Ul);
+            void prop_at_Odr3(ShWavefunc& wf, cdouble dt, sh_f Ul);
+            void prop_at(ShWavefunc& wf, cdouble dt, sh_f Ul) {
+				switch (propAtType) {
+					case PropAtType::Odr3:
+						prop_at_Odr3(wf, dt, Ul);
+						break;
+					case PropAtType::Odr4:
+						prop_at_Odr4(wf, dt, Ul);
+						break;
+				}
+			}
+
 			void prop_mix(ShWavefunc& wf, sh_f Al, double dt, int l);
 
 			virtual void prop_abs(ShWavefunc& wf, double dt);
@@ -51,28 +74,39 @@ namespace workspace {
             void prop_without_field(ShWavefunc& wf, double dt);
             void prop_img(ShWavefunc& wf, double dt);
 
-            ShGrid const* grid;
-            UabsCache const* uabs;
+			PropAtType propAtType;
+
+            ShGrid    const& grid;
+            UabsCache const& uabs;
+            AtomCache const& atom_cache;
 
 			cdouble* alpha;
 			cdouble* betta;
 
 			int num_threads;
-
-            AtomCache const* atom_cache;
 	};
 
     class WfE: public WfBase {
 		public:
-            WfE(AtomCache const* atom_cache, ShGrid const* grid, UabsCache const* uabs, int num_threads):
-                WfBase(atom_cache, grid, uabs, num_threads) {}
+            WfE(
+					ShGrid    const& grid,
+					AtomCache const& atom_cache,
+					UabsCache const& uabs,
+					PropAtType propAtType,
+					int num_threads
+			   ): WfBase(grid, atom_cache, uabs, propAtType, num_threads) {}
             void prop(ShWavefunc& wf, field_t const* field, double t, double dt);
     };
 
     class WfA: public WfBase {
 		public:
-            WfA(AtomCache const* atom_cache, ShGrid const* grid, UabsCache const* uabs, int num_threads):
-                WfBase(atom_cache, grid, uabs, num_threads) {}
+            WfA(
+				ShGrid    const& grid,
+				AtomCache const& atom_cache,
+				UabsCache const& uabs,
+				PropAtType propAtType,
+				int num_threads
+			   ): WfBase(grid, atom_cache, uabs, propAtType, num_threads) {}
             void prop(ShWavefunc& wf, field_t const* field, double t, double dt);
     };
 }

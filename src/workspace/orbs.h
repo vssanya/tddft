@@ -13,15 +13,26 @@ namespace workspace
 
 	class orbs {
 		public:
-            orbs(AtomCache const* atom_cache, ShGrid const* sh_grid, SpGrid const* sp_grid, UabsCache const* uabs, YlmCache const* ylm_cache, int Uh_lmax, int Uxc_lmax, potential_xc_f Uxc, int num_threads);
+            orbs(
+					ShGrid    const& sh_grid,
+					SpGrid    const& sp_grid,
+					AtomCache const& atom_cache,
+					UabsCache const& uabs,
+					YlmCache  const& ylm_cache,
+					int Uh_lmax,
+					int Uxc_lmax,
+					potential_xc_f Uxc,
+					PropAtType propAtType,
+					int num_threads
+					);
 			virtual ~orbs();
 
 			virtual void init();
 
-            void prop(Orbitals* orbs, field_t const* field, double t, double dt, bool calc_uee);
-            void prop_img(Orbitals* orbs, double dt);
-			void prop_ha(Orbitals* orbs, double dt);
-			void calc_Uee(Orbitals const* orbs, int Uxc_lmax, int Uh_lmax);
+            void prop(Orbitals& orbs, field_t const* field, double t, double dt, bool calc_uee);
+            void prop_img(Orbitals& orbs, double dt);
+			void prop_ha(Orbitals& orbs, double dt);
+			void calc_Uee(Orbitals const& orbs, int Uxc_lmax, int Uh_lmax);
 
 			workspace::WfBase wf_ws;
 
@@ -36,11 +47,11 @@ namespace workspace
 			double* Uee;
 			int lmax;
 
-            ShGrid const* sh_grid;
-            SpGrid const* sp_grid;
+            ShGrid const& sh_grid;
+            SpGrid const& sp_grid;
 			double* uh_tmp;
 			double* n_sp; // for root
 			double* n_sp_local;
-			YlmCache const* ylm_cache;
+			YlmCache const& ylm_cache;
 	};
 } /* workspace */ 

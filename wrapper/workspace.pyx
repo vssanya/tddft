@@ -72,8 +72,15 @@ cdef class SFAWorkspace:
         self.cdata.propagate(wf.cdata[0], field.cdata, t, dt)
 
 cdef class SKnWorkspace:
-    def __cinit__(self, AtomCache atom_cache, ShGrid grid, UabsCache uabs, int num_threads = -1):
-        self.cdata = new WfBase(atom_cache.cdata, grid.data, uabs.cdata, num_threads)
+    def __cinit__(self, AtomCache atom_cache, ShGrid grid, UabsCache uabs, int num_threads = -1, int propType=4):
+        cdef PropAtType propAtType
+        if propType == 4:
+            propAtType = Odr4
+        else:
+            propAtType = Odr3
+
+        self.cdata = new WfBase(grid.data[0], atom_cache.cdata[0], uabs.cdata[0], propAtType, num_threads)
+
         self.uabs = uabs
         self.atom_cache = atom_cache
 
@@ -97,8 +104,14 @@ cdef class SKnWorkspace:
 
 
 cdef class SKnAWorkspace:
-    def __cinit__(self, AtomCache atom_cache, ShGrid grid, UabsCache uabs, int num_threads = -1):
-        self.cdata = new WfA(atom_cache.cdata, grid.data, uabs.cdata, num_threads)
+    def __cinit__(self, AtomCache atom_cache, ShGrid grid, UabsCache uabs, int num_threads = -1, int propType=4):
+        cdef PropAtType propAtType
+        if propType == 4:
+            propAtType = Odr4
+        else:
+            propAtType = Odr3
+
+        self.cdata = new WfA(grid.data[0], atom_cache.cdata[0], uabs.cdata[0], propAtType, num_threads)
         self.uabs = uabs
         self.atom_cache = atom_cache
 
@@ -120,9 +133,9 @@ cdef class SKnAWorkspace:
 cdef class WfWithPolarizationWorkspace:
     def __cinit__(self, AtomCache atom_cache, ShGrid grid, UabsCache uabs, double[:] Upol_1, double[:] Upol_2 = None, int num_threads = -1):
         if Upol_2 is None:
-            self.cdata = new WfWithPolarization(atom_cache.cdata, grid.data, uabs.cdata, &Upol_1[0], NULL, num_threads)
+            self.cdata = new WfWithPolarization(grid.data[0], atom_cache.cdata[0], uabs.cdata[0], &Upol_1[0], NULL, Odr4, num_threads)
         else:
-            self.cdata = new WfWithPolarization(atom_cache.cdata, grid.data, uabs.cdata, &Upol_1[0], &Upol_2[0], num_threads)
+            self.cdata = new WfWithPolarization(grid.data[0], atom_cache.cdata[0], uabs.cdata[0], &Upol_1[0], &Upol_2[0], Odr4, num_threads)
 
         self.uabs = uabs
         self.atom_cache = atom_cache
@@ -145,7 +158,7 @@ cdef class WfWithPolarizationWorkspace:
 
 cdef class SKnWithSourceWorkspace:
     def __cinit__(self, AtomCache atom_cache, ShGrid grid, UabsCache uabs, ShWavefunc source, double E, int num_threads = -1):
-        self.cdata = new WfEWithSource(atom_cache.cdata, grid.data, uabs.cdata, source.cdata[0], E, num_threads)
+        self.cdata = new WfEWithSource(grid.data[0], atom_cache.cdata[0], uabs.cdata[0], source.cdata[0], E, Odr4, num_threads)
         self.uabs = uabs
         self.source = source
         self.atom_cache = atom_cache
@@ -169,7 +182,10 @@ cdef class SOrbsWorkspace:
         assert(Uxc_lmax >= 0 and Uxc_lmax <= 3)
         assert(Uh_lmax >= 0 and Uh_lmax <= 3)
 
-        self.cdata = new orbs(atom_cache.cdata, sh_grid.data, sp_grid.data, uabs.cdata, ylm_cache.cdata, Uh_lmax, Uxc_lmax, uxc.cdata, num_threads)
+        self.cdata = new orbs(sh_grid.data[0], sp_grid.data[0],
+                              atom_cache.cdata[0], uabs.cdata[0],
+                              ylm_cache.cdata[0], Uh_lmax, Uxc_lmax,
+                              uxc.cdata, Odr4, num_threads)
         self.uabs = uabs
         self.atom_cache = atom_cache
 
@@ -180,13 +196,13 @@ cdef class SOrbsWorkspace:
         pass
 
     def prop_img(self, Orbitals orbs, double dt):
-        self.cdata.prop_img(orbs.cdata, dt)
+        self.cdata.prop_img(orbs.cdata[0], dt)
 
     def prop_ha(self, Orbitals orbs, double dt):
-        self.cdata.prop_ha(orbs.cdata, dt)
+        self.cdata.prop_ha(orbs.cdata[0], dt)
 
     def prop(self, Orbitals orbs, Field field, double t, double dt, bint calc_uee=True):
-        self.cdata.prop(orbs.cdata, field.cdata, t, dt, calc_uee)
+        self.cdata.prop(orbs.cdata[0], field.cdata, t, dt, calc_uee)
 
     def calc_uee(self, Orbitals orbs, Uxc_lmax=None, Uh_lmax=None):
         if Uxc_lmax is None:
@@ -195,7 +211,7 @@ cdef class SOrbsWorkspace:
         if Uh_lmax is None:
             Uh_lmax = self.cdata.Uh_lmax
 
-        self.cdata.calc_Uee(orbs.cdata, Uxc_lmax, Uh_lmax)
+        self.cdata.calc_Uee(orbs.cdata[0], Uxc_lmax, Uh_lmax)
 
     @property
     def uee(self):

@@ -157,6 +157,7 @@ if run_build:
                     extra_compile_args=[
                         '-std=gnu++11',
                         '-D_MPI',
+                        '-fopenmp',
                         '-g',
                     ],
                     language="c++",

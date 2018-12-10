@@ -6,8 +6,16 @@
 namespace workspace {
     class WfEWithSource: public WfE {
 		public:
-            WfEWithSource(AtomCache const* atom_cache, ShGrid const* grid, UabsCache const* uabs, ShWavefunc const& wf_source, double E, int num_threads):
-                WfE(atom_cache, grid, uabs, num_threads), wf_source(wf_source), source_E(E), abs_norm(0.0)
+            WfEWithSource(
+					ShGrid    const& grid,
+					AtomCache const& atom_cache,
+					UabsCache const& uabs,
+					ShWavefunc const& wf_source,
+					double E,
+					PropAtType propAtType,
+					int num_threads
+					):
+                WfE(grid, atom_cache, uabs, propAtType, num_threads), wf_source(wf_source), source_E(E), abs_norm(0.0)
 		{
 			assert(grid->n[iR] == wf_source.grid->n[iR]);
 		}

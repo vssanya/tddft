@@ -32,7 +32,7 @@ void workspace::WfEWithSource::prop_abs(ShWavefunc& wf, double dt) {
 #pragma omp parallel for collapse(2) reduction(+:norm)
 	for (int il = 0; il < wf.grid->n[iL]; ++il) {
 		for (int ir = 0; ir < wf.grid->n[iR]; ++ir) {
-			double c = exp(-uabs->u(ir)*dt);
+			double c = exp(-uabs.u(ir)*dt);
 
 			norm += wf.abs_2(ir, il)*pow(1-c, 2);
             wf(ir, il) *= c;

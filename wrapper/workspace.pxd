@@ -48,8 +48,20 @@ cdef extern from "workspace.h":
     void ws_gps_prop_common(ws_gps_t* ws, cShWavefunc* wf, cUabsCache* uabs, field_t* field, double t);
 
 cdef extern from "workspace.h" namespace "workspace":
+    cdef cppclass PropAtType:
+        pass
+
+    cdef PropAtType Odr3
+    cdef PropAtType Odr4
+
     cdef cppclass WfBase:
-        WfBase(cAtomCache* atom, cShGrid* grid, cUabsCache* uabs, int num_threads)
+        WfBase(
+            cShGrid   & grid,
+            cAtomCache& atom_cache,
+            cUabsCache& uabs,
+            PropAtType propAtType,
+            int num_threads
+        )
 
         void prop_ang(cShWavefunc& wf, double dt, int l, double E)
         #void prop_at(cShWavefunc& wf, cdouble dt, sh_f Ul, int Z, potential_type_e u_type)
@@ -68,40 +80,73 @@ cdef extern from "workspace.h" namespace "workspace":
         cAtomCache atom_cache
 
     cdef cppclass WfEWithSource:
-        WfEWithSource(cAtomCache* atom_cache, cShGrid* grid, cUabsCache* uabs, cShWavefunc& source, double E, int num_threads)
+        WfEWithSource(
+            cShGrid    & grid,
+            cAtomCache & atom_cache,
+            cUabsCache & uabs,
+            cShWavefunc& wf_source,
+            double E,
+            PropAtType propAtType,
+            int num_threads
+        )
         void prop(cShWavefunc& wf, field_t* field, double t, double dt)
 
         double abs_norm
 
     cdef cppclass WfA:
-        WfA(cAtomCache* atom, cShGrid* grid, cUabsCache* uabs, int num_threads)
+        WfA(
+            cShGrid   & grid,
+            cAtomCache& atom_cache,
+            cUabsCache& uabs,
+            PropAtType propAtType,
+            int num_threads
+        )
         void prop(cShWavefunc& wf, field_t* field, double t, double dt)
         void prop_without_field(cShWavefunc& wf, double dt)
         void prop_img(cShWavefunc& wf, double dt)
 
     cdef cppclass WfWithPolarization:
-        WfWithPolarization(cAtomCache* atom, cShGrid* grid, cUabsCache* uabs, double* Upot_1, double* Upol_2, int num_threads)
+        WfWithPolarization(
+            cShGrid   & grid,
+            cAtomCache& atom_cache,
+            cUabsCache& uabs,
+            double* Upol_1,
+            double* Upol_2,
+            PropAtType propAtType,
+            int num_threads
+        )
         void prop(cShWavefunc& wf, field_t* field, double t, double dt)
         void prop_without_field(cShWavefunc& wf, double dt)
         void prop_img(cShWavefunc& wf, double dt)
 
     cdef cppclass orbs:
-        orbs(cAtomCache* atom, cShGrid* sh_grid, cSpGrid* sp_grid, cUabsCache* uabs, cYlmCache* ylm_cache, int Uh_lmax, int Uxc_lmax, potential_xc_f Uxc, int num_threads)
+        orbs(
+            cShGrid   & sh_grid,
+            cSpGrid   & sp_grid,
+            cAtomCache& atom_cache,
+            cUabsCache& uabs,
+            cYlmCache & ylm_cache,
+            int Uh_lmax,
+            int Uxc_lmax,
+            potential_xc_f Uxc,
+            PropAtType propAtType,
+            int num_threads
+        )
 
-        void prop(cOrbitals* orbs, field_t* field, double t, double dt, bint calc_uee)
-        void prop_img(cOrbitals* orbs, double dt)
-        void prop_ha(cOrbitals* orbs, double dt)
-        void calc_Uee(cOrbitals* orbs, int Uxc_lmax, int Uh_lmax)
+        void prop(cOrbitals& orbs, field_t* field, double t, double dt, bint calc_uee)
+        void prop_img(cOrbitals& orbs, double dt)
+        void prop_ha(cOrbitals& orbs, double dt)
+        void calc_Uee(cOrbitals& orbs, int Uxc_lmax, int Uh_lmax)
 
         WfBase* wf_ws
         double* Uh
         double* Uxc
-        cShGrid* sh_grid
-        cSpGrid* sp_grid
+        cShGrid& sh_grid
+        cSpGrid& sp_grid
         double* uh_tmp
         double* n_sp
         double* Uee
-        cYlmCache* ylm_cache
+        cYlmCache& ylm_cache
         int Uh_lmax
         int Uxc_lmax
 
