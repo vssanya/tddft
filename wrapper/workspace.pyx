@@ -87,7 +87,7 @@ cdef class SKnWorkspace:
     def __dealloc__(self):
         del self.cdata
 
-    def __init__(self, AtomCache atom_cache, ShGrid grid, UabsCache uabs, int num_threads = -1):
+    def __init__(self, AtomCache atom_cache, ShGrid grid, UabsCache uabs, int num_threads = -1, int propType=4):
         pass
 
     def prop(self, ShWavefunc wf, Field field, double t, double dt):
@@ -118,7 +118,7 @@ cdef class SKnAWorkspace:
     def __dealloc__(self):
         del self.cdata
 
-    def __init__(self, AtomCache atom_cache, ShGrid grid, UabsCache uabs, int num_threads = -1):
+    def __init__(self, AtomCache atom_cache, ShGrid grid, UabsCache uabs, int num_threads = -1, int propType=4):
         pass
 
     def prop(self, ShWavefunc wf, Field field, double t, double dt):
