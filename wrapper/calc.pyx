@@ -32,7 +32,7 @@ def ionization_prob(WF wf):
 
 def az(WF wf, AtomCache atom, Field field, double t):
     if WF is Orbitals:
-        return calc_orbs_az(wf.cdata, atom.cdata[0], field.cdata, t)
+        return calc_orbs_az(wf.cdata[0], atom.cdata[0], field.cdata, t)
     elif WF is ShWavefuncGPU:
         return calc_wf_gpu_az(wf.cdata[0], atom.cdata[0], field.cdata, t)
     elif WF is ShWavefunc:
@@ -56,7 +56,7 @@ def az_ne(Orbitals orbs, AtomCache atom, Field field, double t, np.ndarray[doubl
 
 def jrcd(AtomCache atom, WS ws, WF wf, Field field, int Nt, double dt, double t_smooth):
     if WF is Orbitals and WS is SOrbsWorkspace:
-        return calc_orbs_jrcd(ws.cdata, wf.cdata, atom.cdata[0], field.cdata, Nt, dt, t_smooth)
+        return calc_orbs_jrcd(ws.cdata[0], wf.cdata[0], atom.cdata[0], field.cdata, Nt, dt, t_smooth)
     elif WF is ShWavefunc and WS is SKnWorkspace:
         return calc_wf_jrcd(ws.cdata, wf.cdata, atom.cdata[0], field.cdata, Nt, dt, t_smooth)
     else:

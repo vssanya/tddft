@@ -162,9 +162,7 @@ class AtomSGB: public Atom {
         double u(double r) const {
 			double res = 0.0;
 
-#pragma unroll
 			for (int p=0; p<S; p++) {
-#pragma unroll
 				for (int k=0; k<np; k++) {
 					res += C[k + p*np]*pow(r, p)*exp(-B[k + p*np]*r);
 				}
@@ -177,9 +175,7 @@ class AtomSGB: public Atom {
 			double res1 = 0.0;
 			double res2 = 0.0;
 
-#pragma unroll
 			for (int p=0; p<S; p++) {
-#pragma unroll
 				for (int k=0; k<np; k++) {
 					double tmp = C[k + p*np]*exp(-B[k + p*np]*r);
 					res1 += tmp*pow(r, p);

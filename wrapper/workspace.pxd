@@ -51,9 +51,6 @@ cdef extern from "workspace.h" namespace "workspace":
     cdef cppclass PropAtType:
         pass
 
-    cdef PropAtType Odr3
-    cdef PropAtType Odr4
-
     cdef cppclass WfBase:
         WfBase(
             cShGrid   & grid,
@@ -150,6 +147,10 @@ cdef extern from "workspace.h" namespace "workspace":
         int Uh_lmax
         int Uxc_lmax
 
+
+cdef extern from "workspace.h" namespace "workspace::PropAtType":
+    cdef PropAtType Odr3
+    cdef PropAtType Odr4
 
 cdef class SKnWorkspace:
     cdef:

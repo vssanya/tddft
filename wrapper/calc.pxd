@@ -20,7 +20,7 @@ cdef extern from "calc.h":
             double t
     )
 
-    double calc_orbs_az(cOrbitals* orbs, cAtomCache& atom, field_t* field, double t)
+    double calc_orbs_az(cOrbitals& orbs, cAtomCache& atom, field_t* field, double t)
     void calc_orbs_az_ne(cOrbitals* orbs, cAtomCache& atom, field_t* field, double t, double* az)
 
     double calc_wf_jrcd(
@@ -34,8 +34,8 @@ cdef extern from "calc.h":
     )
 
     double calc_orbs_jrcd(
-            orbs* ws,
-            cOrbitals* orbs,
+            orbs& ws,
+            cOrbitals& orbs,
             cAtomCache& atom,
             field_t* field,
             int Nt,
