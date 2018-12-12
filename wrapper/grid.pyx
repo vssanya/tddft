@@ -1,4 +1,6 @@
 import numpy as np
+cimport numpy as np
+
 from libc.stdlib cimport free
 
 
@@ -75,6 +77,49 @@ cdef class ShGrid:
     @property
     def r(self):
         return np.linspace(self.data.d[0], self.data.d[0]*self.data.n[0], self.data.n[0])
+
+cdef class ShNeGrid:
+    def __cinit__(self, double Rmin, double Rmax, double Ra, double dr_max, int Nl):
+        self.data = new cShNeGrid(Rmin, Rmax, Ra, dr_max, Nl)
+
+    def __init__(self, double Rmin, double Rmax, double Ra, double dr_max, int Nl):
+        pass
+
+    def __dealloc__(self):
+        del self.data
+
+    def _repr_latex_(self):
+        return "ShNeGrid: $N_r = {}$, $N_l = {}$, $dr = {}$ (a.u.)".format(self.data.n[0], self.data.n[1], self.data.d[0])
+
+    @property
+    def shape(self):
+        return (self.data.n[1], self.data.n[0])
+
+    @property
+    def Nl(self):
+        return self.data.n[1]
+
+    @property
+    def Nr(self):
+        return self.data.n[0]
+
+    @property
+    def Rmax(self):
+        return self.data.Rmax()
+
+    @property
+    def dr(self):
+        return self.data.d[0]
+
+    @property
+    def r(self):
+        cdef int i
+        cdef np.ndarray[np.double_t, ndim=1] res = np.zeros(self.data.n[0])
+
+        for i in range(self.data.n[0]):
+            res[i] = self.data.r(i)
+
+        return res
 
 cdef class SpGrid:
     def __cinit__(self, int Nr, int Nc, int Np, double r_max):

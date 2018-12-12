@@ -27,10 +27,10 @@ namespace workspace {
 				prop_src(wf, field, t, dt);
 			}
 
-			double abs_norm;
-
 		private:
 			ShWavefunc const& wf_source;
 			double source_E;
+
+			double abs_norm;
 	};
 }

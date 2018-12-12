@@ -2,7 +2,8 @@
 
 #include <stdlib.h>
 #include <assert.h>
-#include <math.h>
+#include <cmath>
+#include <functional>
 
 
 #define check_index(space, index) assert(index >= 0 || index < n[space])
@@ -156,6 +157,8 @@ public:
 
 class ShGrid: public Grid2d {
 public:
+	ShGrid(): Grid2d() {}
+
     ShGrid(int n[2], double Rmax) {
         for (int i=0; i<2; ++i) {
             this->n[i] = n[i];
@@ -163,6 +166,12 @@ public:
 
         d[iR] = Rmax/n[iR];
         d[iL] = 1;
+
+		double dr2 = d[iR]*d[iR];
+
+		m_d2[0] = 1.0/dr2;
+		m_d2[1] = -2.0/dr2;
+		m_d2[2] = m_d2[0];
     }
 
     double r(int ir) const {
@@ -183,6 +192,121 @@ public:
         assert(im >= -n[iL] && im <= n[iL]);
         return im;
     }
+
+	/*
+	 * Коэффициенты трехдиагональной матрицы оператора d^2/dr^2 
+	 */
+	double d2(int ir, int i) const {
+		return m_d2[i];
+	}
+
+	double J(int ir, int il) const {
+		return 1.0;
+	}
+
+private:
+	double m_d2[3];
+};
+
+class ShNotEqudistantGrid: public ShGrid {
+	typedef std::function<double(double)> func_t;
+
+public:
+	ShNotEqudistantGrid(double Rmin, double Rmax, double Ra, double dr_max, int Nl) {
+        d[iL] = 1;
+		n[iL] = Nl;
+
+		d[iR] = dr_max;
+
+		double A = Rmin/d[iR] - 1.0;
+		double xi_max = Rmax - A*Ra;
+
+		n[iR] = static_cast<int>(xi_max / d[iR]);
+
+		init(
+				// r = f(xi)
+				[=](double xi) -> double {
+					return xi + A*Ra*std::tanh(xi/Ra);
+				},
+				// drdxi
+				[=](double xi) -> double {
+					return 1.0 + A/std::pow(cosh(xi/Ra), 2);
+				},
+				// d2rdxi2
+				[=](double xi) -> double {
+					return -2*A*std::tanh(xi/Ra)/std::pow(cosh(xi/Ra), 2) / Ra;
+				}
+			);
+	}
+
+	void init(func_t f, func_t df, func_t d2f) {
+		double dr = d[iR];
+		double dr2 = dr*dr;
+
+		m_d2[0] = 1.0/dr2;
+		m_d2[1] = -2.0/dr2;
+		m_d2[2] = m_d2[0];
+
+		m_d1[0] = -0.5/dr;
+		m_d1[1] = 0.0;
+		m_d1[2] = 0.5/dr;
+
+		dfdxi = new double[n[iR]];
+
+		h = new double[n[iR]];
+		g = new double[n[iR]];
+
+		m_r = new double[n[iR]];
+		
+		for (int ir=0; ir<n[iR]; ir++) {
+			double xi = d[iR]*(ir+1);
+
+			m_r[ir] = f(xi);
+
+			dfdxi[ir] = df(xi);
+
+			h[ir] = std::pow(df(xi), -2);
+			g[ir] = -std::pow(df(xi), -3)*d2f(xi);
+		}
+	}
+
+	~ShNotEqudistantGrid() {
+		delete[] dfdxi;
+		delete[] h;
+		delete[] g;
+		delete[] m_r;
+	}
+
+    double r(int ir) const {
+        return m_r[ir];
+    }
+
+    double Rmax() const {
+        return r(n[iR]-1);
+    }
+
+	/*
+	 * Коэффициенты трехдиагональной матрицы оператора d^2/dr^2 
+	 */
+	double d2(int ir, int i) const {
+		return h[ir]*m_d2[i] + g[ir]*m_d1[i];
+	}
+
+	double J(int ir, int il) const {
+		return dfdxi[ir];
+	}
+
+private:
+	double m_d2[3];
+	double m_d1[3];
+
+	// d^2/dr^2 = h(\xi) d2/d\xi^2 + g(\xi) d/d\xi
+	double* dfdxi;
+
+	double* h;
+	double* g;
+
+	double* m_r;
 };
 
 class CtGrid: public Grid2d {

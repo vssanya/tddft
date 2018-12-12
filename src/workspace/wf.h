@@ -74,14 +74,14 @@ namespace workspace {
             void prop_without_field(ShWavefunc& wf, double dt);
             void prop_img(ShWavefunc& wf, double dt);
 
-			PropAtType propAtType;
-
             ShGrid    const& grid;
-            UabsCache const& uabs;
             AtomCache const& atom_cache;
+            UabsCache const& uabs;
 
 			cdouble* alpha;
 			cdouble* betta;
+
+			PropAtType propAtType;
 
 			int num_threads;
 	};

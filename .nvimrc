@@ -9,3 +9,17 @@ let g:neomake_logfile='/tmp/neomake.log'
 nnoremap ,r :Neomake! mymake<CR>
 
 let g:ycm_python_binary_path = 'python'
+
+function CythonGoToWrapperHeader()
+	let cur_ext = expand('%:e')
+	if cur_ext == 'h' || cur_ext == 'cpp' || cur_ext == 'pyx'
+		exe 'edit' "wrapper/".expand('%:t:r').".pxd"
+	endif
+endfunction
+
+function CythonGoToWrapperSource()
+	let cur_ext = expand('%:e')
+	if cur_ext == 'h' || cur_ext == 'cpp' || cur_ext == 'pxd'
+		exe 'edit' "wrapper/".expand('%:t:r').".pyx"
+	endif
+endfunction

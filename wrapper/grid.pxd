@@ -25,6 +25,17 @@ cdef extern from "grid.h":
         int n[2]
         double d[2]
 
+    cdef cppclass cShNeGrid "ShNotEqudistantGrid":
+        cShNeGrid(double Rmin, double Rmax, double Ra, double dr_max, int Nl)
+
+        double r(int ir)
+        double Rmax()
+        int l(int il)
+        int m(int im)
+
+        int n[2]
+        double d[2]
+
     cdef cppclass cSpGrid "SpGrid":
         cSpGrid(int n[3], double Rmax)
         double r(int ir)
@@ -58,6 +69,9 @@ cdef class SpGrid2d:
 
 cdef class ShGrid:
     cdef cShGrid* data
+
+cdef class ShNeGrid:
+    cdef cShNeGrid* data
 
 cdef class SpGrid:
     cdef cSpGrid* data
