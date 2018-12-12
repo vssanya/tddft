@@ -31,6 +31,7 @@ namespace workspace {
 			ShWavefunc const& wf_source;
 			double source_E;
 
+		public:
 			double abs_norm;
 	};
 }

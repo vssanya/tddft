@@ -1,8 +1,8 @@
 from types cimport cdouble, sh_f
 
-from grid cimport cShGrid, cSpGrid
+from grid cimport cShGrid, cSpGrid, cShNeGrid
 from abs_pot cimport cUabsCache, UabsCache
-from wavefunc cimport ShWavefunc, cCtWavefunc, cShWavefunc
+from wavefunc cimport ShWavefunc, cCtWavefunc, cShWavefunc, cShNeWavefunc
 
 from field cimport field_t
 from orbitals cimport cOrbitals
@@ -70,6 +70,31 @@ cdef extern from "workspace.h" namespace "workspace":
         void prop_img(cShWavefunc& wf, double dt)
 
         cShGrid* grid
+        cUabsCache* uabs
+        cdouble* alpha
+        cdouble* betta
+        int num_threads
+        cAtomCache atom_cache
+
+    cdef cppclass WfNeBase:
+        WfNeBase(
+            cShNeGrid & grid,
+            cAtomCache& atom_cache,
+            cUabsCache& uabs,
+            PropAtType propAtType,
+            int num_threads
+        )
+
+        void prop_ang(cShNeWavefunc& wf, double dt, int l, double E)
+        #void prop_at(cShWavefunc& wf, cdouble dt, sh_f Ul, int Z, potential_type_e u_type)
+        void prop_mix(cShNeWavefunc& wf, sh_f Al, double dt, int l)
+        void prop_abs(cShNeWavefunc& wf, double dt)
+        #void prop_common(cShWavefunc& wf, cdouble dt, int l_max, sh_f* Ul, int Z, potential_type_e u_type, sh_f* Al)
+        void prop(cShNeWavefunc& wf, field_t* field, double t, double dt)
+        void prop_without_field(cShNeWavefunc& wf, double dt)
+        void prop_img(cShNeWavefunc& wf, double dt)
+
+        cShNeGrid* grid
         cUabsCache* uabs
         cdouble* alpha
         cdouble* betta
@@ -155,6 +180,12 @@ cdef extern from "workspace.h" namespace "workspace::PropAtType":
 cdef class SKnWorkspace:
     cdef:
         WfBase* cdata
+        UabsCache uabs
+        AtomCache atom_cache
+
+cdef class SKnNeWorkspace:
+    cdef:
+        WfNeBase* cdata
         UabsCache uabs
         AtomCache atom_cache
 

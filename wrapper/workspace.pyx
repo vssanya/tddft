@@ -2,8 +2,8 @@ import numpy as np
 cimport numpy as np
 
 from atom cimport AtomCache
-from grid cimport ShGrid, SpGrid
-from wavefunc cimport ShWavefunc, CtWavefunc
+from grid cimport ShGrid, SpGrid, ShNeGrid
+from wavefunc cimport ShWavefunc, CtWavefunc, ShNeWavefunc
 from field cimport Field
 from orbitals cimport Orbitals
 from sphere_harmonics cimport YlmCache
@@ -100,6 +100,31 @@ cdef class SKnWorkspace:
         self.cdata.prop_without_field(wf.cdata[0], dt)
 
     def prop_img(self, ShWavefunc wf, double dt):
+        self.cdata.prop_img(wf.cdata[0], dt)
+
+
+cdef class SKnNeWorkspace:
+    def __cinit__(self, AtomCache atom_cache, ShNeGrid grid, UabsCache uabs, int num_threads = -1):
+        self.cdata = new WfNeBase(grid.data[0], atom_cache.cdata[0], uabs.cdata[0], Odr3, num_threads)
+        self.uabs = uabs
+        self.atom_cache = atom_cache
+
+    def __dealloc__(self):
+        del self.cdata
+
+    def __init__(self, AtomCache atom_cache, ShNeGrid grid, UabsCache uabs, int num_threads = -1, int propType=4):
+        pass
+
+    def prop(self, ShNeWavefunc wf, Field field, double t, double dt):
+        self.cdata.prop(wf.cdata[0], field.cdata, t, dt)
+
+    def prop_abs(self, ShNeWavefunc wf, double dt):
+        self.cdata.prop_abs(wf.cdata[0], dt)
+
+    def prop_without_field(self, ShNeWavefunc wf, double dt):
+        self.cdata.prop_without_field(wf.cdata[0], dt)
+
+    def prop_img(self, ShNeWavefunc wf, double dt):
         self.cdata.prop_img(wf.cdata[0], dt)
 
 
