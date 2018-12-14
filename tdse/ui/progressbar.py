@@ -13,7 +13,7 @@ class ProgressBar():
     Example usage
     """
 
-    def __init__(self, total, prefix='Progress', suffix='Complete', decimals=1, length=100, fill = '█'):
+    def __init__(self, total, prefix='Progress', suffix='Complete', decimals=1, length=50, fill = '█'):
         self.total = total
         self.prefix = prefix
         self.suffix = suffix
