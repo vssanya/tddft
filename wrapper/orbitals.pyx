@@ -26,6 +26,9 @@ cdef class Orbitals:
         self.grid = grid
         self.atom = atom
 
+    def __init__(self, Atom atom, ShGrid grid, Comm comm = None):
+        pass
+
     def __dealloc__(self):
         if self.cdata != NULL:
             del self.cdata

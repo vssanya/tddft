@@ -26,7 +26,8 @@ workspace::orbs::orbs(
 	sp_grid(sp_grid),
 	ylm_cache(ylm_cache),
 	timeApproxUeeType(TimeApproxUeeType::SIMPLE),
-	tmpOrb(nullptr)
+	tmpOrb(nullptr),
+	tmpUee(nullptr)
 {	
 	lmax = std::max(Uh_lmax, Uxc_lmax);
 	lmax = std::max(lmax, 2);
@@ -173,8 +174,10 @@ void workspace::orbs::prop_two_point(Orbitals& orbs, field_t const* field, doubl
 		// Calc Uee(t+dt)
 		calc_Uee(*tmpOrb, Uxc_lmax, Uh_lmax, tmpUee);
 
+		int Nr = sh_grid.n[iR];
+
 #pragma omp parallel for
-		for (int ir_l=0; ir_l<orbs.grid->n[iR]*3; ++ir_l) {
+		for (int ir_l=0; ir_l<Nr*3; ir_l++) {
 			Uee[ir_l] = 0.5*(Uee[ir_l] + tmpUee[ir_l]);
 		}
 	}
