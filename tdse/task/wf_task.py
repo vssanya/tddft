@@ -411,7 +411,7 @@ class WfGpuTask(WavefuncTask):
     threadsPerBlock = 8
 
     def __init__(self, **kwargs):
-        tdse.calc.setGpuDevice(int(os.environ.get("CUDA_DEVICE", "1")))
+        tdse.calc.setGpuDevice(int(os.environ.get("CUDA_DEVICE", "0")))
 
         super().__init__(**kwargs)
 
