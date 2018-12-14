@@ -17,6 +17,9 @@ public:
 
     void init();
 
+	Orbitals* copy() const;
+	void copy(Orbitals& dest) const;
+
     /*!
      *  \brief Init state [MPI support]
      *  \param data[in] is array[Ne, Nr, l_max] only for root

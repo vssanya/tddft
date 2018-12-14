@@ -3,22 +3,21 @@ cimport numpy as np
 
 from types cimport cdouble
 from wavefunc cimport ShWavefunc
-from grid cimport ShGrid
+from grid cimport ShGrid, ShNeGrid
 
 import tdse.utils
 if tdse.utils.is_jupyter_notebook():
     import matplotlib.pyplot as plt
     from IPython.core.pylabtools import print_figure
 
-
 cdef class AtomCache:
     def __cinit__(self, Atom atom, ShGrid grid, double[::1] u = None):
         self.atom = atom
         self.grid = grid
         if u is None:
-            self.cdata = new cAtomCache(atom.cdata[0], grid.data)
+            self.cdata = new cAtomCache(atom.cdata[0], <cShGrid*>grid.data)
         else:
-            self.cdata = new cAtomCache(atom.cdata[0], grid.data, &u[0])
+            self.cdata = new cAtomCache(atom.cdata[0], <cShGrid*>grid.data, &u[0])
 
     def __init__(self, Atom atom, ShGrid grid, double[::1] u = None):
         pass

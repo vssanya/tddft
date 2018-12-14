@@ -155,6 +155,7 @@ cdef extern from "workspace.h" namespace "workspace":
             int num_threads
         )
 
+        void setTimeApproxUeeTwoPointFor(cOrbitals& orbs)
         void prop(cOrbitals& orbs, field_t* field, double t, double dt, bint calc_uee)
         void prop_img(cOrbitals& orbs, double dt)
         void prop_ha(cOrbitals& orbs, double dt)

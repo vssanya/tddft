@@ -174,7 +174,7 @@ public:
 		m_d2[2] = m_d2[0];
     }
 
-    double r(int ir) const {
+    virtual double r(int ir) const {
         check_index(iR, ir);
         return d[iR]*(ir+1);
     }

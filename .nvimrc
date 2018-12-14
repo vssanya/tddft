@@ -23,3 +23,15 @@ function CythonGoToWrapperSource()
 		exe 'edit' "wrapper/".expand('%:t:r').".pyx"
 	endif
 endfunction
+
+function CppGoToSourceHeader()
+	let cur_ext = expand('%:e')
+	let ext = "h"
+	if cur_ext == ext
+		let ext = "cpp"
+	endif
+
+	exe 'vsplit' expand('%:r').".".ext
+endfunction
+
+nnoremap ,gc :call CppGoToSourceHeader()<CR>

@@ -11,7 +11,7 @@ Orbitals::Orbitals(Atom const& atom, ShGrid const* grid, MPI_Comm mpi_comm):
     wf = new ShWavefunc*[atom.countOrbs];
 
 #ifdef _MPI
-    this->mpi_comm = mpi_comm;
+	this->mpi_comm = mpi_comm;
     spin_comm = MPI_COMM_NULL;
 
 	if (mpi_comm != MPI_COMM_NULL) {
@@ -45,6 +45,20 @@ void Orbitals::init() {
         if (wf[ie] != nullptr) {
             wf[ie]->m = atom.orbs[ie].m;
             wf[ie]->random_l(atom.orbs[ie].l);
+        }
+    }
+}
+
+Orbitals* Orbitals::copy() const {
+	Orbitals* res = new Orbitals(atom, grid, mpi_comm);
+	copy(*res);
+	return res;
+}
+
+void Orbitals::copy(Orbitals& dest) const {
+    for (int ie=0; ie<atom.countOrbs; ++ie) {
+        if (wf[ie] != nullptr) {
+			wf[ie]->copy(dest.wf[ie]);
         }
     }
 }

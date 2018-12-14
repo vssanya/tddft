@@ -135,6 +135,8 @@ class OrbitalsTask(TaskAtom):
     Uxc_lmax = 1
     Uh_lmax = 3
 
+    useTwoPointUeeCalcScheme = False
+
     ground_state = None
     ground_state_task = None
 
@@ -168,6 +170,8 @@ class OrbitalsTask(TaskAtom):
         self.orbs.load(self.ground_state)
 
         self.ws = tdse.workspace.SOrbsWorkspace(self.atom_cache, self.sh_grid, self.sp_grid, self.uabs_cache, self.ylm_cache, Uxc_lmax=self.Uxc_lmax, Uh_lmax = self.Uh_lmax, uxc=self.uxc)
+        if self.useTwoPointUeeCalcScheme:
+            self.ws.set_time_approx_uee_two_point(self.orbs)
 
         self.t = self.field.get_t(self.dt, dT=self.dT)
 

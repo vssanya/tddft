@@ -13,6 +13,11 @@ namespace workspace
 
 	class orbs {
 		public:
+			enum class TimeApproxUeeType {
+				SIMPLE = 1, // Uee(t+dt/2) = Uee(t)
+				TWO_POINT   // Uee(t+dt/2) = (Uee(t) + Uee(t+dt)) / 2
+			};
+
             orbs(
 					ShGrid    const& sh_grid,
 					SpGrid    const& sp_grid,
@@ -29,10 +34,15 @@ namespace workspace
 
 			virtual void init();
 
-            void prop(Orbitals& orbs, field_t const* field, double t, double dt, bool calc_uee);
+            void prop_simple   (Orbitals& orbs, field_t const* field, double t, double dt, bool calc_uee);
+            void prop_two_point(Orbitals& orbs, field_t const* field, double t, double dt, bool calc_uee);
+            void prop          (Orbitals& orbs, field_t const* field, double t, double dt, bool calc_uee);
+
             void prop_img(Orbitals& orbs, double dt);
 			void prop_ha(Orbitals& orbs, double dt);
-			void calc_Uee(Orbitals const& orbs, int Uxc_lmax, int Uh_lmax);
+			void calc_Uee(Orbitals const& orbs, int Uxc_lmax, int Uh_lmax, double* Uee = nullptr);
+
+			void setTimeApproxUeeTwoPointFor(Orbitals const& orbs);
 
 			workspace::WfBase wf_ws;
 
@@ -52,6 +62,12 @@ namespace workspace
 			double* uh_tmp;
 			double* n_sp; // for root
 			double* n_sp_local;
+
 			YlmCache const& ylm_cache;
+
+			TimeApproxUeeType timeApproxUeeType;
+
+			Orbitals* tmpOrb;
+			double* tmpUee;
 	};
 } /* workspace */ 

@@ -220,6 +220,9 @@ cdef class SOrbsWorkspace:
     def __init__(self, AtomCache atom_cache, ShGrid sh_grid, SpGrid sp_grid, UabsCache uabs, YlmCache ylm_cache, int Uxc_lmax = 3, int Uh_lmax = 3, Uxc uxc = UXC_LB, int num_threads=-1):
         pass
 
+    def set_time_approx_uee_two_point(self, Orbitals orbs):
+        self.cdata.setTimeApproxUeeTwoPointFor(orbs.cdata[0])
+
     def prop_img(self, Orbitals orbs, double dt):
         self.cdata.prop_img(orbs.cdata[0], dt)
 

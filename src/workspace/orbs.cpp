@@ -24,7 +24,9 @@ workspace::orbs::orbs(
 	Uxc_lmax(Uxc_lmax),
 	sh_grid(sh_grid),
 	sp_grid(sp_grid),
-	ylm_cache(ylm_cache)
+	ylm_cache(ylm_cache),
+	timeApproxUeeType(TimeApproxUeeType::SIMPLE),
+	tmpOrb(nullptr)
 {	
 	lmax = std::max(Uh_lmax, Uxc_lmax);
 	lmax = std::max(lmax, 2);
@@ -44,6 +46,20 @@ void workspace::orbs::init() {
     n_sp_local = new double[sp_grid.n[iR]*sp_grid.n[iC]]();
 }
 
+void workspace::orbs::setTimeApproxUeeTwoPointFor(Orbitals const& orbs) {
+	timeApproxUeeType = TimeApproxUeeType::TWO_POINT;
+
+	if (tmpOrb != nullptr) {
+		delete tmpOrb;
+	}
+
+	if (tmpUee == nullptr) {
+		tmpUee = new double[3*sh_grid.n[iR]]();
+	}
+
+	tmpOrb = orbs.copy();
+}
+
 workspace::orbs::~orbs() {
 	delete[] n_sp_local;
 	delete[] n_sp;
@@ -51,9 +67,21 @@ workspace::orbs::~orbs() {
 	delete[] Utmp;
 	delete[] Utmp_local;
 	delete[] Uee;
+
+	if (tmpOrb != nullptr) {
+		delete tmpOrb;
+	}
+
+	if (tmpUee != nullptr) {
+		delete[] tmpUee;
+	}
 }
 
-void workspace::orbs::calc_Uee(Orbitals const& orbs, int Uxc_lmax, int Uh_lmax) {
+void workspace::orbs::calc_Uee(Orbitals const& orbs, int Uxc_lmax, int Uh_lmax, double* Uee) {
+	if (Uee == nullptr) {
+		Uee = this->Uee;
+	}
+
 #ifdef _MPI
 	if (orbs.mpi_comm == MPI_COMM_NULL || orbs.mpi_rank == 0)
 #endif
@@ -101,7 +129,7 @@ void workspace::orbs::calc_Uee(Orbitals const& orbs, int Uxc_lmax, int Uh_lmax) 
 #endif
 }
 
-void workspace::orbs::prop(Orbitals& orbs, field_t const* field, double t, double dt, bool calc_uee) {
+void workspace::orbs::prop_simple(Orbitals& orbs, field_t const* field, double t, double dt, bool calc_uee) {
 	double Et = field_E(field, t + dt/2);
 
 	if (calc_uee) {
@@ -133,6 +161,32 @@ void workspace::orbs::prop(Orbitals& orbs, field_t const* field, double t, doubl
             wf_ws.prop_common(*orbs.wf[ie], dt, lmax, Ul);
 			wf_ws.prop_abs(*orbs.wf[ie], dt);
 		}
+	}
+}
+
+void workspace::orbs::prop_two_point(Orbitals& orbs, field_t const* field, double t, double dt, bool calc_uee) {
+	if (calc_uee) {
+		// Calc orb(t+dt) and Uee(t)
+		orbs.copy(*tmpOrb);
+		prop_simple(*tmpOrb, field, t, dt, true);
+
+		// Calc Uee(t+dt)
+		calc_Uee(*tmpOrb, Uxc_lmax, Uh_lmax, tmpUee);
+
+#pragma omp parallel for
+		for (int ir_l=0; ir_l<orbs.grid->n[iR]*3; ++ir_l) {
+			Uee[ir_l] = 0.5*(Uee[ir_l] + tmpUee[ir_l]);
+		}
+	}
+
+	prop_simple(orbs, field, t, dt, false);
+}
+
+void workspace::orbs::prop(Orbitals& orbs, field_t const* field, double t, double dt, bool calc_uee) {
+	if (timeApproxUeeType == TimeApproxUeeType::SIMPLE) {
+		prop_simple(orbs, field, t, dt, calc_uee);
+	} else {
+		prop_two_point(orbs, field, t, dt, calc_uee);
 	}
 }
 
