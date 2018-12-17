@@ -91,7 +91,8 @@ cdef class Atom:
 
 cdef class AtomCache:
     cdef cAtomCache* cdata
-    cdef dict __dict__
+    cdef ShGrid grid
 
-cdef class AtomNeCache(AtomCache):
-    pass
+cdef class AtomNeCache:
+    cdef cAtomCache* cdata
+    cdef ShNeGrid grid

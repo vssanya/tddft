@@ -59,19 +59,55 @@ cdef class AtomCache:
         subgrp.create_dataset('dudz', (self.grid.Nr,), dtype="d")[:] = self.dudz
 
 
-cdef class AtomNeCache(AtomCache):
+cdef class AtomNeCache:
     def __cinit__(self, Atom atom, ShNeGrid grid, double[::1] u = None):
+        self.atom = atom
+        self.grid = grid
+
         if u is None:
             self.cdata = new cAtomCache(atom.cdata[0], <cShGrid*>grid.data)
         else:
             self.cdata = new cAtomCache(atom.cdata[0], <cShGrid*>grid.data, &u[0])
 
     def __init__(self, Atom atom, ShNeGrid grid, double[::1] u = None):
-        self.atom = atom
-        self.grid = grid
+        pass
 
     def __dealloc__(self):
         del self.cdata
+
+    @property
+    def u(self):
+        return np.asarray(<double[:self.grid.Nr]>(self.cdata.data_u))
+
+    @property
+    def dudz(self):
+        return np.asarray(<double[:self.grid.Nr]>(self.cdata.data_dudz))
+
+    def _figure_data(self, format):
+        fig, ax = plt.subplots()
+        fig.set_size_inches((6,3))
+
+        ax.plot(self.grid.r, self.u)
+
+        ax.set_xlabel('r, (a.u.)')
+        ax.set_ylabel('U, (a.u.)')
+
+        ax.set_yscale('log')
+
+        data = print_figure(fig, format)
+        plt.close(fig)
+        return data
+
+    def _repr_png_(self):
+        return self._figure_data('png')
+
+    def write_params(self, params_grp):
+        subgrp = params_grp.create_group('atom')
+
+        self.atom.write_params(subgrp)
+
+        subgrp.create_dataset('u'   , (self.grid.Nr,), dtype="d")[:] = self.u
+        subgrp.create_dataset('dudz', (self.grid.Nr,), dtype="d")[:] = self.dudz
 
 
 cdef class State:

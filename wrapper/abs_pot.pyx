@@ -75,7 +75,7 @@ cdef class UabsCache:
         subgrp.create_dataset("u", (self.grid.Nr,), dtype='double')[:] = self.u
         self.uabs.write_params(subgrp)
 
-cdef class UabsNeCache(UabsCache):
+cdef class UabsNeCache:
     def __cinit__(self, Uabs uabs, ShNeGrid grid, double[::1] u = None):
         if u is None:
             self.cdata = new cUabsCache(uabs.cdata[0], <cShGrid*>grid.data, NULL)
@@ -90,6 +90,34 @@ cdef class UabsNeCache(UabsCache):
 
     def __dealloc__(self):
         del self.cdata
+
+    @property
+    def u(self):
+        return np.asarray(<double[:self.grid.Nr]> self.cdata.data)
+
+    def _figure_data(self, format):
+        fig, ax = plt.subplots()
+        fig.set_size_inches((6,3))
+
+        ax.plot(self.grid.r, self.u)
+
+        ax.set_xlabel('r, (a.u.)')
+        ax.set_ylabel('U, (a.u.)')
+
+        ax.set_yscale('log')
+
+        data = print_figure(fig, format)
+        plt.close(fig)
+        return data
+
+    def _repr_png_(self):
+        return self._figure_data('png')
+
+    def write_params(self, params_grp):
+        subgrp = params_grp.create_group("uabs")
+
+        subgrp.create_dataset("u", (self.grid.Nr,), dtype='double')[:] = self.u
+        self.uabs.write_params(subgrp)
 
 cdef class UabsMultiHump(Uabs):
     def __cinit__(self, double l_min, double l_max, int n = 2, double shift = 0.0):

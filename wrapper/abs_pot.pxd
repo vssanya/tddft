@@ -39,10 +39,12 @@ cdef class Uabs:
 cdef class UabsCache:
     cdef cUabsCache* cdata
     cdef public Uabs uabs
-    cdef dict __dict__ #cdef public ShGrid grid
+    cdef public ShGrid grid
 
-cdef class UabsNeCache(UabsCache):
-    pass
+cdef class UabsNeCache:
+    cdef cUabsCache* cdata
+    cdef public Uabs uabs
+    cdef public ShGrid grid
 
 cdef class UabsZero(Uabs):
     pass
