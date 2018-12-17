@@ -92,7 +92,9 @@ cdef class Atom:
 cdef class AtomCache:
     cdef cAtomCache* cdata
     cdef public ShGrid grid
+    cdef public Atom atom
 
 cdef class AtomNeCache:
     cdef cAtomCache* cdata
     cdef public ShNeGrid grid
+    cdef public Atom atom
