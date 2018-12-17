@@ -3,7 +3,7 @@ cimport numpy as np
 
 import numpy.fft
 
-from wavefunc cimport ShWavefunc
+from wavefunc cimport ShWavefunc, ShNeWavefunc
 from orbitals cimport Orbitals
 from workspace cimport SKnWorkspace, SOrbsWorkspace
 from field cimport Field
@@ -17,6 +17,7 @@ ctypedef fused WF:
     Orbitals
     ShWavefunc
     ShWavefuncGPU
+    ShNeWavefunc
 
 ctypedef fused WS:
     SKnWorkspace
@@ -39,7 +40,7 @@ def az(WF wf, AC atom, Field field, double t):
         return calc_orbs_az(wf.cdata[0], atom.cdata[0], field.cdata, t)
     elif WF is ShWavefuncGPU:
         return calc_wf_gpu_az(wf.cdata[0], atom.cdata[0], field.cdata, t)
-    elif WF is ShWavefunc:
+    elif WF is ShWavefunc or WF is ShNeWavefunc:
         return calc_wf_az(wf.cdata, atom.cdata[0], field.cdata, t)
     else:
         assert(False)

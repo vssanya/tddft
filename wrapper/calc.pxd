@@ -1,5 +1,5 @@
 from workspace cimport WfBase, orbs
-from wavefunc cimport cShWavefunc
+from wavefunc cimport cShWavefunc, cShNeWavefunc
 from orbitals cimport cOrbitals
 from field cimport field_t
 from types cimport sh_f
@@ -11,6 +11,7 @@ cdef extern from "calc.h":
     double calc_orbs_ionization_prob(cOrbitals* orbs)
 
     double calc_wf_az(cShWavefunc* wf, cAtomCache& atom, field_t* field, double t)
+    double calc_wf_az(cShNeWavefunc* wf, cAtomCache& atom, field_t* field, double t)
     double calc_wf_az_with_polarization(
             cShWavefunc* wf,
             cAtomCache& atom_cache,

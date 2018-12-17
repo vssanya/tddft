@@ -3,13 +3,6 @@
 #include "abs_pot.h"
 
 
-double calc_wf_az(ShWavefunc const* wf, const AtomCache &atom_cache, field_t const* field, double t) {
-    auto func = [&](ShGrid const* grid, int ir, int il, int m) -> double {
-        return atom_cache.dudz(ir);
-    };
-    return - field_E(field, t) - wf->cos(func);
-}
-
 double calc_wf_az_with_polarization(ShWavefunc const* wf, const AtomCache &atom_cache, double const Upol[], double const dUpol_dr[], field_t const* field, double t) {
     auto func_cos = [&](ShGrid const* grid, int ir, int il, int m) -> double {
         return atom_cache.dudz(ir);

@@ -13,12 +13,18 @@ double calc_orbs_ionization_prob(Orbitals const* orbs);
 
 // az(t) = - Ez(t) - <Ψ|dUdz|Ψ>
 // @param dUdz - depends only r. It's dUdz/cos(\theta).
+template<class Grid>
 double calc_wf_az(
-		ShWavefunc const* wf,
+		Wavefunc<Grid> const* wf,
         AtomCache const& atom_cache,
 		field_t const* field,
 		double t
-);
+) {
+    auto func = [&](Grid const* grid, int ir, int il, int m) -> double {
+        return atom_cache.dudz(ir);
+    };
+    return - field_E(field, t) - wf->cos(func);
+}
 
 double calc_wf_az_with_polarization(
 		ShWavefunc const* wf,
