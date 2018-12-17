@@ -1,4 +1,4 @@
-from grid cimport ShGrid
+from grid cimport ShGrid, ShNeGrid
 
 import numpy as np
 cimport numpy as np
@@ -34,9 +34,9 @@ cdef class Uabs:
 cdef class UabsCache:
     def __cinit__(self, Uabs uabs, ShGrid grid, double[::1] u = None):
         if u is None:
-            self.cdata = new cUabsCache(uabs.cdata[0], grid.data[0], NULL)
+            self.cdata = new cUabsCache(uabs.cdata[0], grid.data, NULL)
         else:
-            self.cdata = new cUabsCache(uabs.cdata[0], grid.data[0], &u[0])
+            self.cdata = new cUabsCache(uabs.cdata[0], grid.data, &u[0])
 
         self.uabs = uabs
         self.grid = grid
@@ -74,6 +74,22 @@ cdef class UabsCache:
 
         subgrp.create_dataset("u", (self.grid.Nr,), dtype='double')[:] = self.u
         self.uabs.write_params(subgrp)
+
+cdef class UabsNeCache(UabsCache):
+    def __cinit__(self, Uabs uabs, ShNeGrid grid, double[::1] u = None):
+        if u is None:
+            self.cdata = new cUabsCache(uabs.cdata[0], <cShGrid*>grid.data, NULL)
+        else:
+            self.cdata = new cUabsCache(uabs.cdata[0], <cShGrid*>grid.data, &u[0])
+
+        self.uabs = uabs
+        self.grid = grid
+
+    def __init__(self, Uabs uabs, ShNeGrid grid, double[::1] u = None):
+        pass
+
+    def __dealloc__(self):
+        del self.cdata
 
 cdef class UabsMultiHump(Uabs):
     def __cinit__(self, double l_min, double l_max, int n = 2, double shift = 0.0):

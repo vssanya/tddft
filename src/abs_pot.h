@@ -88,7 +88,7 @@ public:
 
 class UabsCache {
 public:
-    UabsCache(Uabs const& uabs, ShGrid const& grid, double* u = nullptr);
+    UabsCache(Uabs const& uabs, ShGrid const* grid, double* u = nullptr);
     ~UabsCache();
 
     inline double u(int ir) const {
@@ -96,7 +96,7 @@ public:
     }
 
     Uabs const& uabs;
-    ShGrid const& grid;
+    ShGrid const* grid;
 
     double* data;
 };

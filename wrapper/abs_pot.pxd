@@ -30,7 +30,7 @@ cdef extern from "abs_pot.h":
         vector[double] a
 
     cdef cppclass cUabsCache "UabsCache":
-        cUabsCache(cUabs& uabs, cShGrid& grid, double* u)
+        cUabsCache(cUabs& uabs, cShGrid* grid, double* u)
         double* data
 
 cdef class Uabs:
@@ -38,8 +38,11 @@ cdef class Uabs:
 
 cdef class UabsCache:
     cdef cUabsCache* cdata
-    cdef public ShGrid grid
     cdef public Uabs uabs
+    cdef dict __dict__ #cdef public ShGrid grid
+
+cdef class UabsNeCache(UabsCache):
+    pass
 
 cdef class UabsZero(Uabs):
     pass

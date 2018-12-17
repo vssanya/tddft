@@ -1,13 +1,13 @@
 from types cimport cdouble, sh_f
 
 from grid cimport cShGrid, cSpGrid, cShNeGrid
-from abs_pot cimport cUabsCache, UabsCache
+from abs_pot cimport cUabsCache, UabsCache, UabsNeCache
 from wavefunc cimport ShWavefunc, cCtWavefunc, cShWavefunc, cShNeWavefunc
 
 from field cimport field_t
 from orbitals cimport cOrbitals
 from sphere_harmonics cimport cYlmCache
-from atom cimport cAtom, cAtomCache, Atom, AtomCache
+from atom cimport cAtom, cAtomCache, Atom, AtomCache, AtomNeCache
 from hartree_potential cimport potential_xc_f
 
 
@@ -187,8 +187,8 @@ cdef class SKnWorkspace:
 cdef class SKnNeWorkspace:
     cdef:
         WfNeBase* cdata
-        UabsCache uabs
-        AtomCache atom_cache
+        UabsNeCache uabs
+        AtomNeCache atom_cache
 
 cdef class SKnAWorkspace:
     cdef:

@@ -104,7 +104,7 @@ cdef class SKnWorkspace:
 
 
 cdef class SKnNeWorkspace:
-    def __cinit__(self, AtomCache atom_cache, ShNeGrid grid, UabsCache uabs, int num_threads = -1):
+    def __cinit__(self, AtomNeCache atom_cache, ShNeGrid grid, UabsNeCache uabs, int num_threads = -1):
         self.cdata = new WfNeBase(grid.data[0], atom_cache.cdata[0], uabs.cdata[0], Odr3, num_threads)
         self.uabs = uabs
         self.atom_cache = atom_cache
@@ -112,7 +112,7 @@ cdef class SKnNeWorkspace:
     def __dealloc__(self):
         del self.cdata
 
-    def __init__(self, AtomCache atom_cache, ShNeGrid grid, UabsCache uabs, int num_threads = -1, int propType=4):
+    def __init__(self, AtomNeCache atom_cache, ShNeGrid grid, UabsNeCache uabs, int num_threads = -1, int propType=4):
         pass
 
     def prop(self, ShNeWavefunc wf, Field field, double t, double dt):

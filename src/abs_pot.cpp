@@ -57,18 +57,18 @@ double UabsMultiHump::getWidth() const {
 	return shifts[0] + 2*l[0];
 }
 
-UabsCache::UabsCache(const Uabs &uabs, const ShGrid &grid, double *u):
+UabsCache::UabsCache(const Uabs &uabs, const ShGrid* grid, double *u):
     uabs(uabs),
     grid(grid) {
-    data = new double[grid.n[iR]];
+    data = new double[grid->n[iR]];
 
     if (u != nullptr) {
-        for (int ir=0; ir<grid.n[iR]; ir++) {
+        for (int ir=0; ir<grid->n[iR]; ir++) {
             data[ir] = u[ir];
         }
     } else {
-        for (int ir=0; ir<grid.n[iR]; ir++) {
-            data[ir] = uabs.u(grid, grid.r(ir));
+        for (int ir=0; ir<grid->n[iR]; ir++) {
+            data[ir] = uabs.u(*grid, grid->r(ir));
         }
     }
 }

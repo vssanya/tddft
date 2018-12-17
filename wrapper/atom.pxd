@@ -1,5 +1,7 @@
 from grid cimport cShGrid, ShGrid, ShNeGrid
+
 from libcpp.vector cimport vector
+
 
 cdef extern from "atom.h":
     cdef cppclass cAtom "Atom":
@@ -89,5 +91,7 @@ cdef class Atom:
 
 cdef class AtomCache:
     cdef cAtomCache* cdata
-    cdef public Atom atom
-    cdef public ShGrid grid
+    cdef dict __dict__
+
+cdef class AtomNeCache(AtomCache):
+    pass
