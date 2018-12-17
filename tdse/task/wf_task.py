@@ -406,6 +406,18 @@ class WavefuncTask(TaskAtom):
     def calc_prop(self, i, t):
         self.ws.prop(self.wf, self.field, t, self.dt)
 
+class WavefuncNeTask(TaskAtom):
+    Workspace = tdse.workspace.SKnNeWorkspace
+
+    Rmin = 1e-3
+    Ra   = 1.0
+
+    AtomCacheClass = tdse.atom.AtomNeCache
+    UabsCacheClass = tdse.abs_pot.UabsNeCache
+
+    def create_grid(self):
+        return tdse.grid.ShNeGrid(self.Rmin, self.r_max, self.Ra, self.dr, self.Nl)
+
 class WfGpuTask(WavefuncTask):
     gpuGridNl = 1024
     threadsPerBlock = 8

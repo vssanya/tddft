@@ -252,21 +252,27 @@ class TaskAtom(Task):
 
     uabs = None
 
+    AtomCacheClass = tdse.atom.AtomCache
+    UabsCacheClass = tdse.abs_pot.UabsCache
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        self.Nr = int(self.r_max/self.dr)
-        self.sh_grid = tdse.grid.ShGrid(Nr=self.Nr, Nl=self.Nl, r_max=self.r_max)
+        self.sh_grid = self.create_grid()
 
         if self.atom_u_data_path is None:
             atom_u_data = None
         else:
             atom_u_data = np.load(self.atom_u_data_path)
 
-        self.atom_cache = tdse.atom.AtomCache(self.atom, self.sh_grid, atom_u_data)
+        self.atom_cache = self.AtomCacheClass(self.atom, self.sh_grid, atom_u_data)
 
         if self.uabs is not None:
-            self.uabs_cache = tdse.abs_pot.UabsCache(self.uabs, self.sh_grid)
+            self.uabs_cache = self.UabsCacheClass(self.uabs, self.sh_grid)
+
+    def create_grid(self):
+        Nr = int(self.r_max/self.dr)
+        return tdse.grid.ShGrid(Nr=self.Nr, Nl=self.Nl, r_max=self.r_max)
 
     def write_calc_params(self, params_grp: h5py.Group):
         super().write_calc_params(params_grp)
