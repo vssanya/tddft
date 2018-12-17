@@ -44,7 +44,7 @@ cdef class UabsCache:
 cdef class UabsNeCache:
     cdef cUabsCache* cdata
     cdef public Uabs uabs
-    cdef public ShGrid grid
+    cdef public ShNeGrid grid
 
 cdef class UabsZero(Uabs):
     pass
