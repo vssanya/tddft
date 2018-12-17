@@ -12,14 +12,16 @@ if tdse.utils.is_jupyter_notebook():
 
 cdef class AtomCache:
     def __cinit__(self, Atom atom, ShGrid grid, double[::1] u = None):
+        self.atom = atom
+        self.grid = grid
+
         if u is None:
             self.cdata = new cAtomCache(atom.cdata[0], <cShGrid*>grid.data)
         else:
             self.cdata = new cAtomCache(atom.cdata[0], <cShGrid*>grid.data, &u[0])
 
     def __init__(self, Atom atom, ShGrid grid, double[::1] u = None):
-        self.atom = atom
-        self.grid = grid
+        pass
 
     def __dealloc__(self):
         del self.cdata
