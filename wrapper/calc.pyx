@@ -7,7 +7,7 @@ from wavefunc cimport ShWavefunc
 from orbitals cimport Orbitals
 from workspace cimport SKnWorkspace, SOrbsWorkspace
 from field cimport Field
-from atom cimport AtomCache
+from atom cimport AtomCache, AtomNeCache
 
 from calc_gpu cimport calc_wf_gpu_az
 from wavefunc_gpu cimport ShWavefuncGPU
@@ -22,6 +22,10 @@ ctypedef fused WS:
     SKnWorkspace
     SOrbsWorkspace
 
+ctypedef fused AC:
+    AtomCache
+    AtomNeCache
+
 def ionization_prob(WF wf):
     if WF is Orbitals:
         return calc_orbs_ionization_prob(wf.cdata)
@@ -30,7 +34,7 @@ def ionization_prob(WF wf):
     else:
         assert(False)
 
-def az(WF wf, AtomCache atom, Field field, double t):
+def az(WF wf, AC atom, Field field, double t):
     if WF is Orbitals:
         return calc_orbs_az(wf.cdata[0], atom.cdata[0], field.cdata, t)
     elif WF is ShWavefuncGPU:
