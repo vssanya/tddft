@@ -1,4 +1,4 @@
-from grid cimport cShGrid, ShGrid
+from grid cimport cShGrid, ShGrid, ShNeGrid
 from libcpp.vector cimport vector
 
 cdef extern from "abs_pot.h":
