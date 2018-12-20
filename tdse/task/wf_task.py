@@ -368,6 +368,9 @@ class WavefuncTask(TaskAtom):
     is_calc_ground_state = True
 
     Workspace = tdse.workspace.SKnWorkspace
+    Wavefunc = tdse.wavefunc.ShWavefunc
+
+    prop_type = 4
 
     def __init__(self, path_res='res', mode=None, **kwargs):
         super().__init__(path_res, mode, is_mpi=False, **kwargs)
@@ -382,7 +385,7 @@ class WavefuncTask(TaskAtom):
         if uabs_cache is None:
             uabs_cache = self.uabs_cache
 
-        return self.Workspace(self.atom_cache, self.sh_grid, uabs_cache)
+        return self.Workspace(self.atom_cache, self.sh_grid, uabs_cache, propType = self.prop_type)
 
     def calc_init(self):
         super().calc_init()
@@ -393,7 +396,7 @@ class WavefuncTask(TaskAtom):
             print("Start calc ground state")
             self.wf = self.calc_ground_state(self.ws)
         else:
-            self.wf = tdse.wavefunc.ShWavefunc(self.sh_grid)
+            self.wf = self.Wavefunc(self.sh_grid)
 
         self.t = self.field.get_t(self.dt, dT=self.dT)
 
@@ -401,13 +404,14 @@ class WavefuncTask(TaskAtom):
         if ws is None:
             ws = self.create_workspace(tdse.abs_pot.UabsZero())
 
-        return tdse.ground_state.wf(self.atom, self.sh_grid, ws, self.dt, 10000)[0]
+        return tdse.ground_state.wf(self.atom, self.sh_grid, ws, self.dt, 10000, self.Wavefunc)[0]
 
     def calc_prop(self, i, t):
         self.ws.prop(self.wf, self.field, t, self.dt)
 
-class WavefuncNeTask(TaskAtom):
+class WavefuncNeTask(WavefuncTask):
     Workspace = tdse.workspace.SKnNeWorkspace
+    Wavefunc = tdse.wavefunc.ShNeWavefunc
 
     Rmin = 1e-3
     Ra   = 1.0

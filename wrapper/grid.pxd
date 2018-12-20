@@ -72,6 +72,8 @@ cdef class ShGrid:
 
 cdef class ShNeGrid:
     cdef cShNeGrid* data
+    cdef double Rmin
+    cdef double Ra
 
 cdef class SpGrid:
     cdef cSpGrid* data

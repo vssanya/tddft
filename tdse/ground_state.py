@@ -5,10 +5,10 @@ from .atom import AtomCache
 from .grid import ShGrid
 
 
-def wf_1(atom, grid, ws, dt, Nt):
+def wf_1(atom, grid, ws, dt, Nt, wf_class = wavefunc.ShWavefunc):
     l = atom.ground_state.l
     m = atom.ground_state.m
-    wf = wavefunc.ShWavefunc.random(grid, l, m)
+    wf = wf_class.random(grid, l, m)
 
     for i in range(Nt):
         wf.normalize()
@@ -21,15 +21,15 @@ def wf_1(atom, grid, ws, dt, Nt):
 
     return wf, E
 
-def wf_n(atom, grid, ws, dt, Nt):
+def wf_n(atom, grid, ws, dt, Nt, wf_class = wavefunc.ShWavefunc):
     l = atom.ground_state.l
     m = atom.ground_state.m
     n = atom.ground_state.n + 1
 
-    wfs = [wavefunc.ShWavefunc.random(grid, l, m) for i in range(n)]
+    wfs = [wf_class.random(grid, l, m) for i in range(n)]
 
     for i in range(Nt):
-        wavefunc.ShWavefunc.ort_l(wfs, l)
+        wf_class.ort_l(wfs, l)
         for j in range(n):
             wf = wfs[j]
             wf.normalize()
@@ -38,27 +38,27 @@ def wf_n(atom, grid, ws, dt, Nt):
     n = np.sqrt(wfs[-1].norm())
     E = 2/dt*(1-n)/(1+n)
 
-    wavefunc.ShWavefunc.ort_l(wfs, l)
+    wf_class.ort_l(wfs, l)
     wfs[-1].normalize()
 
     return wfs[-1], E
 
-def wf(atom, grid, ws, dt, Nt):
+def wf(atom, grid, ws, dt, Nt, wf_class = wavefunc.ShWavefunc):
     l = atom.ground_state.l
     m = atom.ground_state.m
     n = atom.ground_state.n + 1
 
-    small_grid = ShGrid(grid.Nr, l+1, grid.Rmax)
+    small_grid = grid.createGridWith(l+1)
 
     if n == 1:
-        wf, E = wf_1(atom, small_grid, ws, dt, Nt)
+        wf, E = wf_1(atom, small_grid, ws, dt, Nt, wf_class)
     else:
-        wf, E = wf_n(atom, small_grid, ws, dt, Nt)
+        wf, E = wf_n(atom, small_grid, ws, dt, Nt, wf_class)
 
     if small_grid.Nl == grid.Nl:
         wf_full = wf
     else:
-        wf_full = wavefunc.ShWavefunc(grid, m)
+        wf_full = wf_class(grid, m)
         wf_full.asarray()[l,:] = wf.asarray()[l,:]
 
     wf_full.asarray()[0:l,:] = 0.0

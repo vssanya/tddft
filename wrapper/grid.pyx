@@ -54,6 +54,9 @@ cdef class ShGrid:
     def _repr_latex_(self):
         return "ShGrid: $N_r = {}$, $N_l = {}$, $dr = {}$ (a.u.)".format(self.data.n[0], self.data.n[1], self.data.d[0])
 
+    def createGridWith(self, Nl):
+        return ShGrid(self.Nr, Nl, self.Rmax)
+
     @property
     def shape(self):
         return (self.data.n[1], self.data.n[0])
@@ -80,6 +83,8 @@ cdef class ShGrid:
 
 cdef class ShNeGrid:
     def __cinit__(self, double Rmin, double Rmax, double Ra, double dr_max, int Nl):
+        self.Rmin = Rmin
+        self.Ra = Ra
         self.data = new cShNeGrid(Rmin, Rmax, Ra, dr_max, Nl)
 
     def __init__(self, double Rmin, double Rmax, double Ra, double dr_max, int Nl):
@@ -90,6 +95,9 @@ cdef class ShNeGrid:
 
     def _repr_latex_(self):
         return "ShNeGrid: $N_r = {}$, $N_l = {}$, $dr = {}$ (a.u.)".format(self.data.n[0], self.data.n[1], self.data.d[0])
+
+    def createGridWith(self, Nl):
+        return ShNeGrid(self.Rmin, self.Rmax, self.Ra, self.dr, Nl)
 
     @property
     def shape(self):

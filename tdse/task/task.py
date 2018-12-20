@@ -272,7 +272,7 @@ class TaskAtom(Task):
 
     def create_grid(self):
         Nr = int(self.r_max/self.dr)
-        return tdse.grid.ShGrid(Nr=self.Nr, Nl=self.Nl, r_max=self.r_max)
+        return tdse.grid.ShGrid(Nr=Nr, Nl=self.Nl, r_max=self.r_max)
 
     def write_calc_params(self, params_grp: h5py.Group):
         super().write_calc_params(params_grp)
