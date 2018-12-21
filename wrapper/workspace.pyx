@@ -104,8 +104,14 @@ cdef class SKnWorkspace:
 
 
 cdef class SKnNeWorkspace:
-    def __cinit__(self, AtomNeCache atom_cache, ShNeGrid grid, UabsNeCache uabs, int num_threads = -1):
-        self.cdata = new WfNeBase(grid.data[0], atom_cache.cdata[0], uabs.cdata[0], Odr3, num_threads)
+    def __cinit__(self, AtomNeCache atom_cache, ShNeGrid grid, UabsNeCache uabs, int num_threads = -1, int propType=4):
+        cdef PropAtType propAtType
+        if propType == 4:
+            propAtType = Odr4
+        else:
+            propAtType = Odr3
+
+        self.cdata = new WfNeBase(grid.data[0], atom_cache.cdata[0], uabs.cdata[0], propAtType, num_threads)
         self.uabs = uabs
         self.atom_cache = atom_cache
 

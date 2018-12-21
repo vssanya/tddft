@@ -26,8 +26,8 @@ void workspace::WfEWithSource::prop_src(ShWavefunc& wf, field_t const* field, do
 
 
 void workspace::WfEWithSource::prop_abs(ShWavefunc& wf, double dt) {
-	assert(wf.grid->n[iR] == grid->n[iR]);
-	assert(wf.grid->n[iL] <= grid->n[iL]);
+	assert(wf.grid->n[iR] == grid.n[iR]);
+	assert(wf.grid->n[iL] <= grid.n[iL]);
 	double norm = 0.0;
 #pragma omp parallel for collapse(2) reduction(+:norm)
 	for (int il = 0; il < wf.grid->n[iL]; ++il) {

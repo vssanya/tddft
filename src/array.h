@@ -18,12 +18,12 @@ class Array2D {
 		}
 
 		inline double& operator() (int ix, int iy) {
-			assert(ix < grid->n[iX] && iy < grid->n[iY]);
+			assert(ix < grid.n[iX] && iy < grid.n[iY]);
 			return data[ix + iy*grid.n[iX]];
 		}
 
 		inline double const& operator() (int ix, int iy) const {
-			assert(ix < grid->n[iX] && iy < grid->n[iY]);
+			assert(ix < grid.n[iX] && iy < grid.n[iY]);
 			return data[ix + iy*grid.n[iX]];
 		}
 	

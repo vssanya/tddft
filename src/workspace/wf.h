@@ -199,12 +199,10 @@ namespace workspace {
 			void prop_at_Odr3(Wavefunc<Grid>& wf, cdouble dt, sh_f Ul) {
 				int const Nr = grid.n[iR];
 				double const dr = grid.d[iR];
-				double const dr2 = dr*dr;
 
 				int const Z = atom_cache.atom.Z;
 
-				double const d2[3] = {1.0/dr2, -2.0/dr2, 1.0/dr2};
-				double const d2_l0_11 = d2[1]*(1.0 - Z*dr/(12.0 - 10.0*Z*dr));
+				//double const d2_l0_11 = d2[1]*(1.0 - Z*dr/(12.0 - 10.0*Z*dr));
 
 				cdouble al[3];
 				cdouble ar[3];
@@ -232,8 +230,8 @@ namespace workspace {
 						}
 
 						if (false) {//l == 0 && atom_cache.atom.potentialType == Atom::POTENTIAL_COULOMB) {
-							al[1] = 1.0 + idt_2*U - 0.5*idt_2*d2_l0_11;
-							ar[1] = 1.0 - idt_2*U + 0.5*idt_2*d2_l0_11;
+							//al[1] = 1.0 + idt_2*U - 0.5*idt_2*d2_l0_11;
+							//ar[1] = 1.0 - idt_2*U + 0.5*idt_2*d2_l0_11;
 						} else {
 							al[1] = 1.0 + idt_2*U - 0.5*idt_2*grid.d2(ir, 1);
 							ar[1] = 1.0 - idt_2*U + 0.5*idt_2*grid.d2(ir, 1);
@@ -438,6 +436,24 @@ namespace workspace {
 
 			int num_threads;
 	};
+
+	/*
+	 * \brief Расчет функции \f[\psi(t+dt) = exp(-iH_{at}dt)\psi(t)\f],
+	 * с точностью O(dr^4)
+	 *
+	 * \f[H_{at} = -0.5\frac{d^2}{dr^2} + U(r, l)\f]
+	 * \f[exp(iAdt) = \frac{1 - iA}{1 + iA} + O(dt^3)\f]
+	 *
+	 * \f[H_{at} = -0.5 (g(\xi)\frac{d^2}{d\xi^2} + h(\xi)\frac{d}{d\xi}) + U(r, l)\f]
+	 * \f[H_{at} = -0.5 (g(\xi)M_2^{-1} d_2 + h(\xi) M_1^{-1} d_1) + U(r, l)\f]
+	 *
+	 * (M_1 M_2(1 - i U(r, l)) + 0.5 i (M_1))
+	 *
+	 * \param[in,out] wf
+	 *
+	 */
+	template<>
+	void WavefuncWS<ShNotEqudistantGrid>::prop_at_Odr4(Wavefunc<ShNotEqudistantGrid>& wf, cdouble dt, sh_f Ul);
 
 	typedef WavefuncWS<ShGrid> WfBase;
 	typedef WavefuncWS<ShNotEqudistantGrid> WfNeBase;

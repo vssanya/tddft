@@ -257,6 +257,7 @@ public:
 		g = new double[n[iR]];
 
 		m_r = new double[n[iR]];
+		m_dr = new double[n[iR]];
 		
 		for (int ir=0; ir<n[iR]; ir++) {
 			double xi = d[iR]*(ir+1);
@@ -268,6 +269,11 @@ public:
 			h[ir] = std::pow(df(xi), -2);
 			g[ir] = -std::pow(df(xi), -3)*d2f(xi);
 		}
+
+		m_dr[0] = m_r[0];
+		for (int ir=1; ir<n[iR]; ir++) {
+			m_dr[ir] = m_r[ir] - m_r[ir-1];
+		}
 	}
 
 	~ShNotEqudistantGrid() {
@@ -275,6 +281,11 @@ public:
 		delete[] h;
 		delete[] g;
 		delete[] m_r;
+		delete[] m_dr;
+	}
+
+	double dr(int ir) const {
+		return m_dr[ir];
 	}
 
     double r(int ir) const {
@@ -295,6 +306,8 @@ public:
 	double J(int ir, int il) const {
 		return dfdxi[ir];
 	}
+
+	double* m_dr;
 
 private:
 	double m_d2[3];

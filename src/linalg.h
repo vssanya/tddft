@@ -123,4 +123,6 @@ namespace linalg
 			v[1][i] = x[1];
 		}
 	}
+
+	typedef std::function<void(cdouble[3])> fillRowFunc;
 } /* linalg */ 
