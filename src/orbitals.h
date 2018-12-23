@@ -10,9 +10,10 @@
 /*!
  * \brief Орбитали Кона-Шэма
  * */
+template <typename Grid>
 class Orbitals {
 public:
-    Orbitals(Atom const& atom, ShGrid const* grid, MPI_Comm mpi_comm);
+    Orbitals(Atom const& atom, Grid const& grid, MPI_Comm mpi_comm);
     ~Orbitals();
 
     void init();
@@ -29,8 +30,8 @@ public:
     /*!
      * \brief [MPI support]
      */
-    double norm(sh_f mask = nullptr) const;
-    void norm_ne(double* n, sh_f mask = nullptr) const;
+    double norm(typename Wavefunc<Grid>::sh_f mask = nullptr) const;
+    void norm_ne(double* n, typename Wavefunc<Grid>::sh_f mask = nullptr) const;
 
     void prod_ne(Orbitals const& orbs, cdouble *n) const;
 
@@ -43,13 +44,13 @@ public:
      * \brief [Расчет дипольного момента.
 	 * MPI support]
      */
-    double z(sh_f mask = nullptr) const;
+    double z(typename Wavefunc<Grid>::sh_f mask = nullptr) const;
 
     /*!
      * \brief [Расчет дипольного момента для каждой орбитали.
 	 * MPI support]
      */
-	void z_ne(double* z, sh_f mask = nullptr) const;
+	void z_ne(double* z, typename Wavefunc<Grid>::sh_f mask = nullptr) const;
 
     /*!
      * Электронная плотность
@@ -58,23 +59,26 @@ public:
      * \param i is sphere index \f${i_r, i_\Theta, i_\phi}\f$
      * \brief [MPI not support]
      */
-    void n_sp(SpGrid const* grid, double* n, double* n_tmp, YlmCache const* ylm_cache) const;
+    void n_sp(SpGrid const& grid, double* n, double* n_tmp, YlmCache const* ylm_cache) const;
     double  n(SpGrid const* grid, int i[2], YlmCache const* ylm_cache) const;
     void n_l0(double* n, double* n_tmp) const;
 
-    double cos(sh_f U) const;
+    double cos(typename Wavefunc<Grid>::sh_f U) const;
 
     void ort();
 
     Atom const& atom;
-    ShGrid const* grid;
-    ShWavefunc** wf; //!< волновые функции орбиталей
+    Grid const& grid;
+    Wavefunc<Grid>** wf; //!< волновые функции орбиталей
     cdouble* data; //!< raw data[ir + il*nr + ie*nr*nl]
 
 #ifdef _MPI
     MPI_Comm mpi_comm;
     MPI_Comm spin_comm;
     int mpi_rank;
-    ShWavefunc* mpi_wf;
+    Wavefunc<Grid>* mpi_wf;
 #endif
 };
+
+typedef Orbitals<ShGrid> ShOrbitals;
+typedef Orbitals<ShNotEqudistantGrid> ShNeOrbitals;

@@ -9,19 +9,19 @@ void wf_prop_ang_l(
 		Wavefunc<Grid>& wf,
 		cdouble dt,
 		int l, int l1,
-		typename Wavefunc<Grid>::sh_f Ul,
+		std::function<double(int, int, int)> Ul,
 		linalg::matrix_f dot,
 		linalg::matrix_f dot_T,
 		cdouble const eigenval[2]
 ) {
-	int const Nr = wf.grid->n[iR];
+	int const Nr = wf.grid.n[iR];
 
 	cdouble* psi_l0 = &wf(0, l);
 	cdouble* psi_l1 = &wf(0, l+l1);
 
 #pragma omp for
 	for (int i = 0; i < Nr; ++i) {
-		double const E = Ul(wf.grid, i, l, wf.m);
+		double const E = Ul(i, l, wf.m);
 
 		cdouble x[2] = {psi_l0[i], psi_l1[i]};
 
@@ -41,19 +41,19 @@ void wf_prop_ang_l_2(
 		cdouble dt,
 		int l,
 		int l1,
-		typename Wavefunc<Grid>::sh_f Ul,
+		std::function<double(int, int, int)> Ul,
 		linalg::matrix_f dot,
 		linalg::matrix_f dot_T,
 		cdouble const eigenval[2]
 ) {
-	int const Nr = wf.grid->n[iR];
+	int const Nr = wf.grid.n[iR];
 
 	cdouble* psi_l0 = &wf(0, l);
 	cdouble* psi_l1 = &wf(0, l+l1);
 
 #pragma omp for
 	for (int i = 0; i < Nr; ++i) {
-		double const E = Ul(wf.grid, i, l, wf.m);
+		double const E = Ul(i, l, wf.m);
 
 		cdouble x[2] = {psi_l0[i], psi_l1[i]};
 
@@ -69,14 +69,14 @@ void wf_prop_ang_l_2(
 
 template<class Grid>
 void wf_prop_ang_E_l(Wavefunc<Grid>& wf, cdouble dt, int l, int l1,
-		typename Wavefunc<Grid>::sh_f Ul
+		std::function<double(int, int, int)> Ul
 ) {
 	wf_prop_ang_l(wf, dt, l, l1, Ul, linalg::matrix_bE::dot, linalg::matrix_bE::dot_T, linalg::matrix_bE::eigenval);
 }
 
 template<class Grid>
 void wf_prop_ang_A_l(Wavefunc<Grid>& wf, cdouble dt, int l, int l1,
-		typename Wavefunc<Grid>::sh_f Ul
+		std::function<double(int, int, int)> Ul
 ) {
 	wf_prop_ang_l_2(wf, dt, l, l1, Ul, linalg::matrix_bA::dot, linalg::matrix_bA::dot_T, linalg::matrix_bA::eigenval);
 }

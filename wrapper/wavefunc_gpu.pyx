@@ -1,4 +1,4 @@
-from wavefunc cimport ShWavefunc, swavefunc_from_point
+from wavefunc cimport ShWavefunc, sh_wavefunc_from_point
 
 
 cdef class ShWavefuncArrayGPU:
@@ -13,7 +13,7 @@ cdef class ShWavefuncArrayGPU:
         del self.cdata
 
     def get(self, int i):
-        return swavefunc_from_point(self.cdata.get(i), self.grid, True)
+        return sh_wavefunc_from_point(self.cdata.get(i), self.grid, True)
 
     @property
     def N(self):
@@ -32,4 +32,4 @@ cdef class ShWavefuncGPU:
         del self.cdata
 
     def get(self):
-        return swavefunc_from_point(self.cdata.get(), self.grid, True)
+        return sh_wavefunc_from_point(self.cdata.get(), self.grid, True)

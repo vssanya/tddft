@@ -18,9 +18,9 @@
 template<class Grid>
 class Wavefunc {
 	public:
-		Grid const* grid;
+		Grid const& grid;
 
-		cdouble* data; //!< data[i + l*grid->Nr] = \f$\Theta_{lm}(r_i)\f$
+		cdouble* data; //!< data[i + l*grid.Nr] = \f$\Theta_{lm}(r_i)\f$
 		bool data_own; //!< кто выделил данные
 
 		int m;         //!< is magnetic quantum number
@@ -28,33 +28,32 @@ class Wavefunc {
 		typedef double  (*func_wf_t        )(Wavefunc const* wf, int ir, int il);
 		typedef cdouble (*func_complex_wf_t)(Wavefunc const* wf, int ir, int il);
 
-		typedef std::function<double(Grid const* grid, int ir, int il, int m)> sh_f;
+		typedef std::function<double(int ir, int il, int m)> sh_f;
 
 		template<class T>
-			inline T integrate(std::function<T(Wavefunc const*, int, int)> func, int l_max, int l_min = 0) const {
+			inline T integrate(std::function<T(int, int)> func, int l_max, int l_min = 0) const {
 				T res = 0.0;
 #pragma omp parallel for reduction(+:res) collapse(2)
 				for (int il = l_min; il < l_max; ++il) {
-					for (int ir = 0; ir < grid->n[iR]; ++ir) {
-						res += func(this, ir, il)*grid->J(ir, il);
+					for (int ir = 0; ir < grid.n[iR]; ++ir) {
+						res += func(ir, il)*grid.J(ir, il);
 					}
 				}
-				return res*grid->d[iR];
+				return res*grid.d[iR];
 			}
 
-
-		Wavefunc(cdouble* data, Grid const* grid, int const m):
+		Wavefunc(cdouble* data, Grid const& grid, int const m):
 			data(data),
 			grid(grid),
 			m(m),
 			data_own(false) {
 				if (data == nullptr) {
-					this->data = new cdouble[grid->size()]();
+					this->data = new cdouble[grid.size()]();
 					data_own = true;
 				}
 			}
 
-		Wavefunc(Grid const* grid, int const m): Wavefunc(nullptr, grid, m) {}
+		Wavefunc(Grid const& grid, int const m): Wavefunc(nullptr, grid, m) {}
 
 		~Wavefunc() {
 			if (data_own) {
@@ -64,24 +63,24 @@ class Wavefunc {
 
 
 		inline cdouble& operator() (int ir, int il) {
-			assert(ir < grid->n[iR] && il < grid->n[iL]);
-			return data[ir + il*grid->n[iR]];
+			assert(ir < grid.n[iR] && il < grid.n[iL]);
+			return data[ir + il*grid.n[iR]];
 		}
 
 		inline cdouble const& operator() (int ir, int il) const {
-			assert(ir < grid->n[iR] && il < grid->n[iL]);
-			return data[ir + il*grid->n[iR]];
+			assert(ir < grid.n[iR] && il < grid.n[iL]);
+			return data[ir + il*grid.n[iR]];
 		}
 
 		inline cdouble d_dr(int ir, int il) const {
-			return (-(*this)(ir+2, il) + 8*(*this)(ir+1, il) - 8*(*this)(ir-1, il) + (*this)(ir-2, il))/(12*grid->d[iR]);
+			return (-(*this)(ir+2, il) + 8*(*this)(ir+1, il) - 8*(*this)(ir-1, il) + (*this)(ir-2, il))/(12*grid.d[iR]);
 		}
 
 		inline cdouble d_dr_save(int ir, int il) const {
 			if (ir == 0) {
-				return (-(*this)(ir+2, il) + 8*(*this)(ir+1, il))/(12*grid->d[iR]);
+				return (-(*this)(ir+2, il) + 8*(*this)(ir+1, il))/(12*grid.d[iR]);
 			} else if (ir == 1) {
-				return (-(*this)(ir+2, il) + 8*(*this)(ir+1, il) - 8*(*this)(ir-1, il))/(12*grid->d[iR]);
+				return (-(*this)(ir+2, il) + 8*(*this)(ir+1, il) - 8*(*this)(ir-1, il))/(12*grid.d[iR]);
 			} else {
 				return d_dr(ir, il);
 			}
@@ -94,24 +93,24 @@ class Wavefunc {
 
 		void copy(Wavefunc* wf_dest) const {
 #pragma omp parallel for
-			for (int i = 0; i < grid->size(); ++i) {
+			for (int i = 0; i < grid.size(); ++i) {
 				wf_dest->data[i] = data[i];
 			}
 		}
 
 		// \return \f$<\psi_1|\psi_2>\f$
 		cdouble operator*(Wavefunc const& other) const {
-			return integrate<cdouble>([this, &other](Wavefunc const* wf, int ir, int il) -> cdouble {
+			return integrate<cdouble>([this, &other](int ir, int il) -> cdouble {
 					return (*this)(ir, il)*conj(other(ir, il));
-					}, std::min(grid->n[iL], other.grid->n[iL]));
+					}, std::min(grid.n[iL], other.grid.n[iL]));
 		}
 
 		void exclude(Wavefunc const& other) {
 			auto proj = (*this)*other / other.norm();
 
 #pragma omp parallel for collapse(2)
-			for (int il = 0; il < grid->n[iL]; il++) {
-				for (int ir = 0; ir < grid->n[iR]; ir++) {
+			for (int il = 0; il < grid.n[iL]; il++) {
+				for (int ir = 0; ir < grid.n[iR]; ir++) {
 					(*this)(ir, il) -= other(ir, il)*proj;
 				}
 			}
@@ -119,22 +118,22 @@ class Wavefunc {
 
 		// <psi|U(r)cos(\theta)|psi>
 		double cos(sh_f func) const {
-			return 2*integrate<double>([func](Wavefunc const* wf, int ir, int il) -> double {
-					return clm(il, wf->m)*creal((*wf)(ir, il)*conj((*wf)(ir, il+1)))*func(wf->grid, ir, il, wf->m);
-					}, grid->n[iL]-1);
+			return 2*integrate<double>([this, func](int ir, int il) -> double {
+					return clm(il, m)*creal((*this)(ir, il)*conj((*this)(ir, il+1)))*func(ir, il, m);
+					}, grid.n[iL]-1);
 		}
 
 		// <psi|U(r)cos^2(\theta)|psi>
 		double cos2(sh_f func) const {
 			double res = 0.0;
-			res += integrate<double>([func](Wavefunc const* wf, int ir, int il) -> double {
-					cdouble psi = (*wf)(ir, il);
-					return (plm(il, wf->m) + 0.5)*(creal(psi)*creal(psi) + cimag(psi)*cimag(psi))*func(wf->grid, ir, il, wf->m);
-					}, grid->n[iL]);
+			res += integrate<double>([this, func](int ir, int il) -> double {
+					cdouble psi = (*this)(ir, il);
+					return (plm(il, m) + 0.5)*(creal(psi)*creal(psi) + cimag(psi)*cimag(psi))*func(ir, il, m);
+					}, grid.n[iL]);
 
-			res += 2*integrate<double>([func](Wavefunc const* wf, int ir, int il) -> double {
-					return qlm(il, wf->m)*creal((*wf)(ir, il)*conj((*wf)(ir, il+2)))*func(wf->grid, ir, il, wf->m);
-					}, grid->n[iL]-2);
+			res += 2*integrate<double>([this, func](int ir, int il) -> double {
+					return qlm(il, m)*creal((*this)(ir, il)*conj((*this)(ir, il+2)))*func(ir, il, m);
+					}, grid.n[iL]-2);
 
 			return res*(2.0/3.0);
 		}
@@ -142,92 +141,92 @@ class Wavefunc {
 		// <psi|U(r)sin^2(\theta)|psi>
 		double sin2(sh_f func) const {
 			double res = 0.0;
-			res += integrate<double>([func](Wavefunc const* wf, int ir, int il) -> double {
-					cdouble psi = (*wf)(ir, il);
-					return (0.5 - plm(il, wf->m))*(creal(psi)*creal(psi) + cimag(psi)*cimag(psi))*func(wf->grid, ir, il, wf->m);
-					}, grid->n[iL]);
+			res += integrate<double>([this, func](int ir, int il) -> double {
+					cdouble psi = (*this)(ir, il);
+					return (0.5 - plm(il, m))*(creal(psi)*creal(psi) + cimag(psi)*cimag(psi))*func(ir, il, m);
+					}, grid.n[iL]);
 
-			res -= 2*integrate<double>([func](Wavefunc const* wf, int ir, int il) -> double {
-					return qlm(il, wf->m)*creal((*wf)(ir, il)*conj((*wf)(ir, il+2)))*func(wf->grid, ir, il, wf->m);
-					}, grid->n[iL]-2);
+			res -= 2*integrate<double>([this, func](int ir, int il) -> double {
+					return qlm(il, m)*creal((*this)(ir, il)*conj((*this)(ir, il+2)))*func(ir, il, m);
+					}, grid.n[iL]-2);
 
 			return res*(2.0/3.0);
 		}
 
 		void cos_r(sh_f U, double* res) const {
-			for (int ir = 0; ir < grid->n[iR]; ++ir) {
+			for (int ir = 0; ir < grid.n[iR]; ++ir) {
 				res[ir] = 0.0;
-				for (int il = 0; il < grid->n[iL]-1; ++il) {
-					res[ir] += 2*clm(il, m)*creal((*this)(ir, il)*conj((*this)(ir, il+1)))*U(grid, ir, il, m);
+				for (int il = 0; il < grid.n[iL]-1; ++il) {
+					res[ir] += 2*clm(il, m)*creal((*this)(ir, il)*conj((*this)(ir, il+1)))*U(ir, il, m);
 				}
 			}
 		}
 
 		double cos_r2(sh_f U, int Z) const {
-			return 2*integrate<double>([U](Wavefunc const* wf, int ir, int il) -> double {
-					return clm(il, wf->m)*creal((*wf)(ir, il)*conj((*wf)(ir, il+1)))*U(wf->grid, ir, il, wf->m);
-					}, grid->n[iL]-1);
+			return 2*integrate<double>([this, U](int ir, int il) -> double {
+					return clm(il, m)*creal((*this)(ir, il)*conj((*this)(ir, il+1)))*U(ir, il, m);
+					}, grid.n[iL]-1);
 		}
 
 		double norm(sh_f mask = nullptr) const {
 			if (mask == nullptr) {
-				return  integrate<double>([](Wavefunc const* wf, int ir, int il) {
-						return wf->abs_2(ir, il);
-						}, grid->n[iL]);
+				return  integrate<double>([this](int ir, int il) {
+						return abs_2(ir, il);
+						}, grid.n[iL]);
 			} else {
-				return integrate<double>([mask](Wavefunc const* wf, int ir, int il) {
-						return wf->abs_2(ir, il)*mask(wf->grid, ir, il, wf->m);
-						}, grid->n[iL]);
+				return integrate<double>([this, mask](int ir, int il) {
+						return abs_2(ir, il)*mask(ir, il, m);
+						}, grid.n[iL]);
 			}
 		}
 
 		void normalize() {
 			double norm = this->norm(NULL);
 #pragma omp parallel for
-			for (int i = 0; i < grid->size(); ++i) {
+			for (int i = 0; i < grid.size(); ++i) {
 				data[i] /= sqrt(norm);
 			}
 		}
 
 		double z(sh_f mask = nullptr) const {
 			if (mask == nullptr) {
-				return cos([](Grid const* grid, int ir, int il, int im) {
-						return grid->r(ir);
+				return cos([this](int ir, int il, int im) {
+						return grid.r(ir);
 						});
 			} else {
-				return cos([&mask](Grid const* grid, int ir, int il, int im) {
-						return grid->r(ir)*mask(grid, ir, il, im);
+				return cos([this, &mask](int ir, int il, int im) {
+						return grid.r(ir)*mask(ir, il, im);
 						});
 			}
 		}
 
 		cdouble pz() const {
 			cdouble i = {0.0, 1.0};
-			return i*integrate<cdouble>([](Wavefunc const* wf, int ir, int il) -> cdouble {
-					double r = wf->grid->r(ir);
-					cdouble psi_0 = conj((*wf)(ir, il));
-					cdouble psi_1 = (*wf)(ir, il-1);
+			return i*integrate<cdouble>([this](int ir, int il) -> cdouble {
+					double r = grid.r(ir);
+					cdouble psi_0 = conj((*this)(ir, il));
+					cdouble psi_1 = (*this)(ir, il-1);
 
-					return -clm(il-1, wf->m)*psi_0*(
-							wf->d_dr_save(ir, il-1) -
+					return -clm(il-1, m)*psi_0*(
+							d_dr_save(ir, il-1) -
 							il*psi_1/r);
-					}, grid->n[iL], 1) +
-			i*integrate<cdouble>([](Wavefunc const* wf, int ir, int il) -> cdouble {
-					double r = wf->grid->r(ir);
-					cdouble psi_0 = conj((*wf)(ir, il));
-					cdouble psi_1 = (*wf)(ir, il+1);
+					}, grid.n[iL], 1) +
+			i*integrate<cdouble>([this](int ir, int il) -> cdouble {
+					double r = grid.r(ir);
+					cdouble psi_0 = conj((*this)(ir, il));
+					cdouble psi_1 = (*this)(ir, il+1);
 
-					return -clm(il, wf->m)*psi_0*(
-							wf->d_dr_save(ir, il+1)
+					return -clm(il, m)*psi_0*(
+							d_dr_save(ir, il+1)
 							+ (il + 1)*psi_1/r);
-					}, grid->n[iL] - 1, 0);
+					}, grid.n[iL] - 1, 0);
 		}
 
 		void random_l(int l) {
-			assert(l >= 0 && l < grid->n[iL]);
+			assert(l >= 0 && l < grid.n[iL]);
 
-			for (int il=0; il<grid->n[iL]; ++il) {
-				for (int ir=0; ir<grid->n[iR]; ++ir) {
+			for (int il=0; il<grid.n[iL]; ++il) {
+				for (int ir=0; ir<grid.n[iR]; ++ir) {
 					(*this)(ir, il) = 0.0;
 				}
 			}
@@ -236,13 +235,13 @@ class Wavefunc {
 				int il = l;
 				cdouble* psi = &(*this)(0, il);
 
-				for (int ir=0; ir<grid->n[iR]; ++ir) {
-					double const r = grid->r(ir);
+				for (int ir=0; ir<grid.n[iR]; ++ir) {
+					double const r = grid.r(ir);
 					psi[ir] = (double)rand()/(double)RAND_MAX*r*exp(-r/(2*l+1));
 				}
 
 				for (int i=0; i<10; ++i) {
-					for (int ir=1; ir<grid->n[iR]-1; ++ir) {
+					for (int ir=1; ir<grid.n[iR]-1; ++ir) {
 						psi[ir] = (psi[ir-1] + psi[ir] + psi[ir+1])/3.0;
 					}
 				}
@@ -255,7 +254,7 @@ class Wavefunc {
 				assert(wfs[in-1]->m == wfs[in]->m);
 			}
 
-			Grid const* grid = wfs[0]->grid;
+			auto grid = wfs[0]->grid;
 
 			cdouble proj[n];
 			double norm[n];
@@ -267,7 +266,7 @@ class Wavefunc {
 
 				for (int ip=0; ip<in; ++ip) {
 					cdouble* psi = &(*wfs[in])(0, l);
-					for (int ir=0; ir<grid->n[iR]; ++ir) {
+					for (int ir=0; ir<grid.n[iR]; ++ir) {
 						psi[ir] -= proj[ip]*(*wfs[ip])(ir, l);
 					}
 				}
@@ -279,33 +278,33 @@ class Wavefunc {
 		/*!
 		 * \return \f$\psi(r, \Omega)\f$
 		 * */
-		cdouble get_sp(SpGrid const* grid, int i[3], YlmCache const* ylm_cache) const {
+		cdouble get_sp(SpGrid const& grid, int i[3], YlmCache const* ylm_cache) const {
 			cdouble res = 0.0;
-			for (int il = 0; il < this->grid->n[iL]; ++il) {
-				int const l = this->grid->l(il);
+			for (int il = 0; il < this->grid.n[iL]; ++il) {
+				int const l = this->grid.l(il);
 				res += (*this)(i[iR], il)*(*ylm_cache)(l, m, i[iC]);
 			}
 
-			double r = grid->r(i[iR]);
+			double r = grid.r(i[iR]);
 			return res/r;
 		}
 
-		void n_sp(SpGrid const* grid, double* n, YlmCache const* ylm_cache) const {
+		void n_sp(SpGrid const& grid, double* n, YlmCache const* ylm_cache) const {
 #pragma omp parallel for collapse(2)
-			for (int ir = 0; ir < grid->n[iR]; ++ir) {
-				for (int ic = 0; ic < grid->n[iC]; ++ic) {
+			for (int ir = 0; ir < grid.n[iR]; ++ir) {
+				for (int ic = 0; ic < grid.n[iC]; ++ic) {
 					int index[3] = {ir, ic, 0};
 					cdouble const psi = get_sp(grid, index, ylm_cache);
-					n[ir + ic*grid->n[iR]] = pow(creal(psi), 2) + pow(cimag(psi), 2);
+					n[ir + ic*grid.n[iR]] = pow(creal(psi), 2) + pow(cimag(psi), 2);
 				}
 			}
 		}
 
 		void print() const {
-			for (int ir = 0; ir < grid->n[iR]; ++ir) {
-				double const r = grid->r(ir);
+			for (int ir = 0; ir < grid.n[iR]; ++ir) {
+				double const r = grid.r(ir);
 				double res = 0.0;
-				for (int il = 0; il < grid->n[iL]; ++il) {
+				for (int il = 0; il < grid.n[iL]; ++il) {
 					res += pow(cabs((*this)(ir, il)), 2);
 				}
 				printf("%f ", res/(r*r));

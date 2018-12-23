@@ -17,7 +17,7 @@ ws_gps_t* ws_gps_alloc(ShGrid const* grid, Atom const* atom, double dt, double e
 
 	ws->s = NULL;
 
-    ws->prop_wf = new ShWavefunc(grid, 0);
+    ws->prop_wf = new ShWavefunc(grid[0], 0);
 
 	return ws;
 }
@@ -78,8 +78,8 @@ void ws_gps_prop_common(
 ) {
 	double Et = field_E(field, t + ws->dt/2);
 
-    auto Ul1 = [Et](ShGrid const* grid, int ir, int l, int m) -> double {
-		double const r = grid->r(ir);
+    auto Ul1 = [wf, Et](int ir, int l, int m) -> double {
+		double const r = wf->grid.r(ir);
 		return r*Et*clm(l,m);
 	};
 

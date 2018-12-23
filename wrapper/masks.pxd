@@ -5,8 +5,8 @@ cdef extern from "masks.h":
         double r_core
         double dr
 
-        cCoreMask(double r_core, double dr)
-        double operator()(cShGrid* grid, int ir, int il, int im)
+        cCoreMask(cShGrid* grid, double r_core, double dr)
+        double operator()(int ir, int il, int im)
 
 cdef class CoreMask:
     cdef cCoreMask* cdata

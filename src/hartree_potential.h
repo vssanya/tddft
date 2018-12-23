@@ -3,10 +3,6 @@
 #include "utils.h"
 #include "orbitals.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /*! \file
  * Разложение кулоновского потенциала по сферическим функциям
  * \f[ \frac{1}{\left|r - r'\right|} = \sum_{l=0}^{\infty} \frac{4\pi}{2l + 1} \frac{r_<^l}{r_>^{l+1}} \sum_{m=-l}^{l} Y_l^{m*}(\Omega') Y_l^{m}(\Omega) \f]
@@ -22,10 +18,14 @@ extern "C" {
 /*! 
  * U0(r,t) = 2*\sum_{i,l} \int |\theta_{ilm}(r', t)|^2 / r> dr'
  * */
-void hartree_potential(Orbitals const* orbs, int l, double* U, double* U_local, double* f, int order);
-void hartree_potential_calc_int_func(Orbitals const* orbs, int l, double* f);
+template<typename Grid>
+void hartree_potential(Orbitals<Grid> const* orbs, int l, double* U, double* U_local, double* f, int order);
 
-void hartree_potential_wf_l0(ShWavefunc const* wf, double* U, double* f, int order);
+template<typename Grid>
+void hartree_potential_calc_int_func(Orbitals<Grid> const* orbs, int l, double* f);
+
+template<typename Grid>
+void hartree_potential_wf_l0(Wavefunc<Grid> const* wf, double* U, double* f, int order);
 
 double mod_dndr(SpGrid const* grid, double* n, int ir);
 double mod_grad_n(SpGrid const* grid, double* n, int ir, int ic);
@@ -44,9 +44,10 @@ typedef double (*potential_xc_f)(double n, double x);
  * \param wf[in] is wavefunction of Kohn's orbitals
  * \param Ux[out] is amplitude \f$Y_l^0\f$ component of \f$U_{x} = - \left(\frac{3}{\pi}\right)^{1/3} n(\vec{r})^{1/3}\f$
  * */
+template<typename Grid>
 void uxc_calc_l(
 		potential_xc_f uxc,
-		int l, Orbitals const* orbs,
+		int l, Orbitals<Grid> const* orbs,
 		double* U,
 		SpGrid const* grid,
 		double* n, // for calc using mpi
@@ -54,16 +55,13 @@ void uxc_calc_l(
 		YlmCache const* ylm_cache
 );
 
+template<typename Grid>
 void uxc_calc_l0(
 		potential_xc_f uxc,
-		int l, Orbitals const* orbs,
+		int l, Orbitals<Grid> const* orbs,
 		double* U,
 		SpGrid const* grid,
 		double* n, // for calc using mpi
 		double* n_tmp, // for calc using mpi
 		YlmCache const* ylm_cache
 );
-
-#ifdef __cplusplus
-}
-#endif

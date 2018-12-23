@@ -4,31 +4,33 @@
 
 
 double calc_wf_az_with_polarization(ShWavefunc const* wf, const AtomCache &atom_cache, double const Upol[], double const dUpol_dr[], field_t const* field, double t) {
-    auto func_cos = [&](ShGrid const* grid, int ir, int il, int m) -> double {
+    auto func_cos = [&](int ir, int il, int m) -> double {
         return atom_cache.dudz(ir);
     };
 
-    auto func_cos2 = [&](ShGrid const* grid, int ir, int il, int m) -> double {
+    auto func_cos2 = [&](int ir, int il, int m) -> double {
         return dUpol_dr[ir];
     };
 
-    auto func_sin2 = [&](ShGrid const* grid, int ir, int il, int m) -> double {
-        return Upol[ir]/grid->r(ir);
+    auto func_sin2 = [&](int ir, int il, int m) -> double {
+        return Upol[ir]/wf->grid.r(ir);
     };
 
 	double E = field_E(field, t);
 	return - E*(1 + wf->cos2(func_cos2) + wf->sin2(func_sin2)) - wf->cos(func_cos);
 }
 
-double calc_orbs_az(Orbitals const& orbs, const AtomCache &atom_cache, field_t const* field, double t) {
-    auto func = [&](ShGrid const* grid, int ir, int il, int m) -> double {
+template<class Grid>
+double calc_orbs_az(Orbitals<Grid> const& orbs, const AtomCache &atom_cache, field_t const* field, double t) {
+    auto func = [&](int ir, int il, int m) -> double {
         return atom_cache.dudz(ir);
     };
     return - field_E(field, t)*atom_cache.atom.countElectrons - orbs.cos(func);
 }
 
-void calc_orbs_az_ne(Orbitals const* orbs, const AtomCache& atom_cache, field_t const* field, double t, double* az) {
-    auto func = [&](ShGrid const* grid, int ir, int il, int m) -> double {
+template<class Grid>
+void calc_orbs_az_ne(Orbitals<Grid> const* orbs, const AtomCache& atom_cache, field_t const* field, double t, double* az) {
+    auto func = [&](int ir, int il, int m) -> double {
         return atom_cache.dudz(ir);
     };
 #ifdef _MPI
@@ -45,11 +47,18 @@ void calc_orbs_az_ne(Orbitals const* orbs, const AtomCache& atom_cache, field_t 
 }
 
 double calc_wf_ionization_prob(ShWavefunc const* wf) {
-    return 1.0 - wf->norm(mask_core);
+    auto func = [&](int ir, int il, int m) -> double {
+        return mask_core(&wf->grid, ir, il, m);
+    };
+    return 1.0 - wf->norm(func);
 }
 
-double calc_orbs_ionization_prob(Orbitals const* orbs) {
-    return orbs->atom.countElectrons - orbs->norm(mask_core);
+template<class Grid>
+double calc_orbs_ionization_prob(Orbitals<Grid> const* orbs) {
+    auto func = [&](int ir, int il, int m) -> double {
+        return mask_core(&orbs->grid, ir, il, m);
+    };
+    return orbs->atom.countElectrons - orbs->norm(func);
 }
 
 double calc_wf_jrcd(
@@ -74,9 +83,10 @@ double calc_wf_jrcd(
 	return res*dt;
 }
 
+template<class Grid>
 double calc_orbs_jrcd(
-		workspace::orbs& ws,
-		Orbitals& orbs,
+		workspace::OrbitalsWS<Grid>& ws,
+		Orbitals<Grid>& orbs,
         AtomCache const& atom_cache,
 		field_t const* field,
 		int Nt, 

@@ -17,7 +17,7 @@ namespace workspace {
 					):
                 WfE(grid, atom_cache, uabs, propAtType, num_threads), wf_source(wf_source), source_E(E), abs_norm(0.0)
 		{
-			assert(grid.n[iR] == wf_source.grid->n[iR]);
+			assert(grid.n[iR] == wf_source.grid.n[iR]);
 		}
 
 			void prop_abs(ShWavefunc& wf, double dt);

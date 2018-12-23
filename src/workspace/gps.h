@@ -12,10 +12,6 @@
 #include "../utils.h"
 #include "../types.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 typedef struct {
 	ShGrid const* grid;
 	Atom const* atom;
@@ -40,7 +36,3 @@ void ws_gps_prop_common(
 		field_t const* field,
 		double t
 );
-
-#ifdef __cplusplus
-}
-#endif

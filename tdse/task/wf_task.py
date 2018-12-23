@@ -167,7 +167,7 @@ class OrbitalsTask(TaskAtom):
         self.orbs = tdse.orbitals.Orbitals(self.atom, self.sh_grid, self.comm)
         self.orbs.load(self.ground_state)
 
-        self.ws = tdse.workspace.SOrbsWorkspace(self.atom_cache, self.sh_grid, self.sp_grid, self.uabs_cache, self.ylm_cache, Uxc_lmax=self.Uxc_lmax, Uh_lmax = self.Uh_lmax, uxc=self.uxc)
+        self.ws = tdse.workspace.ShOrbitalsWS(self.atom_cache, self.sh_grid, self.sp_grid, self.uabs_cache, self.ylm_cache, Uxc_lmax=self.Uxc_lmax, Uh_lmax = self.Uh_lmax, uxc=self.uxc)
 
         self.t = self.field.get_t(self.dt, dT=self.dT)
 
@@ -249,7 +249,7 @@ class OrbitalsGroundStateTask(TaskAtom):
     def calc_init(self):
         super().calc_init()
 
-        self.ws = tdse.workspace.SOrbsWorkspace(self.atom_cache, self.sh_grid, self.sp_grid, self.uabs_cache, self.ylm_cache, Uxc_lmax=self.Uxc_lmax, Uh_lmax = self.Uh_lmax, uxc=self.uxc)
+        self.ws = tdse.workspace.ShOrbitalsWS(self.atom_cache, self.sh_grid, self.sp_grid, self.uabs_cache, self.ylm_cache, Uxc_lmax=self.Uxc_lmax, Uh_lmax = self.Uh_lmax, uxc=self.uxc)
 
     def calc(self):
         self.calc_init()
@@ -319,7 +319,7 @@ class WfGroundStateTask(TaskAtom):
     def calc_init(self):
         super().calc_init()
 
-        self.ws = tdse.workspace.SKnWorkspace(self.atom_cache, self.sh_grid, tdse.abs_pot.UabsZero())
+        self.ws = tdse.workspace.ShWavefuncWS(self.atom_cache, self.sh_grid, tdse.abs_pot.UabsZero())
 
     def calc(self):
         self.calc_init()
@@ -355,7 +355,7 @@ class WavefuncWithSourceTask(TaskAtom):
 
     def calc_ground_state(self, ws=None):
         if ws is None:
-            ws = tdse.workspace.SKnWorkspace(self.atom_cache, self.grid_source, tdse.abs_pot.UabsCache(tdse.abs_pot.UabsZero(), self.grid_source))
+            ws = tdse.workspace.ShWavefuncWS(self.atom_cache, self.grid_source, tdse.abs_pot.UabsCache(tdse.abs_pot.UabsZero(), self.grid_source))
 
         return tdse.ground_state.wf(self.atom, self.grid_source, ws, self.dt, 10000)
 
@@ -367,7 +367,7 @@ class WavefuncTask(TaskAtom):
     """
     is_calc_ground_state = True
 
-    Workspace = tdse.workspace.SKnWorkspace
+    Workspace = tdse.workspace.ShWavefuncWS
     Wavefunc = tdse.wavefunc.ShWavefunc
 
     prop_type = 4

@@ -8,25 +8,25 @@ from mpi4py.MPI import COMM_NULL
 
 from types cimport cdouble, complex_t, sh_f
 from abs_pot cimport mask_core
-from grid cimport ShGrid, SpGrid
+from grid cimport ShGrid, SpGrid, ShNeGrid
 from atom cimport Atom
-from wavefunc cimport swavefunc_from_point
+cimport wavefunc
 from sphere_harmonics cimport YlmCache
 from masks cimport CoreMask
 
-
-cdef class Orbitals:
-    def __cinit__(self, Atom atom, ShGrid grid, Comm comm = None):
+{{for Prefix in ["Sh", "ShNe"]}}
+cdef class {{Prefix}}Orbitals:
+    def __cinit__(self, Atom atom, {{Prefix}}Grid grid, Comm comm = None):
         if comm is None:
             comm = COMM_NULL
 
-        self.cdata = new cOrbitals(atom.cdata[0], grid.data, comm.ob_mpi)
+        self.cdata = new c{{Prefix}}Orbitals(atom.cdata[0], grid.data[0], comm.ob_mpi)
 
         self.mpi_comm = comm
         self.grid = grid
         self.atom = atom
 
-    def __init__(self, Atom atom, ShGrid grid, Comm comm = None):
+    def __init__(self, Atom atom, {{Prefix}}Grid grid, Comm comm = None):
         pass
 
     def __dealloc__(self):
@@ -112,7 +112,7 @@ cdef class Orbitals:
             n = np.ndarray(grid.shape, dtype=np.double)
             n_ptr = <double*>n.data
 
-        self.cdata.n_sp(grid.data, n_ptr, <double*>n_local.data, ylm_cache.cdata)
+        self.cdata.n_sp(grid.data[0], n_ptr, <double*>n_local.data, ylm_cache.cdata)
 
         return n
 
@@ -148,7 +148,7 @@ cdef class Orbitals:
 
         return norm
 
-    def prod_ne(self, Orbitals orbs, np.ndarray[complex_t, ndim=1, mode='c'] res = None):
+    def prod_ne(self, {{Prefix}}Orbitals orbs, np.ndarray[complex_t, ndim=1, mode='c'] res = None):
         cdef cdouble* res_ptr = NULL
         if self.is_root():
             if res is None:
@@ -164,7 +164,7 @@ cdef class Orbitals:
 
     def get_wf(self, int ie):
         assert(ie < self.cdata.atom.countOrbs)
-        return swavefunc_from_point(self.cdata.wf[ie], self.grid, False)
+        return wavefunc.{{Prefix.lower()}}_wavefunc_from_point(self.cdata.wf[ie], self.grid, False)
 
     def asarray(self):
         cdef complex_t[:, :, ::1] res
@@ -205,3 +205,4 @@ cdef class Orbitals:
         # sh_wavefunc_cos_r(self.cdata.wf[ie], <sh_f>self.atom.cdata.dudz, <double*>res.data)
         # return res
 
+{{endfor}}

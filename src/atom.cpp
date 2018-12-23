@@ -85,14 +85,14 @@ void atom_hydrogen_ground(ShWavefunc* wf) {
 	// l = 0
 	{
 		int const il = 0;
-		for (int ir = 0; ir < wf->grid->n[iR]; ++ir) {
-            double r = wf->grid->r(ir);
+		for (int ir = 0; ir < wf->grid.n[iR]; ++ir) {
+            double r = wf->grid.r(ir);
 			(*wf)(ir, il) = 2*r*exp(-r);
 		}
 	}
 
-	for (int il = 1; il < wf->grid->n[iL]; ++il) {
-		for (int ir = 0; ir < wf->grid->n[iR]; ++ir) {
+	for (int il = 1; il < wf->grid.n[iL]; ++il) {
+		for (int ir = 0; ir < wf->grid.n[iR]; ++ir) {
 			(*wf)(ir, il) = 0.0;
 		}
 	}

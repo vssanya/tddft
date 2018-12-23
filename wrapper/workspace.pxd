@@ -2,10 +2,10 @@ from types cimport cdouble, sh_f
 
 from grid cimport cShGrid, cSpGrid, cShNeGrid
 from abs_pot cimport cUabsCache, UabsCache, UabsNeCache
-from wavefunc cimport ShWavefunc, cCtWavefunc, cShWavefunc, cShNeWavefunc
+from wavefunc cimport ShWavefunc, cCtWavefunc, cShWavefunc, Wavefunc
 
 from field cimport field_t
-from orbitals cimport cOrbitals
+from orbitals cimport Orbitals
 from sphere_harmonics cimport cYlmCache
 from atom cimport cAtom, cAtomCache, Atom, AtomCache, AtomNeCache
 from hartree_potential cimport potential_xc_f
@@ -51,50 +51,25 @@ cdef extern from "workspace.h" namespace "workspace":
     cdef cppclass PropAtType:
         pass
 
-    cdef cppclass WfBase:
-        WfBase(
-            cShGrid   & grid,
+    cdef cppclass WavefuncWS[Grid]:
+        WavefuncWS(
+            Grid      & grid,
             cAtomCache& atom_cache,
             cUabsCache& uabs,
             PropAtType propAtType,
             int num_threads
         )
 
-        void prop_ang(cShWavefunc& wf, double dt, int l, double E)
+        void prop_ang(Wavefunc[Grid]& wf, double dt, int l, double E)
         #void prop_at(cShWavefunc& wf, cdouble dt, sh_f Ul, int Z, potential_type_e u_type)
-        void prop_mix(cShWavefunc& wf, sh_f Al, double dt, int l)
-        void prop_abs(cShWavefunc& wf, double dt)
+        void prop_mix(Wavefunc[Grid]& wf, sh_f Al, double dt, int l)
+        void prop_abs(Wavefunc[Grid]& wf, double dt)
         #void prop_common(cShWavefunc& wf, cdouble dt, int l_max, sh_f* Ul, int Z, potential_type_e u_type, sh_f* Al)
-        void prop(cShWavefunc& wf, field_t* field, double t, double dt)
-        void prop_without_field(cShWavefunc& wf, double dt)
-        void prop_img(cShWavefunc& wf, double dt)
+        void prop(Wavefunc[Grid]& wf, field_t* field, double t, double dt)
+        void prop_without_field(Wavefunc[Grid]& wf, double dt)
+        void prop_img(Wavefunc[Grid]& wf, double dt)
 
-        cShGrid* grid
-        cUabsCache* uabs
-        cdouble* alpha
-        cdouble* betta
-        int num_threads
-        cAtomCache atom_cache
-
-    cdef cppclass WfNeBase:
-        WfNeBase(
-            cShNeGrid & grid,
-            cAtomCache& atom_cache,
-            cUabsCache& uabs,
-            PropAtType propAtType,
-            int num_threads
-        )
-
-        void prop_ang(cShNeWavefunc& wf, double dt, int l, double E)
-        #void prop_at(cShWavefunc& wf, cdouble dt, sh_f Ul, int Z, potential_type_e u_type)
-        void prop_mix(cShNeWavefunc& wf, sh_f Al, double dt, int l)
-        void prop_abs(cShNeWavefunc& wf, double dt)
-        #void prop_common(cShWavefunc& wf, cdouble dt, int l_max, sh_f* Ul, int Z, potential_type_e u_type, sh_f* Al)
-        void prop(cShNeWavefunc& wf, field_t* field, double t, double dt)
-        void prop_without_field(cShNeWavefunc& wf, double dt)
-        void prop_img(cShNeWavefunc& wf, double dt)
-
-        cShNeGrid* grid
+        Grid* grid
         cUabsCache* uabs
         cdouble* alpha
         cdouble* betta
@@ -141,9 +116,9 @@ cdef extern from "workspace.h" namespace "workspace":
         void prop_without_field(cShWavefunc& wf, double dt)
         void prop_img(cShWavefunc& wf, double dt)
 
-    cdef cppclass orbs:
-        orbs(
-            cShGrid   & sh_grid,
+    cdef cppclass OrbitalsWS[Grid]:
+        OrbitalsWS(
+            Grid      & sh_grid,
             cSpGrid   & sp_grid,
             cAtomCache& atom_cache,
             cUabsCache& uabs,
@@ -155,16 +130,16 @@ cdef extern from "workspace.h" namespace "workspace":
             int num_threads
         )
 
-        void setTimeApproxUeeTwoPointFor(cOrbitals& orbs)
-        void prop(cOrbitals& orbs, field_t* field, double t, double dt, bint calc_uee)
-        void prop_img(cOrbitals& orbs, double dt)
-        void prop_ha(cOrbitals& orbs, double dt)
-        void calc_Uee(cOrbitals& orbs, int Uxc_lmax, int Uh_lmax)
+        void setTimeApproxUeeTwoPointFor(Orbitals[Grid]& orbs)
+        void prop(Orbitals[Grid]& orbs, field_t* field, double t, double dt, bint calc_uee)
+        void prop_img(Orbitals[Grid]& orbs, double dt)
+        void prop_ha(Orbitals[Grid]& orbs, double dt)
+        void calc_Uee(Orbitals[Grid]& orbs, int Uxc_lmax, int Uh_lmax)
 
-        WfBase* wf_ws
+        WavefuncWS[Grid]* wf_ws
         double* Uh
         double* Uxc
-        cShGrid& sh_grid
+        Grid& sh_grid
         cSpGrid& sp_grid
         double* uh_tmp
         double* n_sp
@@ -178,15 +153,15 @@ cdef extern from "workspace.h" namespace "workspace::PropAtType":
     cdef PropAtType Odr3
     cdef PropAtType Odr4
 
-cdef class SKnWorkspace:
+cdef class ShWavefuncWS:
     cdef:
-        WfBase* cdata
+        WavefuncWS[cShGrid]* cdata
         UabsCache uabs
         AtomCache atom_cache
 
-cdef class SKnNeWorkspace:
+cdef class ShNeWavefuncWS:
     cdef:
-        WfNeBase* cdata
+        WavefuncWS[cShNeGrid]* cdata
         UabsNeCache uabs
         AtomNeCache atom_cache
 
@@ -211,9 +186,15 @@ cdef class SKnWithSourceWorkspace:
         UabsCache uabs
         AtomCache atom_cache
 
-cdef class SOrbsWorkspace:
+cdef class ShOrbitalsWS:
     cdef:
-        orbs* cdata
+        OrbitalsWS[cShGrid]* cdata
+        UabsCache uabs
+        AtomCache atom_cache
+
+cdef class ShNeOrbitalsWS:
+    cdef:
+        OrbitalsWS[cShNeGrid]* cdata
         UabsCache uabs
         AtomCache atom_cache
 

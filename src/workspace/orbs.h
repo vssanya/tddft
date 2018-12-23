@@ -11,15 +11,16 @@ namespace workspace
 {
 	double const UXC_NORM_L[] = {sqrt(1.0/(4.0*M_PI)), sqrt(3.0/(4*M_PI)), sqrt(5.0/(4*M_PI))};
 
-	class orbs {
+	template<typename Grid>
+	class OrbitalsWS {
 		public:
 			enum class TimeApproxUeeType {
 				SIMPLE = 1, // Uee(t+dt/2) = Uee(t)
 				TWO_POINT   // Uee(t+dt/2) = (Uee(t) + Uee(t+dt)) / 2
 			};
 
-            orbs(
-					ShGrid    const& sh_grid,
+            OrbitalsWS(
+					Grid      const& sh_grid,
 					SpGrid    const& sp_grid,
 					AtomCache const& atom_cache,
 					UabsCache const& uabs,
@@ -30,21 +31,21 @@ namespace workspace
 					PropAtType propAtType,
 					int num_threads
 					);
-			virtual ~orbs();
+			virtual ~OrbitalsWS();
 
 			virtual void init();
 
-            void prop_simple   (Orbitals& orbs, field_t const* field, double t, double dt, bool calc_uee);
-            void prop_two_point(Orbitals& orbs, field_t const* field, double t, double dt, bool calc_uee);
-            void prop          (Orbitals& orbs, field_t const* field, double t, double dt, bool calc_uee);
+            void prop_simple   (Orbitals<Grid>& OrbitalsWS, field_t const* field, double t, double dt, bool calc_uee);
+            void prop_two_point(Orbitals<Grid>& OrbitalsWS, field_t const* field, double t, double dt, bool calc_uee);
+            void prop          (Orbitals<Grid>& OrbitalsWS, field_t const* field, double t, double dt, bool calc_uee);
 
-            void prop_img(Orbitals& orbs, double dt);
-			void prop_ha(Orbitals& orbs, double dt);
-			void calc_Uee(Orbitals const& orbs, int Uxc_lmax, int Uh_lmax, double* Uee = nullptr);
+            void prop_img(Orbitals<Grid>& OrbitalsWS, double dt);
+			void prop_ha(Orbitals<Grid>& OrbitalsWS, double dt);
+			void calc_Uee(Orbitals<Grid> const& OrbitalsWS, int Uxc_lmax, int Uh_lmax, double* Uee = nullptr);
 
-			void setTimeApproxUeeTwoPointFor(Orbitals const& orbs);
+			void setTimeApproxUeeTwoPointFor(Orbitals<Grid> const& OrbitalsWS);
 
-			workspace::WfBase wf_ws;
+			workspace::WavefuncWS<Grid> wf_ws;
 
 			double* Utmp;
 			double* Utmp_local;
@@ -57,7 +58,7 @@ namespace workspace
 			double* Uee;
 			int lmax;
 
-            ShGrid const& sh_grid;
+            Grid const& sh_grid;
             SpGrid const& sp_grid;
 			double* uh_tmp;
 			double* n_sp; // for root
@@ -67,7 +68,7 @@ namespace workspace
 
 			TimeApproxUeeType timeApproxUeeType;
 
-			Orbitals* tmpOrb;
+			Orbitals<Grid>* tmpOrb;
 			double* tmpUee;
 	};
 } /* workspace */ 

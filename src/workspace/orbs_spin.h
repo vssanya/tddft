@@ -21,9 +21,10 @@
 
 
 namespace workspace {
-	class OrbsSpin: public workspace::orbs {
-        OrbsSpin(
-					ShGrid    const& sh_grid,
+	template <typename Grid>
+	class OrbitalsSpinWS: public OrbitalsWS<Grid> {
+        OrbitalsSpinWS(
+					Grid      const& sh_grid,
 					SpGrid    const& sp_grid,
 					AtomCache const& atom_cache,
 					UabsCache const& uabs,
@@ -34,8 +35,5 @@ namespace workspace {
 					PropAtType propAtType,
 					int num_threads
 				);
-
-		virtual void init();
-        void calc_Uee(Orbitals const* orbs, int Uxc_lmax, int Uh_lmax);
 	};
 }

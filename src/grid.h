@@ -208,12 +208,41 @@ private:
 	double m_d2[3];
 };
 
+class ShGrid3D: public ShGrid {
+	public:
+		ShGrid3D(int n[2], double Rmax): ShGrid(n, Rmax) {}
+
+		int size() const {
+			return n[iR]*n[iL]*n[iL];
+		}
+
+		int index(int ir, int il, int im) const {
+			return ir + (im - il)*n[iR] + il*il*n[iR];
+		}
+
+		template<class T>
+			inline T integrate(std::function<T(int, int, int)> func, int l_max, int l_min = 0) const {
+				T res = 0.0;
+#pragma omp parallel for reduction(+:res) collapse(3)
+				for (int il = l_min; il < l_max; ++il) {
+					for (int im = -il; im < il; im++) {
+						for (int ir = 0; ir < n[iR]; ++ir) {
+							res += func(ir, il, im)*J(ir, il);
+						}
+					}
+				}
+
+				return res*d[iR];
+			}
+
+};
+
 class ShNotEqudistantGrid: public ShGrid {
 	typedef std::function<double(double)> func_t;
 
-public:
+	public:
 	ShNotEqudistantGrid(double Rmin, double Rmax, double Ra, double dr_max, int Nl) {
-        d[iL] = 1;
+		d[iL] = 1;
 		n[iL] = Nl;
 
 		d[iR] = dr_max;
@@ -226,15 +255,15 @@ public:
 		init(
 				// r = f(xi)
 				[=](double xi) -> double {
-					return xi + A*Ra*std::tanh(xi/Ra);
+				return xi + A*Ra*std::tanh(xi/Ra);
 				},
 				// drdxi
 				[=](double xi) -> double {
-					return 1.0 + A/std::pow(cosh(xi/Ra), 2);
+				return 1.0 + A/std::pow(cosh(xi/Ra), 2);
 				},
 				// d2rdxi2
 				[=](double xi) -> double {
-					return -2*A*std::tanh(xi/Ra)/std::pow(cosh(xi/Ra), 2) / Ra;
+				return -2*A*std::tanh(xi/Ra)/std::pow(cosh(xi/Ra), 2) / Ra;
 				}
 			);
 	}
@@ -258,7 +287,7 @@ public:
 
 		m_r = new double[n[iR]];
 		m_dr = new double[n[iR]];
-		
+
 		for (int ir=0; ir<n[iR]; ir++) {
 			double xi = d[iR]*(ir+1);
 
@@ -288,13 +317,13 @@ public:
 		return m_dr[ir];
 	}
 
-    double r(int ir) const {
-        return m_r[ir];
-    }
+	double r(int ir) const {
+		return m_r[ir];
+	}
 
-    double Rmax() const {
-        return r(n[iR]-1);
-    }
+	double Rmax() const {
+		return r(n[iR]-1);
+	}
 
 	/*
 	 * Коэффициенты трехдиагональной матрицы оператора d^2/dr^2 
@@ -309,7 +338,7 @@ public:
 
 	double* m_dr;
 
-private:
+	private:
 	double m_d2[3];
 	double m_d1[3];
 
@@ -323,21 +352,21 @@ private:
 };
 
 class CtGrid: public Grid2d {
-public:
-    CtGrid(int n[2], double x_max, double y_max) {
-        for (int i = 0; i < 2; ++i) {
-            this->n[i] = n[i];
-        }
+	public:
+		CtGrid(int n[2], double x_max, double y_max) {
+			for (int i = 0; i < 2; ++i) {
+				this->n[i] = n[i];
+			}
 
-        d[iX] = (2*x_max)/(n[iX]-1);
-        d[iY] = y_max/n[iY];
-    }
+			d[iX] = (2*x_max)/(n[iX]-1);
+			d[iY] = y_max/n[iY];
+		}
 
-    double x(int ix) const {
-        return 0.5*d[iX]*(2*ix - n[iX] + 1);
-    }
+		double x(int ix) const {
+			return 0.5*d[iX]*(2*ix - n[iX] + 1);
+		}
 
-    double y(int iy) const {
-        return iy*d[iY];
-    }
+		double y(int iy) const {
+			return iy*d[iY];
+		}
 };

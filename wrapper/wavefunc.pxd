@@ -18,15 +18,15 @@ cdef extern from "wavefunc/cartesian_2d.h":
 
 cdef extern from "sh_wavefunc.h":
     cdef cppclass Wavefunc[Grid]:
-        Grid* grid
+        Grid& grid
 
         cdouble* data
         bint data_own
 
         int m
 
-        Wavefunc(cdouble* data, Grid* grid, int m)
-        Wavefunc(Grid* grid, int m)
+        Wavefunc(cdouble* data, Grid& grid, int m)
+        Wavefunc(Grid& grid, int m)
 
         double abs_2(int ir, int il)
         void copy(Wavefunc* wf_dest)
@@ -46,8 +46,8 @@ cdef extern from "sh_wavefunc.h":
 
         cdouble pz()
         void random_l(int l)
-        cdouble get_sp(cSpGrid* grid, int i[3], cYlmCache* ylm_cache)
-        void n_sp(cSpGrid* grid, double* n, cYlmCache* ylm_cache)
+        cdouble get_sp(cSpGrid& grid, int i[3], cYlmCache* ylm_cache)
+        void n_sp(cSpGrid& grid, double* n, cYlmCache* ylm_cache)
         @staticmethod
         void ort_l(int l, int n, Wavefunc** wfs)
 
@@ -72,4 +72,5 @@ cdef class CtWavefunc:
     cdef cCtWavefunc* cdata
     cdef public SpGrid2d grid
 
-cdef ShWavefunc swavefunc_from_point(cShWavefunc* data, ShGrid grid, bint dealloc)
+cdef ShWavefunc sh_wavefunc_from_point(cShWavefunc* data, ShGrid grid, bint dealloc)
+cdef ShNeWavefunc shne_wavefunc_from_point(cShNeWavefunc* data, ShNeGrid grid, bint dealloc)

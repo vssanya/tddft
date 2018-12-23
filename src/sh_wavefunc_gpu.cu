@@ -25,7 +25,7 @@ ShWavefuncGPU::ShWavefuncGPU(cdouble* data, ShGrid const* grid, int const m):
 }
 
 ShWavefuncGPU::ShWavefuncGPU(ShWavefunc const& wf):
-	grid(wf.grid),
+	grid(&wf.grid),
 	data(nullptr), data_own(true),
 	m(wf.m) {
 		init();
@@ -33,7 +33,7 @@ ShWavefuncGPU::ShWavefuncGPU(ShWavefunc const& wf):
 }
 
 ShWavefunc* ShWavefuncGPU::get() {
-	auto wf = new ShWavefunc(grid, m);
+	auto wf = new ShWavefunc(grid[0], m);
 
 	cudaMemcpy(wf->data, data, grid->size()*sizeof(cdouble), cudaMemcpyDeviceToHost);
 
@@ -114,7 +114,7 @@ ShWavefuncArrayGPU::ShWavefuncArrayGPU(cdouble* data, ShGrid const* grid, int co
 }
 
 ShWavefuncArrayGPU::ShWavefuncArrayGPU(ShWavefunc const& wf, int N):
-	grid(wf.grid), N(N),
+	grid(&wf.grid), N(N),
 	data(nullptr), data_own(true),
 	m(wf.m) {
 	cudaMalloc(&data, sizeof(cdouble)*grid->size()*N);
@@ -128,7 +128,7 @@ ShWavefuncArrayGPU::ShWavefuncArrayGPU(ShWavefunc const& wf, int N):
 }
 
 ShWavefunc* ShWavefuncArrayGPU::get(int in) {
-	auto wf = new ShWavefunc(grid, m);
+	auto wf = new ShWavefunc(grid[0], m);
 
 	cudaMemcpy(wf->data, &data[in*grid->size()], grid->size()*sizeof(cdouble), cudaMemcpyDeviceToHost);
 

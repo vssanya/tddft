@@ -1,6 +1,6 @@
 let g:neomake_mymake_maker = {
 	\ 'exe': 'make',
-	\ 'errorformat': '%f:%l:%c: %m'
+	\ 'errorformat': '%f:%l:%c: error: %m'
 	\ }
 
 let g:neomake_verbose=3
