@@ -67,12 +67,12 @@ def wf(atom, grid, ws, dt, Nt, wf_class = wavefunc.ShWavefunc):
     return wf_full, E
 
 
-def orbs(atom, grid, ws, dt=0.125, Nt=10000, print_calc_info=False):
-    orbs = orbitals.Orbitals(atom, grid)
+def orbs(atom, grid, ws, dt, Nt, orbitals_class, atom_cache_class, print_calc_info=False):
+    orbs = orbitals_class(atom, grid)
     orbs.init()
     data = orbs.asarray()
 
-    atom_cache = AtomCache(atom, grid)
+    atom_cache = atom_cache_class(atom, grid)
 
     for i in range(Nt):
         if print_calc_info and i % (Nt // 100) == 0:

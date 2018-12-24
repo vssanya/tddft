@@ -3,7 +3,7 @@ cimport numpy as np
 
 from wavefunc cimport ShWavefunc, ShNeWavefunc
 from orbitals cimport ShOrbitals, ShNeOrbitals
-from grid cimport SpGrid
+from grid cimport SpGrid, cShGrid, cShNeGrid
 from sphere_harmonics cimport YlmCache
 
 ctypedef fused Orbs:
@@ -29,7 +29,10 @@ cdef class Uxc:
         else:
             assert(uxc.size == orbs.cdata.wf[0].grid.n[0])
 
-        uxc_calc_l(self.cdata, l, orbs.cdata, &uxc[0], grid.data, &n[0,0], NULL, ylm_cache.cdata)
+        if Orbs is ShOrbitals:
+            XCPotential[cShGrid].calc_l(self.cdata, l, orbs.cdata, &uxc[0], grid.data, &n[0,0], NULL, ylm_cache.cdata)
+        elif Orbs is ShNeOrbitals:
+            XCPotential[cShNeGrid].calc_l(self.cdata, l, orbs.cdata, &uxc[0], grid.data, &n[0,0], NULL, ylm_cache.cdata)
 
         return uxc
 
@@ -39,7 +42,10 @@ cdef class Uxc:
         else:
             assert(uxc.size == orbs.cdata.wf[0].grid.n[0])
 
-        uxc_calc_l0(self.cdata, l, orbs.cdata, &uxc[0], grid.data, &n[0,0], NULL, ylm_cache.cdata)
+        if Orbs is ShOrbitals:
+            XCPotential[cShGrid].calc_l0(self.cdata, l, orbs.cdata, &uxc[0], grid.data, &n[0,0], NULL, ylm_cache.cdata)
+        elif Orbs is ShNeOrbitals:
+            XCPotential[cShNeGrid].calc_l0(self.cdata, l, orbs.cdata, &uxc[0], grid.data, &n[0,0], NULL, ylm_cache.cdata)
 
         return uxc
 
@@ -60,13 +66,19 @@ def potential(Orbs orbs, int l = 0, np.ndarray uh = None, int order=3) -> np.nda
         uh = np.ndarray((orbs.cdata.wf[0].grid.n[0]), np.double)
 
     cdef np.ndarray[np.double_t, ndim=1] f = np.ndarray((orbs.cdata.wf[0].grid.n[0]), np.double)
-    hartree_potential(orbs.cdata, l, <double*>uh.data, <double*>uh.data, &f[0], order)
+    if Orbs is ShOrbitals:
+        HartreePotential[cShGrid].calc(orbs.cdata, l, <double*>uh.data, <double*>uh.data, &f[0], order)
+    elif Orbs is ShNeOrbitals:
+        HartreePotential[cShNeGrid].calc(orbs.cdata, l, <double*>uh.data, <double*>uh.data, &f[0], order)
 
     return uh
 
 def potential_int_func(Orbs orbs, int l = 0) -> np.ndarray:
     cdef np.ndarray[np.double_t, ndim=1] f = np.ndarray((orbs.cdata.wf[0].grid.n[0]), np.double)
-    hartree_potential_calc_int_func(orbs.cdata, l, &f[0])
+    if Orbs is ShOrbitals:
+        HartreePotential[cShGrid].calc_int_func(orbs.cdata, l, &f[0])
+    elif Orbs is ShNeOrbitals:
+        HartreePotential[cShNeGrid].calc_int_func(orbs.cdata, l, &f[0])
 
     return f
 
@@ -76,6 +88,9 @@ def wf_l0(Wf wf, np.ndarray uh = None, int order=3) -> np.ndarray:
         uh = np.ndarray((wf.cdata.grid.n[0]), np.double)
 
     cdef np.ndarray[np.double_t, ndim=1] f = np.ndarray((wf.cdata.grid.n[0]), np.double)
-    hartree_potential_wf_l0(wf.cdata, <double*>uh.data, &f[0], order)
+    if Wf is ShWavefunc:
+        HartreePotential[cShGrid].calc_wf_l0(wf.cdata, <double*>uh.data, &f[0], order)
+    elif Wf is ShNeWavefunc:
+        HartreePotential[cShNeGrid].calc_wf_l0(wf.cdata, <double*>uh.data, &f[0], order)
 
     return uh

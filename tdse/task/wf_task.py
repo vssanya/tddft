@@ -410,7 +410,7 @@ class WavefuncTask(TaskAtom):
         self.ws.prop(self.wf, self.field, t, self.dt)
 
 class WavefuncNeTask(WavefuncTask):
-    Workspace = tdse.workspace.SKnNeWorkspace
+    Workspace = tdse.workspace.ShNeWavefuncWS
     Wavefunc = tdse.wavefunc.ShNeWavefunc
 
     Rmin = 1e-3

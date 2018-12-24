@@ -19,16 +19,17 @@
  * U0(r,t) = 2*\sum_{i,l} \int |\theta_{ilm}(r', t)|^2 / r> dr'
  * */
 template<typename Grid>
-void hartree_potential(Orbitals<Grid> const* orbs, int l, double* U, double* U_local, double* f, int order);
+class HartreePotential {
+	public:
+		static void calc(Orbitals<Grid> const* orbs, int l, double* U, double* U_local, double* f, int order);
+		static void calc_int_func(Orbitals<Grid> const* orbs, int l, double* f);
+		static void calc_wf_l0(Wavefunc<Grid> const* wf, double* U, double* f, int order);
+};
 
-template<typename Grid>
-void hartree_potential_calc_int_func(Orbitals<Grid> const* orbs, int l, double* f);
 
-template<typename Grid>
-void hartree_potential_wf_l0(Wavefunc<Grid> const* wf, double* U, double* f, int order);
-
-double mod_dndr(SpGrid const* grid, double* n, int ir);
-double mod_grad_n(SpGrid const* grid, double* n, int ir, int ic);
+template <typename Grid>
+double mod_dndr(Grid const& grid, double* n, int ir);
+double mod_grad_n(SpGrid const& grid, double* n, int ir, int ic);
 double ux_lda_func(double n);
 double uc_lda_func(double n);
 
@@ -45,23 +46,25 @@ typedef double (*potential_xc_f)(double n, double x);
  * \param Ux[out] is amplitude \f$Y_l^0\f$ component of \f$U_{x} = - \left(\frac{3}{\pi}\right)^{1/3} n(\vec{r})^{1/3}\f$
  * */
 template<typename Grid>
-void uxc_calc_l(
-		potential_xc_f uxc,
-		int l, Orbitals<Grid> const* orbs,
-		double* U,
-		SpGrid const* grid,
-		double* n, // for calc using mpi
-		double* n_tmp, // for calc using mpi
-		YlmCache const* ylm_cache
-);
+class XCPotential {
+	public:
+		static void calc_l(
+				potential_xc_f uxc,
+				int l, Orbitals<Grid> const* orbs,
+				double* U,
+				SpGrid const* grid,
+				double* n, // for calc using mpi
+				double* n_tmp, // for calc using mpi
+				YlmCache const* ylm_cache
+				);
 
-template<typename Grid>
-void uxc_calc_l0(
-		potential_xc_f uxc,
-		int l, Orbitals<Grid> const* orbs,
-		double* U,
-		SpGrid const* grid,
-		double* n, // for calc using mpi
-		double* n_tmp, // for calc using mpi
-		YlmCache const* ylm_cache
-);
+		static void calc_l0(
+				potential_xc_f uxc,
+				int l, Orbitals<Grid> const* orbs,
+				double* U,
+				SpGrid const* grid,
+				double* n, // for calc using mpi
+				double* n_tmp, // for calc using mpi
+				YlmCache const* ylm_cache
+				);
+};

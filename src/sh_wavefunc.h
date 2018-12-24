@@ -254,7 +254,7 @@ class Wavefunc {
 				assert(wfs[in-1]->m == wfs[in]->m);
 			}
 
-			auto grid = wfs[0]->grid;
+			auto& grid = wfs[0]->grid;
 
 			cdouble proj[n];
 			double norm[n];

@@ -105,3 +105,15 @@ double calc_orbs_jrcd(
 
 	return res*dt;
 }
+
+template double calc_orbs_ionization_prob<ShGrid>(Orbitals<ShGrid> const* orbs);
+template double calc_orbs_ionization_prob<ShNotEqudistantGrid>(Orbitals<ShNotEqudistantGrid> const* orbs);
+
+template double calc_orbs_az<ShGrid>(Orbitals<ShGrid> const& orbs, AtomCache const& atom_cache, field_t const* field, double t);
+template double calc_orbs_az<ShNotEqudistantGrid>(Orbitals<ShNotEqudistantGrid> const& orbs, AtomCache const& atom_cache, field_t const* field, double t);
+  
+template void calc_orbs_az_ne<ShGrid>(Orbitals<ShGrid> const* orbs, AtomCache const& atom_cache, field_t const* field, double t, double* az);
+template void calc_orbs_az_ne<ShNotEqudistantGrid>(Orbitals<ShNotEqudistantGrid> const* orbs, AtomCache const& atom_cache, field_t const* field, double t, double* az);
+
+template double calc_orbs_jrcd<ShGrid>(workspace::OrbitalsWS<ShGrid>& ws, Orbitals<ShGrid>& orbs, AtomCache const& atom, field_t const* field, int Nt, double dt, double t_smooth);
+template double calc_orbs_jrcd<ShNotEqudistantGrid>(workspace::OrbitalsWS<ShNotEqudistantGrid>& ws, Orbitals<ShNotEqudistantGrid>& orbs, AtomCache const& atom, field_t const* field, int Nt, double dt, double t_smooth);

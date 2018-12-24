@@ -204,6 +204,17 @@ public:
 		return 1.0;
 	}
 
+	template <typename T>
+	T d_dr(T* f, int ir) const {
+		if (ir == 0) {
+			return (f[ir+1] - f[ir])/d[iR];
+		} else if (ir == n[iR] - 1) {
+			return (f[ir] - f[ir-1])/d[iR];
+		} else {
+			return (f[ir-1] - f[ir+1])/(2*d[iR]);
+		}
+	}
+
 private:
 	double m_d2[3];
 };
@@ -268,6 +279,8 @@ class ShNotEqudistantGrid: public ShGrid {
 			);
 	}
 
+	ShNotEqudistantGrid(const ShNotEqudistantGrid& grid) = delete;
+
 	void init(func_t f, func_t df, func_t d2f) {
 		double dr = d[iR];
 		double dr2 = dr*dr;
@@ -323,6 +336,17 @@ class ShNotEqudistantGrid: public ShGrid {
 
 	double Rmax() const {
 		return r(n[iR]-1);
+	}
+
+	template <typename T>
+	T d_dr(T* f, int ir) const {
+		if (ir == 0) {
+			return (f[ir+1] - f[ir])/(m_dr[ir+1]);
+		} else if (ir == n[iR] - 1) {
+			return (f[ir] - f[ir-1])/(m_dr[ir]);
+		} else {
+			return (f[ir-1] - f[ir+1])/(m_dr[ir]+m_dr[ir+1]);
+		}
 	}
 
 	/*

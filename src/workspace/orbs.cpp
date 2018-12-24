@@ -101,7 +101,7 @@ void workspace::OrbitalsWS<Grid>::calc_Uee(Orbitals<Grid> const& orbs, int Uxc_l
 	}
 
 	for (int il=0; il<Uxc_lmax; ++il) {
-		uxc_calc_l0(Uxc, il, &orbs, Utmp, &sp_grid, n_sp, n_sp_local, &ylm_cache);
+		XCPotential<Grid>::calc_l0(Uxc, il, &orbs, Utmp, &sp_grid, n_sp, n_sp_local, &ylm_cache);
 
 #ifdef _MPI
 		if (orbs.mpi_comm == MPI_COMM_NULL || orbs.mpi_rank == 0)
@@ -115,7 +115,7 @@ void workspace::OrbitalsWS<Grid>::calc_Uee(Orbitals<Grid> const& orbs, int Uxc_l
 	}
 
 	for (int il=0; il<Uh_lmax; ++il) {
-		hartree_potential(&orbs, il, Utmp, Utmp_local, uh_tmp, 3);
+		HartreePotential<Grid>::calc(&orbs, il, Utmp, Utmp_local, uh_tmp, 3);
 
 #ifdef _MPI
 		if (orbs.mpi_comm == MPI_COMM_NULL || orbs.mpi_rank == 0)

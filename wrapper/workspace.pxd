@@ -195,8 +195,8 @@ cdef class ShOrbitalsWS:
 cdef class ShNeOrbitalsWS:
     cdef:
         OrbitalsWS[cShNeGrid]* cdata
-        UabsCache uabs
-        AtomCache atom_cache
+        UabsNeCache uabs
+        AtomNeCache atom_cache
 
 cdef class GPSWorkspace:
     cdef:

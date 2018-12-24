@@ -15,7 +15,7 @@ void momentum_space::propagate(CtWavefunc& wf, field_t const* field, double t, d
 	double E_t = field_E(field, t);
 	double E_t_dt = field_E(field, t+dt);
 
-    auto grid = *static_cast<SpGrid2d const*>(wf.grid);
+    auto& grid = *static_cast<SpGrid2d const*>(wf.grid);
 
 #pragma omp parallel for collapse(2)
     for (int ir=0; ir<grid.n[iX]; ++ir) {

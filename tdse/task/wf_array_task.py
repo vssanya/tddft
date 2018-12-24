@@ -48,7 +48,7 @@ class WavefuncArrayGPUTask(TaskAtom):
         self.t = self.field.get_t(self.dt, dT=self.dT)
 
     def calc_ground_state(self):
-        ws = tdse.workspace.SKnWorkspace(self.atom_cache, self.sh_grid, self.uabs_cache)
+        ws = tdse.workspace.ShWavefuncWS(self.atom_cache, self.sh_grid, self.uabs_cache)
         return tdse.ground_state.wf(self.atom, self.sh_grid, ws, self.dt, 10000)[0]
 
     def calc_prop(self, i, t):

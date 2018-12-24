@@ -105,7 +105,7 @@ void Uabs::calcAbs(int N, double const* l, double* res) const {
 	int n[2] = {1, 1};
 	auto grid = ShGrid(n, getWidth());
 	
-	auto Uabs = [this, dw, width, grid](const double x) -> cdouble {
+	auto Uabs = [this, dw, width, &grid](const double x) -> cdouble {
 		if (x < dw || x > width - dw) {
 			return  0.0;
 		}

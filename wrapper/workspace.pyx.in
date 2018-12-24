@@ -1,7 +1,7 @@
 import numpy as np
 cimport numpy as np
 
-from atom cimport AtomCache
+from atom cimport AtomCache, AtomNeCache
 from grid cimport ShGrid, SpGrid, ShNeGrid
 from wavefunc cimport ShWavefunc, CtWavefunc, ShNeWavefunc
 from field cimport Field
@@ -71,9 +71,9 @@ cdef class SFAWorkspace:
     def prop(self, CtWavefunc wf, Field field, double t, double dt):
         self.cdata.propagate(wf.cdata[0], field.cdata, t, dt)
 
-{{for prefix in ["Sh", "ShNe"]}}
+{{for prefix, prefix2 in [("Sh", ""), ("ShNe", "Ne")]}}
 cdef class {{prefix}}WavefuncWS:
-    def __cinit__(self, AtomCache atom_cache, {{prefix}}Grid grid, UabsCache uabs, int num_threads = -1, int propType=4):
+    def __cinit__(self, Atom{{prefix2}}Cache atom_cache, {{prefix}}Grid grid, Uabs{{prefix2}}Cache uabs, int num_threads = -1, int propType=4):
         cdef PropAtType propAtType
         if propType == 4:
             propAtType = Odr4
@@ -88,7 +88,7 @@ cdef class {{prefix}}WavefuncWS:
     def __dealloc__(self):
         del self.cdata
 
-    def __init__(self, AtomCache atom_cache, {{prefix}}Grid grid, UabsCache uabs, int num_threads = -1, int propType=4):
+    def __init__(self, Atom{{prefix2}}Cache atom_cache, {{prefix}}Grid grid, Uabs{{prefix2}}Cache uabs, int num_threads = -1, int propType=4):
         pass
 
     def prop(self, {{prefix}}Wavefunc wf, Field field, double t, double dt):
@@ -182,9 +182,9 @@ cdef class SKnWithSourceWorkspace:
         return self.cdata.abs_norm
 
 
-{{for prefix in ["Sh", "ShNe"]}}
+{{for prefix, prefix2 in [("Sh", ""), ("ShNe", "Ne")]}}
 cdef class {{prefix}}OrbitalsWS:
-    def __cinit__(self, AtomCache atom_cache, {{prefix}}Grid sh_grid, SpGrid sp_grid, UabsCache uabs, YlmCache ylm_cache, int Uxc_lmax = 3, int Uh_lmax = 3, Uxc uxc = UXC_LB, int num_threads=-1):
+    def __cinit__(self, Atom{{prefix2}}Cache atom_cache, {{prefix}}Grid sh_grid, SpGrid sp_grid, Uabs{{prefix2}}Cache uabs, YlmCache ylm_cache, int Uxc_lmax = 3, int Uh_lmax = 3, Uxc uxc = UXC_LB, int num_threads=-1):
         assert(Uxc_lmax >= 0 and Uxc_lmax <= 3)
         assert(Uh_lmax >= 0 and Uh_lmax <= 3)
 
@@ -198,7 +198,7 @@ cdef class {{prefix}}OrbitalsWS:
     def __dealloc__(self):
         del self.cdata
 
-    def __init__(self, AtomCache atom_cache, {{prefix}}Grid sh_grid, SpGrid sp_grid, UabsCache uabs, YlmCache ylm_cache, int Uxc_lmax = 3, int Uh_lmax = 3, Uxc uxc = UXC_LB, int num_threads=-1):
+    def __init__(self, Atom{{prefix2}}Cache atom_cache, {{prefix}}Grid sh_grid, SpGrid sp_grid, Uabs{{prefix2}}Cache uabs, YlmCache ylm_cache, int Uxc_lmax = 3, int Uh_lmax = 3, Uxc uxc = UXC_LB, int num_threads=-1):
         pass
 
     def set_time_approx_uee_two_point(self, {{prefix}}Orbitals orbs):

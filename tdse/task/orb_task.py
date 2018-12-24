@@ -140,6 +140,9 @@ class OrbitalsTask(TaskAtom):
     ground_state = None
     ground_state_task = None
 
+    Workspace = tdse.workspace.ShOrbitalsWS
+    Orbitals = tdse.orbitals.ShOrbitals
+
     def __init__(self, path_res='res', mode=None, is_mpi=True, **kwargs):
         if self.ground_state_task is not None:
             self.dt    = self.ground_state_task.dt
@@ -166,10 +169,10 @@ class OrbitalsTask(TaskAtom):
     def calc_init(self):
         super().calc_init()
 
-        self.orbs = tdse.orbitals.Orbitals(self.atom, self.sh_grid, self.comm)
+        self.orbs = self.Orbitals(self.atom, self.sh_grid, self.comm)
         self.orbs.load(self.ground_state)
 
-        self.ws = tdse.workspace.SOrbsWorkspace(self.atom_cache, self.sh_grid, self.sp_grid, self.uabs_cache, self.ylm_cache, Uxc_lmax=self.Uxc_lmax, Uh_lmax = self.Uh_lmax, uxc=self.uxc)
+        self.ws = self.Workspace(self.atom_cache, self.sh_grid, self.sp_grid, self.uabs_cache, self.ylm_cache, Uxc_lmax=self.Uxc_lmax, Uh_lmax = self.Uh_lmax, uxc=self.uxc)
         if self.useTwoPointUeeCalcScheme:
             self.ws.set_time_approx_uee_two_point(self.orbs)
 
@@ -187,6 +190,20 @@ class OrbitalsTask(TaskAtom):
         params_grp.attrs['Uh_Lmax'] = self.Uh_lmax
 
         self.uxc.write_params(params_grp)
+
+
+class OrbitalsNeTask(OrbitalsTask):
+    Workspace = tdse.workspace.ShNeOrbitalsWS
+    Orbitals = tdse.orbitals.ShNeOrbitals
+
+    Rmin = 1e-3
+    Ra   = 1.0
+
+    AtomCacheClass = tdse.atom.AtomNeCache
+    UabsCacheClass = tdse.abs_pot.UabsNeCache
+
+    def create_grid(self):
+        return tdse.grid.ShNeGrid(self.Rmin, self.r_max, self.Ra, self.dr, self.Nl)
 
 
 class OrbitalsPolarizationTask(OrbitalsTask):
@@ -238,6 +255,9 @@ class OrbitalsGroundStateTask(TaskAtom):
     Uxc_lmax = 1
     Uh_lmax = 1
 
+    Workspace = tdse.workspace.ShOrbitalsWS
+    Orbitals = tdse.orbitals.ShOrbitals
+
     CALC_DATA = ['orbs_gs', 'E', 'uee']
 
     def __init__(self, path_res='res', mode=None, is_mpi=False, **kwargs):
@@ -247,18 +267,18 @@ class OrbitalsGroundStateTask(TaskAtom):
 
         self.Nt = int(self.T / self.dt)
 
-        self.sp_grid = tdse.grid.SpGrid(Nr=self.Nr, Nc=self.Nc, Np=1, r_max=self.r_max)
+        self.sp_grid = tdse.grid.SpGrid(Nr=self.sh_grid.Nr, Nc=self.Nc, Np=1, r_max=self.r_max)
         self.ylm_cache = tdse.sphere_harmonics.YlmCache(self.Nl, self.sp_grid)
 
     def calc_init(self):
         super().calc_init()
 
-        self.ws = tdse.workspace.SOrbsWorkspace(self.atom_cache, self.sh_grid, self.sp_grid, self.uabs_cache, self.ylm_cache, Uxc_lmax=self.Uxc_lmax, Uh_lmax = self.Uh_lmax, uxc=self.uxc)
+        self.ws = self.Workspace(self.atom_cache, self.sh_grid, self.sp_grid, self.uabs_cache, self.ylm_cache, Uxc_lmax=self.Uxc_lmax, Uh_lmax = self.Uh_lmax, uxc=self.uxc)
 
     def calc(self):
         self.calc_init()
 
-        self.orbs, self.E = tdse.ground_state.orbs(self.atom, self.sh_grid, self.ws, self.dt, self.Nt, print_calc_info=True)
+        self.orbs, self.E = tdse.ground_state.orbs(self.atom, self.sh_grid, self.ws, self.dt, self.Nt, self.Orbitals, self.AtomCacheClass, print_calc_info=True)
         self.orbs_gs = self.orbs.asarray()
 
         self.ws.calc_uee(self.orbs)
@@ -266,3 +286,16 @@ class OrbitalsGroundStateTask(TaskAtom):
 
         self.save()
 
+
+class OrbitalsGroundStateNeTask(OrbitalsGroundStateTask):
+    Workspace = tdse.workspace.ShNeOrbitalsWS
+    Orbitals = tdse.orbitals.ShNeOrbitals
+
+    Rmin = 1e-3
+    Ra   = 1.0
+
+    AtomCacheClass = tdse.atom.AtomNeCache
+    UabsCacheClass = tdse.abs_pot.UabsNeCache
+
+    def create_grid(self):
+        return tdse.grid.ShNeGrid(self.Rmin, self.r_max, self.Ra, self.dr, self.Nl)

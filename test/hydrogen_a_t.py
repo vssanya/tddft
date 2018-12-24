@@ -29,7 +29,7 @@ def calc_wf_az_t():
 
     uabs = tdse.abs_pot.UabsMultiHump(2.5, 10)
 
-    ws = tdse.workspace.SKnWorkspace(atom=atom, grid=g, uabs=uabs)
+    ws = tdse.workspace.ShWavefuncWS(atom=atom, grid=g, uabs=uabs)
     ws_a = tdse.workspace.SKnAWorkspace(atom=atom, grid=g, uabs=uabs)
 
     wf = tdse.ground_state.wf(atom, g, ws, dt*4, Nt=500, n=1, l=0, m=0)

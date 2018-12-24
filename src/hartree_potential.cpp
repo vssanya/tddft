@@ -5,10 +5,10 @@
 
 template<typename Grid>
 void _hartree_potential_calc_f_l0(Orbitals<Grid> const* orbs, double* f) {
-	auto grid = orbs->grid;
+	auto& grid = orbs->grid;
 #ifdef _MPI
 	if (orbs->mpi_comm != MPI_COMM_NULL) {
-		ShWavefunc const& wf = *orbs->mpi_wf;
+		auto& wf = *orbs->mpi_wf;
 		for (int il = wf.m; il < grid.n[iL]; ++il) {
 #pragma omp parallel for
 			for (int ir = 0; ir < grid.n[iR]; ++ir) {
@@ -19,7 +19,7 @@ void _hartree_potential_calc_f_l0(Orbitals<Grid> const* orbs, double* f) {
 #endif
 	{
 		for (int ie = 0; ie < orbs->atom.countOrbs; ++ie) {
-			ShWavefunc const& wf = *orbs->wf[ie];
+			auto& wf = *orbs->wf[ie];
 			for (int il = wf.m; il < grid.n[iL]; ++il) {
 #pragma omp parallel for
 				for (int ir = 0; ir < grid.n[iR]; ++ir) {
@@ -32,10 +32,10 @@ void _hartree_potential_calc_f_l0(Orbitals<Grid> const* orbs, double* f) {
 
 template<typename Grid>
 void _hartree_potential_calc_f_l1(Orbitals<Grid> const* orbs, double* f) {
-	auto grid = orbs->grid;
+	auto& grid = orbs->grid;
 #ifdef _MPI
 	if (orbs->mpi_comm != MPI_COMM_NULL) {
-		ShWavefunc const& wf = *orbs->mpi_wf;
+		auto& wf = *orbs->mpi_wf;
 		int const n_e = orbs->atom.orbs[orbs->mpi_rank].countElectrons;
 
 		{
@@ -69,7 +69,7 @@ void _hartree_potential_calc_f_l1(Orbitals<Grid> const* orbs, double* f) {
 #endif
 	{
 		for (int ie = 0; ie < orbs->atom.countOrbs; ++ie) {
-			ShWavefunc const& wf = *orbs->wf[ie];
+			auto& wf = *orbs->wf[ie];
 			int const n_e = orbs->atom.orbs[ie].countElectrons;
 
 			{
@@ -105,7 +105,7 @@ void _hartree_potential_calc_f_l1(Orbitals<Grid> const* orbs, double* f) {
 
 template<typename Grid>
 void _hartree_potential_calc_f_l2(Orbitals<Grid> const* orbs, double* f) {
-	auto grid = orbs->grid;
+	auto& grid = orbs->grid;
 #ifdef _MPI
 	if (orbs->mpi_comm != MPI_COMM_NULL) {
 		const auto wf = *orbs->mpi_wf;
@@ -143,7 +143,7 @@ void _hartree_potential_calc_f_l2(Orbitals<Grid> const* orbs, double* f) {
 #endif
 	{
 		for (int ie = 0; ie < orbs->atom.countOrbs; ++ie) {
-			ShWavefunc const& wf = *orbs->wf[ie];
+			auto& wf = *orbs->wf[ie];
 			int const n_e = orbs->atom.orbs[ie].countElectrons;
 			for (int il = 0; il < 2; ++il) {
 #pragma omp parallel for
@@ -188,8 +188,8 @@ calc_func_t<Grid> const calc_funcs[3] = {
 };
 
 template<typename Grid>
-void hartree_potential_calc_int_func(Orbitals<Grid> const* orbs, int l, double* f) {
-	auto grid = orbs->grid;
+void HartreePotential<Grid>::calc_int_func(Orbitals<Grid> const* orbs, int l, double* f) {
+	auto& grid = orbs->grid;
 
 #pragma omp parallel for
 	for (int ir = 0; ir < grid.n[iR]; ++ir) {
@@ -200,7 +200,7 @@ void hartree_potential_calc_int_func(Orbitals<Grid> const* orbs, int l, double* 
 }
 
 template<typename Grid>
-void hartree_potential(
+void HartreePotential<Grid>::calc(
 		Orbitals<Grid> const* orbs,
 		int l,
 		double* U,
@@ -210,7 +210,7 @@ void hartree_potential(
 		) {
 	assert(l >= 0 && l <= 2);
 
-	auto grid = orbs->grid;
+	auto& grid = orbs->grid;
 
 #pragma omp parallel for
 	for (int ir = 0; ir < grid.n[iR]; ++ir) {
@@ -243,13 +243,13 @@ void hartree_potential(
 }
 
 template<typename Grid>
-void hartree_potential_wf_l0(
+void HartreePotential<Grid>::calc_wf_l0(
 		Wavefunc<Grid> const* wf,
 		double* U,
 		double* f,
 		int order
 		) {
-	auto grid = wf->grid;
+	auto& grid = wf->grid;
 
 	for (int ir = 0; ir < grid.n[iR]; ++ir) {
 		f[ir] = 0.0;
@@ -269,7 +269,7 @@ void hartree_potential_wf_l0(
 }
 
 template<typename Grid>
-void uxc_calc_l(
+void XCPotential<Grid>::calc_l(
 		potential_xc_f uxc,
 		int l, Orbitals<Grid> const* orbs,
 		double* U,
@@ -278,14 +278,14 @@ void uxc_calc_l(
 		double* n_tmp, // for calc using mpi
 		YlmCache const* ylm_cache
 		) {
-	orbs->n_sp(grid, n, n_tmp, ylm_cache);
+	orbs->n_sp(grid[0], n, n_tmp, ylm_cache);
 
 #ifdef _MPI
 	if (orbs->mpi_rank == 0 || orbs->mpi_comm == MPI_COMM_NULL)
 #endif
 	{
-		auto func = [grid, uxc, n](int ir, int ic) -> double {
-			double x = mod_grad_n(grid, n, ir, ic);
+		auto func = [&grid, uxc, n](int ir, int ic) -> double {
+			double x = mod_grad_n(grid[0], n, ir, ic);
 			return uxc(n[ir + ic*grid->n[iR]], x);
 		};
 
@@ -294,7 +294,7 @@ void uxc_calc_l(
 }
 
 template<typename Grid>
-void uxc_calc_l0(
+void XCPotential<Grid>::calc_l0(
 		potential_xc_f uxc,
 		int l, Orbitals<Grid> const* orbs,
 		double* U,
@@ -312,7 +312,7 @@ void uxc_calc_l0(
 		{
 #pragma omp parallel for
 			for (int ir=0; ir<grid->n[iR]; ++ir) {
-				double x = mod_dndr(grid, n, ir);
+				double x = mod_dndr(orbs->grid, n, ir);
 				double r = orbs->grid.r(ir);
 				double r_max = orbs->grid.Rmax();
 				U[ir] = uxc(n[ir], x)*sqrt(4*M_PI);//*(1.0 - smoothstep(r, 20, 40));
@@ -390,16 +390,13 @@ double mod_grad_n(SpGrid const& grid, double* n, int ir, int ic) {
 	return sqrt(pow(dn_dr,2) + pow(dn_dc/r,2)*(1.0 - c*c))/pow(n[ir + ic*grid.n[iR]], 4.0/3.0);
 }
 
-double mod_dndr(SpGrid const& grid, double* n, int ir) {
-	double dn_dr = 0.0;
-
-	if (ir == 0) {
-		dn_dr = (n[ir+1] - n[ir])/grid.d[iR];
-	} else if (ir == grid.n[iR] - 1) {
-		dn_dr = (n[ir] - n[ir-1])/grid.d[iR];
-	} else {
-		dn_dr = (n[ir-1] - n[ir+1])/(2*grid.d[iR]);
-	}
-
+template <typename Grid>
+double mod_dndr(Grid const& grid, double* n, int ir) {
+	double dn_dr = grid.d_dr(n, ir);
 	return sqrt(pow(dn_dr,2))/pow(n[ir], 4.0/3.0);
 }
+
+template class HartreePotential<ShGrid>;
+template class HartreePotential<ShNotEqudistantGrid>;
+template class XCPotential<ShGrid>;
+template class XCPotential<ShNotEqudistantGrid>;

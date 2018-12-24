@@ -96,7 +96,7 @@ class Wf:
         self.wf = tdse.wavefunc.ShWavefunc(self.grid)
         self.wf.asarray()[:] = np.random.random((Nl, Nr)) + 1j*np.random.random((Nl, Nr))
         self.uabs = tdse.abs_pot.UabsMultiHump(0.1, 10)
-        self.ws = tdse.workspace.SKnWorkspace(self.atom_cache, self.grid, tdse.abs_pot.UabsCache(self.uabs, self.grid))
+        self.ws = tdse.workspace.ShWavefuncWS(self.atom_cache, self.grid, tdse.abs_pot.UabsCache(self.uabs, self.grid))
         self.field = tdse.field.TwoColorSinField()
 
     def time_prop(self):

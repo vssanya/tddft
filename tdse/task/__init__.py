@@ -1,5 +1,5 @@
 from .orb_task import AzOrbData, NormOrbData, ZOrbData, UeeOrbData, UpolOrbData
-from .orb_task import OrbitalsTask, OrbitalsGroundStateTask, OrbitalsPolarizationTask
+from .orb_task import OrbitalsTask, OrbitalsNeTask, OrbitalsGroundStateTask, OrbitalsGroundStateNeTask, OrbitalsPolarizationTask
 
 from .wf_task import AzWfData, NormWfData, ZWfData, AzPolarizationWfData
 from .wf_task import WfGroundStateTask, WavefuncWithSourceTask, WavefuncTask, WavefuncWithPolarization, WfGpuTask, WavefuncNeTask
