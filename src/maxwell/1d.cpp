@@ -62,7 +62,7 @@ maxwell::Workspace2D::Workspace2D(Grid2d const& grid): grid(grid), Ez(grid), Dz(
 
 maxwell::Workspace2D::~Workspace2D() {}
 
-void maxwell::Workspace2D::prop_Hx(Array2D& Hx, Array2D const& Ez, double ksi) {
+void maxwell::Workspace2D::prop_Hx(Array2& Hx, Array2 const& Ez, double ksi) {
 	Grid2d const& grid = Hx.grid;
 
 #pragma omp parallel for collapse(2)
@@ -79,7 +79,7 @@ void maxwell::Workspace2D::prop_Hx(Array2D& Hx, Array2D const& Ez, double ksi) {
 	}
 }
 
-void maxwell::Workspace2D::prop_Hy(Array2D& Hy, Array2D const& Ez, double ksi) {
+void maxwell::Workspace2D::prop_Hy(Array2& Hy, Array2 const& Ez, double ksi) {
 	Grid2d const& grid = Hy.grid;
 
 #pragma omp parallel for collapse(2)
@@ -98,7 +98,7 @@ void maxwell::Workspace2D::prop_Hy(Array2D& Hy, Array2D const& Ez, double ksi) {
 	}
 }
 
-void maxwell::Workspace2D::prop_Dz(Array2D& Dz, Array2D const& Hx, Array2D const& Hy, double ksi) {
+void maxwell::Workspace2D::prop_Dz(Array2& Dz, Array2 const& Hx, Array2 const& Hy, double ksi) {
 	Grid2d const& grid = Dz.grid;
 
 #pragma omp parallel for collapse(2)
@@ -110,7 +110,7 @@ void maxwell::Workspace2D::prop_Dz(Array2D& Dz, Array2D const& Hx, Array2D const
 	}
 }
 
-void maxwell::Workspace2D::prop_Ez(Array2D& Ez, Array2D const& Dz, Array2D const& eps) {
+void maxwell::Workspace2D::prop_Ez(Array2& Ez, Array2 const& Dz, Array2 const& eps) {
 	Grid2d const& grid = Ez.grid;
 
 #pragma omp parallel for collapse(2)
@@ -130,5 +130,4 @@ void maxwell::Workspace2D::prop(double dt) {
 }
 
 void maxwell::Workspace2D::prop(double dt, double eps[]) {
-
 }

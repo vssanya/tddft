@@ -202,6 +202,13 @@ class OrbitalsNeTask(OrbitalsTask):
     AtomCacheClass = tdse.atom.AtomNeCache
     UabsCacheClass = tdse.abs_pot.UabsNeCache
 
+    def __init__(self, path_res='res', mode=None, is_mpi=True, **kwargs):
+        if self.ground_state_task is not None:
+            self.Rmin  = self.ground_state_task.Rmin
+            self.Ra    = self.ground_state_task.Ra
+
+        super().__init__(path_res, mode, is_mpi=is_mpi, **kwargs)
+
     def create_grid(self):
         return tdse.grid.ShNeGrid(self.Rmin, self.r_max, self.Ra, self.dr, self.Nl)
 

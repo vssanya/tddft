@@ -31,11 +31,11 @@ public:
 
     size_t size() const { return n[0]*n[1]; }
 
-    size_t index(int i[2]) const {
-        check_index(0, i[0]);
-        check_index(1, i[1]);
+    size_t index(int ix, int iy) const {
+        check_index(0, ix);
+        check_index(1, iy);
 
-        return i[0] + i[1]*n[0];
+        return ix + iy*n[0];
     }
 };
 
@@ -219,35 +219,6 @@ private:
 	double m_d2[3];
 };
 
-class ShGrid3D: public ShGrid {
-	public:
-		ShGrid3D(int n[2], double Rmax): ShGrid(n, Rmax) {}
-
-		int size() const {
-			return n[iR]*n[iL]*n[iL];
-		}
-
-		int index(int ir, int il, int im) const {
-			return ir + (im - il)*n[iR] + il*il*n[iR];
-		}
-
-		template<class T>
-			inline T integrate(std::function<T(int, int, int)> func, int l_max, int l_min = 0) const {
-				T res = 0.0;
-#pragma omp parallel for reduction(+:res) collapse(3)
-				for (int il = l_min; il < l_max; ++il) {
-					for (int im = -il; im < il; im++) {
-						for (int ir = 0; ir < n[iR]; ++ir) {
-							res += func(ir, il, im)*J(ir, il);
-						}
-					}
-				}
-
-				return res*d[iR];
-			}
-
-};
-
 class ShNotEqudistantGrid: public ShGrid {
 	typedef std::function<double(double)> func_t;
 
@@ -374,6 +345,34 @@ class ShNotEqudistantGrid: public ShGrid {
 
 	double* m_r;
 };
+
+class ShNotEqudistantGrid3D: public ShNotEqudistantGrid {
+	public:
+		int size() const {
+			return n[iR]*n[iL]*n[iL];
+		}
+
+		int index(int ir, int il, int im) const {
+			return ir + (im - il)*n[iR] + il*il*n[iR];
+		}
+
+		template<class T>
+			inline T integrate(std::function<T(int, int, int)> func, int l_max, int l_min = 0) const {
+				T res = 0.0;
+#pragma omp parallel for reduction(+:res) collapse(3)
+				for (int il = l_min; il < l_max; ++il) {
+					for (int im = -il; im < il; im++) {
+						for (int ir = 0; ir < n[iR]; ++ir) {
+							res += func(ir, il, im)*J(ir, il);
+						}
+					}
+				}
+
+				return res*d[iR];
+			}
+
+};
+
 
 class CtGrid: public Grid2d {
 	public:

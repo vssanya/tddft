@@ -38,6 +38,7 @@ set( LIB_SOURCES
 	"hartree_potential/hp_o3.cpp"
 	"hartree_potential/hp_o5.cpp"
 	"wavefunc/2d.cpp"
+	"wavefunc/sh_3d.cpp"
 	"maxwell/1d.cpp"
 	)
 
@@ -75,6 +76,8 @@ set( LIB_HEADERS
 	"sfa/anal.h"
 
 	"wavefunc/2d.h"
+	"wavefunc/sh_3d.h"
+	"wavefunc/base.h"
 	"wavefunc/cartesian_2d.h"
 	)
 

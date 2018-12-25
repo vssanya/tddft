@@ -22,24 +22,26 @@ namespace maxwell {
 	};
 
 	class Workspace2D {
+		typedef Array2D<double, Grid2d> Array2;
+
 		public:
 			Workspace2D(Grid2d const& grid);
 			~Workspace2D();
 
 			Grid2d const& grid;
 
-			Array2D Ez;
-			Array2D Dz;
-			Array2D Hx;
-			Array2D Hy;
+			Array2 Ez;
+			Array2 Dz;
+			Array2 Hx;
+			Array2 Hy;
 
 			void prop(double dt);
 			void prop(double dt, double eps[]);
 
 		private:
-			static void prop_Hx(Array2D& Hx, Array2D const& Ez, double ksi);
-			static void prop_Hy(Array2D& Hy, Array2D const& Ez, double ksi);
-			static void prop_Dz(Array2D& Dz, Array2D const& Hx, Array2D const& Hy, double ksi);
-			static void prop_Ez(Array2D& Ez, Array2D const& Dz, Array2D const& eps);
+			static void prop_Hx(Array2& Hx, Array2 const& Ez, double ksi);
+			static void prop_Hy(Array2& Hy, Array2 const& Ez, double ksi);
+			static void prop_Dz(Array2& Dz, Array2 const& Hx, Array2 const& Hy, double ksi);
+			static void prop_Ez(Array2& Ez, Array2 const& Dz, Array2 const& eps);
 	};
 }

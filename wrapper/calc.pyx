@@ -51,7 +51,7 @@ def az(WF wf, AC atom, Field field, double t):
 def az_with_polarization(ShWavefunc wf, AtomCache atom, double[:] Upol, double[:] dUpol_dr, Field field, double t):
     return calc_wf_az_with_polarization(wf.cdata, atom.cdata[0], &Upol[0], &dUpol_dr[0], field.cdata, t)
 
-def az_ne(Orbs orbs, AtomCache atom, Field field, double t, np.ndarray az = None):
+def az_ne(Orbs orbs, AC atom, Field field, double t, np.ndarray az = None):
     cdef double* res_ptr = NULL
     if orbs.is_root():
         if az is None:
