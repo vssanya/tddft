@@ -109,7 +109,8 @@ cdef class {{Prefix}}Orbitals:
         cdef double* n_ptr = NULL
 
         if self.is_root():
-            n = np.ndarray(grid.shape, dtype=np.double)
+            if n is None:
+                n = np.ndarray(grid.shape, dtype=np.double)
             n_ptr = <double*>n.data
 
         self.cdata.n_sp(grid.data[0], n_ptr, <double*>n_local.data, ylm_cache.cdata)

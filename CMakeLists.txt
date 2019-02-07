@@ -52,4 +52,6 @@ if ("${CMAKE_C_COMPILER_ID}" STREQUAL "Intel")
 	link_directories(/share/intel/mkl/lib/intel64)
 endif()
 
+include_directories(/share/vssanya/miniconda3/include)
+
 add_subdirectory(src)

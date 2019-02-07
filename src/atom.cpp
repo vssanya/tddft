@@ -41,6 +41,15 @@ const std::vector<Atom::State> KrAtom::GroundStateOrbs = {
 	State("3d"), State("3d", 1, 4), State("3d", 2, 4)
 };
 
+const std::vector<Atom::State> XeAtom::GroundStateOrbs = {
+	State("1s"), State("2s"), State("3s"), State("4s"), State("5s"), // m = 0
+	State("2p"), State("3p"), State("4p"), State("5p"),              // m = 0
+	State("2p", 1, 4), State("3p", 1, 4), State("4p", 1, 4), State("5p", 1, 4), // m = +- 1
+	State("3d"), State("4d"),
+	State("3d", 1, 4), State("4d", 1, 4),
+	State("3d", 2, 4), State("4d", 2, 4)
+};
+
 const std::array<double, 2*3> Na_B {{
     6.46644991, 2.03040457,
     9.07195947, 1.22049052,

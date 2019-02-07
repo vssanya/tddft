@@ -21,7 +21,7 @@ class UeeOrbData(CalcData):
 
     def get_shape(self, task: TaskAtom):
         if self.r_max == None or self.r_max >= task.r_max:
-            self.Nr = task.Nr
+            self.Nr = task.sh_grid.Nr
         else:
             self.Nr = int(self.r_max/task.dr)
 
@@ -45,7 +45,7 @@ class UpolOrbData(CalcData):
         self.l = l
 
     def get_shape(self, task: TaskAtom):
-        return (task.Nr,)
+        return (task.sh_grid.Nr,)
 
     def calc(self, task, i, t):
         if task.rank == 0:
@@ -56,6 +56,39 @@ class UpolOrbData(CalcData):
             elif i == task.t.size-1:
                 E = task.field.E(t)
                 self.dset[:] = task.ws.uee[self.l,:] / E**self.l
+
+class NspOrbData(CalcData):
+    NAME = "Nsp"
+
+    def __init__(self, dT, **kwargs):
+        super().__init__(**kwargs)
+
+        self.dT = dT
+
+    def calc_init(self, task, file: h5py.File):
+        self.sp_grid = task.sp_grid
+
+        self.dNt = int(self.dT/task.dt)
+        self.Nt = (task.t.size // self.dNt) + 1
+
+        if task.rank == 0:
+            self.n_tmp = np.zeros(self.sp_grid.shape)
+        else:
+            self.n_tmp = None
+
+        super().calc_init(task, file)
+
+
+    def get_shape(self, task):
+        return (self.Nt, self.sp_grid.Nc, self.sp_grid.Nr)
+
+    def calc(self, task, i, t):
+        if i % self.dNt == 0:
+            task.orbs.n_sp(task.sp_grid, task.ylm_cache, self.n_tmp)
+
+            if task.rank == 0:
+                self.dset[i // self.dNt] = self.n_tmp
+
 
 class AzOrbData(OrbShapeMixin, CalcData):
     NAME = "az"
@@ -154,7 +187,7 @@ class OrbitalsTask(TaskAtom):
 
         super().__init__(path_res, mode, is_mpi=is_mpi, **kwargs)
 
-        self.sp_grid = tdse.grid.SpGrid(Nr=self.r_max/self.dr, Nc=self.Nc, Np=1, r_max=self.r_max)
+        self.sp_grid = tdse.grid.SpGrid(Nr=self.sh_grid.Nr, Nc=self.Nc, Np=1, r_max=self.r_max)
         self.ylm_cache = tdse.sphere_harmonics.YlmCache(self.Nl, self.sp_grid)
 
     def _get_state_filename(self, i):

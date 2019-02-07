@@ -285,7 +285,7 @@ class Wavefunc {
 				res += (*this)(i[iR], il)*(*ylm_cache)(l, m, i[iC]);
 			}
 
-			double r = grid.r(i[iR]);
+			double r = this->grid.r(i[iR]);
 			return res/r;
 		}
 

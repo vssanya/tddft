@@ -144,5 +144,13 @@ cdef class SpGrid:
         return np.linspace(self.data.d[0], self.data.d[0]*self.data.n[0], self.data.n[0])
 
     @property
+    def Nr(self):
+        return self.data.n[0]
+
+    @property
+    def Nc(self):
+        return self.data.n[1]
+
+    @property
     def shape(self):
         return (self.data.n[1], self.data.n[0])

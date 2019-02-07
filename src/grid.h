@@ -359,7 +359,6 @@ class ShNotEqudistantGrid3D: public ShNotEqudistantGrid {
 		template<class T>
 			inline T integrate(std::function<T(int, int, int)> func, int l_max, int l_min = 0) const {
 				T res = 0.0;
-#pragma omp parallel for reduction(+:res) collapse(3)
 				for (int il = l_min; il < l_max; ++il) {
 					for (int im = -il; im < il; im++) {
 						for (int ir = 0; ir < n[iR]; ++ir) {

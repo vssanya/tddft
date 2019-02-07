@@ -198,6 +198,7 @@ H_smooth = Atom.from_c(<cAtom*> new HSmothAtom(), "H_smooth")
 Ne       = Atom.from_c(<cAtom*> new NeAtom(), "Ne")
 Ar       = Atom.from_c(<cAtom*> new ArAtom(), "Ar")
 Kr       = Atom.from_c(<cAtom*> new KrAtom(), "Kr")
+Xe       = Atom.from_c(<cAtom*> new XeAtom(), "Xe")
 Ar_sae   = Atom.from_c(<cAtom*> new ArSaeAtom(), "Ar_sae")
 Ar_sae_smooth = Atom.from_c(<cAtom*> new ArSaeSmoothAtom(), "Ar_sae_smooth")
 

@@ -3,8 +3,8 @@ from distutils.core import setup
 from distutils.extension import Extension
 
 import os
-os.environ['CC'] = 'mpicxx'
-os.environ['CXX'] = 'mpicxx'
+os.environ['CC'] = '/usr/bin/mpicc'
+os.environ['CXX'] = '/usr/bin/mpicxx'
 
 import numpy
 import mpi4py
@@ -53,6 +53,8 @@ ext = Extension("*", ["wrapper/*.pyx"],
                     '-std=gnu++11',
                     '-D_MPI',
                     '-fopenmp',
+                    '-lmpi',
+                    '-pthread',
                     '-g',
                 ],
                 language="c++",

@@ -257,6 +257,12 @@ class KrAtom: public AtomCoulomb {
 		KrAtom(): AtomCoulomb(36, GroundStateOrbs, 6) {}
 };
 
+class XeAtom: public AtomCoulomb {
+	public:
+		static const std::vector<State> GroundStateOrbs;
+		XeAtom(): AtomCoulomb(54, GroundStateOrbs, 8) {}
+};
+
 class ArSaeAtom: public Atom {
 	public:
 		static constexpr double A = 5.4;
