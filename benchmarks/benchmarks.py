@@ -50,7 +50,7 @@ class OrbitalsPropagate:
         self.orbs.init()
         self.uh = np.ndarray(Nr)
         self.uabs = tdse.abs_pot.UabsCache(tdse.abs_pot.UabsMultiHump(0.1, 10), self.grid)
-        self.ws = tdse.workspace.SOrbsWorkspace(tdse.atom.AtomCache(self.atom, self.grid), self.grid, self.sp_grid, self.uabs, self.ylm_cache, 1, 3)
+        self.ws = tdse.workspace.SOrbsWorkspace(tdse.atom.ShAtomCache(self.atom, self.grid), self.grid, self.sp_grid, self.uabs, self.ylm_cache, 1, 3)
         self.field = tdse.field.TwoColorSinField()
 
     def time_hartree_potential_l0(self):
@@ -91,7 +91,7 @@ class Wf:
         # self.sp_grid = tdse.grid.SpGrid(Nr, 32, 1, r_max)
         # self.ylm_cache = tdse.sphere_harmonics.YlmCache(Nl, self.sp_grid)
         self.atom = tdse.atom.H
-        self.atom_cache = tdse.atom.AtomCache(self.atom, self.grid)
+        self.atom_cache = tdse.atom.ShAtomCache(self.atom, self.grid)
         # self.n = np.ndarray((Nr, 32))
         self.wf = tdse.wavefunc.ShWavefunc(self.grid)
         self.wf.asarray()[:] = np.random.random((Nl, Nr)) + 1j*np.random.random((Nl, Nr))
@@ -130,7 +130,7 @@ class WfGPU:
 
         self.grid = tdse.grid.ShGrid(Nr, Nl, r_max)
         self.atom = tdse.atom.H
-        self.atom_cache = tdse.atom.AtomCache(self.atom, self.grid)
+        self.atom_cache = tdse.atom.ShAtomCache(self.atom, self.grid)
 
         self.wf = tdse.wavefunc.ShWavefunc(self.grid)
         self.wf.asarray()[:] = np.random.random((Nl, Nr)) + 1j*np.random.random((Nl, Nr))

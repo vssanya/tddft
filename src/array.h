@@ -10,6 +10,8 @@ class Array {
 		T* data;
 		bool is_own;
 
+		Array(): grid(Grid()), data(nullptr), is_own(false) {}
+
 		Array(T* data, Grid const& grid):
 			grid(grid),
 			data(data),
@@ -23,7 +25,7 @@ class Array {
 		Array(Grid const& grid): Array(nullptr, grid) {}
 
 		~Array() {
-			if (is_own) {
+			if (is_own && data != nullptr) {
 				delete[] data;
 			}
 		}
@@ -35,21 +37,20 @@ class Array {
 			}
 		}
 
-
-		inline T& operator() (Index... index) {
+		T& operator() (Index... index) {
 			return data[grid.index(index...)];
 		}
 
-		inline T const& operator() (Index... index) const {
+		T const& operator() (Index... index) const {
 			return data[grid.index(index...)];
 		}
 };
 
-template <typename T, typename Grid>
-using Array1D = Array<T, Grid, int>;
+template <typename T>
+using Array1D = Array<T, Grid1d, int>;
 
-template <typename T, typename Grid>
-using Array2D = Array<T, Grid, int, int>;
+template <typename T>
+using Array2D = Array<T, Grid2d, int, int>;
 
-template <typename T, typename Grid>
-using Array3D = Array<T, Grid, int, int, int>;
+template <typename T>
+using Array3D = Array<T, Grid3d, int, int, int>;

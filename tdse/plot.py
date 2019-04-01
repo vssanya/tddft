@@ -21,11 +21,11 @@ def figsize(scale, aspect=1, width_pt=469.0/2):
     fig_size = [fig_width,fig_height]
     return fig_size
 
-def spectral_density(dt, freq, Sw, Nmax=100, **kwargs):
+def spectral_density(dt, freq, Sw, Nmax=100, scale=1, **kwargs):
     N = np.linspace(0, np.pi/dt, Sw.size) / freq
-    plt.plot(N, Sw, **kwargs)
+    plt.plot(N*scale, Sw, **kwargs)
     plt.yscale('log')
-    plt.xlim(0, Nmax)
+    plt.xlim(0, Nmax*scale)
 
     plt.xlabel('Harmonic order')
     plt.ylabel('HHG spectrum (a.u.)')

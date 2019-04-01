@@ -54,6 +54,7 @@ set( LIB_HEADERS
 	"workspace/wf_with_polarization.h"
 	"maxwell/1d.h"
 
+	array.h
 	fourier.h
 	kn.h
 	prog.h

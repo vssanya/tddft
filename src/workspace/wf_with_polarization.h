@@ -8,7 +8,7 @@ namespace workspace {
 		public:
 			WfWithPolarization(
 					ShGrid    const& grid,
-					AtomCache const& atom_cache,
+					AtomCache<ShGrid> const& atom_cache,
 					UabsCache const& uabs,
 					double const* Upol_1,
 					double const* Upol_2,

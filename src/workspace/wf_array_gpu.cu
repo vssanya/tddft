@@ -3,7 +3,7 @@
 #include <cuda_runtime.h>
 
 
-workspace::WfArrayGpu::WfArrayGpu(AtomCache const* atomCache, ShGrid const* grid, UabsCache const* uabsCache, int N):
+workspace::WfArrayGpu::WfArrayGpu(AtomCache<ShGrid> const* atomCache, ShGrid const* grid, UabsCache const* uabsCache, int N):
 	grid(grid), N(N),
 	uabsCache(uabsCache),
 	atomCache(atomCache)

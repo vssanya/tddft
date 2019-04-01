@@ -1,6 +1,6 @@
 #include "calc_gpu.h"
 
-double* calc_wf_array_gpu_az(ShWavefuncArrayGPU const &wf_array, AtomCache& atom_cache, double E[], double* res) {
+double* calc_wf_array_gpu_az(ShWavefuncArrayGPU const &wf_array, AtomCache<ShGrid>& atom_cache, double E[], double* res) {
 	res = wf_array.cos(atom_cache.getGPUDatadUdz(), res);
 
 	for (int in = 0; in < wf_array.N; in++) {
@@ -12,7 +12,7 @@ double* calc_wf_array_gpu_az(ShWavefuncArrayGPU const &wf_array, AtomCache& atom
 
 double calc_wf_gpu_az(
 		ShWavefuncGPU const& wf,
-		AtomCache& atom_cache,
+		AtomCache<ShGrid>& atom_cache,
 		field_t const* field,
 		double t
 ) {

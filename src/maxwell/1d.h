@@ -22,7 +22,7 @@ namespace maxwell {
 	};
 
 	class Workspace2D {
-		typedef Array2D<double, Grid2d> Array2;
+		typedef Array2D<double> Array2;
 
 		public:
 			Workspace2D(Grid2d const& grid);

@@ -15,7 +15,7 @@ eigen_ws_t* eigen_ws_alloc(ShGrid const* grid);
 void eigen_ws_free(eigen_ws_t* ws);
 
 void eigen_calc(eigen_ws_t* ws, sh_f u, int Z);
-void eigen_calc_for_atom(eigen_ws_t* ws, AtomCache const* atom);
+void eigen_calc_for_atom(eigen_ws_t* ws, AtomCache<ShGrid> const* atom);
 int eigen_get_n_with_energy(eigen_ws_t const* ws, double energy);
 
 double eigen_eval(eigen_ws_t const* ws, int il, int ie);

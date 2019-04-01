@@ -82,7 +82,7 @@ namespace linalg
 #endif
 	} /* matrix_bE */ 
 
-	// matrix = [[0, 1], [-1, 0]]
+	// matrix = [[0, 1], [-1, 0]] = dot_T D dot
 	namespace matrix_bA
 	{
 		const cdouble eigenval[2] = {-I, I};
@@ -107,6 +107,31 @@ namespace linalg
 			v[1] = res[1];
 		}
 	} /* matrix_bA */ 
+
+	// matrix = [[0, exp(-i\varphi)], [exp(i\varphi), 0]]
+	namespace matrix_bE_3d {
+		const cdouble eigenval[2] = {-1, 1};
+
+		inline void dot(cdouble v[2], double phi) {
+			cdouble res[2] = {
+				-cexp(I*phi)*v[0] + v[1],
+				 cexp(I*phi)*v[0] + v[1]
+			};
+
+			v[0] = res[0];
+			v[1] = res[1];
+		}
+
+		inline void dot_T(cdouble v[2], double phi) {
+			cdouble res[2] = {
+				0.5*(-cexp(-I*phi)*v[0] + cexp(-I*phi)*v[1]),
+				0.5*(v[0] + v[1])
+			};
+
+			v[0] = res[0];
+			v[1] = res[1];
+		}
+	}
 
 	typedef std::function<void(cdouble[2])> matrix_f;
 

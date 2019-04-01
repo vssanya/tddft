@@ -1,7 +1,7 @@
 import numpy as np
 cimport numpy as np
 
-from atom cimport AtomCache, AtomNeCache
+from atom cimport ShAtomCache, ShNeAtomCache
 from grid cimport ShGrid, SpGrid, ShNeGrid
 from wavefunc cimport ShWavefunc, CtWavefunc, ShNeWavefunc
 from field cimport Field
@@ -19,7 +19,7 @@ cdef class Eigen:
         if self.cdata != NULL:
             eigen_ws_free(self.cdata)
 
-    def calc(self, AtomCache atom):
+    def calc(self, ShAtomCache atom):
         eigen_calc_for_atom(self.cdata, atom.cdata)
 
     def get_eval(self):
@@ -73,7 +73,7 @@ cdef class SFAWorkspace:
 
 {{for prefix, prefix2 in [("Sh", ""), ("ShNe", "Ne")]}}
 cdef class {{prefix}}WavefuncWS:
-    def __cinit__(self, Atom{{prefix2}}Cache atom_cache, {{prefix}}Grid grid, Uabs{{prefix2}}Cache uabs, int num_threads = -1, int propType=4):
+    def __cinit__(self, {{prefix}}AtomCache atom_cache, {{prefix}}Grid grid, Uabs{{prefix2}}Cache uabs, int num_threads = -1, int propType=4):
         cdef PropAtType propAtType
         if propType == 4:
             propAtType = Odr4
@@ -88,7 +88,7 @@ cdef class {{prefix}}WavefuncWS:
     def __dealloc__(self):
         del self.cdata
 
-    def __init__(self, Atom{{prefix2}}Cache atom_cache, {{prefix}}Grid grid, Uabs{{prefix2}}Cache uabs, int num_threads = -1, int propType=4):
+    def __init__(self, {{prefix}}AtomCache atom_cache, {{prefix}}Grid grid, Uabs{{prefix2}}Cache uabs, int num_threads = -1, int propType=4):
         pass
 
     def prop(self, {{prefix}}Wavefunc wf, Field field, double t, double dt):
@@ -109,7 +109,7 @@ SNeKnWorkspace = ShWavefuncWS
 
 
 cdef class SKnAWorkspace:
-    def __cinit__(self, AtomCache atom_cache, ShGrid grid, UabsCache uabs, int num_threads = -1, int propType=4):
+    def __cinit__(self, ShAtomCache atom_cache, ShGrid grid, UabsCache uabs, int num_threads = -1, int propType=4):
         cdef PropAtType propAtType
         if propType == 4:
             propAtType = Odr4
@@ -123,7 +123,7 @@ cdef class SKnAWorkspace:
     def __dealloc__(self):
         del self.cdata
 
-    def __init__(self, AtomCache atom_cache, ShGrid grid, UabsCache uabs, int num_threads = -1, int propType=4):
+    def __init__(self, ShAtomCache atom_cache, ShGrid grid, UabsCache uabs, int num_threads = -1, int propType=4):
         pass
 
     def prop(self, ShWavefunc wf, Field field, double t, double dt):
@@ -136,7 +136,7 @@ cdef class SKnAWorkspace:
         self.cdata.prop_img(wf.cdata[0], dt)
 
 cdef class WfWithPolarizationWorkspace:
-    def __cinit__(self, AtomCache atom_cache, ShGrid grid, UabsCache uabs, double[:] Upol_1, double[:] Upol_2 = None, int num_threads = -1):
+    def __cinit__(self, ShAtomCache atom_cache, ShGrid grid, UabsCache uabs, double[:] Upol_1, double[:] Upol_2 = None, int num_threads = -1):
         if Upol_2 is None:
             self.cdata = new WfWithPolarization(grid.data[0], atom_cache.cdata[0], uabs.cdata[0], &Upol_1[0], NULL, Odr4, num_threads)
         else:
@@ -148,7 +148,7 @@ cdef class WfWithPolarizationWorkspace:
     def __dealloc__(self):
         del self.cdata
 
-    def __init__(self, AtomCache atom_cache, ShGrid grid, UabsCache uabs, double[:] Upol_1, double[:] Upol_2 = None, int num_threads = -1):
+    def __init__(self, ShAtomCache atom_cache, ShGrid grid, UabsCache uabs, double[:] Upol_1, double[:] Upol_2 = None, int num_threads = -1):
         self.Upol_1 = Upol_1
         self.Upol_2 = Upol_2
 
@@ -162,7 +162,7 @@ cdef class WfWithPolarizationWorkspace:
         self.cdata.prop_img(wf.cdata[0], dt)
 
 cdef class SKnWithSourceWorkspace:
-    def __cinit__(self, AtomCache atom_cache, ShGrid grid, UabsCache uabs, ShWavefunc source, double E, int num_threads = -1):
+    def __cinit__(self, ShAtomCache atom_cache, ShGrid grid, UabsCache uabs, ShWavefunc source, double E, int num_threads = -1):
         self.cdata = new WfEWithSource(grid.data[0], atom_cache.cdata[0], uabs.cdata[0], source.cdata[0], E, Odr4, num_threads)
         self.uabs = uabs
         self.source = source
@@ -171,7 +171,7 @@ cdef class SKnWithSourceWorkspace:
     def __dealloc__(self):
         del self.cdata
 
-    def __init__(self, AtomCache atom_cache, ShGrid grid, UabsCache uabs, ShWavefunc source, int num_threads = -1):
+    def __init__(self, ShAtomCache atom_cache, ShGrid grid, UabsCache uabs, ShWavefunc source, int num_threads = -1):
         pass
 
     def prop(self, ShWavefunc wf, Field field, double t, double dt):
@@ -184,7 +184,7 @@ cdef class SKnWithSourceWorkspace:
 
 {{for prefix, prefix2 in [("Sh", ""), ("ShNe", "Ne")]}}
 cdef class {{prefix}}OrbitalsWS:
-    def __cinit__(self, Atom{{prefix2}}Cache atom_cache, {{prefix}}Grid sh_grid, SpGrid sp_grid, Uabs{{prefix2}}Cache uabs, YlmCache ylm_cache, int Uxc_lmax = 3, int Uh_lmax = 3, Uxc uxc = UXC_LB, int num_threads=-1):
+    def __cinit__(self, {{prefix}}AtomCache atom_cache, {{prefix}}Grid sh_grid, SpGrid sp_grid, Uabs{{prefix2}}Cache uabs, YlmCache ylm_cache, int Uxc_lmax = 3, int Uh_lmax = 3, Uxc uxc = UXC_LB, int num_threads=-1):
         assert(Uxc_lmax >= 0 and Uxc_lmax <= 3)
         assert(Uh_lmax >= 0 and Uh_lmax <= 3)
 
@@ -198,7 +198,7 @@ cdef class {{prefix}}OrbitalsWS:
     def __dealloc__(self):
         del self.cdata
 
-    def __init__(self, Atom{{prefix2}}Cache atom_cache, {{prefix}}Grid sh_grid, SpGrid sp_grid, Uabs{{prefix2}}Cache uabs, YlmCache ylm_cache, int Uxc_lmax = 3, int Uh_lmax = 3, Uxc uxc = UXC_LB, int num_threads=-1):
+    def __init__(self, {{prefix}}AtomCache atom_cache, {{prefix}}Grid sh_grid, SpGrid sp_grid, Uabs{{prefix2}}Cache uabs, YlmCache ylm_cache, int Uxc_lmax = 3, int Uh_lmax = 3, Uxc uxc = UXC_LB, int num_threads=-1):
         pass
 
     def set_time_approx_uee_two_point(self, {{prefix}}Orbitals orbs):
@@ -220,11 +220,11 @@ cdef class {{prefix}}OrbitalsWS:
         if Uh_lmax is None:
             Uh_lmax = self.cdata.Uh_lmax
 
-        self.cdata.calc_Uee(orbs.cdata[0], Uxc_lmax, Uh_lmax)
+        self.cdata.calc_Uee(orbs.cdata[0], Uxc_lmax, Uh_lmax, NULL)
 
     @property
     def uee(self):
-        cdef double[:,::1] res = <double[:3,:self.cdata.sh_grid.n[0]]>self.cdata.Uee
+        cdef double[:,::1] res = <double[:3,:self.cdata.sh_grid.n[0]]>self.cdata.Uee.data
         return np.asarray(res)
 
     @property

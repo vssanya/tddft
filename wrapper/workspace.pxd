@@ -7,8 +7,9 @@ from wavefunc cimport ShWavefunc, cCtWavefunc, cShWavefunc, Wavefunc
 from field cimport field_t
 from orbitals cimport Orbitals
 from sphere_harmonics cimport cYlmCache
-from atom cimport cAtom, cAtomCache, Atom, AtomCache, AtomNeCache
+from atom cimport cAtom, Atom, ShAtomCache, ShNeAtomCache, AtomCache
 from hartree_potential cimport potential_xc_f
+from carray cimport Array2D
 
 
 cdef extern from "eigen.h":
@@ -20,7 +21,7 @@ cdef extern from "eigen.h":
     eigen_ws_t* eigen_ws_alloc(cShGrid* grid)
     void eigen_ws_free(eigen_ws_t* ws)
     void eigen_calc(eigen_ws_t* ws, sh_f u, int Z)
-    void eigen_calc_for_atom(eigen_ws_t* ws, cAtomCache* atom)
+    void eigen_calc_for_atom(eigen_ws_t* ws, AtomCache[cShGrid]* atom)
     int eigen_get_n_with_energy(eigen_ws_t* ws, double energy)
 
 cdef extern from "workspace/sfa.h" namespace "workspace::sfa":
@@ -54,7 +55,7 @@ cdef extern from "workspace.h" namespace "workspace":
     cdef cppclass WavefuncWS[Grid]:
         WavefuncWS(
             Grid      & grid,
-            cAtomCache& atom_cache,
+            AtomCache[Grid]& atom_cache,
             cUabsCache& uabs,
             PropAtType propAtType,
             int num_threads
@@ -74,12 +75,12 @@ cdef extern from "workspace.h" namespace "workspace":
         cdouble* alpha
         cdouble* betta
         int num_threads
-        cAtomCache atom_cache
+        AtomCache[Grid] atom_cache
 
     cdef cppclass WfEWithSource:
         WfEWithSource(
             cShGrid    & grid,
-            cAtomCache & atom_cache,
+            AtomCache[cShGrid] & atom_cache,
             cUabsCache & uabs,
             cShWavefunc& wf_source,
             double E,
@@ -93,7 +94,7 @@ cdef extern from "workspace.h" namespace "workspace":
     cdef cppclass WfA:
         WfA(
             cShGrid   & grid,
-            cAtomCache& atom_cache,
+            AtomCache[cShGrid]& atom_cache,
             cUabsCache& uabs,
             PropAtType propAtType,
             int num_threads
@@ -105,7 +106,7 @@ cdef extern from "workspace.h" namespace "workspace":
     cdef cppclass WfWithPolarization:
         WfWithPolarization(
             cShGrid   & grid,
-            cAtomCache& atom_cache,
+            AtomCache[cShGrid]& atom_cache,
             cUabsCache& uabs,
             double* Upol_1,
             double* Upol_2,
@@ -120,7 +121,7 @@ cdef extern from "workspace.h" namespace "workspace":
         OrbitalsWS(
             Grid      & sh_grid,
             cSpGrid   & sp_grid,
-            cAtomCache& atom_cache,
+            AtomCache[Grid]& atom_cache,
             cUabsCache& uabs,
             cYlmCache & ylm_cache,
             int Uh_lmax,
@@ -134,7 +135,7 @@ cdef extern from "workspace.h" namespace "workspace":
         void prop(Orbitals[Grid]& orbs, field_t* field, double t, double dt, bint calc_uee)
         void prop_img(Orbitals[Grid]& orbs, double dt)
         void prop_ha(Orbitals[Grid]& orbs, double dt)
-        void calc_Uee(Orbitals[Grid]& orbs, int Uxc_lmax, int Uh_lmax)
+        void calc_Uee(Orbitals[Grid]& orbs, int Uxc_lmax, int Uh_lmax, Array2D[double]* Uee)
 
         WavefuncWS[Grid]* wf_ws
         double* Uh
@@ -143,7 +144,7 @@ cdef extern from "workspace.h" namespace "workspace":
         cSpGrid& sp_grid
         double* uh_tmp
         double* n_sp
-        double* Uee
+        Array2D[double] Uee
         cYlmCache& ylm_cache
         int Uh_lmax
         int Uxc_lmax
@@ -157,25 +158,25 @@ cdef class ShWavefuncWS:
     cdef:
         WavefuncWS[cShGrid]* cdata
         UabsCache uabs
-        AtomCache atom_cache
+        ShAtomCache atom_cache
 
 cdef class ShNeWavefuncWS:
     cdef:
         WavefuncWS[cShNeGrid]* cdata
         UabsNeCache uabs
-        AtomNeCache atom_cache
+        ShNeAtomCache atom_cache
 
 cdef class SKnAWorkspace:
     cdef:
         WfA* cdata
         UabsCache uabs
-        AtomCache atom_cache
+        ShAtomCache atom_cache
 
 cdef class WfWithPolarizationWorkspace:
     cdef:
         WfWithPolarization* cdata
         UabsCache uabs
-        AtomCache atom_cache
+        ShAtomCache atom_cache
         double[:] Upol_1
         double[:] Upol_2
 
@@ -184,19 +185,19 @@ cdef class SKnWithSourceWorkspace:
         WfEWithSource* cdata
         ShWavefunc source
         UabsCache uabs
-        AtomCache atom_cache
+        ShAtomCache atom_cache
 
 cdef class ShOrbitalsWS:
     cdef:
         OrbitalsWS[cShGrid]* cdata
         UabsCache uabs
-        AtomCache atom_cache
+        ShAtomCache atom_cache
 
 cdef class ShNeOrbitalsWS:
     cdef:
         OrbitalsWS[cShNeGrid]* cdata
         UabsNeCache uabs
-        AtomNeCache atom_cache
+        ShNeAtomCache atom_cache
 
 cdef class GPSWorkspace:
     cdef:

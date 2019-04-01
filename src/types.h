@@ -7,7 +7,7 @@
 
 typedef double _Complex cdouble;
 
-typedef std::function<double(ShGrid const* grid, int ir, int il, int m)> sh_f;
+typedef std::function<double(int ir, int il, int m)> sh_f;
 
 #ifdef __CUDACC__
 #include "pycuda-complex.hpp"

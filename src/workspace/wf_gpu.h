@@ -9,7 +9,7 @@
 namespace workspace {
 	class WfGpu {
 		public:
-			WfGpu(AtomCache const& atomCache, ShGrid const& grid, UabsCache const& uabsCache, int gpuGridNl = 1024, int threadsPerBlock=32);
+			WfGpu(AtomCache<ShGrid> const& atomCache, ShGrid const& grid, UabsCache const& uabsCache, int gpuGridNl = 1024, int threadsPerBlock=32);
 
 			~WfGpu();
 
@@ -23,7 +23,7 @@ namespace workspace {
 			int threadsPerBlock;
 
 			UabsCache const& uabsCache;
-			AtomCache const& atomCache;
+			AtomCache<ShGrid> const& atomCache;
 
             cdouble* d_alpha;
             cdouble* d_betta;

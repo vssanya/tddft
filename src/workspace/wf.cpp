@@ -8,7 +8,7 @@
 template <typename Grid>
 workspace::WavefuncWS<Grid>::WavefuncWS(
 		Grid    const& grid,
-		AtomCache const& atom_cache,
+		AtomCache<Grid> const& atom_cache,
 		UabsCache const& uabs,
 		PropAtType propAtType,
 		int num_threads
@@ -540,3 +540,130 @@ void workspace::WavefuncWS<ShNotEqudistantGrid>::prop_at_Odr4(Wavefunc<ShNotEqud
 
 template class workspace::WavefuncWS<ShGrid>;
 template class workspace::WavefuncWS<ShNotEqudistantGrid>;
+
+
+template <typename Grid>
+workspace::Wavefunc3DWS<Grid>::Wavefunc3DWS(
+		Grid    const& grid,
+		AtomCache<Grid> const& atom_cache,
+		UabsCache const& uabs,
+		PropAtType propAtType,
+		int num_threads
+		):
+	grid(grid),
+	atom_cache(atom_cache),
+	uabs(uabs),
+	propAtType(propAtType),
+	num_threads(num_threads)
+{
+#ifdef _OPENMP
+	int max_threads = omp_get_max_threads();
+	if (num_threads < 1 || num_threads > max_threads) {
+		num_threads = max_threads;
+	}
+#else
+	num_threads = 1;
+#endif
+
+	alpha = new Array2D<cdouble>(Grid2d(grid.n[iR], num_threads));
+	betta = new Array2D<cdouble>(Grid2d(grid.n[iR], num_threads));
+}
+
+template <typename Grid>
+void workspace::Wavefunc3DWS<Grid>::prop_abs(ShWavefunc3D<Grid>& wf, double dt) {
+	assert(wf.grid.n[iR] == grid.n[iR]);
+	assert(wf.grid.n[iL] <= grid.n[iL]);
+
+#pragma omp parallel for
+	for (int l=0; l<wf.grid.n[iL]; ++l) {
+		for (int m=-l; m<=l; ++m) {
+			for (int ir=0; ir<wf.grid.n[iR]; ++ir) {
+				wf(ir, l, m) *= exp(-uabs.u(ir)*dt);
+			}
+		}
+	}
+}
+
+template <typename Grid>
+void workspace::Wavefunc3DWS<Grid>::prop_at(ShWavefunc3D<Grid>& wf, cdouble dt) {
+	const int Nl = wf.grid.n[iL];
+
+#pragma omp for
+	for (int l = 0; l < Nl; ++l) {
+		int tid = omp_get_thread_num();
+
+		cdouble* alpha_tid = &(*alpha)(0, tid);
+		cdouble* betta_tid = &(*betta)(0, tid);
+
+		auto useBorderCondition = l == 0 && atom_cache.atom.potentialType == Atom::POTENTIAL_COULOMB;
+		auto Ur = [l, this](int ir) -> double {
+			double const r = grid.r(ir);
+			return l*(l+1)/(2*r*r) + atom_cache.u(ir);
+		};
+
+		for (int m=-l; m<=l; ++m) {
+			wf_prop_at_Odr4(wf.slice(l, m), dt, Ur,
+					useBorderCondition, atom_cache.atom.Z,
+					alpha_tid, betta_tid);
+		}
+	}
+}
+
+template <typename Grid>
+void workspace::Wavefunc3DWS<Grid>::prop(
+		ShWavefunc3D<Grid>& wf,
+		field_t const* Fx,
+		field_t const* Fy,
+		double t, double dt
+		) {
+	assert(wf.grid.n[iR] == grid.n[iR]);
+	assert(wf.grid.n[iL] <= grid.n[iL]);
+	const int Nl = wf.grid.n[iL];
+
+	cdouble E = field_E(Fx, t+dt*0.5) - I*field_E(Fy, t+dt*0.5);
+
+	double phi = carg(E);
+	double mod_E = cabs(E);
+
+	auto Hang_1 = [this, mod_E](int ir, int l, int m) {
+		return 0.5*grid.r(ir)*mod_E*std::sqrt((l-m-1)*(l-m)/(2*l-1)/(2*l+1));
+	};
+
+	auto Hang_2 = [this, mod_E](int ir, int l, int m) {
+		return -0.5*grid.r(ir)*mod_E*std::sqrt((l+m-1)*(l+m)/(2*l-1)/(2*l+1));
+	};
+
+#pragma omp parallel
+	{
+		for (int l = 0; l < Nl-1; ++l) {
+			for (int m = -l; m <= l; ++m) {
+				if (m != -l)
+					wf_prop_ang_E_lm(wf, 0.5*dt, l, 1, m, -1, phi, Hang_1);
+
+				if (m != l)
+					wf_prop_ang_E_lm(wf, 0.5*dt, l, 1, m, 1, phi, Hang_2);
+			}
+		}
+
+		prop_at(wf, dt);
+
+		for (int l = Nl - 2; l >= 0; --l) {
+			for (int m = l; m >= -l; --m) {
+				if (m != -l)
+					wf_prop_ang_E_lm(wf, 0.5*dt, l, 1, m, -1, phi, Hang_1);
+
+				if (m != l)
+					wf_prop_ang_E_lm(wf, 0.5*dt, l, 1, m, 1, phi, Hang_2);
+			}
+		}
+	}
+
+	prop_abs(wf, dt);
+}
+
+template<typename Grid>
+void workspace::Wavefunc3DWS<Grid>::prop_img(ShWavefunc3D<Grid>& wf, double dt) {
+	prop_at(wf, -I*dt);
+}
+
+template class workspace::Wavefunc3DWS<ShNotEqudistantGrid3D>;

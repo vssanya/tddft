@@ -241,7 +241,7 @@ class WavefuncWithSourceTask(TaskAtom):
         self.wf = tdse.wavefunc.ShWavefunc(self.sh_grid)
         self.wf.asarray()[:] = 0.0
 
-        self.ws = tdse.workspace.SKnWithSourceWorkspace(tdse.atom.AtomCache(tdse.atom.NONE, self.sh_grid), self.sh_grid, self.uabs_cache, self.wf_source, self.Ip)
+        self.ws = tdse.workspace.SKnWithSourceWorkspace(tdse.atom.ShAtomCache(tdse.atom.NONE, self.sh_grid), self.sh_grid, self.uabs_cache, self.wf_source, self.Ip)
 
         self.t = self.field.get_t(self.dt, dT=self.dT)
 
@@ -308,7 +308,7 @@ class WavefuncNeTask(WavefuncTask):
     Rmin = 1e-3
     Ra   = 1.0
 
-    AtomCacheClass = tdse.atom.AtomNeCache
+    AtomCacheClass = tdse.atom.ShNeAtomCache
     UabsCacheClass = tdse.abs_pot.UabsNeCache
 
     def create_grid(self):

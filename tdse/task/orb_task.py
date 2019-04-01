@@ -106,6 +106,33 @@ class AzOrbData(OrbShapeMixin, CalcData):
         if task.rank == 0:
             self.dset[i] = self.az_ne
 
+class AzVeeOrbData(OrbShapeMixin, CalcData):
+    NAME = "az_vee"
+
+    def __init__(self, l=0, **kwargs):
+        super().__init__(**kwargs)
+
+        self.l = l
+
+    def calc_init(self, task, file):
+        super().calc_init(task, file)
+        if task.rank == 0:
+            self.az_ne = np.zeros(self.dset.shape[1])
+        else:
+            self.az_ne = None
+
+        self.Uee = task.ws.uee
+        self.dUee_dr = np.zeros_like(self.Uee)
+
+    def calc(self, task, i, t):
+        if self.l == 0:
+            tdse.calc.az_ne_Vee_0(task.orbs, task.atom_cache, task.field, t, self.Uee, self.dUee_dr, az = self.az_ne)
+        else:
+            tdse.calc.az_ne_Vee_1(task.orbs, task.atom_cache, task.field, t, self.Uee, self.dUee_dr, az = self.az_ne)
+
+        if task.rank == 0:
+            self.dset[i] = self.az_ne
+
 class NormOrbData(OrbShapeMixin, CalcDataWithMask):
     NAME = "n"
 
@@ -220,7 +247,7 @@ class OrbitalsNeTask(OrbitalsTask):
     Rmin = 1e-3
     Ra   = 1.0
 
-    AtomCacheClass = tdse.atom.AtomNeCache
+    AtomCacheClass = tdse.atom.ShNeAtomCache
     UabsCacheClass = tdse.abs_pot.UabsNeCache
 
     def __init__(self, path_res='res', mode=None, is_mpi=True, **kwargs):

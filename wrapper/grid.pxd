@@ -7,6 +7,9 @@ cdef extern from "grid.h":
         cGrid1d(int n, double d)
 
     cdef cppclass cGrid2d "Grid2d":
+        cGrid2d()
+        cGrid2d(int nx, int ny)
+
         int n[2]
         double d[2]
 
@@ -27,6 +30,17 @@ cdef extern from "grid.h":
 
     cdef cppclass cShNeGrid "ShNotEqudistantGrid":
         cShNeGrid(double Rmin, double Rmax, double Ra, double dr_max, int Nl)
+
+        double r(int ir)
+        double Rmax()
+        int l(int il)
+        int m(int im)
+
+        int n[2]
+        double d[2]
+
+    cdef cppclass cShNeGrid3D "ShNotEqudistantGrid3D":
+        cShNeGrid3D(double Rmin, double Rmax, double Ra, double dr_max, int Nl)
 
         double r(int ir)
         double Rmax()
@@ -61,6 +75,9 @@ cdef extern from "grid.h":
 cdef class Grid1d:
     cdef cGrid1d cdata
 
+cdef class Grid2d:
+    cdef cGrid2d cdata
+
 cdef class CtGrid:
     cdef cCtGrid* cdata
 
@@ -72,6 +89,11 @@ cdef class ShGrid:
 
 cdef class ShNeGrid:
     cdef cShNeGrid* data
+    cdef double Rmin
+    cdef double Ra
+
+cdef class ShNeGrid3D:
+    cdef cShNeGrid3D* data
     cdef double Rmin
     cdef double Ra
 

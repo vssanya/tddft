@@ -1,4 +1,4 @@
-from grid cimport cShGrid, ShGrid, ShNeGrid
+from grid cimport cShGrid, cShNeGrid, ShGrid, ShNeGrid
 
 from libcpp.vector cimport vector
 
@@ -30,14 +30,14 @@ cdef extern from "atom.h":
 
         int getNumberOrt(int ie)
 
-    cdef cppclass cAtomCache "AtomCache":
-        cAtomCache(cAtom& atom, cShGrid* grid)
-        cAtomCache(cAtom& atom, cShGrid* grid, double* u)
+    cdef cppclass AtomCache[Grid]:
+        AtomCache(cAtom& atom, Grid& grid)
+        AtomCache(cAtom& atom, Grid& grid, double* u)
         double u(int ir)
         double dudz(int ir)
 
         cAtom& atom;
-        cShGrid* grid;
+        cShGrid& grid;
 
         double* data_u;
         double* data_dudz;
@@ -94,12 +94,12 @@ cdef class Atom:
     @staticmethod
     cdef Atom from_c(cAtom* atom, str name)
 
-cdef class AtomCache:
-    cdef cAtomCache* cdata
+cdef class ShAtomCache:
+    cdef AtomCache[cShGrid]* cdata
     cdef public ShGrid grid
     cdef public Atom atom
 
-cdef class AtomNeCache:
-    cdef cAtomCache* cdata
+cdef class ShNeAtomCache:
+    cdef AtomCache[cShNeGrid]* cdata
     cdef public ShNeGrid grid
     cdef public Atom atom

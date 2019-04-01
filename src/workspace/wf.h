@@ -16,6 +16,9 @@
 #include "../linalg.h"
 #include "common_alg.h"
 
+#include "../array.h"
+#include "../wavefunc/sh_3d.h"
+
 /*! \file
  * Split-step method:
  * \f[ e^{(A + B)dt} = e^\frac{Adt}{2} e^{Bdt} e^\frac{Adt}{2} + \frac{1}{24}\left[A + 2B, [A,B]\right] dt^3 + O(dt^4) \f]
@@ -40,7 +43,7 @@ namespace workspace {
 
 			WavefuncWS( 
 					Grid    const& grid,
-					AtomCache const& atom_cache,
+					AtomCache<Grid> const& atom_cache,
 					UabsCache const& uabs,
 					PropAtType propAtType,
 					int num_threads
@@ -110,12 +113,48 @@ namespace workspace {
 
 			void prop_img(Wavefunc<Grid>& wf, double dt);
 
-			Grid    const& grid;
-			AtomCache const& atom_cache;
+			Grid      const& grid;
+			AtomCache<Grid> const& atom_cache;
 			UabsCache const& uabs;
 
 			cdouble* alpha;
 			cdouble* betta;
+
+			PropAtType propAtType;
+
+			int num_threads;
+	};
+
+	template<class Grid>
+    class Wavefunc3DWS {
+		public:
+			typedef std::function<double(int ir, int il, int m)> sh_f;
+
+			Wavefunc3DWS( 
+					Grid    const& grid,
+					AtomCache<Grid> const& atom_cache,
+					UabsCache const& uabs,
+					PropAtType propAtType,
+					int num_threads
+				  );
+
+			virtual ~Wavefunc3DWS() {
+				delete alpha;
+				delete betta;
+			}
+
+			void prop_at(ShWavefunc3D<Grid>& wf, cdouble dt);
+			void prop_abs(ShWavefunc3D<Grid>& wf, double dt);
+
+			void prop(ShWavefunc3D<Grid>& wf, field_t const* Fx, field_t const* Fy, double t, double dt);
+			void prop_img(ShWavefunc3D<Grid>& wf, double dt);
+
+			Grid      const& grid;
+			AtomCache<Grid> const& atom_cache;
+			UabsCache const& uabs;
+
+			Array2D<cdouble>* alpha;
+			Array2D<cdouble>* betta;
 
 			PropAtType propAtType;
 
@@ -147,7 +186,7 @@ namespace workspace {
 		public:
 			WfE(
 					ShGrid    const& grid,
-					AtomCache const& atom_cache,
+					AtomCache<ShGrid> const& atom_cache,
 					UabsCache const& uabs,
 					PropAtType propAtType,
 					int num_threads
@@ -159,7 +198,7 @@ namespace workspace {
 		public:
 			WfA(
 					ShGrid    const& grid,
-					AtomCache const& atom_cache,
+					AtomCache<ShGrid> const& atom_cache,
 					UabsCache const& uabs,
 					PropAtType propAtType,
 					int num_threads

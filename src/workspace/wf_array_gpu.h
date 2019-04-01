@@ -8,7 +8,7 @@
 namespace workspace {
 	class WfArrayGpu {
 		public:
-			WfArrayGpu(AtomCache const* atomCache, ShGrid const* grid, UabsCache const* uabsCache, int N);
+			WfArrayGpu(AtomCache<ShGrid> const* atomCache, ShGrid const* grid, UabsCache const* uabsCache, int N);
 
 			~WfArrayGpu();
 
@@ -20,7 +20,7 @@ namespace workspace {
 			int N;
 
 			UabsCache const* uabsCache;
-			AtomCache const* atomCache;
+			AtomCache<ShGrid> const* atomCache;
 
             cdouble* d_alpha;
             cdouble* d_betta;

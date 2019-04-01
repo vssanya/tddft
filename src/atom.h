@@ -120,10 +120,11 @@ class Atom {
         }
 };
 
+template<class Grid>
 class AtomCache {
 	public:
-        AtomCache(Atom const& atom, ShGrid const* grid, double* u);
-        AtomCache(Atom const& atom, ShGrid const* grid): AtomCache(atom, grid, nullptr) {}
+        AtomCache(Atom const& atom, Grid const& grid, double* u);
+        AtomCache(Atom const& atom, Grid const& grid): AtomCache(atom, grid, nullptr) {}
 		~AtomCache();
 
         double u(int ir) const { return data_u[ir]; }
@@ -133,7 +134,7 @@ class AtomCache {
 		double* getGPUDatadUdz();
 
         Atom const& atom;
-        ShGrid const* grid;
+        Grid const& grid;
 
 		double* data_u;
 		double* data_dudz;

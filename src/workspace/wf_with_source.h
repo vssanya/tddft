@@ -8,7 +8,7 @@ namespace workspace {
 		public:
             WfEWithSource(
 					ShGrid    const& grid,
-					AtomCache const& atom_cache,
+					AtomCache<ShGrid> const& atom_cache,
 					UabsCache const& uabs,
 					ShWavefunc const& wf_source,
 					double E,

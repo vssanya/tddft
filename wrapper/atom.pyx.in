@@ -10,17 +10,18 @@ if tdse.utils.is_jupyter_notebook():
     import matplotlib.pyplot as plt
     from IPython.core.pylabtools import print_figure
 
-cdef class AtomCache:
-    def __cinit__(self, Atom atom, ShGrid grid, double[::1] u = None):
+{{for Prefix in ["Sh", "ShNe"]}}
+cdef class {{Prefix}}AtomCache:
+    def __cinit__(self, Atom atom, {{Prefix}}Grid grid, double[::1] u = None):
         self.atom = atom
         self.grid = grid
 
         if u is None:
-            self.cdata = new cAtomCache(atom.cdata[0], <cShGrid*>grid.data)
+            self.cdata = new AtomCache[c{{Prefix}}Grid](atom.cdata[0], grid.data[0])
         else:
-            self.cdata = new cAtomCache(atom.cdata[0], <cShGrid*>grid.data, &u[0])
+            self.cdata = new AtomCache[c{{Prefix}}Grid](atom.cdata[0], grid.data[0], &u[0])
 
-    def __init__(self, Atom atom, ShGrid grid, double[::1] u = None):
+    def __init__(self, Atom atom, {{Prefix}}Grid grid, double[::1] u = None):
         pass
 
     def __dealloc__(self):
@@ -59,58 +60,7 @@ cdef class AtomCache:
 
         subgrp.create_dataset('u'   , (self.grid.Nr,), dtype="d")[:] = self.u
         subgrp.create_dataset('dudz', (self.grid.Nr,), dtype="d")[:] = self.dudz
-
-
-cdef class AtomNeCache:
-    def __cinit__(self, Atom atom, ShNeGrid grid, double[::1] u = None):
-        self.atom = atom
-        self.grid = grid
-
-        if u is None:
-            self.cdata = new cAtomCache(atom.cdata[0], <cShGrid*>grid.data)
-        else:
-            self.cdata = new cAtomCache(atom.cdata[0], <cShGrid*>grid.data, &u[0])
-
-    def __init__(self, Atom atom, ShNeGrid grid, double[::1] u = None):
-        pass
-
-    def __dealloc__(self):
-        del self.cdata
-
-    @property
-    def u(self):
-        return np.asarray(<double[:self.grid.Nr]>(self.cdata.data_u))
-
-    @property
-    def dudz(self):
-        return np.asarray(<double[:self.grid.Nr]>(self.cdata.data_dudz))
-
-    def _figure_data(self, format):
-        fig, ax = plt.subplots()
-        fig.set_size_inches((6,3))
-
-        ax.plot(self.grid.r, self.u)
-
-        ax.set_xlabel('r, (a.u.)')
-        ax.set_ylabel('U, (a.u.)')
-
-        ax.set_yscale('log')
-
-        data = print_figure(fig, format)
-        plt.close(fig)
-        return data
-
-    def _repr_png_(self):
-        return self._figure_data('png')
-
-    def write_params(self, params_grp):
-        subgrp = params_grp.create_group('atom')
-
-        self.atom.write_params(subgrp)
-
-        subgrp.create_dataset('u'   , (self.grid.Nr,), dtype="d")[:] = self.u
-        subgrp.create_dataset('dudz', (self.grid.Nr,), dtype="d")[:] = self.dudz
-
+{{endfor}}
 
 cdef class State:
     @staticmethod
@@ -195,21 +145,11 @@ cdef class Atom:
         params_grp.attrs['type'] = self.name
 
 
-H        = Atom.from_c(<cAtom*> new HAtom(), "H")
-H_smooth = Atom.from_c(<cAtom*> new HSmothAtom(), "H_smooth")
-
-Ne       = Atom.from_c(<cAtom*> new NeAtom(), "Ne")
-Ar       = Atom.from_c(<cAtom*> new ArAtom(), "Ar")
-Kr       = Atom.from_c(<cAtom*> new KrAtom(), "Kr")
-Xe       = Atom.from_c(<cAtom*> new XeAtom(), "Xe")
-Ar_sae   = Atom.from_c(<cAtom*> new ArSaeAtom(), "Ar_sae")
-Ar_sae_smooth = Atom.from_c(<cAtom*> new ArSaeSmoothAtom(), "Ar_sae_smooth")
+{{for Prefix in ['H', 'HSmoth', 'Ne', 'Ar', 'Kr', 'Xe', 'ArSae', 'ArSaeSmooth', 'Na', 'Mg']}}
+{{Prefix}} = Atom.from_c(<cAtom*> new {{Prefix}}Atom(), "{{Prefix}}")
+{{endfor}}
 
 Fm = Atom.from_c(<cAtom*> new FNegativeIon(), "F-")
-
-Na = Atom.from_c(<cAtom*> new NaAtom(), "Na")
-Na_sae   = Atom.from_c(<cAtom*> new NaAtomSGB(), "Na_sae")
-
-Mg = Atom.from_c(<cAtom*> new MgAtom(), "Mg")
+NaSae   = Atom.from_c(<cAtom*> new NaAtomSGB(), "Na_sae")
 
 NONE = Atom.from_c(<cAtom*> new NoneAtom(), "None")

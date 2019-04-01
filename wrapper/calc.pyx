@@ -7,10 +7,11 @@ from wavefunc cimport ShWavefunc, ShNeWavefunc
 from orbitals cimport ShOrbitals, ShNeOrbitals
 from workspace cimport ShWavefuncWS, ShNeWavefuncWS, ShOrbitalsWS, ShNeOrbitalsWS
 from field cimport Field
-from atom cimport AtomCache, AtomNeCache
+from atom cimport ShAtomCache, ShNeAtomCache
 
 from calc_gpu cimport calc_wf_gpu_az
 from wavefunc_gpu cimport ShWavefuncGPU
+from carray cimport DoubleArray2D
 
 
 ctypedef fused WF:
@@ -31,24 +32,32 @@ ctypedef fused WS:
     ShNeOrbitalsWS
 
 ctypedef fused AC:
-    AtomCache
-    AtomNeCache
+    ShAtomCache
+    ShNeAtomCache
 
 def az(WF wf, AC atom, Field field, double t):
-    if WF is ShOrbitals:
+    if WF is ShOrbitals and AC is ShAtomCache:
         return calc_orbs_az(wf.cdata[0], atom.cdata[0], field.cdata, t)
-    elif WF is ShNeOrbitals:
+    elif WF is ShNeOrbitals and AC is ShNeAtomCache:
         return calc_orbs_az(wf.cdata[0], atom.cdata[0], field.cdata, t)
-    elif WF is ShWavefuncGPU:
+    elif WF is ShWavefuncGPU and AC is ShAtomCache:
         return calc_wf_gpu_az(wf.cdata[0], atom.cdata[0], field.cdata, t)
-    elif WF is ShWavefunc:
+    elif WF is ShWavefunc and AC is ShAtomCache:
         return calc_wf_az(wf.cdata, atom.cdata[0], field.cdata, t)
-    elif WF is ShNeWavefunc:
+    elif WF is ShNeWavefunc and AC is ShNeAtomCache:
         return calc_wf_az(wf.cdata, atom.cdata[0], field.cdata, t)
     else:
         assert(False)
 
-def az_with_polarization(ShWavefunc wf, AtomCache atom, double[:] Upol, double[:] dUpol_dr, Field field, double t):
+def wf_az_p(WF wf_p, WF wf_g, AC atom, int lmax = -1):
+    if WF is ShWavefunc and AC is ShAtomCache:
+        return calc_wf_az(wf_p.cdata, wf_g.cdata, atom.cdata[0], lmax)
+    elif WF is ShNeWavefunc and AC is ShNeAtomCache:
+        return calc_wf_az(wf_p.cdata, wf_g.cdata, atom.cdata[0], lmax)
+    else:
+        assert(False)
+
+def az_with_polarization(ShWavefunc wf, ShAtomCache atom, double[:] Upol, double[:] dUpol_dr, Field field, double t):
     return calc_wf_az_with_polarization(wf.cdata, atom.cdata[0], &Upol[0], &dUpol_dr[0], field.cdata, t)
 
 def az_ne(Orbs orbs, AC atom, Field field, double t, np.ndarray az = None):
@@ -59,9 +68,48 @@ def az_ne(Orbs orbs, AC atom, Field field, double t, np.ndarray az = None):
         res_ptr = <double*>az.data
 
 
-    calc_orbs_az_ne(orbs.cdata, atom.cdata[0], field.cdata, t, res_ptr)
+    if Orbs is ShOrbitals and AC is ShAtomCache:
+        calc_orbs_az_ne(orbs.cdata, atom.cdata[0], field.cdata, t, res_ptr)
+    elif Orbs is ShNeOrbitals and AC is ShNeAtomCache:
+        calc_orbs_az_ne(orbs.cdata, atom.cdata[0], field.cdata, t, res_ptr)
+    else:
+        assert(False)
 
     return az
+
+def az_ne_Vee_0(Orbs orbs, AC atom, Field field, double t, np.ndarray Uee, np.ndarray dUeedr, np.ndarray az = None):
+    cdef DoubleArray2D array_uee    = DoubleArray2D(Uee)
+    cdef DoubleArray2D array_dueedr = DoubleArray2D(dUeedr)
+
+    cdef double* res_ptr = NULL
+    if orbs.is_root():
+        if az is None:
+            az = np.ndarray(orbs.atom.countOrbs, dtype=np.double)
+        res_ptr = <double*>az.data
+
+    if Orbs is ShOrbitals and AC is ShAtomCache:
+        return calc_orbs_az_ne_Vee_0(orbs.cdata, array_uee.cdata[0], array_dueedr.cdata[0], atom.cdata[0], field.cdata, t, res_ptr)
+    elif Orbs is ShNeOrbitals and AC is ShNeAtomCache:
+        return calc_orbs_az_ne_Vee_0(orbs.cdata, array_uee.cdata[0], array_dueedr.cdata[0], atom.cdata[0], field.cdata, t, res_ptr)
+    else:
+        assert(False)
+
+def az_ne_Vee_1(Orbs orbs, AC atom, Field field, double t, np.ndarray Uee, np.ndarray dUeedr, np.ndarray az = None):
+    cdef DoubleArray2D array_uee    = DoubleArray2D(Uee)
+    cdef DoubleArray2D array_dueedr = DoubleArray2D(dUeedr)
+
+    cdef double* res_ptr = NULL
+    if orbs.is_root():
+        if az is None:
+            az = np.ndarray(orbs.atom.countOrbs, dtype=np.double)
+        res_ptr = <double*>az.data
+
+    if Orbs is ShOrbitals and AC is ShAtomCache:
+        return calc_orbs_az_ne_Vee_0(orbs.cdata, array_uee.cdata[0], array_dueedr.cdata[0], atom.cdata[0], field.cdata, t, res_ptr)
+    elif Orbs is ShNeOrbitals and AC is ShNeAtomCache:
+        return calc_orbs_az_ne_Vee_0(orbs.cdata, array_uee.cdata[0], array_dueedr.cdata[0], atom.cdata[0], field.cdata, t, res_ptr)
+    else:
+        assert(False)
 
 def smstep(double x, double x0, double x1):
     return smoothstep(x, x0, x1)

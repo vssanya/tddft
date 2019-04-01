@@ -9,6 +9,8 @@
 #include "grid.h"
 #include "sphere_harmonics.h"
 
+#include "array.h"
+
 /*!
  * \brief Волновая функция представленная в виде разложения по сферическим гармоникам
  *
@@ -31,7 +33,11 @@ class Wavefunc {
 		typedef std::function<double(int ir, int il, int m)> sh_f;
 
 		template<class T>
-			inline T integrate(std::function<T(int, int)> func, int l_max, int l_min = 0) const {
+			inline T integrate(std::function<T(int, int)> func, int l_max = -1, int l_min = 0) const {
+				if (l_max == -1) {
+					l_max = grid.n[iL] - 1;
+				}
+
 				T res = 0.0;
 #pragma omp parallel for reduction(+:res) collapse(2)
 				for (int il = l_min; il < l_max; ++il) {
@@ -61,6 +67,9 @@ class Wavefunc {
 			}
 		}
 
+		inline Array1D<cdouble> operator() (int il) {
+			return Array1D<cdouble>(&(*this)(0, il), Grid1d(grid.n[iR]));
+		}
 
 		inline cdouble& operator() (int ir, int il) {
 			assert(ir < grid.n[iR] && il < grid.n[iL]);
@@ -121,6 +130,12 @@ class Wavefunc {
 			return 2*integrate<double>([this, func](int ir, int il) -> double {
 					return clm(il, m)*creal((*this)(ir, il)*conj((*this)(ir, il+1)))*func(ir, il, m);
 					}, grid.n[iL]-1);
+		}
+
+		cdouble cos(sh_f func, Wavefunc const& other, int l_max=-1) const {
+			return integrate<cdouble>([this, func, &other](int ir, int il) -> cdouble {
+					return clm(il, m)*((*this)(ir, il)*conj(other(ir, il+1)) + (*this)(ir, il+1)*conj(other(ir, il)))*func(ir, il, m);
+					}, l_max);
 		}
 
 		// <psi|U(r)cos^2(\theta)|psi>

@@ -8,7 +8,7 @@ if tdse.utils.is_jupyter_notebook():
 
 from types cimport complex_t
 from abs_pot cimport mask_core
-from grid cimport ShGrid, SpGrid, ShNeGrid
+from grid cimport ShGrid, SpGrid, ShNeGrid, ShNeGrid3D
 from sphere_harmonics cimport YlmCache
 
 from masks cimport ShCoreMask, ShNeCoreMask
@@ -147,3 +147,51 @@ cdef {{Prefix}}Wavefunc {{Prefix.lower()}}_wavefunc_from_point(c{{Prefix}}Wavefu
     wf._set_data(data)
     return wf
 {{endfor}}
+
+cdef class ShNeWavefunc3D:
+    def __cinit__(self, ShNeGrid3D grid, dealloc=True):
+        self.grid = grid
+
+        if not dealloc:
+            self.cdata = NULL
+        else:
+            self.cdata = new cShNeWavefunc3D(grid.data[0])
+
+        self.dealloc = dealloc
+
+    def __init__(self, ShNeGrid3D grid, dealloc=True):
+        pass
+
+    cdef _set_data(self, cShNeWavefunc3D* data):
+        self.cdata = data
+
+    def __dealloc__(self):
+        if self.dealloc and self.cdata != NULL:
+            del self.cdata
+            self.cdata = NULL
+
+    def norm(self, ShNeCoreMask mask = None):
+        if mask is None:
+            return self.cdata.norm()
+        else:
+            return self.cdata.norm(<sh_f> mask.cdata[0])
+
+    def normalize(self):
+        self.cdata.normalize()
+
+    def __mul__(ShNeWavefunc3D self, ShNeWavefunc3D other):
+        cdef cdouble res = self.cdata[0]*other.cdata[0]
+        return (<complex_t*>(&res))[0]
+
+    def exclude(ShNeWavefunc3D self, ShNeWavefunc3D other):
+        self.cdata.exclude(other.cdata[0])
+
+    def asarray(self):
+        cdef complex_t[:, ::1] array = <complex_t[:self.cdata.grid.n[1]**2,:self.cdata.grid.n[0]]>(<complex_t*>self.cdata.data)
+        return np.asarray(array)
+
+
+cdef ShNeWavefunc3D shne_wavefunc3d_from_point(cShNeWavefunc3D* data, ShNeGrid3D grid, bint dealloc):
+    wf = ShNeWavefunc3D(grid=grid, dealloc=dealloc)
+    wf._set_data(data)
+    return wf

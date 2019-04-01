@@ -17,8 +17,29 @@ class Grid1d {
 			return ix*d;
 		}
 
+		size_t size() const { return n; }
+		size_t index(int i) const { return i; }
+
+		double dr(int i) const { return d; };
+
 		Grid1d(int n, double d): n(n), d(d) {}
-		Grid1d(): n(0), d(0.0) {}
+		Grid1d(int n): n(n), d(1.0) {}
+		Grid1d(): n(0), d(1.0) {}
+};
+
+class GridNotEq1d {
+	public:
+		int n;
+		double* d;
+
+		size_t size() const { return n; }
+		size_t index(int i) const { return i; }
+
+		double dr(int i) const { return d[i]; };
+
+		GridNotEq1d(int n, double* d): n(n), d(d) {}
+		GridNotEq1d(int n): n(n), d(nullptr) {}
+		GridNotEq1d(): n(0), d(nullptr) {}
 };
 
 /*!
@@ -28,6 +49,9 @@ class Grid2d {
 public:
     int    n[2]; //!< is counts of points
     double d[2]; //!< is steps
+
+	Grid2d(): n{0}, d{1.0} {}
+	Grid2d(int nx, int ny): n{nx, ny}, d{1.0,1.0} {}
 
     size_t size() const { return n[0]*n[1]; }
 
@@ -237,15 +261,15 @@ class ShNotEqudistantGrid: public ShGrid {
 		init(
 				// r = f(xi)
 				[=](double xi) -> double {
-				return xi + A*Ra*std::tanh(xi/Ra);
+					return xi + A*Ra*std::tanh(xi/Ra);
 				},
 				// drdxi
 				[=](double xi) -> double {
-				return 1.0 + A/std::pow(cosh(xi/Ra), 2);
+					return 1.0 + A/std::pow(cosh(xi/Ra), 2);
 				},
 				// d2rdxi2
 				[=](double xi) -> double {
-				return -2*A*std::tanh(xi/Ra)/std::pow(cosh(xi/Ra), 2) / Ra;
+					return -2*A*std::tanh(xi/Ra)/std::pow(cosh(xi/Ra), 2) / Ra;
 				}
 			);
 	}
@@ -348,6 +372,8 @@ class ShNotEqudistantGrid: public ShGrid {
 
 class ShNotEqudistantGrid3D: public ShNotEqudistantGrid {
 	public:
+		ShNotEqudistantGrid3D(double Rmin, double Rmax, double Ra, double dr_max, int Nl): ShNotEqudistantGrid(Rmin, Rmax, Ra, dr_max, Nl) {}
+
 		int size() const {
 			return n[iR]*n[iL]*n[iL];
 		}
@@ -357,10 +383,21 @@ class ShNotEqudistantGrid3D: public ShNotEqudistantGrid {
 		}
 
 		template<class T>
-			inline T integrate(std::function<T(int, int, int)> func, int l_max, int l_min = 0) const {
+			inline T integrate(std::function<T(int, int, int)> func, int l_max, int l_min = 0, int m_shift = 0) const {
 				T res = 0.0;
+
+				int m_min = 0;
+				int m_max = 0;
+
+				if (m_shift > 0) {
+					m_max =  m_shift;
+				} else if (m_shift < 0) {
+					m_min = -m_shift;
+				}
+
+#pragma omp parallel for reduction(+:res) collapse(3)
 				for (int il = l_min; il < l_max; ++il) {
-					for (int im = -il; im < il; im++) {
+					for (int im = -il+m_min; im < il-m_max; im++) {
 						for (int ir = 0; ir < n[iR]; ++ir) {
 							res += func(ir, il, im)*J(ir, il);
 						}
@@ -369,7 +406,6 @@ class ShNotEqudistantGrid3D: public ShNotEqudistantGrid {
 
 				return res*d[iR];
 			}
-
 };
 
 

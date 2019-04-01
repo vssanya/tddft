@@ -6,6 +6,8 @@
 #include "../hartree_potential.h"
 #include "../utils.h"
 #include "../types.h"
+#include "../array.h"
+
 
 namespace workspace
 {
@@ -22,7 +24,7 @@ namespace workspace
             OrbitalsWS(
 					Grid      const& sh_grid,
 					SpGrid    const& sp_grid,
-					AtomCache const& atom_cache,
+					AtomCache<Grid> const& atom_cache,
 					UabsCache const& uabs,
 					YlmCache  const& ylm_cache,
 					int Uh_lmax,
@@ -42,7 +44,7 @@ namespace workspace
             void prop_img(Orbitals<Grid>& OrbitalsWS, double dt);
 			void prop_ha(Orbitals<Grid>& OrbitalsWS, double dt);
 
-			void calc_Uee(Orbitals<Grid> const& OrbitalsWS, int Uxc_lmax, int Uh_lmax, double* Uee = nullptr);
+			void calc_Uee(Orbitals<Grid> const& OrbitalsWS, int Uxc_lmax, int Uh_lmax, Array2D<double>* Uee = nullptr);
 
 			void setTimeApproxUeeTwoPointFor(Orbitals<Grid> const& OrbitalsWS);
 
@@ -56,7 +58,7 @@ namespace workspace
 			potential_xc_f Uxc;
 			int Uxc_lmax;
 
-			double* Uee;
+			Array2D<double> Uee;
 			int lmax;
 
             Grid const& sh_grid;
@@ -70,6 +72,6 @@ namespace workspace
 			TimeApproxUeeType timeApproxUeeType;
 
 			Orbitals<Grid>* tmpOrb;
-			double* tmpUee;
+			Array2D<double>* tmpUee;
 	};
 } /* workspace */ 

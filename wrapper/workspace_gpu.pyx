@@ -1,16 +1,17 @@
 from wavefunc_gpu cimport ShWavefuncGPU, ShWavefuncArrayGPU
 from field cimport Field
+from atom cimport ShAtomCache
 
 
 cdef class WfArrayGPUWorkspace:
-    def __cinit__(self, AtomCache atom_cache, ShGrid grid, UabsCache uabs_cache, int N):
+    def __cinit__(self, ShAtomCache atom_cache, ShGrid grid, UabsCache uabs_cache, int N):
         self.cdata = new WfArrayGpu(atom_cache.cdata, grid.data, uabs_cache.cdata, N)
 
         self.atom_cache = atom_cache
         self.grid = grid
         self.uabs_cache = uabs_cache
 
-    def __init__(self, AtomCache atom_cache, ShGrid grid, UabsCache uabs_cache, int N):
+    def __init__(self, ShAtomCache atom_cache, ShGrid grid, UabsCache uabs_cache, int N):
         pass
 
     def __dealloc__(self):
@@ -27,14 +28,14 @@ cdef class WfArrayGPUWorkspace:
 
 
 cdef class WfGPUWorkspace:
-    def __cinit__(self, AtomCache atom_cache, ShGrid grid, UabsCache uabs_cache, int gpuGridNl = 1024, int threadsPerBlock = 32):
+    def __cinit__(self, ShAtomCache atom_cache, ShGrid grid, UabsCache uabs_cache, int gpuGridNl = 1024, int threadsPerBlock = 32):
         self.cdata = new WfGpu(atom_cache.cdata[0], grid.data[0], uabs_cache.cdata[0], gpuGridNl, threadsPerBlock)
 
         self.atom_cache = atom_cache
         self.grid = grid
         self.uabs_cache = uabs_cache
 
-    def __init__(self, AtomCache atom_cache, ShGrid grid, UabsCache uabs_cache, int gpuGridNl = 1024, int threadsPerBlock = 32):
+    def __init__(self, ShAtomCache atom_cache, ShGrid grid, UabsCache uabs_cache, int gpuGridNl = 1024, int threadsPerBlock = 32):
         pass
 
     def __dealloc__(self):

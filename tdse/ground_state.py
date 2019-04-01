@@ -1,7 +1,6 @@
 import numpy as np
 
 from . import grid, wavefunc, orbitals
-from .atom import AtomCache
 from .grid import ShGrid
 
 

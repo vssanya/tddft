@@ -80,7 +80,7 @@ __global__ void kernel_wf_cos(cuComplex const* wf, int m, double const* u, doubl
 double ShWavefuncGPU::cos_func(sh_f func) const {
 #pragma omp parallel for
 	for (int ir=0; ir<grid->n[iR]; ir++) {
-		ur[ir] = func(grid, ir, 0, m);
+		ur[ir] = func(ir, 0, m);
 	}
 
 	cudaMemcpy(d_ur, ur, sizeof(double)*grid->n[iR], cudaMemcpyHostToDevice);
@@ -166,7 +166,7 @@ __global__ void kernel_wf_array_cos(cuComplex* wf_array, int m, double const* u,
 double* ShWavefuncArrayGPU::cos_func(sh_f func, double* res) const {
 #pragma omp parallel for
 	for (int ir=0; ir<grid->n[iR]; ir++) {
-		ur[ir] = func(grid, ir, 0, m);
+		ur[ir] = func(ir, 0, m);
 	}
 
 	cudaMemcpy(d_ur, ur, sizeof(double)*grid->n[iR], cudaMemcpyHostToDevice);

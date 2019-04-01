@@ -10,6 +10,11 @@ build
 
 wrapper/*.c
 wrapper/*.cpp
+
+wrapper/orbitals.pyx
+wrapper/wavefunc.pyx
+wrapper/workspace.pyx
+
 tdse/*.so
 
 .asv
@@ -22,3 +27,4 @@ wrapper/masks.pyx
 wrapper/orbitals.pyx
 wrapper/wavefunc.pyx
 wrapper/workspace.pyx
+wrapper/atom.pyx

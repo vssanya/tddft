@@ -4,7 +4,7 @@
 #include "../utils.h"
 
 
-workspace::WfGpu::WfGpu(AtomCache const& atomCache, ShGrid const& grid, UabsCache const& uabsCache, int gpuGridNl, int threadsPerBlock):
+workspace::WfGpu::WfGpu(AtomCache<ShGrid> const& atomCache, ShGrid const& grid, UabsCache const& uabsCache, int gpuGridNl, int threadsPerBlock):
 	grid(grid),
 	uabsCache(uabsCache),
 	atomCache(atomCache),

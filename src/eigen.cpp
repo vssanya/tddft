@@ -35,7 +35,7 @@ double eigen_evec(eigen_ws_t const* ws, int il, int ir, int ie) {
 	return ws->evec[ie + ir*Nr + il*Nr*Nr];
 }
 
-void eigen_calc_dr4(eigen_ws_t* ws, std::function<double(ShGrid const*, int, int, int)> u, int Z) {
+void eigen_calc_dr4(eigen_ws_t* ws, sh_f u, int Z) {
 	int const Nr = ws->grid->n[iR];
 
 	gsl_eigen_symmv_workspace* gsl_ws = gsl_eigen_symmv_alloc(Nr);
@@ -73,7 +73,7 @@ void eigen_calc_dr4(eigen_ws_t* ws, std::function<double(ShGrid const*, int, int
 		}
 
 		for (int ir = 0; ir < Nr; ++ir) {
-			A->data[ir + Nr*ir] += u(ws->grid, ir, il, 0);
+			A->data[ir + Nr*ir] += u(ir, il, 0);
 		}
 
 		gsl_matrix_view evec = gsl_matrix_view_array(&ws->evec[Nr*Nr*il], Nr, Nr);
@@ -88,9 +88,9 @@ void eigen_calc_dr4(eigen_ws_t* ws, std::function<double(ShGrid const*, int, int
 	gsl_eigen_symmv_free(gsl_ws);
 }
 
-void eigen_calc_for_atom(eigen_ws_t* ws, AtomCache const* atom_cache) {
-    eigen_calc_dr4(ws, [atom_cache](ShGrid const* grid, int ir, int l, int m) {
-		double const r = grid->r(ir);
+void eigen_calc_for_atom(eigen_ws_t* ws, AtomCache<ShGrid> const* atom_cache) {
+    eigen_calc_dr4(ws, [atom_cache](int ir, int l, int m) {
+		double const r = atom_cache->grid.r(ir);
         return l*(l+1)/(2*r*r) + atom_cache->u(ir);
     }, atom_cache->atom.Z);
 }
@@ -119,20 +119,20 @@ void eigen_calc(eigen_ws_t* ws, sh_f u, int Z) {
 			int ir = 0;
 			A_d_up[ir]  = -0.5*d2[0];
 			if (il != 0) {
-				A_d[ir] = -0.5*d2[1] + u(ws->grid, ir, il, 0);
+				A_d[ir] = -0.5*d2[1] + u(ir, il, 0);
 			} else {
-				A_d[ir] = -0.5*d2_l0_11 + u(ws->grid, ir, il, 0);
+				A_d[ir] = -0.5*d2_l0_11 + u(ir, il, 0);
 			}
 		}
 
 		for (int ir=1; ir<Nr-1; ++ir) {
 			A_d_up[ir] = -0.5*d2[0];
-			A_d[ir]    = -0.5*d2[1] + u(ws->grid, ir, il, 0);
+			A_d[ir]    = -0.5*d2[1] + u(ir, il, 0);
 		}
 
 		{
 			int ir = Nr-1;
-			A_d[ir]    = -0.5*d2[1] + u(ws->grid, ir, il, 0);
+			A_d[ir]    = -0.5*d2[1] + u(ir, il, 0);
 		}
 
 		LAPACKE_dsteqr(LAPACK_ROW_MAJOR, 'I', Nr, A_d, A_d_up, evec, Nr);

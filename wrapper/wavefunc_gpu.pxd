@@ -1,6 +1,5 @@
 from types cimport cdouble
 from wavefunc cimport cShWavefunc
-from atom cimport cAtomCache
 from grid cimport cShGrid, ShGrid
 
 cdef extern from "sh_wavefunc_gpu.h":

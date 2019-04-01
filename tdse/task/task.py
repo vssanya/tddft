@@ -268,7 +268,7 @@ class TaskAtom(Task):
 
     uabs = None
 
-    AtomCacheClass = tdse.atom.AtomCache
+    AtomCacheClass = tdse.atom.ShAtomCache
     UabsCacheClass = tdse.abs_pot.UabsCache
 
     def __init__(self, *args, **kwargs):

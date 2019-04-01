@@ -108,43 +108,39 @@ void atom_hydrogen_ground(ShWavefunc* wf) {
 }
 
 
-AtomCache::AtomCache(Atom const& atom, ShGrid const* grid, double* u): 
+template <typename Grid>
+AtomCache<Grid>::AtomCache(Atom const& atom, Grid const& grid, double* u): 
 	atom(atom),
 	grid(grid),
 	gpu_data_u(nullptr),
 	gpu_data_dudz(nullptr)
 {
-	const int Nr = grid->n[iR];
+	const int Nr = grid.n[iR];
 	data_u = new double[Nr];
 	data_dudz = new double[Nr];
 
 	if (u == nullptr) {
 #pragma omp parallel for
 		for (int ir=0; ir<Nr; ir++) {
-			double r = grid->r(ir);
+			double r = grid.r(ir);
 			data_u[ir] = atom.u(r);
 			data_dudz[ir] = atom.dudz(r);
 		}
 	} else {
+#pragma omp parallel for
 		for (int ir=0; ir<Nr; ir++) {
-			data_u[ir] = u[ir] + atom.u(grid->r(ir));
+			data_u[ir] = u[ir] + atom.u(grid.r(ir));
 		}
 
-		{ int ir = 0;
-			data_dudz[ir] = atom.dudz(grid->r(ir));
-		}
-
-		for (int ir=1; ir<Nr-1; ir++) {
-			data_dudz[ir] = (u[ir+1] - u[ir-1])/(2*grid->d[iR]) + atom.dudz(grid->r(ir));
-		}
-
-		{ int ir = Nr-1;
-			data_dudz[ir] = atom.dudz(grid->r(ir)) / atom.Z;
+#pragma omp parallel for
+		for (int ir=0; ir<Nr-1; ir++) {
+			data_dudz[ir] = grid.d_dr(u, ir) + atom.dudz(grid.r(ir));
 		}
 	}
 }
 
-AtomCache::~AtomCache() {
+template <typename Grid>
+AtomCache<Grid>::~AtomCache() {
 	delete[] data_u;
 	delete[] data_dudz;
 
@@ -157,9 +153,10 @@ AtomCache::~AtomCache() {
 	}
 }
 
-double* AtomCache::getGPUDataU() {
+template <typename Grid>
+double* AtomCache<Grid>::getGPUDataU() {
 	if (gpu_data_u == nullptr) {
-		auto size = sizeof(double)*grid->n[iR];
+		auto size = sizeof(double)*grid.n[iR];
 		cudaMalloc(&gpu_data_u, size);
 		cudaMemcpy(gpu_data_u, data_u, size, cudaMemcpyHostToDevice);
 	}
@@ -167,12 +164,16 @@ double* AtomCache::getGPUDataU() {
 	return gpu_data_u;
 }
 
-double* AtomCache::getGPUDatadUdz() {
+template <typename Grid>
+double* AtomCache<Grid>::getGPUDatadUdz() {
 	if (gpu_data_dudz == nullptr) {
-		auto size = sizeof(double)*grid->n[iR];
+		auto size = sizeof(double)*grid.n[iR];
 		cudaMalloc(&gpu_data_dudz, size);
 		cudaMemcpy(gpu_data_dudz, data_dudz, size, cudaMemcpyHostToDevice);
 	}
 
 	return gpu_data_dudz;
 }
+
+template class AtomCache<ShGrid>;
+template class AtomCache<ShNotEqudistantGrid>;

@@ -4,7 +4,7 @@ template <typename Grid>
 workspace::OrbitalsSpinWS<Grid>::OrbitalsSpinWS(
 		Grid      const& sh_grid,
 		SpGrid    const& sp_grid,
-		AtomCache const& atom_cache,
+		AtomCache<Grid> const& atom_cache,
 		UabsCache const& uabs,
 		YlmCache  const& ylm_cache,
 		int Uh_lmax,

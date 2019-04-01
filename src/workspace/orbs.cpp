@@ -10,7 +10,7 @@ template<typename Grid>
 workspace::OrbitalsWS<Grid>::OrbitalsWS(
 		Grid      const& sh_grid,
 		SpGrid    const& sp_grid,
-		AtomCache const& atom_cache,
+		AtomCache<Grid> const& atom_cache,
 		UabsCache const& uabs,
 		YlmCache  const& ylm_cache,
 		int Uh_lmax,
@@ -28,7 +28,8 @@ workspace::OrbitalsWS<Grid>::OrbitalsWS(
 	ylm_cache(ylm_cache),
 	timeApproxUeeType(TimeApproxUeeType::SIMPLE),
 	tmpOrb(nullptr),
-	tmpUee(nullptr)
+	tmpUee(nullptr),
+	Uee(Grid2d(sh_grid.n[iR], 3))
 {	
 	lmax = std::max(Uh_lmax, Uxc_lmax);
 	lmax = std::max(lmax, 2);
@@ -43,8 +44,6 @@ void workspace::OrbitalsWS<Grid>::init() {
 
     uh_tmp = new double[sh_grid.n[iR]]();
 
-	Uee = new double[3*sh_grid.n[iR]]();
-
     n_sp = new double[sp_grid.n[iR]*sp_grid.n[iC]]();
     n_sp_local = new double[sp_grid.n[iR]*sp_grid.n[iC]]();
 }
@@ -58,7 +57,7 @@ void workspace::OrbitalsWS<Grid>::setTimeApproxUeeTwoPointFor(Orbitals<Grid> con
 	}
 
 	if (tmpUee == nullptr) {
-		tmpUee = new double[3*sh_grid.n[iR]]();
+		tmpUee = new Array2D<double>(Grid2d(sh_grid.n[iR], 3));
 	}
 
 	tmpOrb = orbs.copy();
@@ -71,7 +70,6 @@ workspace::OrbitalsWS<Grid>::~OrbitalsWS() {
 	delete[] uh_tmp;
 	delete[] Utmp;
 	delete[] Utmp_local;
-	delete[] Uee;
 
 	if (tmpOrb != nullptr) {
 		delete tmpOrb;
@@ -83,9 +81,9 @@ workspace::OrbitalsWS<Grid>::~OrbitalsWS() {
 }
 
 template<typename Grid>
-void workspace::OrbitalsWS<Grid>::calc_Uee(Orbitals<Grid> const& orbs, int Uxc_lmax, int Uh_lmax, double* Uee) {
+void workspace::OrbitalsWS<Grid>::calc_Uee(Orbitals<Grid> const& orbs, int Uxc_lmax, int Uh_lmax, Array2D<double>* Uee) {
 	if (Uee == nullptr) {
-		Uee = this->Uee;
+		Uee = &this->Uee;
 	}
 
 #ifdef _MPI
@@ -95,7 +93,7 @@ void workspace::OrbitalsWS<Grid>::calc_Uee(Orbitals<Grid> const& orbs, int Uxc_l
 #pragma omp parallel for collapse(2)
 		for (int il=0; il<lmax; ++il) {
 			for (int ir=0; ir<sh_grid.n[iR]; ++ir) {
-				Uee[ir + il*sh_grid.n[iR]] = 0.0;
+				(*Uee)(ir, il) = 0.0;
 			}
 		}
 	}
@@ -109,7 +107,7 @@ void workspace::OrbitalsWS<Grid>::calc_Uee(Orbitals<Grid> const& orbs, int Uxc_l
 		{
 #pragma omp parallel for
 			for (int ir=0; ir<sh_grid.n[iR]; ++ir) {
-				Uee[ir + il*sh_grid.n[iR]] += Utmp[ir]*UXC_NORM_L[il];
+				(*Uee)(ir, il) += Utmp[ir]*UXC_NORM_L[il];
 			}
 		}
 	}
@@ -123,14 +121,14 @@ void workspace::OrbitalsWS<Grid>::calc_Uee(Orbitals<Grid> const& orbs, int Uxc_l
 		{
 #pragma omp parallel for
 			for (int ir=0; ir<sh_grid.n[iR]; ++ir) {
-				Uee[ir + il*sh_grid.n[iR]] += Utmp[ir];
+				(*Uee)(ir, il) += Utmp[ir];
 			}
 		}
 	}
 
 #ifdef _MPI
 	if (orbs.mpi_comm != MPI_COMM_NULL) {
-		MPI_Bcast(Uee, orbs.grid.n[iR]*lmax, MPI_DOUBLE, 0, orbs.mpi_comm);
+		MPI_Bcast(Uee->data, orbs.grid.n[iR]*lmax, MPI_DOUBLE, 0, orbs.mpi_comm);
 	}
 #endif
 }
@@ -146,14 +144,14 @@ void workspace::OrbitalsWS<Grid>::prop_simple(Orbitals<Grid>& orbs, field_t cons
 	typename workspace::WavefuncWS<Grid>::sh_f Ul[3] = {
         [this](int ir, int l, int m) -> double {
 			double const r = sh_grid.r(ir);
-            return l*(l+1)/(2*r*r) + wf_ws.atom_cache.u(ir) + Uee[ir] + plm(l,m)*Uee[ir + 2*sh_grid.n[iR]];
+            return l*(l+1)/(2*r*r) + wf_ws.atom_cache.u(ir) + Uee(ir, 0) + plm(l,m)*Uee(ir, 2);
 		},
         [Et, this](int ir, int l, int m) -> double {
 			double const r = sh_grid.r(ir);
-			return clm(l, m)*(r*Et + Uee[ir + sh_grid.n[iR]]);
+			return clm(l, m)*(r*Et + Uee(ir, 1));
 		},
         [this](int ir, int l, int m) -> double {
-			return qlm(l, m)*Uee[ir + 2*sh_grid.n[iR]];
+			return qlm(l, m)*Uee(ir, 2);
 		}
 	};
 
@@ -177,9 +175,11 @@ void workspace::OrbitalsWS<Grid>::prop_two_point(Orbitals<Grid>& orbs, field_t c
 
 		int Nr = sh_grid.n[iR];
 
-#pragma omp parallel for
-		for (int ir_l=0; ir_l<Nr*3; ir_l++) {
-			Uee[ir_l] = 0.5*(Uee[ir_l] + tmpUee[ir_l]);
+#pragma omp parallel for collapse(2)
+		for (int l=0; l<3; l++) {
+			for (int ir=0; ir<Nr; ir++) {
+				Uee(ir, l) = 0.5*(Uee(ir, l) + (*tmpUee)(ir, l));
+			}
 		}
 	}
 
@@ -203,13 +203,13 @@ void workspace::OrbitalsWS<Grid>::prop_img(Orbitals<Grid>& orbs, double dt) {
 	typename workspace::WavefuncWS<Grid>::sh_f Ul[3] = {
         [this](int ir, int l, int m) -> double {
 			double const r = sh_grid.r(ir);
-            return l*(l+1)/(2*r*r) + wf_ws.atom_cache.u(ir) + Uee[ir];
+            return l*(l+1)/(2*r*r) + wf_ws.atom_cache.u(ir) + Uee(ir, 0);
         },
         [this](int ir, int l, int m) -> double {
-            return clm(l, m)*Uee[ir + sh_grid.n[iR]];
+            return clm(l, m)*Uee(ir, 1);
         },
         [this](int ir, int l, int m) -> double {
-            return qlm(l, m)*Uee[ir + 2*sh_grid.n[iR]];
+            return qlm(l, m)*Uee(ir, 2);
         }
     };
 
@@ -228,13 +228,13 @@ void workspace::OrbitalsWS<Grid>::prop_ha(Orbitals<Grid>& orbs, double dt) {
 	typename workspace::WavefuncWS<Grid>::sh_f Ul[3] = {
         [this](int ir, int l, int m) -> double {
 			double const r = sh_grid.r(ir);
-            return l*(l+1)/(2*r*r) + wf_ws.atom_cache.u(ir) + Uee[ir];
+            return l*(l+1)/(2*r*r) + wf_ws.atom_cache.u(ir) + Uee(ir, 0);
         },
         [this](int ir, int l, int m) -> double {
-            return clm(l, m)*Uee[ir + sh_grid.n[iR]];
+            return clm(l, m)*Uee(ir, 1);
         },
         [this](int ir, int l, int m) -> double {
-            return qlm(l, m)*Uee[ir + 2*sh_grid.n[iR]];
+            return qlm(l, m)*Uee(ir, 2);
         }
     };
 

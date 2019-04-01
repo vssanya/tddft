@@ -3,7 +3,8 @@
 #include "abs_pot.h"
 
 
-double calc_wf_az_with_polarization(ShWavefunc const* wf, const AtomCache &atom_cache, double const Upol[], double const dUpol_dr[], field_t const* field, double t) {
+template<class Grid>
+double calc_wf_az_with_polarization(Wavefunc<Grid> const* wf, const AtomCache<Grid> &atom_cache, double const Upol[], double const dUpol_dr[], field_t const* field, double t) {
     auto func_cos = [&](int ir, int il, int m) -> double {
         return atom_cache.dudz(ir);
     };
@@ -21,7 +22,7 @@ double calc_wf_az_with_polarization(ShWavefunc const* wf, const AtomCache &atom_
 }
 
 template<class Grid>
-double calc_orbs_az(Orbitals<Grid> const& orbs, const AtomCache &atom_cache, field_t const* field, double t) {
+double calc_orbs_az(Orbitals<Grid> const& orbs, const AtomCache<Grid> &atom_cache, field_t const* field, double t) {
     auto func = [&](int ir, int il, int m) -> double {
         return atom_cache.dudz(ir);
     };
@@ -29,7 +30,7 @@ double calc_orbs_az(Orbitals<Grid> const& orbs, const AtomCache &atom_cache, fie
 }
 
 template<class Grid>
-void calc_orbs_az_ne(Orbitals<Grid> const* orbs, const AtomCache& atom_cache, field_t const* field, double t, double* az) {
+void calc_orbs_az_ne(Orbitals<Grid> const* orbs, const AtomCache<Grid>& atom_cache, field_t const* field, double t, double* az) {
     auto func = [&](int ir, int il, int m) -> double {
         return atom_cache.dudz(ir);
     };
@@ -47,9 +48,14 @@ void calc_orbs_az_ne(Orbitals<Grid> const* orbs, const AtomCache& atom_cache, fi
 }
 
 template<class Grid>
-void calc_orbs_az_ne_Vee_0(Orbitals<Grid> const* orbs, double* Uee, const AtomCache& atom_cache, field_t const* field, double t, double* az) {
+void calc_orbs_az_ne_Vee_0(Orbitals<Grid> const* orbs, Array2D<double>& Uee, Array2D<double>& dUeedr, const AtomCache<Grid>& atom_cache, field_t const* field, double t, double* az) {
+#pragma omp parallel for
+	for (int ir=1; ir<orbs->grid.n[iR]-1; ir++) {
+		dUeedr(ir, 0) = orbs->grid.d_dr(&Uee(0, 0), ir);
+	}
+
     auto func = [&](int ir, int il, int m) -> double {
-        return atom_cache.dudz(ir) + Uee[ir];
+        return atom_cache.dudz(ir) + dUeedr(ir, 0);
     };
 
 #ifdef _MPI
@@ -66,28 +72,37 @@ void calc_orbs_az_ne_Vee_0(Orbitals<Grid> const* orbs, double* Uee, const AtomCa
 }
 
 template<class Grid>
-void calc_orbs_az_ne_Vee_1(Orbitals<Grid> const* orbs, double* Uee, const AtomCache& atom_cache, field_t const* field, double t, double* az) {
+void calc_orbs_az_ne_Vee_1(Orbitals<Grid> const* orbs, Array2D<double>& Uee, Array2D<double>& dUeedr, const AtomCache<Grid>& atom_cache, field_t const* field, double t, double* az) {
+#pragma omp parallel for collapse(2)
+	for (int l=0; l<3; l++) {
+		for (int ir=1; ir<orbs->grid.n[iR]-1; ir++) {
+			dUeedr(ir, l) = orbs->grid.d_dr(&Uee(0, l), ir);
+		}
+	}
+
     auto func_0 = [&](int ir, int il, int m) -> double {
-        return atom_cache.dudz(ir) + Uee[ir];
+		double r = orbs->grid.r(ir);
+        return Uee(ir, 1) / r;
     };
 
     auto func_1 = [&](int ir, int il, int m) -> double {
-        return atom_cache.dudz(ir) + Uee[ir];
+        return atom_cache.dudz(ir) + dUeedr(ir, 0);
     };
 
     auto func_2 = [&](int ir, int il, int m) -> double {
-        return atom_cache.dudz(ir) + Uee[ir];
+		double r = orbs->grid.r(ir);
+        return dUeedr(ir, 1) - Uee(ir, 1)/r;
     };
 
 #ifdef _MPI
 	if (orbs->mpi_comm != MPI_COMM_NULL) {
-        double az_local = - (field_E(field, t) + orbs->mpi_wf->cos(func_1))*orbs->atom.orbs[orbs->mpi_rank].countElectrons;
+        double az_local = - (field_E(field, t) + orbs->mpi_wf->norm(func_0) + orbs->mpi_wf->cos(func_1) + orbs->mpi_wf->cos2(func_2))*orbs->atom.orbs[orbs->mpi_rank].countElectrons;
 		MPI_Gather(&az_local, 1, MPI_DOUBLE, az, 1, MPI_DOUBLE, 0, orbs->mpi_comm);
 	} else
 #endif
 	{
 		for (int ie=0; ie<orbs->atom.countOrbs; ++ie) {
-            az[ie] = - (field_E(field, t) + orbs->wf[ie]->cos(func_1))*orbs->atom.orbs[ie].countElectrons;
+            az[ie] = - (field_E(field, t) + orbs->wf[ie]->norm(func_0) + orbs->wf[ie]->cos(func_1) + orbs->wf[ie]->cos2(func_2))*orbs->atom.orbs[ie].countElectrons;
 		}
 	}
 }
@@ -110,7 +125,7 @@ double calc_orbs_ionization_prob(Orbitals<Grid> const* orbs) {
 double calc_wf_jrcd(
 		workspace::WfBase* ws,
 		ShWavefunc* wf,
-        AtomCache const& atom_cache,
+        AtomCache<ShGrid> const& atom_cache,
 		field_t const* field,
 		int Nt, 
 		double dt,
@@ -133,7 +148,7 @@ template<class Grid>
 double calc_orbs_jrcd(
 		workspace::OrbitalsWS<Grid>& ws,
 		Orbitals<Grid>& orbs,
-        AtomCache const& atom_cache,
+        AtomCache<Grid> const& atom_cache,
 		field_t const* field,
 		int Nt, 
 		double dt,
@@ -152,14 +167,24 @@ double calc_orbs_jrcd(
 	return res*dt;
 }
 
+template double calc_wf_az_with_polarization<ShGrid>(Wavefunc<ShGrid> const* wf, AtomCache<ShGrid> const& atom_cache, double const Upol[], double const dUpol_dr[], field_t const* field, double t);
+template double calc_wf_az_with_polarization<ShNotEqudistantGrid>(Wavefunc<ShNotEqudistantGrid> const* wf, AtomCache<ShNotEqudistantGrid> const& atom_cache, double const Upol[], double const dUpol_dr[], field_t const* field, double t);
+
 template double calc_orbs_ionization_prob<ShGrid>(Orbitals<ShGrid> const* orbs);
 template double calc_orbs_ionization_prob<ShNotEqudistantGrid>(Orbitals<ShNotEqudistantGrid> const* orbs);
 
-template double calc_orbs_az<ShGrid>(Orbitals<ShGrid> const& orbs, AtomCache const& atom_cache, field_t const* field, double t);
-template double calc_orbs_az<ShNotEqudistantGrid>(Orbitals<ShNotEqudistantGrid> const& orbs, AtomCache const& atom_cache, field_t const* field, double t);
+template double calc_orbs_az<ShGrid>(Orbitals<ShGrid> const& orbs, AtomCache<ShGrid> const& atom_cache, field_t const* field, double t);
+template double calc_orbs_az<ShNotEqudistantGrid>(Orbitals<ShNotEqudistantGrid> const& orbs, AtomCache<ShNotEqudistantGrid> const& atom_cache, field_t const* field, double t);
   
-template void calc_orbs_az_ne<ShGrid>(Orbitals<ShGrid> const* orbs, AtomCache const& atom_cache, field_t const* field, double t, double* az);
-template void calc_orbs_az_ne<ShNotEqudistantGrid>(Orbitals<ShNotEqudistantGrid> const* orbs, AtomCache const& atom_cache, field_t const* field, double t, double* az);
+template void calc_orbs_az_ne<ShGrid>(Orbitals<ShGrid> const* orbs, AtomCache<ShGrid> const& atom_cache, field_t const* field, double t, double* az);
+template void calc_orbs_az_ne<ShNotEqudistantGrid>(Orbitals<ShNotEqudistantGrid> const* orbs, AtomCache<ShNotEqudistantGrid> const& atom_cache, field_t const* field, double t, double* az);
 
-template double calc_orbs_jrcd<ShGrid>(workspace::OrbitalsWS<ShGrid>& ws, Orbitals<ShGrid>& orbs, AtomCache const& atom, field_t const* field, int Nt, double dt, double t_smooth);
-template double calc_orbs_jrcd<ShNotEqudistantGrid>(workspace::OrbitalsWS<ShNotEqudistantGrid>& ws, Orbitals<ShNotEqudistantGrid>& orbs, AtomCache const& atom, field_t const* field, int Nt, double dt, double t_smooth);
+template double calc_orbs_jrcd<ShGrid>(workspace::OrbitalsWS<ShGrid>& ws, Orbitals<ShGrid>& orbs, AtomCache<ShGrid> const& atom, field_t const* field, int Nt, double dt, double t_smooth);
+template double calc_orbs_jrcd<ShNotEqudistantGrid>(workspace::OrbitalsWS<ShNotEqudistantGrid>& ws, Orbitals<ShNotEqudistantGrid>& orbs, AtomCache<ShNotEqudistantGrid> const& atom, field_t const* field, int Nt, double dt, double t_smooth);
+
+
+template void calc_orbs_az_ne_Vee_0<ShGrid>(Orbitals<ShGrid> const* orbs, Array2D<double>& Uee, Array2D<double>& dUeedr, const AtomCache<ShGrid>& atom_cache, field_t const* field, double t, double* az);
+template void calc_orbs_az_ne_Vee_0<ShNotEqudistantGrid>(Orbitals<ShNotEqudistantGrid> const* orbs, Array2D<double>& Uee, Array2D<double>& dUeedr, const AtomCache<ShNotEqudistantGrid>& atom_cache, field_t const* field, double t, double* az);
+
+template void calc_orbs_az_ne_Vee_1<ShGrid>             (Orbitals<ShGrid>              const* orbs, Array2D<double>& Uee, Array2D<double>& dUeedr, const AtomCache<ShGrid>&              atom_cache, field_t const* field, double t, double* az);
+template void calc_orbs_az_ne_Vee_1<ShNotEqudistantGrid>(Orbitals<ShNotEqudistantGrid> const* orbs, Array2D<double>& Uee, Array2D<double>& dUeedr, const AtomCache<ShNotEqudistantGrid>& atom_cache, field_t const* field, double t, double* az);

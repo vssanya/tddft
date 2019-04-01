@@ -1,5 +1,5 @@
 from types cimport sh_f, cdouble
-from grid cimport cShGrid, cShNeGrid, cSpGrid, cGrid2d
+from grid cimport cShGrid, cShNeGrid, cShNeGrid3D, cSpGrid, cGrid2d
 from grid cimport ShGrid, ShNeGrid, SpGrid2d
 from sphere_harmonics cimport cYlmCache
 
@@ -33,6 +33,7 @@ cdef extern from "sh_wavefunc.h":
         cdouble operator*(Wavefunc& other)
         void exclude(Wavefunc& other)
         double cos(sh_f func)
+        double cos(sh_f func, Wavefunc& other)
         void   cos_r(sh_f U, double* res)
         double cos_r2(sh_f U, int Z)
 
@@ -54,6 +55,33 @@ cdef extern from "sh_wavefunc.h":
     ctypedef Wavefunc[cShGrid] cShWavefunc "ShWavefunc"
     ctypedef Wavefunc[cShNeGrid] cShNeWavefunc "ShNeWavefunc"
 
+cdef extern from "wavefunc/sh_3d.h":
+    cdef cppclass ShWavefunc3D[Grid]:
+        Grid& grid
+
+        cdouble* data
+        bint data_own
+
+        int m
+
+        ShWavefunc3D(cdouble* data, Grid& grid)
+        ShWavefunc3D(Grid& grid)
+
+        double cos(sh_f func)
+        double sin_sin(sh_f func)
+        double sin_cos(sh_f func)
+
+        double abs_2(int ir, int il)
+        cdouble operator*(ShWavefunc3D& other)
+        void exclude(ShWavefunc3D& other)
+
+        double norm(sh_f mask)
+        double norm()
+
+        void normalize()
+
+    ctypedef ShWavefunc3D[cShNeGrid3D] cShNeWavefunc3D "ShNeWavefunc3D"
+
 cdef class ShWavefunc:
     cdef cShWavefunc* cdata
     cdef bint dealloc
@@ -67,6 +95,13 @@ cdef class ShNeWavefunc:
     cdef public ShNeGrid grid
 
     cdef _set_data(self, cShNeWavefunc* data)
+
+cdef class ShNeWavefunc3D:
+    cdef cShNeWavefunc3D* cdata
+    cdef bint dealloc
+    cdef public ShNeGrid grid
+
+    cdef _set_data(self, cShNeWavefunc3D* data)
 
 cdef class CtWavefunc:
     cdef cCtWavefunc* cdata

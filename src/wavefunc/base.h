@@ -17,7 +17,7 @@ class WavefuncBase: public Array<cdouble, Grid, Index...> {
 
 		// \return \f$<\psi_1|\psi_2>\f$
 		cdouble operator*(WavefuncBase const& other) const {
-			return this->grid.integrate([this, &other](Index... index) -> cdouble {
+			return this->grid.template integrate<cdouble>([this, &other](Index... index) -> cdouble {
 					return (*this)(index...)*conj(other(index...));
 					}, std::min(this->grid.n[iL], other.grid.n[iL]));
 		}
@@ -33,12 +33,12 @@ class WavefuncBase: public Array<cdouble, Grid, Index...> {
 
 		double norm(sh_f mask = nullptr) const {
 			if (mask == nullptr) {
-				return this->grid.integrate([this](Index... index) -> double {
+				return this->grid.template integrate<double>([this](Index... index) -> double {
 						return abs_2(index...);
 						}, this->grid.n[iL]);
 			} else {
-				return this->grid.integrate([this, mask](Index... index) -> double {
-						return abs_2(index...)*mask(this->grid, index...);
+				return this->grid.template integrate<double>([this, mask](Index... index) -> double {
+						return abs_2(index...)*mask(index...);
 						}, this->grid.n[iL]);
 			}
 		}
