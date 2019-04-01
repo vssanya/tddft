@@ -178,6 +178,9 @@ cdef class Atom:
     def getCountElectrons(self, int i):
         return self.cdata.orbs[i].countElectrons
 
+    def getNumberOrt(self, int i):
+        return self.cdata.getNumberOrt(i)
+
     @property
     def Z(self):
         return self.cdata.Z

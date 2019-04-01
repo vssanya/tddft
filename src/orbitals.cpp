@@ -24,7 +24,7 @@ Orbitals<Grid>::Orbitals(Atom const& atom, Grid const& grid, MPI_Comm mpi_comm):
                 wf[ie] = new Wavefunc<Grid>(data, grid, atom.orbs[ie].m);
                 mpi_wf = wf[ie];
 			} else {
-                wf[ie] = NULL;
+                wf[ie] = nullptr;
 			}
 		}
 

@@ -6,12 +6,14 @@ if tdse.utils.is_jupyter_notebook():
     import numpy as np
     from IPython.core.pylabtools import print_figure
 
-cdef class CoreMask:
-    def __cinit__(self, ShGrid grid, double r_core, double dr):
-        self.cdata = new cCoreMask(<cShGrid*>grid.data, r_core, dr)
-
-    def __init__(self, ShGrid grid, double r_core, double dr):
+{{for Prefix in ["Sh", "ShNe"]}}
+cdef class {{Prefix}}CoreMask:
+    def __cinit__(self, {{Prefix}}Grid grid, double r_core, double dr):
+        self.cdata = new CoreMask[c{{Prefix}}Grid](grid.data, r_core, dr)
         self.grid = grid
+
+    def __init__(self, {{Prefix}}Grid grid, double r_core, double dr):
+        pass
 
     def __dealloc__(self):
         del self.cdata
@@ -47,3 +49,4 @@ cdef class CoreMask:
         data = print_figure(fig, format)
         plt.close(fig)
         return data
+{{endfor}}

@@ -28,6 +28,8 @@ cdef extern from "atom.h":
         double u(double r)
         double dudz(double r)
 
+        int getNumberOrt(int ie)
+
     cdef cppclass cAtomCache "AtomCache":
         cAtomCache(cAtom& atom, cShGrid* grid)
         cAtomCache(cAtom& atom, cShGrid* grid, double* u)

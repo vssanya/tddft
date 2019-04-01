@@ -157,15 +157,9 @@ void workspace::OrbitalsWS<Grid>::prop_simple(Orbitals<Grid>& orbs, field_t cons
 		}
 	};
 
-#ifdef _MPI
-	if (orbs.mpi_comm != MPI_COMM_NULL) {
-        wf_ws.prop_common(*orbs.mpi_wf, dt, lmax, Ul);
-		wf_ws.prop_abs(*orbs.mpi_wf, dt);
-	} else
-#endif
-	{
-        for (int ie = 0; ie < orbs.atom.countOrbs; ++ie) {
-            wf_ws.prop_common(*orbs.wf[ie], dt, lmax, Ul);
+	for (int ie = 0; ie < orbs.atom.countOrbs; ++ie) {
+		if (orbs.wf[ie] != nullptr) {
+			wf_ws.prop_common(*orbs.wf[ie], dt, lmax, Ul);
 			wf_ws.prop_abs(*orbs.wf[ie], dt);
 		}
 	}

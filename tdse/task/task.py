@@ -39,15 +39,27 @@ class CalcData(object):
 
 
 class CalcDataWithMask(CalcData):
-    def __init__(self, mask=None, **kwargs):
+    def __init__(self, mask=None, r_core=None, dr=None, **kwargs):
         super().__init__(**kwargs)
 
+        self.r_core = r_core
+        self.dr = dr
         self.mask = mask
 
     def calc_init(self, task, file):
         super().calc_init(task, file)
 
-        if self.mask is not None:
+        if type(task.sh_grid) is tdse.grid.ShGrid:
+            MaskClass = tdse.masks.ShCoreMask
+        elif type(task.sh_grid) is tdse.grid.ShNeGrid:
+            MaskClass = tdse.masks.ShNeCoreMask
+        else:
+            raise Exception("Don't exist CoreMask class for this type: {}".format(type(task.sh_grid)))
+
+        if self.r_core is not None and self.dr is not None:
+            self.mask = MaskClass(task.sh_grid, self.r_core, self.dr)
+
+        if self.mask is not None and task.rank == 0:
             self.mask.write_params(self.dset)
 
 
@@ -136,11 +148,11 @@ class Task(object):
         if self.bot_client is not None:
             self.bot_client.start()
 
+    def data_init(self):
         if self.rank == 0:
             self.file = h5py.File("{}.hdf5".format(self.save_path), 'w')
             self.write_calc_params(self.file.create_group("params"))
 
-    def data_init(self):
         for data in self.CALC_DATA:
             if type(data) is not str:
                 data.calc_init(self, self.file)
@@ -205,7 +217,11 @@ class Task(object):
             task_dir = os.path.splitext(os.path.basename(script_path))[0]
             save_path = os.path.join(os.path.dirname(script_path), path_res, task_dir)
         else:
-            save_path = self.save_path
+            if self.save_path[0] != '/':
+                script_path = inspect.getfile(self.__class__)
+                save_path = os.path.join(os.path.dirname(script_path), self.save_path)
+            else:
+                save_path = self.save_path
 
         if self.rank == 0 and not os.path.exists(save_path):
             os.mkdir(save_path)

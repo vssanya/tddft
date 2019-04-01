@@ -106,18 +106,6 @@ class AzOrbData(OrbShapeMixin, CalcData):
         if task.rank == 0:
             self.dset[i] = self.az_ne
 
-class CalcDataWithMask(CalcData):
-    def __init__(self, mask=None, **kwargs):
-        super().__init__(**kwargs)
-
-        self.mask = mask
-
-    def calc_init(self, task, file):
-        super().calc_init(task, file)
-
-        if self.mask is not None and task.rank == 0:
-            self.mask.write_params(self.dset)
-
 class NormOrbData(OrbShapeMixin, CalcDataWithMask):
     NAME = "n"
 
@@ -245,6 +233,9 @@ class OrbitalsNeTask(OrbitalsTask):
     def create_grid(self):
         return tdse.grid.ShNeGrid(self.Rmin, self.r_max, self.Ra, self.dr, self.Nl)
 
+class OrbitalsNeWithoutFieldTask(OrbitalsNeTask):
+    def calc_prop(self, i, t):
+        self.ws.prop_ha(self.orbs, self.dt);
 
 class OrbitalsPolarizationTask(OrbitalsTask):
     Imax = 1e14
@@ -277,6 +268,28 @@ class OrbitalsPolarizationTask(OrbitalsTask):
 
         self.field = OrbitalsPolarizationTask.Field(self.Imax, self.freq)
         self.CALC_DATA.append(UeeOrbData(dT = self.field.T/10))
+
+
+class OrbitalsPolarizationNeTask(OrbitalsNeTask):
+    Imax = 1e14
+    N = 10
+
+    Nl = 512
+    Uh_lmax = 3
+
+    freq = tdse.utils.length_to_freq(800, 'nm')
+    dT = 0
+
+    CALC_DATA = [
+        UpolOrbData(name="upol_1", l=1),
+        UpolOrbData(name="upol_2", l=2)
+    ]
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+        self.field = OrbitalsPolarizationTask.Field(self.Imax, self.freq)
+        self.CALC_DATA.append(UeeOrbData(dT = self.field.T/self.N))
 
 
 class OrbitalsGroundStateTask(TaskAtom):

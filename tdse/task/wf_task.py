@@ -10,18 +10,6 @@ class OrbShapeMixin(object):
     def get_shape(self, task):
         return (task.t.size, task.atom.countOrbs)
 
-class CalcDataWithMask(CalcData):
-    def __init__(self, mask=None, **kwargs):
-        super().__init__(**kwargs)
-
-        self.mask = mask
-
-    def calc_init(self, task, file):
-        super().calc_init(task, file)
-
-        if self.mask is not None and task.rank == 0:
-            self.mask.write_params(self.dset)
-
 class NormOrbData(OrbShapeMixin, CalcDataWithMask):
     NAME = "n"
 

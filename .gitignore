@@ -17,3 +17,8 @@ tdse/*.so
 CMakeLists.txt.user
 
 .ipynb_checkpoints
+
+wrapper/masks.pyx
+wrapper/orbitals.pyx
+wrapper/wavefunc.pyx
+wrapper/workspace.pyx

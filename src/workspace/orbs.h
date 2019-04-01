@@ -41,6 +41,7 @@ namespace workspace
 
             void prop_img(Orbitals<Grid>& OrbitalsWS, double dt);
 			void prop_ha(Orbitals<Grid>& OrbitalsWS, double dt);
+
 			void calc_Uee(Orbitals<Grid> const& OrbitalsWS, int Uxc_lmax, int Uh_lmax, double* Uee = nullptr);
 
 			void setTimeApproxUeeTwoPointFor(Orbitals<Grid> const& OrbitalsWS);

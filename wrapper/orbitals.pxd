@@ -6,7 +6,6 @@ from grid cimport cShGrid, cShNeGrid, cSpGrid, ShGrid, ShNeGrid
 from atom cimport Atom, cAtom
 from wavefunc cimport Wavefunc
 from sphere_harmonics cimport cYlmCache
-from masks cimport cCoreMask
 
 from libcpp.functional cimport function
 

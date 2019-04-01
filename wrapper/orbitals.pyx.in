@@ -12,7 +12,7 @@ from grid cimport ShGrid, SpGrid, ShNeGrid
 from atom cimport Atom
 cimport wavefunc
 from sphere_harmonics cimport YlmCache
-from masks cimport CoreMask
+from masks cimport ShCoreMask, ShNeCoreMask
 
 {{for Prefix in ["Sh", "ShNe"]}}
 cdef class {{Prefix}}Orbitals:
@@ -84,13 +84,13 @@ cdef class {{Prefix}}Orbitals:
     def n(self, SpGrid grid, YlmCache ylm_cache, int ir, int ic):
         return self.cdata.n(grid.data, [ir, ic], ylm_cache.cdata)
 
-    def z(self, CoreMask mask = None):
+    def z(self, {{Prefix}}CoreMask mask = None):
         if mask is None:
             return self.cdata.z()
         else:
             return self.cdata.z(<sh_f> mask.cdata[0])
 
-    def z_ne(self, CoreMask mask = None, np.ndarray[double, ndim=1] z = None):
+    def z_ne(self, {{Prefix}}CoreMask mask = None, np.ndarray[double, ndim=1] z = None):
         cdef double* res_ptr = NULL
         if self.is_root():
             if z is None:
@@ -129,13 +129,13 @@ cdef class {{Prefix}}Orbitals:
 
         return n
 
-    def norm(self, CoreMask mask = None):
+    def norm(self, {{Prefix}}CoreMask mask = None):
         if mask is not None:
             return self.cdata.norm(<sh_f> mask.cdata[0])
         else:
             return self.cdata.norm()
 
-    def norm_ne(self, np.ndarray[double, ndim=1, mode='c'] norm = None, CoreMask mask = None):
+    def norm_ne(self, np.ndarray[double, ndim=1, mode='c'] norm = None, {{Prefix}}CoreMask mask = None):
         cdef double* res_ptr = NULL
         if self.is_root():
             if norm is None:

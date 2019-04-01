@@ -46,6 +46,52 @@ void calc_orbs_az_ne(Orbitals<Grid> const* orbs, const AtomCache& atom_cache, fi
 	}
 }
 
+template<class Grid>
+void calc_orbs_az_ne_Vee_0(Orbitals<Grid> const* orbs, double* Uee, const AtomCache& atom_cache, field_t const* field, double t, double* az) {
+    auto func = [&](int ir, int il, int m) -> double {
+        return atom_cache.dudz(ir) + Uee[ir];
+    };
+
+#ifdef _MPI
+	if (orbs->mpi_comm != MPI_COMM_NULL) {
+        double az_local = - (field_E(field, t) + orbs->mpi_wf->cos(func))*orbs->atom.orbs[orbs->mpi_rank].countElectrons;
+		MPI_Gather(&az_local, 1, MPI_DOUBLE, az, 1, MPI_DOUBLE, 0, orbs->mpi_comm);
+	} else
+#endif
+	{
+		for (int ie=0; ie<orbs->atom.countOrbs; ++ie) {
+            az[ie] = - (field_E(field, t) + orbs->wf[ie]->cos(func))*orbs->atom.orbs[ie].countElectrons;
+		}
+	}
+}
+
+template<class Grid>
+void calc_orbs_az_ne_Vee_1(Orbitals<Grid> const* orbs, double* Uee, const AtomCache& atom_cache, field_t const* field, double t, double* az) {
+    auto func_0 = [&](int ir, int il, int m) -> double {
+        return atom_cache.dudz(ir) + Uee[ir];
+    };
+
+    auto func_1 = [&](int ir, int il, int m) -> double {
+        return atom_cache.dudz(ir) + Uee[ir];
+    };
+
+    auto func_2 = [&](int ir, int il, int m) -> double {
+        return atom_cache.dudz(ir) + Uee[ir];
+    };
+
+#ifdef _MPI
+	if (orbs->mpi_comm != MPI_COMM_NULL) {
+        double az_local = - (field_E(field, t) + orbs->mpi_wf->cos(func_1))*orbs->atom.orbs[orbs->mpi_rank].countElectrons;
+		MPI_Gather(&az_local, 1, MPI_DOUBLE, az, 1, MPI_DOUBLE, 0, orbs->mpi_comm);
+	} else
+#endif
+	{
+		for (int ie=0; ie<orbs->atom.countOrbs; ++ie) {
+            az[ie] = - (field_E(field, t) + orbs->wf[ie]->cos(func_1))*orbs->atom.orbs[ie].countElectrons;
+		}
+	}
+}
+
 double calc_wf_ionization_prob(ShWavefunc const* wf) {
     auto func = [&](int ir, int il, int m) -> double {
         return mask_core(&wf->grid, ir, il, m);

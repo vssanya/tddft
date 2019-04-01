@@ -50,6 +50,9 @@ class Atom {
 					case '4':
 						n = 3 - l;
 						break;
+					case '5':
+						n = 4 - l;
+						break;
 					default:
 						l = 0;
 				}
