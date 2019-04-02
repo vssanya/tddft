@@ -8,5 +8,5 @@ cdef class DoubleArray2D:
     def __dealloc__(self):
         del self.cdata
 
-    def __init__(self, int nx, int ny):
+    def __init__(self, np.ndarray[np.double_t, ndim=2] data):
         pass

@@ -395,7 +395,7 @@ class ShNotEqudistantGrid3D: public ShNotEqudistantGrid {
 					m_min = -m_shift;
 				}
 
-#pragma omp parallel for reduction(+:res) collapse(3)
+//#pragma omp parallel for reduction(+:res) collapse(3)
 				for (int il = l_min; il < l_max; ++il) {
 					for (int im = -il+m_min; im < il-m_max; im++) {
 						for (int ir = 0; ir < n[iR]; ++ir) {

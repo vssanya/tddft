@@ -58,7 +58,7 @@ namespace workspace
 			potential_xc_f Uxc;
 			int Uxc_lmax;
 
-			Array2D<double> Uee;
+			Array2D<double>* Uee;
 			int lmax;
 
             Grid const& sh_grid;

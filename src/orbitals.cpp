@@ -53,7 +53,7 @@ void Orbitals<Grid>::init() {
 
 template <typename Grid>
 Orbitals<Grid>* Orbitals<Grid>::copy() const {
-	auto res = new Orbitals<Grid>(atom, grid, mpi_comm);
+	auto res = new Orbitals<Grid>(atom, grid, this->mpi_comm);
 	copy(*res);
 	return res;
 }

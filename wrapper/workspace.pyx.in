@@ -224,7 +224,7 @@ cdef class {{prefix}}OrbitalsWS:
 
     @property
     def uee(self):
-        cdef double[:,::1] res = <double[:3,:self.cdata.sh_grid.n[0]]>self.cdata.Uee.data
+        cdef double[:,::1] res = <double[:3,:self.cdata.sh_grid.n[0]]>self.cdata.Uee[0].data
         return np.asarray(res)
 
     @property

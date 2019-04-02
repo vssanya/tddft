@@ -29,7 +29,7 @@ workspace::OrbitalsWS<Grid>::OrbitalsWS(
 	timeApproxUeeType(TimeApproxUeeType::SIMPLE),
 	tmpOrb(nullptr),
 	tmpUee(nullptr),
-	Uee(Grid2d(sh_grid.n[iR], 3))
+	Uee(nullptr)
 {	
 	lmax = std::max(Uh_lmax, Uxc_lmax);
 	lmax = std::max(lmax, 2);
@@ -39,6 +39,8 @@ workspace::OrbitalsWS<Grid>::OrbitalsWS(
 
 template<typename Grid>
 void workspace::OrbitalsWS<Grid>::init() {
+	Uee = new Array2D<double>(Grid2d(sh_grid.n[iR], 3));
+
     Utmp = new double[sh_grid.n[iR]]();
     Utmp_local = new double[sh_grid.n[iR]]();
 
@@ -82,8 +84,10 @@ workspace::OrbitalsWS<Grid>::~OrbitalsWS() {
 
 template<typename Grid>
 void workspace::OrbitalsWS<Grid>::calc_Uee(Orbitals<Grid> const& orbs, int Uxc_lmax, int Uh_lmax, Array2D<double>* Uee) {
+	const int Nr = sh_grid.n[iR];
+
 	if (Uee == nullptr) {
-		Uee = &this->Uee;
+		Uee = this->Uee;
 	}
 
 #ifdef _MPI
@@ -92,8 +96,8 @@ void workspace::OrbitalsWS<Grid>::calc_Uee(Orbitals<Grid> const& orbs, int Uxc_l
 	{
 #pragma omp parallel for collapse(2)
 		for (int il=0; il<lmax; ++il) {
-			for (int ir=0; ir<sh_grid.n[iR]; ++ir) {
-				(*Uee)(ir, il) = 0.0;
+			for (int ir=0; ir<Nr; ++ir) {
+				Uee->data[ir + il*Nr] = 0.0;
 			}
 		}
 	}
@@ -106,8 +110,8 @@ void workspace::OrbitalsWS<Grid>::calc_Uee(Orbitals<Grid> const& orbs, int Uxc_l
 #endif
 		{
 #pragma omp parallel for
-			for (int ir=0; ir<sh_grid.n[iR]; ++ir) {
-				(*Uee)(ir, il) += Utmp[ir]*UXC_NORM_L[il];
+			for (int ir=0; ir<Nr; ++ir) {
+				Uee->data[ir + il*Nr] += Utmp[ir]*UXC_NORM_L[il];
 			}
 		}
 	}
@@ -121,7 +125,7 @@ void workspace::OrbitalsWS<Grid>::calc_Uee(Orbitals<Grid> const& orbs, int Uxc_l
 		{
 #pragma omp parallel for
 			for (int ir=0; ir<sh_grid.n[iR]; ++ir) {
-				(*Uee)(ir, il) += Utmp[ir];
+				Uee->data[ir + il*Nr] += Utmp[ir];
 			}
 		}
 	}
@@ -144,14 +148,14 @@ void workspace::OrbitalsWS<Grid>::prop_simple(Orbitals<Grid>& orbs, field_t cons
 	typename workspace::WavefuncWS<Grid>::sh_f Ul[3] = {
         [this](int ir, int l, int m) -> double {
 			double const r = sh_grid.r(ir);
-            return l*(l+1)/(2*r*r) + wf_ws.atom_cache.u(ir) + Uee(ir, 0) + plm(l,m)*Uee(ir, 2);
+            return l*(l+1)/(2*r*r) + wf_ws.atom_cache.u(ir) + Uee->data[ir + 0*sh_grid.n[iR]] + plm(l,m)*Uee->data[ir + 2*sh_grid.n[iR]];
 		},
         [Et, this](int ir, int l, int m) -> double {
 			double const r = sh_grid.r(ir);
-			return clm(l, m)*(r*Et + Uee(ir, 1));
+			return clm(l, m)*(r*Et + Uee->data[ir + 1*sh_grid.n[iR]]);
 		},
         [this](int ir, int l, int m) -> double {
-			return qlm(l, m)*Uee(ir, 2);
+			return qlm(l, m)*Uee->data[ir + 2*sh_grid.n[iR]];
 		}
 	};
 
@@ -178,7 +182,7 @@ void workspace::OrbitalsWS<Grid>::prop_two_point(Orbitals<Grid>& orbs, field_t c
 #pragma omp parallel for collapse(2)
 		for (int l=0; l<3; l++) {
 			for (int ir=0; ir<Nr; ir++) {
-				Uee(ir, l) = 0.5*(Uee(ir, l) + (*tmpUee)(ir, l));
+				(*Uee)(ir, l) = 0.5*((*Uee)(ir, l) + (*tmpUee)(ir, l));
 			}
 		}
 	}
@@ -203,13 +207,13 @@ void workspace::OrbitalsWS<Grid>::prop_img(Orbitals<Grid>& orbs, double dt) {
 	typename workspace::WavefuncWS<Grid>::sh_f Ul[3] = {
         [this](int ir, int l, int m) -> double {
 			double const r = sh_grid.r(ir);
-            return l*(l+1)/(2*r*r) + wf_ws.atom_cache.u(ir) + Uee(ir, 0);
+            return l*(l+1)/(2*r*r) + wf_ws.atom_cache.u(ir) + Uee->data[ir + 0*sh_grid.n[iR]];
         },
         [this](int ir, int l, int m) -> double {
-            return clm(l, m)*Uee(ir, 1);
+            return clm(l, m)*Uee->data[ir + 1*sh_grid.n[iR]];
         },
         [this](int ir, int l, int m) -> double {
-            return qlm(l, m)*Uee(ir, 2);
+            return qlm(l, m)*Uee->data[ir + 2*sh_grid.n[iR]];
         }
     };
 
@@ -228,13 +232,13 @@ void workspace::OrbitalsWS<Grid>::prop_ha(Orbitals<Grid>& orbs, double dt) {
 	typename workspace::WavefuncWS<Grid>::sh_f Ul[3] = {
         [this](int ir, int l, int m) -> double {
 			double const r = sh_grid.r(ir);
-            return l*(l+1)/(2*r*r) + wf_ws.atom_cache.u(ir) + Uee(ir, 0);
+            return l*(l+1)/(2*r*r) + wf_ws.atom_cache.u(ir) + Uee->data[ir + 0*sh_grid.n[iR]];
         },
         [this](int ir, int l, int m) -> double {
-            return clm(l, m)*Uee(ir, 1);
+            return clm(l, m)*Uee->data[ir + 1*sh_grid.n[iR]];
         },
         [this](int ir, int l, int m) -> double {
-            return qlm(l, m)*Uee(ir, 2);
+            return qlm(l, m)*Uee->data[ir + 2*sh_grid.n[iR]];
         }
     };
 

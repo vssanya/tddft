@@ -144,7 +144,7 @@ cdef extern from "workspace.h" namespace "workspace":
         cSpGrid& sp_grid
         double* uh_tmp
         double* n_sp
-        Array2D[double] Uee
+        Array2D[double]* Uee
         cYlmCache& ylm_cache
         int Uh_lmax
         int Uxc_lmax

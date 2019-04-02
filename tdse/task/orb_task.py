@@ -374,7 +374,7 @@ class OrbitalsGroundStateNeTask(OrbitalsGroundStateTask):
     Rmin = 1e-3
     Ra   = 1.0
 
-    AtomCacheClass = tdse.atom.AtomNeCache
+    AtomCacheClass = tdse.atom.ShNeAtomCache
     UabsCacheClass = tdse.abs_pot.UabsNeCache
 
     def create_grid(self):

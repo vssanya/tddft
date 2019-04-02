@@ -37,11 +37,11 @@ class Array {
 			}
 		}
 
-		T& operator() (Index... index) {
+		inline T& operator() (Index... index) {
 			return data[grid.index(index...)];
 		}
 
-		T const& operator() (Index... index) const {
+		inline T const& operator() (Index... index) const {
 			return data[grid.index(index...)];
 		}
 };
