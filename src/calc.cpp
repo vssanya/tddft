@@ -50,7 +50,7 @@ void calc_orbs_az_ne(Orbitals<Grid> const* orbs, const AtomCache<Grid>& atom_cac
 template<class Grid>
 void calc_orbs_az_ne_Vee_0(Orbitals<Grid> const* orbs, Array2D<double>& Uee, Array2D<double>& dUeedr, const AtomCache<Grid>& atom_cache, field_t const* field, double t, double* az) {
 #pragma omp parallel for
-	for (int ir=1; ir<orbs->grid.n[iR]-1; ir++) {
+	for (int ir=0; ir<orbs->grid.n[iR]; ir++) {
 		dUeedr(ir, 0) = orbs->grid.d_dr(&Uee(0, 0), ir);
 	}
 
@@ -75,7 +75,7 @@ template<class Grid>
 void calc_orbs_az_ne_Vee_1(Orbitals<Grid> const* orbs, Array2D<double>& Uee, Array2D<double>& dUeedr, const AtomCache<Grid>& atom_cache, field_t const* field, double t, double* az) {
 #pragma omp parallel for collapse(2)
 	for (int l=0; l<3; l++) {
-		for (int ir=1; ir<orbs->grid.n[iR]-1; ir++) {
+		for (int ir=0; ir<orbs->grid.n[iR]; ir++) {
 			dUeedr(ir, l) = orbs->grid.d_dr(&Uee(0, l), ir);
 		}
 	}

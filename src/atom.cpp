@@ -133,7 +133,7 @@ AtomCache<Grid>::AtomCache(Atom const& atom, Grid const& grid, double* u):
 		}
 
 #pragma omp parallel for
-		for (int ir=0; ir<Nr-1; ir++) {
+		for (int ir=0; ir<Nr; ir++) {
 			data_dudz[ir] = grid.d_dr(u, ir) + atom.dudz(grid.r(ir));
 		}
 	}
