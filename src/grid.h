@@ -8,6 +8,15 @@
 
 #define check_index(space, index) assert(index >= 0 || index < n[space])
 
+class Range {
+	public:
+		int start;
+		int end;
+
+		Range(int start, int end): start(start), end(end) {}
+		Range() = default;
+};
+
 class Grid1d {
 	public:
 		int n;
@@ -53,6 +62,10 @@ public:
 	Grid2d(): n{0}, d{1.0} {}
 	Grid2d(int nx, int ny): n{nx, ny}, d{1.0,1.0} {}
 
+	Range getFullRange(int index) const {
+		return Range(0, n[index]);
+	}
+
     size_t size() const { return n[0]*n[1]; }
 
     size_t index(int ix, int iy) const {
@@ -72,6 +85,10 @@ public:
     double d[3]; //!< is steps
 
     size_t size() const { return n[0]*n[1]*n[2]; }
+
+	Range getFullRange(int index) const {
+		return Range(0, n[index]);
+	}
 
     size_t index(int i[3]) const {
         check_index(0, i[0]);

@@ -4,7 +4,9 @@
 #include <gsl/gsl_vector.h>
 #include <gsl/gsl_eigen.h>
 
+#ifdef WITH_LAPACK
 #include <lapacke.h>
+#endif
 
 #include "linalg.h"
 
@@ -135,7 +137,11 @@ void eigen_calc(eigen_ws_t* ws, sh_f u, int Z) {
 			A_d[ir]    = -0.5*d2[1] + u(ir, il, 0);
 		}
 
+#ifdef WITH_LAPACK
 		LAPACKE_dsteqr(LAPACK_ROW_MAJOR, 'I', Nr, A_d, A_d_up, evec, Nr);
+#else
+		assert(false);
+#endif
 	}
 
 	delete[] A_d_up;

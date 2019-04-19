@@ -1,3 +1,6 @@
+from ctypes.util import find_library
+WITH_GPU = find_library('cuda') is not None
+
 from . import utils
 
 from . import grid
@@ -10,14 +13,16 @@ from . import abs_pot
 from . import wavefunc
 
 from . import atom
-from . import wavefunc_gpu
+if WITH_GPU:
+    from . import wavefunc_gpu
 
 from . import orbitals
 from . import field
 from . import hartree_potential
 
 from . import workspace
-from . import workspace_gpu
+if WITH_GPU:
+    from . import workspace_gpu
 
 from . import calc
 from . import calc_gpu

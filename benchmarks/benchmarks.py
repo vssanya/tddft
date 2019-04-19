@@ -44,13 +44,13 @@ class OrbitalsPropagate:
         self.ylm_cache = tdse.sphere_harmonics.YlmCache(Nl, self.sp_grid)
 
         self.atom = tdse.atom.Ar
-        self.orbs = tdse.orbitals.Orbitals(self.atom, self.grid)
+        self.orbs = tdse.orbitals.ShOrbitals(self.atom, self.grid)
         N = self.atom.countOrbs
         self.orbs.asarray()[:] = np.random.random((N, Nl, Nr)) + 1j*np.random.random((N, Nl, Nr))
         self.orbs.init()
         self.uh = np.ndarray(Nr)
         self.uabs = tdse.abs_pot.UabsCache(tdse.abs_pot.UabsMultiHump(0.1, 10), self.grid)
-        self.ws = tdse.workspace.SOrbsWorkspace(tdse.atom.ShAtomCache(self.atom, self.grid), self.grid, self.sp_grid, self.uabs, self.ylm_cache, 1, 3)
+        self.ws = tdse.workspace.ShOrbitalsWS(tdse.atom.ShAtomCache(self.atom, self.grid), self.grid, self.sp_grid, self.uabs, self.ylm_cache, 1, 3)
         self.field = tdse.field.TwoColorSinField()
 
     def time_hartree_potential_l0(self):

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <functional>
+#include <optional>
 
 #include "grid.h"
 
@@ -100,4 +101,9 @@ double y3(int l1, int m1, int l2, int m2, int L, int M);
  * \brief Разложение функции по сферическим гармоникам
  * */
 
-void sh_series(std::function<double(int, int)> func, int l, int m, SpGrid const* grid, double* series, YlmCache const* ylm_cache);
+void sh_series(
+		std::function<double(int, int)> func,
+		int l, int m, SpGrid const* grid,
+		double* series,
+		YlmCache const* ylm_cache,
+		std::optional<Range> rRange = std::nullopt);

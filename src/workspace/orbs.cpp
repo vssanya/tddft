@@ -83,7 +83,13 @@ workspace::OrbitalsWS<Grid>::~OrbitalsWS() {
 }
 
 template<typename Grid>
-void workspace::OrbitalsWS<Grid>::calc_Uee(Orbitals<Grid> const& orbs, int Uxc_lmax, int Uh_lmax, Array2D<double>* Uee) {
+void workspace::OrbitalsWS<Grid>::calc_Uee(
+		Orbitals<Grid> const& orbs,
+		int Uxc_lmax,
+		int Uh_lmax,
+		Array2D<double>* Uee,
+		std::optional<Range> rRange
+		) {
 	const int Nr = sh_grid.n[iR];
 
 	if (Uee == nullptr) {
@@ -117,7 +123,7 @@ void workspace::OrbitalsWS<Grid>::calc_Uee(Orbitals<Grid> const& orbs, int Uxc_l
 	}
 
 	for (int il=0; il<Uh_lmax; ++il) {
-		HartreePotential<Grid>::calc(&orbs, il, Utmp, Utmp_local, uh_tmp, 3);
+		HartreePotential<Grid>::calc(&orbs, il, Utmp, Utmp_local, uh_tmp, 3, rRange);
 
 #ifdef _MPI
 		if (orbs.mpi_comm == MPI_COMM_NULL || orbs.mpi_rank == 0)

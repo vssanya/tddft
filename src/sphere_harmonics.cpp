@@ -98,9 +98,15 @@ double sh_series_r(std::function<double(int, int)> f, int ir, int l, int m, SpGr
 			}, grid->n[iC], grid->d[iC])*2*M_PI;
 }
 
-void sh_series(std::function<double(int, int)> f, int l, int m, SpGrid const* grid, double* series, YlmCache const* ylm_cache) {
+void sh_series(
+		std::function<double(int, int)> f,
+		int l, int m, SpGrid const* grid,
+		double* series, YlmCache const* ylm_cache,
+		std::optional<Range> rRange) {
+	auto range = rRange.value_or(grid->getFullRange(iR));
+
 #pragma omp parallel for
-	for (int ir = 0; ir < grid->n[iR]; ++ir) {
+	for (int ir = range.start; ir < range.end; ++ir) {
 		series[ir] = sh_series_r(f, ir, l, m, grid, ylm_cache);
 	}
 }

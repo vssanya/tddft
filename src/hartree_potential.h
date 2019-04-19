@@ -3,6 +3,8 @@
 #include "utils.h"
 #include "orbitals.h"
 
+#include <optional>
+
 /*! \file
  * Разложение кулоновского потенциала по сферическим функциям
  * \f[ \frac{1}{\left|r - r'\right|} = \sum_{l=0}^{\infty} \frac{4\pi}{2l + 1} \frac{r_<^l}{r_>^{l+1}} \sum_{m=-l}^{l} Y_l^{m*}(\Omega') Y_l^{m}(\Omega) \f]
@@ -21,9 +23,19 @@
 template<typename Grid>
 class HartreePotential {
 	public:
-		static void calc(Orbitals<Grid> const* orbs, int l, double* U, double* U_local, double* f, int order);
-		static void calc_int_func(Orbitals<Grid> const* orbs, int l, double* f);
-		static void calc_wf_l0(Wavefunc<Grid> const* wf, double* U, double* f, int order);
+		static void calc(
+				Orbitals<Grid> const* orbs,
+				int l, double* U, double* U_local,
+				double* f, int order,
+				std::optional<Range> rRange = std::nullopt);
+
+		static void calc_int_func(
+				Orbitals<Grid> const* orbs, int l, double* f,
+				std::optional<Range> rRange = std::nullopt);
+
+		static void calc_wf_l0(
+				Wavefunc<Grid> const* wf, double* U, double* f, int order,
+				std::optional<Range> rRange = std::nullopt);
 };
 
 
@@ -55,7 +67,8 @@ class XCPotential {
 				SpGrid const* grid,
 				double* n, // for calc using mpi
 				double* n_tmp, // for calc using mpi
-				YlmCache const* ylm_cache
+				YlmCache const* ylm_cache,
+				std::optional<Range> rRange = std::nullopt
 				);
 
 		static void calc_l0(
@@ -65,6 +78,7 @@ class XCPotential {
 				SpGrid const* grid,
 				double* n, // for calc using mpi
 				double* n_tmp, // for calc using mpi
-				YlmCache const* ylm_cache
+				YlmCache const* ylm_cache,
+				std::optional<Range> rRange = std::nullopt
 				);
 };

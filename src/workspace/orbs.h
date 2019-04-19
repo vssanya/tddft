@@ -8,6 +8,8 @@
 #include "../types.h"
 #include "../array.h"
 
+#include <optional>
+
 
 namespace workspace
 {
@@ -44,7 +46,13 @@ namespace workspace
             void prop_img(Orbitals<Grid>& OrbitalsWS, double dt);
 			void prop_ha(Orbitals<Grid>& OrbitalsWS, double dt);
 
-			void calc_Uee(Orbitals<Grid> const& OrbitalsWS, int Uxc_lmax, int Uh_lmax, Array2D<double>* Uee = nullptr);
+			void calc_Uee(
+					Orbitals<Grid> const& OrbitalsWS,
+					int Uxc_lmax,
+					int Uh_lmax,
+					Array2D<double>* Uee = nullptr,
+					std::optional<Range> rRange = std::nullopt
+					);
 
 			void setTimeApproxUeeTwoPointFor(Orbitals<Grid> const& OrbitalsWS);
 

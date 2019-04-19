@@ -101,8 +101,14 @@ def find_process_files(root_dir):
 
 find_process_files("wrapper")
 
+libraries=["tdse", "lapack"]
+from ctypes.util import find_library
+if find_library('cuda') is not None:
+    print("Compile with CUDA")
+    libraries.append['tdse_gpu']
+
 ext = Extension("*", ["wrapper/*.pyx"],
-                libraries=["tdse", "lapack", "tdse_gpu"],
+                libraries=["tdse", "lapack"],
                 library_dirs=[
                     'build/src',
                 ],
@@ -112,7 +118,7 @@ ext = Extension("*", ["wrapper/*.pyx"],
                     mpi4py.get_include(),
                 ],
                 extra_compile_args=[
-                    '-std=gnu++11',
+                    '-std=gnu++17',
                     '-D_MPI',
                     '-fopenmp',
                     '-lmpi',

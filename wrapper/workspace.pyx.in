@@ -2,7 +2,7 @@ import numpy as np
 cimport numpy as np
 
 from atom cimport ShAtomCache, ShNeAtomCache
-from grid cimport ShGrid, SpGrid, ShNeGrid
+from grid cimport ShGrid, SpGrid, ShNeGrid, Range
 from wavefunc cimport ShWavefunc, CtWavefunc, ShNeWavefunc
 from field cimport Field
 from orbitals cimport ShOrbitals, ShNeOrbitals
@@ -213,14 +213,18 @@ cdef class {{prefix}}OrbitalsWS:
     def prop(self, {{prefix}}Orbitals orbs, Field field, double t, double dt, bint calc_uee=True):
         self.cdata.prop(orbs.cdata[0], field.cdata, t, dt, calc_uee)
 
-    def calc_uee(self, {{prefix}}Orbitals orbs, Uxc_lmax=None, Uh_lmax=None):
+    def calc_uee(self, {{prefix}}Orbitals orbs, Uxc_lmax=None, Uh_lmax=None, Range rRange = None):
+        cdef optional[cRange] c_range
+        if rRange is not None:
+            c_range = optional[cRange](rRange.cdata)
+
         if Uxc_lmax is None:
             Uxc_lmax = self.cdata.Uxc_lmax
 
         if Uh_lmax is None:
             Uh_lmax = self.cdata.Uh_lmax
 
-        self.cdata.calc_Uee(orbs.cdata[0], Uxc_lmax, Uh_lmax, NULL)
+        self.cdata.calc_Uee(orbs.cdata[0], Uxc_lmax, Uh_lmax, NULL, c_range)
 
     @property
     def uee(self):

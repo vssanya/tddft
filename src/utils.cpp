@@ -26,7 +26,9 @@ double smoothpulse(double x, double dx_smooth, double dx_pulse) {
 	return smoothstep(x, 0.0, dx_smooth);
 }
 
+#ifdef WITH_CUDA
 #include <cuda_runtime.h>
 void selectGpuDevice(int id) {
 	cudaSetDevice(id);
 }
+#endif

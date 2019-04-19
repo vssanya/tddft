@@ -4,6 +4,22 @@ cimport numpy as np
 from libc.stdlib cimport free
 
 
+cdef class Range:
+    def __cinit__(self, int start, int end):
+        self.cdata = cRange(start, end)
+
+    def __init__(self, int start, int end):
+        pass
+
+    @property
+    def start(self) -> int:
+        return self.cdata.start
+
+    @property
+    def end(self) -> int:
+        return self.cdata.end
+
+
 cdef class Grid1d:
     def __cinit__(self, int N, double d):
         self.cdata = cGrid1d(N, d)

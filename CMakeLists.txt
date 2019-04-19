@@ -6,7 +6,7 @@ cmake_minimum_required(VERSION 2.8)
 set(CMAKE_BUILD_TYPE Release)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS "ON")
-set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_C_STANDARD 11)
 
 include_directories(${PROJECT_SOURCE_DIR}/src)
@@ -40,12 +40,14 @@ find_package(GSL)
 find_package(LAPACK)
 if (LAPACK_FOUND)
 	include_directories(${LAPACK_C_INCLUDE_PATH})
+	add_definitions(-DWITH_LAPACK)
 endif()
 
 find_package(CUDA)
 
 if (CUDA_FOUND)
 	add_definitions(-DWITH_CUDA)
+	set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -std=c++11")
 endif()
 
 if ("${CMAKE_C_COMPILER_ID}" STREQUAL "Intel")

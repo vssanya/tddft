@@ -3,7 +3,9 @@
 
 #include <array>
 
+#ifdef WITH_CUDA
 #include <cuda_runtime.h>
+#endif
 
 
 const std::vector<Atom::State> HAtom::GroundStateOrbs = {
@@ -144,6 +146,7 @@ AtomCache<Grid>::~AtomCache() {
 	delete[] data_u;
 	delete[] data_dudz;
 
+#ifdef WITH_CUDA
 	if (gpu_data_u != nullptr) {
 		cudaFree(gpu_data_u);
 	}
@@ -151,10 +154,12 @@ AtomCache<Grid>::~AtomCache() {
 	if (gpu_data_dudz != nullptr) {
 		cudaFree(gpu_data_dudz);
 	}
+#endif
 }
 
 template <typename Grid>
 double* AtomCache<Grid>::getGPUDataU() {
+#ifdef WITH_CUDA
 	if (gpu_data_u == nullptr) {
 		auto size = sizeof(double)*grid.n[iR];
 		cudaMalloc(&gpu_data_u, size);
@@ -162,10 +167,14 @@ double* AtomCache<Grid>::getGPUDataU() {
 	}
 
 	return gpu_data_u;
+#else
+	assert(false);
+#endif
 }
 
 template <typename Grid>
 double* AtomCache<Grid>::getGPUDatadUdz() {
+#ifdef WITH_CUDA
 	if (gpu_data_dudz == nullptr) {
 		auto size = sizeof(double)*grid.n[iR];
 		cudaMalloc(&gpu_data_dudz, size);
@@ -173,6 +182,9 @@ double* AtomCache<Grid>::getGPUDatadUdz() {
 	}
 
 	return gpu_data_dudz;
+#else
+	assert(false);
+#endif
 }
 
 template class AtomCache<ShGrid>;

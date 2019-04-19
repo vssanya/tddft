@@ -1,6 +1,6 @@
-from types cimport cdouble, sh_f
+from types cimport cdouble, sh_f, optional, none
 
-from grid cimport cShGrid, cSpGrid, cShNeGrid
+from grid cimport cShGrid, cSpGrid, cShNeGrid, cRange
 from abs_pot cimport cUabsCache, UabsCache, UabsNeCache
 from wavefunc cimport ShWavefunc, cCtWavefunc, cShWavefunc, Wavefunc
 
@@ -135,7 +135,7 @@ cdef extern from "workspace.h" namespace "workspace":
         void prop(Orbitals[Grid]& orbs, field_t* field, double t, double dt, bint calc_uee)
         void prop_img(Orbitals[Grid]& orbs, double dt)
         void prop_ha(Orbitals[Grid]& orbs, double dt)
-        void calc_Uee(Orbitals[Grid]& orbs, int Uxc_lmax, int Uh_lmax, Array2D[double]* Uee)
+        void calc_Uee(Orbitals[Grid]& orbs, int Uxc_lmax, int Uh_lmax, Array2D[double]* Uee, optional[cRange] rRange)
 
         WavefuncWS[Grid]* wf_ws
         double* Uh

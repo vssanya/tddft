@@ -1,4 +1,11 @@
 cdef extern from "grid.h":
+    cdef cppclass cRange "Range":
+        int start
+        int end
+
+        cRange(int start, int end)
+        cRange()
+
     cdef cppclass cGrid1d "Grid1d":
         int n
         double d
@@ -71,6 +78,9 @@ cdef extern from "grid.h":
         cCtGrid(int n[2], double x_max, double y_max)
         double x(int ix)
         double y(int iy)
+
+cdef class Range:
+    cdef cRange cdata
 
 cdef class Grid1d:
     cdef cGrid1d cdata
