@@ -28,3 +28,4 @@ wrapper/orbitals.pyx
 wrapper/wavefunc.pyx
 wrapper/workspace.pyx
 wrapper/atom.pyx
+wrapper/grid.pyx

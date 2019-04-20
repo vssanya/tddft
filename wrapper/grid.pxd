@@ -32,6 +32,8 @@ cdef extern from "grid.h":
         int l(int il)
         int m(int im)
 
+        cRange getRange(double rmax)
+
         int n[2]
         double d[2]
 
@@ -43,6 +45,8 @@ cdef extern from "grid.h":
         int l(int il)
         int m(int im)
 
+        cRange getRange(double rmax)
+
         int n[2]
         double d[2]
 
@@ -53,6 +57,8 @@ cdef extern from "grid.h":
         double Rmax()
         int l(int il)
         int m(int im)
+
+        cRange getRange(double rmax)
 
         int n[2]
         double d[2]

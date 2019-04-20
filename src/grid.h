@@ -215,6 +215,10 @@ public:
 		m_d2[2] = m_d2[0];
     }
 
+	Range getRange(double rmax) const {
+		return Range(0, (int) (rmax/d[iR]));
+	}
+
     virtual double r(int ir) const {
         check_index(iR, ir);
         return d[iR]*(ir+1);
@@ -348,6 +352,16 @@ class ShNotEqudistantGrid: public ShGrid {
 
 	double Rmax() const {
 		return r(n[iR]-1);
+	}
+
+	Range getRange(double rmax) const {
+		for (int i=0; i<n[iR]; i++) {
+			if (r(i) > rmax) {
+				return Range(0, i);
+			}
+		}
+
+		return getFullRange(iR);
 	}
 
 	template <typename T>

@@ -114,6 +114,13 @@ def az_ne_Vee_1(Orbs orbs, AC atom, Field field, double t, np.ndarray Uee, np.nd
 def smstep(double x, double x0, double x1):
     return smoothstep(x, x0, x1)
 
+@np.vectorize
+def ionization_probability_ppt(int l, int m, double Cnl, double Ip, int Z, double E, double freq):
+    return w_ppt(l, m, Cnl, Ip, Z, E, freq)
+
+def int_ppt(double x, double m):
+    return int_func_res(x, m)
+
 def spectral_density(np.ndarray[double, ndim=1] az, double dt, np.ndarray[double, ndim=1] mask = None, mask_width=0.0) -> np.ndarray:
     cdef i
 

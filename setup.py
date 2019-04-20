@@ -105,10 +105,10 @@ libraries=["tdse", "lapack"]
 from ctypes.util import find_library
 if find_library('cuda') is not None:
     print("Compile with CUDA")
-    libraries.append['tdse_gpu']
+    libraries.append('tdse_gpu')
 
 ext = Extension("*", ["wrapper/*.pyx"],
-                libraries=["tdse", "lapack"],
+                libraries=libraries,
                 library_dirs=[
                     'build/src',
                 ],

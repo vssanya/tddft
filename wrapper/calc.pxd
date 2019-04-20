@@ -28,3 +28,7 @@ cdef extern from "calc.h":
 cdef extern from "utils.h":
     double smoothstep(double x, double x0, double x1)
     void selectGpuDevice(int id)
+
+cdef extern from "ppt.h":
+    double w_ppt(int l, int m, double Cnl, double Ip, int Z, double E, double freq)
+    double int_func_res(double x, double m)

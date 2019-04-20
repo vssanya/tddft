@@ -84,7 +84,7 @@ set( LIB_HEADERS
 
 add_library( tdse SHARED ${LIB_SOURCES} ${LIB_HEADERS} )
 if (CUDA_FOUND)
-	target_link_libraries( tdse m ${LAPACK_LIBRARIES} ${GSL_LIBRARIES} ${CUDA_LIBRARIES})
+	target_link_libraries( tdse m ${LAPACK_LIBRARIES} gsl ${CUDA_LIBRARIES})
 else()
 	target_link_libraries( tdse m ${LAPACK_LIBRARIES} ${GSL_LIBRARIES})
 endif()

@@ -89,6 +89,10 @@ cdef class ShGrid:
     def Rmax(self):
         return self.data.Rmax()
 
+    def getRange(self, double rmax):
+        cdef cRange r = self.data.getRange(rmax)
+        return Range(r.start, r.end)
+
     @property
     def dr(self):
         return self.data.d[0]
@@ -132,6 +136,10 @@ cdef class {{Grid}}:
     @property
     def Rmax(self):
         return self.data.Rmax()
+
+    def getRange(self, double rmax):
+        cdef cRange r = self.data.getRange(rmax)
+        return Range(r.start, r.end)
 
     @property
     def dr(self):
