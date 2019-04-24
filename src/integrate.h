@@ -18,7 +18,7 @@ T integrate_1d_cpp(std::function<T(int i)> f, int nx, double dx) {
 	for (int ix = 1; ix < nx-1; ix+=2) {
 		res += f(ix-1) + 4*f(ix) + f(ix+1);
 	}
-	res *= dx/3;
+	res *= dx/3.0;
 
 	if (nx % 2 == 0) {
 		res += (f(nx-2) + f(nx-1))*dx*0.5;

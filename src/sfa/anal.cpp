@@ -31,44 +31,54 @@ int n_min(double n0, double g) {
 }
 
 double sfa_djdt(double E, double w, double a, double phi) {
+	if (E < 4e-3) {
+		return 0.0;
+	}
+
 	double n0 = 0.5/w;
 	double g = w/E;
 
 	double dp = 1e-3;
 	double res = 0.0;
 
+#pragma omp parallel for reduction(+:res)
 	for (int in = n_min(n0,g); in < n_min(n0,g) + 100; ++in) {
 		double p = pn(in, n0, g);
 		int size = (int)(2.0*p/dp);
 
-		double func(int i) {
+		auto func = [=](int i) -> double {
 			double pz = - p + dp*i;
 			return Fn(n0, g, p, pz, a, phi)*pz;
-		}
+		};
 
-		res += integrate_1d(func, size, dp);
+		res += integrate_1d_cpp<double>(func, size, dp);
 	}
 
 	return -C1(w,g,a)*res;
 }
 
 double sfa_dwdt(double E, double w, double a, double phi) {
+	if (E < 4e-3) {
+		return 0.0;
+	}
+
 	double n0 = 0.5/w;
 	double g = w/E;
 
 	double dp = 1e-3;
 	double res = 0.0;
 
+#pragma omp parallel for reduction(+:res)
 	for (int in = n_min(n0,g); in < n_min(n0,g) + 100; ++in) {
 		double p = pn(in, n0, g);
 		int size = (int)(2*p/dp);
 
-		double func(int i) {
+		auto func = [=](int i) -> double {
 			double pz = - p + dp*i;
 			return Fn(n0, g, p, pz, a, phi);
-		}
+		};
 
-		res += integrate_1d(func, size, dp);
+		res += integrate_1d_cpp<double>(func, size, dp);
 	}
 
 	return C1(w,g,a)*res;

@@ -25,5 +25,3 @@ class SFATask(Task):
 
     def calc_prop(self, i, t):
         self.ws.prop(self.wf, self.field, t, self.dt)
-
-

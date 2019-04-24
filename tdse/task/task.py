@@ -260,7 +260,9 @@ class Task(object):
 
 class TaskAtom(Task):
     atom = tdse.atom.H
+
     atom_u_data_path = None
+    ground_state_task = None
 
     dr = 0.025
     r_max = 100
@@ -271,7 +273,19 @@ class TaskAtom(Task):
     AtomCacheClass = tdse.atom.ShAtomCache
     UabsCacheClass = tdse.abs_pot.UabsCache
 
+    def init_from_ground_state_task(self, gs_task):
+        self.dt    = gs_task.dt
+        if hasattr(gs_task, 'Rmin'):
+            self.Rmin = gs_task.Rmin
+            self.Ra = gs_task.Ra
+        self.dr    = gs_task.dr
+        self.r_max = gs_task.r_max
+        self.atom  = gs_task.atom
+
     def __init__(self, *args, **kwargs):
+        if self.ground_state_task is not None:
+            self.init_from_ground_state_task(self.ground_state_task)
+
         super().__init__(*args, **kwargs)
 
         self.sh_grid = self.create_grid()

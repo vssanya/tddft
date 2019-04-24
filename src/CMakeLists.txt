@@ -34,7 +34,7 @@ set( LIB_SOURCES
 	eigen.cpp
 	linalg.cpp
 	tdsfm.cpp
-	"sfa/anal.c"
+	"sfa/anal.cpp"
 	"hartree_potential/hp_o3.cpp"
 	"hartree_potential/hp_o5.cpp"
 	"wavefunc/2d.cpp"

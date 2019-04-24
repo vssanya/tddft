@@ -22,12 +22,6 @@ class UeeOrbData(CalcData):
         self.range = None
 
     def calc_init(self, task, file):
-        super().calc_init(task, file)
-
-        if self.r_core is not None:
-            self.range = task.sh_grid.getRange(self.r_core)
-
-    def get_shape(self, task: TaskAtom):
         if self.r_max == None or self.r_max >= task.r_max:
             self.Nr = task.sh_grid.Nr
         else:
@@ -36,6 +30,12 @@ class UeeOrbData(CalcData):
         self.dNt = int(self.dT/task.dt)
         self.Nt = (task.t.size // self.dNt) + 1
 
+        if self.r_core is not None:
+            self.range = task.sh_grid.getRange(self.r_core)
+
+        super().calc_init(task, file)
+
+    def get_shape(self, task: TaskAtom):
         return (self.Nt, 3, self.Nr)
 
     def calc(self, task, i, t):
@@ -203,15 +203,13 @@ class OrbitalsTask(TaskAtom):
     Workspace = tdse.workspace.ShOrbitalsWS
     Orbitals = tdse.orbitals.ShOrbitals
 
-    def __init__(self, path_res='res', mode=None, is_mpi=True, **kwargs):
-        if self.ground_state_task is not None:
-            self.dt    = self.ground_state_task.dt
-            self.dr    = self.ground_state_task.dr
-            self.r_max = self.ground_state_task.r_max
-            self.uxc   = self.ground_state_task.uxc
-            self.Nc    = self.ground_state_task.Nc
-            self.atom  = self.ground_state_task.atom
+    def init_from_ground_state_task(self, gs_task):
+        super().init_from_ground_state_task(gs_task)
 
+        self.uxc   = gs_task.uxc
+        self.Nc    = gs_task.Nc
+
+    def __init__(self, path_res='res', mode=None, is_mpi=True, **kwargs):
         super().__init__(path_res, mode, is_mpi=is_mpi, **kwargs)
 
         self.sp_grid = tdse.grid.SpGrid(Nr=self.sh_grid.Nr, Nc=self.Nc, Np=1, r_max=self.r_max)
