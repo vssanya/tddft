@@ -7,6 +7,7 @@ cdef extern from "masks.h":
 
         CoreMask(Grid* grid, double r_core, double dr)
         double operator()(int ir, int il, int im)
+        double* getGPUData()
 
 cdef class ShCoreMask:
     cdef CoreMask[cShGrid]* cdata

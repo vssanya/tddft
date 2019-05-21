@@ -1,4 +1,5 @@
 from wavefunc cimport ShWavefunc, sh_wavefunc_from_point
+from masks cimport ShCoreMask
 
 
 cdef class ShWavefuncArrayGPU:
@@ -33,3 +34,6 @@ cdef class ShWavefuncGPU:
 
     def get(self):
         return sh_wavefunc_from_point(self.cdata.get(), self.grid, True)
+
+    def norm(self, ShCoreMask mask):
+        return self.cdata.norm(mask.cdata.getGPUData())

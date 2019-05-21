@@ -6,6 +6,8 @@
 #include "types.h"
 
 #include <vector>
+#include <algorithm>
+#include <cstdlib>
 
 
 class Atom {
@@ -21,6 +23,7 @@ class Atom {
 			int m;
 			int s;
 			int countElectrons;
+			int shell;
 
             State(const char* id="1s", int m=0, int countElectrons = 0, int s=0): m(m), s(s) {
 				switch (id[1]) {
@@ -37,25 +40,9 @@ class Atom {
 						l = 0;
 				}
 
-				switch (id[0]) {
-					case '1':
-						n = 0;
-						break;
-					case '2':
-						n = 1 - l;
-						break;
-					case '3':
-						n = 2 - l;
-						break;
-					case '4':
-						n = 3 - l;
-						break;
-					case '5':
-						n = 4 - l;
-						break;
-					default:
-						l = 0;
-				}
+				char tmp[2] = {id[0], '\0'};
+				shell = atoi(tmp) - 1;
+				n = shell - l;
 
                 if (countElectrons == 0) {
 					if (s == 0) {
@@ -97,6 +84,13 @@ class Atom {
 
         virtual double u(double r) const = 0;
         virtual double dudz(double r) const = 0;
+
+		int getNumberShell() const {
+			return std::max_element(orbs.begin(), orbs.end(),
+					[](const State& a, const State& b) {
+						return a.shell < b.shell;
+					})->shell + 1;
+		}
 
         int getNumberOrt(int ie) const {
 			if (ie == countOrbs) {
@@ -236,6 +230,12 @@ class HSmothAtom: public Atom {
 
 			return 2.0*ALPHA*t*s/A + t/pow(r, 2) - s/(A*r);
 		}
+};
+
+class HeAtom: public AtomCoulomb {
+	public:
+		static const std::vector<State> GroundStateOrbs;
+		HeAtom(): AtomCoulomb(2, GroundStateOrbs, 0) {}
 };
 
 class NeAtom: public AtomCoulomb {

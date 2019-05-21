@@ -17,6 +17,7 @@ public:
     ~Orbitals();
 
     void init();
+	void init_shell(int shell);
 
 	Orbitals* copy() const;
 	void copy(Orbitals& dest) const;
@@ -64,6 +65,8 @@ public:
     void n_l0(double* n, double* n_tmp) const;
 
     double cos(typename Wavefunc<Grid>::sh_f U) const;
+
+	void collect(cdouble* dest, int Nl = -1) const;
 
     void ort();
 

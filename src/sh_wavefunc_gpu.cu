@@ -77,15 +77,26 @@ __global__ void kernel_wf_cos(cuComplex const* wf, int m, double const* u, doubl
 	}
 }
 
-double ShWavefuncGPU::cos_func(sh_f func) const {
-#pragma omp parallel for
-	for (int ir=0; ir<grid->n[iR]; ir++) {
-		ur[ir] = func(ir, 0, m);
+template<int BLOCK_THREADS>
+__global__ void kernel_wf_norm(cuComplex const* wf, double const* mask, double* res, int Nr, int Nl, double dr) {
+	typedef BlockReduce<double, BLOCK_THREADS> BlockReduceT;
+	__shared__ typename BlockReduceT::TempStorage temp_storage;
+
+	int in = threadIdx.x;
+
+	double data = 0.0;
+
+	for (int il = 0; il < Nl; ++il) {
+		for (int ir = in; ir < Nr; ir+=BLOCK_THREADS) {
+			data += mask[ir]*real(wf[ir + il*Nr]*conj(wf[ir + il*Nr]));
+		}
 	}
 
-	cudaMemcpy(d_ur, ur, sizeof(double)*grid->n[iR], cudaMemcpyHostToDevice);
+	double aggregate = BlockReduceT(temp_storage).Sum(data);
 
-	return this->cos(ur);
+	if (threadIdx.x == 0) {
+		*res = dr*aggregate;
+	}
 }
 
 double ShWavefuncGPU::cos(double const* d_u) const {
@@ -93,6 +104,17 @@ double ShWavefuncGPU::cos(double const* d_u) const {
 
 	const int BLOCK_THREADS = 1024;
 	kernel_wf_cos<BLOCK_THREADS><<<1, BLOCK_THREADS>>>((cuComplex*)data, m, d_u, d_res, grid->n[iR], grid->n[iL], grid->d[iR]);
+
+	cudaMemcpy(&res, d_res, sizeof(double), cudaMemcpyDeviceToHost);
+
+	return res;
+}
+
+double ShWavefuncGPU::norm(double const* d_u) const {
+	double res;
+
+	const int BLOCK_THREADS = 1024;
+	kernel_wf_norm<BLOCK_THREADS><<<1, BLOCK_THREADS>>>((cuComplex*)data, d_u, d_res, grid->n[iR], grid->n[iL], grid->d[iR]);
 
 	cudaMemcpy(&res, d_res, sizeof(double), cudaMemcpyDeviceToHost);
 

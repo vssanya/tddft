@@ -31,6 +31,8 @@ cdef extern from "sh_wavefunc_gpu.h":
 
         cShWavefunc* get()
 
+        double norm(double* u)
+
 
 cdef class ShWavefuncArrayGPU:
     cdef cShWavefuncArrayGPU* cdata

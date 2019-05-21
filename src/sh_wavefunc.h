@@ -276,7 +276,11 @@ class Wavefunc {
 
 			for (int in=0; in<n; ++in) {
 				for (int ip=0; ip<in; ++ip) {
-					proj[ip] = ((*wfs[ip])*(*wfs[in])) / norm[ip];
+					if (norm[ip] == 0.0) {
+						proj[ip] = 0.0;
+					} else {
+						proj[ip] = ((*wfs[ip])*(*wfs[in])) / norm[ip];
+					}
 				}
 
 				for (int ip=0; ip<in; ++ip) {

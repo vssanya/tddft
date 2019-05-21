@@ -29,6 +29,7 @@ cdef extern from "atom.h":
         double dudz(double r)
 
         int getNumberOrt(int ie)
+        int getNumberShell()
 
     cdef cppclass AtomCache[Grid]:
         AtomCache(cAtom& atom, Grid& grid)
@@ -56,6 +57,9 @@ cdef extern from "atom.h":
 
     cdef cppclass HSmothAtom:
         HSmothAtom()
+
+    cdef cppclass HeAtom:
+        HeAtom()
 
     cdef cppclass NeAtom:
         NeAtom()

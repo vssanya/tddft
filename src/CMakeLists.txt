@@ -27,6 +27,7 @@ set( LIB_SOURCES
 	utils.cpp
 	abs_pot.cpp
 	fields.cpp
+	masks.cpp
 	calc.cpp
 	sphere_harmonics.cpp
 	orbitals.cpp

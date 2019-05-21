@@ -90,3 +90,31 @@ def orbs(atom, grid, ws, dt, Nt, orbitals_class, atom_cache_class, print_calc_in
     orbs.normalize()
 
     return orbs, E
+
+def orbs_step_shells(atom, grid, ws, dt, Nt, orbitals_class, atom_cache_class, print_calc_info=False):
+    orbs = orbitals_class(atom, grid)
+    data = orbs.asarray()
+    data[:] = 0.0
+
+    atom_cache = atom_cache_class(atom, grid)
+
+    for shell in range(atom.countShells):
+        orbs.init_shell(shell)
+
+        for i in range(Nt):
+            if print_calc_info and i % (Nt // 100) == 0:
+                print("i = ", i//100)
+                n = np.sqrt(orbs.norm_ne())
+                print(2/dt*(1-n)/(1+n))
+
+            orbs.ort()
+            orbs.normalize()
+            ws.prop_img(orbs, dt)
+
+    n = np.sqrt(orbs.norm_ne())
+    E = 2/dt*(1-n)/(1+n)
+
+    orbs.ort()
+    orbs.normalize()
+
+    return orbs, E

@@ -52,6 +52,16 @@ void Orbitals<Grid>::init() {
 }
 
 template <typename Grid>
+void Orbitals<Grid>::init_shell(int shell) {
+    for (int ie = 0; ie < atom.countOrbs; ++ie) {
+        if (atom.orbs[ie].shell == shell && wf[ie] != nullptr) {
+            wf[ie]->m = atom.orbs[ie].m;
+            wf[ie]->random_l(atom.orbs[ie].l);
+        }
+    }
+}
+
+template <typename Grid>
 Orbitals<Grid>* Orbitals<Grid>::copy() const {
 	auto res = new Orbitals<Grid>(atom, grid, this->mpi_comm);
 	copy(*res);
@@ -321,6 +331,24 @@ void Orbitals<Grid>::ort() {
 		}
 
 		ie += ne;
+	}
+}
+
+template <typename Grid>
+void Orbitals<Grid>::collect(cdouble* dest, int Nl) const {
+	if (Nl == -1) {
+		Nl = grid.n[iL];
+	}
+
+	int size = grid.n[iR]*Nl;
+
+#ifdef _MPI
+	if (mpi_comm != MPI_COMM_NULL) {
+		MPI_Gather(data, size, MPI_C_DOUBLE_COMPLEX, dest, size, MPI_C_DOUBLE_COMPLEX, 0, mpi_comm);
+	} else
+#endif
+	{
+		assert(false);
 	}
 }
 

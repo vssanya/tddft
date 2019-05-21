@@ -24,6 +24,7 @@ cdef extern from "orbitals.h":
 
         Orbitals(cAtom& atom, Grid& grid, MPI_Comm mpi_comm)
         void init()
+        void init_shell(int shell)
         void setInitState(cdouble* data, int Nr, int Nl)
 
         double norm(sh_f mask)
@@ -40,6 +41,8 @@ cdef extern from "orbitals.h":
 
         void z_ne(double* z, sh_f mask)
         void z_ne(double* z)
+
+        void collect(cdouble* dest, int Nl)
 
         double  n(cSpGrid* grid, int i[2], cYlmCache * ylm_cache)
         void n_sp(cSpGrid& grid, double* n, double* n_tmp, cYlmCache * ylm_cache)

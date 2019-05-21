@@ -132,6 +132,10 @@ cdef class Atom:
         return self.cdata.getNumberOrt(i)
 
     @property
+    def countShells(self):
+        return self.cdata.getNumberShell()
+
+    @property
     def Z(self):
         return self.cdata.Z
 
@@ -145,7 +149,7 @@ cdef class Atom:
         params_grp.attrs['type'] = self.name
 
 
-{{for Prefix in ['H', 'HSmoth', 'Ne', 'Ar', 'Kr', 'Xe', 'ArSae', 'ArSaeSmooth', 'Na', 'Mg']}}
+{{for Prefix in ['H', 'He', 'HSmoth', 'Ne', 'Ar', 'Kr', 'Xe', 'ArSae', 'ArSaeSmooth', 'Na', 'Mg']}}
 {{Prefix}} = Atom.from_c(<cAtom*> new {{Prefix}}Atom(), "{{Prefix}}")
 {{endfor}}
 
