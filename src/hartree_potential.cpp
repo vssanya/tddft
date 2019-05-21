@@ -327,8 +327,6 @@ void XCPotential<Grid>::calc_l0(
 #pragma omp parallel for
 			for (int ir=range.start; ir<range.end; ++ir) {
 				double x = mod_dndr(orbs->grid, n, ir);
-				double r = orbs->grid.r(ir);
-				double r_max = orbs->grid.Rmax();
 				U[ir] = uxc(n[ir], x)*sqrt(4*M_PI);//*(1.0 - smoothstep(r, 20, 40));
 			}
 		}

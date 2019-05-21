@@ -35,7 +35,10 @@ class CalcData(object):
         pass
 
     def load(self, task, file: h5py.File):
-        setattr(task, self.name, file[self.name][:])
+        if self.name in file:
+            setattr(task, self.name, file[self.name][:])
+        else:
+            print("Error load data: {}".format(self.name))
 
 
 class CalcDataWithMask(CalcData):
