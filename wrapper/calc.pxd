@@ -31,4 +31,7 @@ cdef extern from "utils.h":
 
 cdef extern from "ppt.h":
     double w_ppt(int l, int m, double Cnl, double Ip, int Z, double E, double freq)
+    double w_ppt_Qc(int l, int m, double Cnl, double Ip, int Z, double E, double freq)
+    double w_adk(int l, int m, double Cnl, double Ip, int Z, double E, double freq)
+    double w_tl_exp(double Ip, int Z, double E, double alpha)
     double int_func_res(double x, double m)

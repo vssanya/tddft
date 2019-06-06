@@ -84,8 +84,8 @@ double Am(double freq, double gamma, double Ip, int m) {
     int k0 = (int) ceil(nu);
     
 #pragma omp parallel for reduction(+:res)
-	for (int k=k0; k<k0+20; k++) {
-		res += exp(-alpha(k - nu))*w_m(sqrt(betta(k - nu)), m);
+	for (int k=k0; k<k0+500; k++) {
+		res += exp(-alpha(gamma)*(k - nu))*w_m(sqrt(betta(gamma)*(k - nu)), m);
 	}
     
     return res*(4.0/sqrt(3*M_PI))/factorial(m)*(gamma*gamma/(1.0 + gamma*gamma));
@@ -108,5 +108,38 @@ double w_ppt(int l, int m, double Cnl, double Ip, int Z, double E, double freq) 
     res *= pow((2.0/(F*sqrt(1+gamma*gamma))), (-m - 1.5 + 2*Z/k));
     res *= exp(-2.0/(3*F)*g)*Am(freq, gamma, Ip, m);
     
+    return 2*res;
+}
+
+double w_ppt_Qc(int l, int m, double Cnl, double Ip, int Z, double E, double freq) {
+    if (E < 0.000054) {
+        return 0.0;
+	}
+    
+    double k = sqrt(2*Ip);
+    double gamma = k*freq/E;
+    
+    return w_ppt(l, m, Cnl, Ip, Z, E, freq)*pow(1.0+2.0*gamma/M_E,-2*Z/k);
+}
+
+double w_adk(int l, int m, double Cnl, double Ip, int Z, double E, double freq) {
+    if (E < 0.000054) {
+        return 0.0;
+	}
+    
+    double k = sqrt(2*Ip);
+    double F = E/pow(k,3); // F/F0
+    
+    double res = Ip * sqrt(3.0 * F / M_PI) * Cnl*Cnl * (2*l + 1) * factorial(l + m) / (pow(2,m) * factorial(m)*factorial(l - m));
+    res *= pow(2.0/F, (-m - 1 + 2*Z/k));
+    res *= exp(-2.0/(3*F));
+    
     return res;
+}
+
+double w_tl_exp(double Ip, int Z, double E, double alpha) {
+    double k = sqrt(2*Ip);
+    double F = E/pow(k,3); // F/F0
+
+	return exp(-alpha*(Z*Z/Ip)*F);
 }

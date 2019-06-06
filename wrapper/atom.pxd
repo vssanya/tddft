@@ -61,6 +61,15 @@ cdef extern from "atom.h":
     cdef cppclass HeAtom:
         HeAtom()
 
+    cdef cppclass HeAtomSGB:
+        HeAtomSGB()
+
+    cdef cppclass LiAtom:
+        LiAtom()
+
+    cdef cppclass LiAtomSGB:
+        LiAtomSGB()
+
     cdef cppclass NeAtom:
         NeAtom()
 

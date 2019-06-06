@@ -30,6 +30,8 @@ def spectral_density(dt, freq, Sw, Nmax=100, scale=1, **kwargs):
     plt.xlabel('Harmonic order')
     plt.ylabel('HHG spectrum (a.u.)')
 
+    return N
+
 def spectral_density_ev(dt, freq, Sw, Nmax=100, **kwargs):
     E = tdse.utils.unit_to(np.linspace(0, np.pi/dt, Sw.size), 'au', 'eV')
     Emax = tdse.utils.unit_to(Nmax*freq, 'au', 'eV')
@@ -39,3 +41,5 @@ def spectral_density_ev(dt, freq, Sw, Nmax=100, **kwargs):
 
     plt.xlabel('Photon energy (eV)')
     plt.ylabel('HHG spectrum (a.u.)')
+
+    return E

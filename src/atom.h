@@ -206,6 +206,21 @@ class NaAtomSGB: public AtomSGB<3, 2, Na_C, Na_B> {
 		NaAtomSGB(): AtomSGB(11, NaAtom::GroundStateOrbs, 2) {}
 };
 
+class LiAtom: public AtomCoulomb {
+	public:
+		static const std::vector<State> GroundStateOrbs;
+
+		LiAtom(): AtomCoulomb(3, GroundStateOrbs, 2) {}
+};
+
+extern const std::array<double, 2*3> Li_B;
+extern const std::array<double, 2*3> Li_C;
+
+class LiAtomSGB: public AtomSGB<3, 2, Li_C, Li_B> {
+	public:
+		LiAtomSGB(): AtomSGB(3, LiAtom::GroundStateOrbs, 2) {}
+};
+
 
 class HAtom: public AtomCoulomb {
 	public:
@@ -237,6 +252,15 @@ class HeAtom: public AtomCoulomb {
 		static const std::vector<State> GroundStateOrbs;
 		HeAtom(): AtomCoulomb(2, GroundStateOrbs, 0) {}
 };
+
+extern const std::array<double, 2*3> He_B;
+extern const std::array<double, 2*3> He_C;
+
+class HeAtomSGB: public AtomSGB<3, 2, He_C, He_B> {
+	public:
+		HeAtomSGB(): AtomSGB(2, HeAtom::GroundStateOrbs, 0) {}
+};
+
 
 class NeAtom: public AtomCoulomb {
 	public:

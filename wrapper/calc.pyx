@@ -118,6 +118,18 @@ def smstep(double x, double x0, double x1):
 def ionization_probability_ppt(int l, int m, double Cnl, double Ip, int Z, double E, double freq):
     return w_ppt(l, m, Cnl, Ip, Z, E, freq)
 
+@np.vectorize
+def ionization_probability_adk(int l, int m, double Cnl, double Ip, int Z, double E, double freq):
+    return w_adk(l, m, Cnl, Ip, Z, E, freq)
+
+@np.vectorize
+def ionization_probability_ppt_Qc(int l, int m, double Cnl, double Ip, int Z, double E, double freq):
+    return w_ppt_Qc(l, m, Cnl, Ip, Z, E, freq)
+
+@np.vectorize
+def ionization_probability_tl_exp(double Ip, int Z, double E, double alpha):
+    return w_tl_exp(Ip, Z, E, alpha)
+
 def int_ppt(double x, double m):
     return int_func_res(x, m)
 
@@ -133,3 +145,35 @@ def spectral_density(np.ndarray[double, ndim=1] az, double dt, np.ndarray[double
 
 def setGpuDevice(int id):
     return selectGpuDevice(id)
+
+def w_from_aw(double dt, Sw):
+    return np.linspace(0, np.pi/dt, Sw.size)
+
+def N_from_aw(double dt, double freq, Sw):
+    return w_from_aw(dt, Sw) / freq
+
+def search_hhg_argmin(double dt, double freq, Sw, interval=(0,1)):
+    dN = np.pi / dt / Sw.size / freq
+    start = int(interval[0] / dN)
+    end = int(interval[1] / dN)
+    return start + np.argmin(Sw[start:end])
+
+def j_interval(double dt, double freq, az, mask_width=0.1, intervals=((0,1),(1,2))):
+    cdef int i = 0
+
+    mask = np.ndarray(az.size, dtype=np.double)
+    for i in range(mask.size):
+        mask[i] = 1 - smstep(i, mask.size*(1.0-mask_width), mask.size-1)
+
+    aw = np.fft.rfft(az*mask)
+    
+    start = search_hhg_argmin(dt, freq, np.abs(aw), intervals[0])
+    end = search_hhg_argmin(dt, freq, np.abs(aw), intervals[1])
+
+    print(start)
+    print(end)
+    
+    aw[:start] = 0.0
+    aw[end:] = 0.0
+
+    return np.fft.irfft(aw) 

@@ -16,6 +16,36 @@ const std::vector<Atom::State> HeAtom::GroundStateOrbs = {
 	State("1s")
 }; 
 
+const std::vector<Atom::State> LiAtom::GroundStateOrbs = {
+	State("1s", 0, 1, -1),
+	State("1s", 0, 1,  1),
+	State("2s", 0, 1,  1),
+}; 
+
+const std::array<double, 2*3> He_B {{
+	6.28379042, 0.23817624,
+	3.60759648, 1.39690934,
+	3.64179068, 0.81080622,
+}};
+
+const std::array<double, 2*3> He_C {{
+	0.33740902, 0.66259098,
+	1.67240025, -1.15584925,
+	-1.10884184, -0.33200330
+}};
+
+const std::array<double, 2*3> Li_B {{
+	4.24222625, 0.28528662,
+	3.02021466, 2.10774534,
+	8.79311865, 1.03714279
+}};
+
+const std::array<double, 2*3> Li_C {{
+	0.27231840, 0.72768160,
+	0.80062418, -1.12966971,
+	-2.94600827, -0.84110551
+}};
+
 const std::vector<Atom::State> MgAtom::GroundStateOrbs = {
     State("1s"), State("2s"), State("3s"),
     State("2p"), State("2p", 1, 4)

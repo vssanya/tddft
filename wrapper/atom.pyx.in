@@ -155,5 +155,7 @@ cdef class Atom:
 
 Fm = Atom.from_c(<cAtom*> new FNegativeIon(), "F-")
 NaSae   = Atom.from_c(<cAtom*> new NaAtomSGB(), "Na_sae")
+HeSae   = Atom.from_c(<cAtom*> new HeAtomSGB(), "He_sae")
+LiSae   = Atom.from_c(<cAtom*> new LiAtomSGB(), "Li_sae")
 
 NONE = Atom.from_c(<cAtom*> new NoneAtom(), "None")
