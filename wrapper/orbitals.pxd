@@ -49,6 +49,7 @@ cdef extern from "orbitals.h":
         void n_l0(double* n, double* n_tmp)
 
         double cos(sh_f U)
+        double cos(double* U)
 
         void ort()
 

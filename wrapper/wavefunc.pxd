@@ -28,6 +28,8 @@ cdef extern from "sh_wavefunc.h":
         Wavefunc(cdouble* data, Grid& grid, int m)
         Wavefunc(Grid& grid, int m)
 
+        void init_p(double p, int l_max)
+
         double abs_2(int ir, int il)
         void copy(Wavefunc* wf_dest)
         cdouble operator*(Wavefunc& other)

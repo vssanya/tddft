@@ -242,6 +242,8 @@ class OrbitalsTask(TaskAtom):
     Workspace = tdse.workspace.ShOrbitalsWS
     Orbitals = tdse.orbitals.ShOrbitals
 
+    active_orbs = None
+
     def init_from_ground_state_task(self, gs_task):
         super().init_from_ground_state_task(gs_task)
 
@@ -276,7 +278,7 @@ class OrbitalsTask(TaskAtom):
         self.t = self.field.get_t(self.dt, dT=self.dT)
 
     def calc_prop(self, i, t):
-        self.ws.prop(self.orbs, self.field, t, self.dt)
+        self.ws.prop(self.orbs, self.field, t, self.dt, self.active_orbs)
 
     def write_calc_params(self, params_grp: h5py.Group):
         super().write_calc_params(params_grp)
@@ -412,7 +414,7 @@ class OrbitalsGroundStateTask(TaskAtom):
 
     Workspace = tdse.workspace.ShOrbitalsWS
     Orbitals = tdse.orbitals.ShOrbitals
-    
+
     FUNCS = {
         'GroundStateSearchFunc': tdse.ground_state.orbs
     }

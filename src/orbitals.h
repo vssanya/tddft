@@ -65,6 +65,13 @@ public:
     void n_l0(double* n, double* n_tmp) const;
 
     double cos(typename Wavefunc<Grid>::sh_f U) const;
+	double cos(double* U) const {
+		auto func = [&](int ir, int il, int m) -> double {
+			return U[ir];
+		};
+
+		return cos(func);
+	}
 
 	void collect(cdouble* dest, int Nl = -1) const;
 

@@ -107,6 +107,9 @@ cdef class {{Prefix}}Orbitals:
 
         return z
 
+    def cos(self, np.ndarray[double, ndim=1] U):
+        return self.cdata.cos(<double*>U.data)
+
     def collect(self, np.ndarray[complex_t, ndim=3] dest, int Nl = -1):
         cdef cdouble* res_ptr = NULL
         if self.is_root():

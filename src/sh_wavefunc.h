@@ -81,6 +81,22 @@ class Wavefunc {
 			return data[ir + il*grid.n[iR]];
 		}
 
+		void init_p(double p, int l_max=-1) {
+			if (l_max == -1) {
+				l_max = grid.n[iL];
+			}
+
+			const cdouble i = {0.0, 1.0};
+
+#pragma omp parallel for collapse(2)
+			for (int l=0; l<l_max; l++) {
+				for (int ir=0; ir<grid.n[iR]; ir++) {
+					double r = grid.r(ir);
+					(*this)(ir, l) = cpow(i, l)*sqrt(2/M_PI)*r*JlCache::calc(p*r, l);
+				}
+			}
+		}
+
 		inline cdouble d_dr(int ir, int il) const {
 			return (-(*this)(ir+2, il) + 8*(*this)(ir+1, il) - 8*(*this)(ir-1, il) + (*this)(ir-2, il))/(12*grid.d[iR]);
 		}

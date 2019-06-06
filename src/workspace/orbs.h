@@ -9,6 +9,7 @@
 #include "../array.h"
 
 #include <optional>
+#include <vector>
 
 
 namespace workspace
@@ -39,9 +40,9 @@ namespace workspace
 
 			virtual void init();
 
-            void prop_simple   (Orbitals<Grid>& OrbitalsWS, field_t const* field, double t, double dt, bool calc_uee);
-            void prop_two_point(Orbitals<Grid>& OrbitalsWS, field_t const* field, double t, double dt, bool calc_uee);
-            void prop          (Orbitals<Grid>& OrbitalsWS, field_t const* field, double t, double dt, bool calc_uee);
+            void prop_simple   (Orbitals<Grid>& OrbitalsWS, field_t const* field, double t, double dt, bool calc_uee, bool* activeOrbs = nullptr);
+            void prop_two_point(Orbitals<Grid>& OrbitalsWS, field_t const* field, double t, double dt, bool calc_uee, bool* activeOrbs = nullptr);
+            void prop          (Orbitals<Grid>& OrbitalsWS, field_t const* field, double t, double dt, bool calc_uee, bool* activeOrbs = nullptr);
 
             void prop_img(Orbitals<Grid>& OrbitalsWS, double dt);
 			void prop_ha(Orbitals<Grid>& OrbitalsWS, double dt);

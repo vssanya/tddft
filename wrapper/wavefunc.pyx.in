@@ -47,6 +47,9 @@ cdef class {{Prefix}}Wavefunc:
     def __init__(self, {{Prefix}}Grid grid, int m=0, dealloc=True):
         pass
 
+    def init_p(self, double p, int l_max=-1):
+        self.cdata.init_p(p, l_max)
+
     def copy(self):
         cdef {{Prefix}}Wavefunc wf_copy = {{Prefix}}Wavefunc(self.grid, m=self.cdata.m)
         self.cdata.copy(wf_copy.cdata)

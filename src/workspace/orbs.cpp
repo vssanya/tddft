@@ -144,7 +144,7 @@ void workspace::OrbitalsWS<Grid>::calc_Uee(
 }
 
 template<typename Grid>
-void workspace::OrbitalsWS<Grid>::prop_simple(Orbitals<Grid>& orbs, field_t const* field, double t, double dt, bool calc_uee) {
+void workspace::OrbitalsWS<Grid>::prop_simple(Orbitals<Grid>& orbs, field_t const* field, double t, double dt, bool calc_uee, bool* activeOrbs) {
 	double Et = field_E(field, t + dt/2);
 
 	if (calc_uee) {
@@ -166,7 +166,7 @@ void workspace::OrbitalsWS<Grid>::prop_simple(Orbitals<Grid>& orbs, field_t cons
 	};
 
 	for (int ie = 0; ie < orbs.atom.countOrbs; ++ie) {
-		if (orbs.wf[ie] != nullptr) {
+		if (orbs.wf[ie] != nullptr && (activeOrbs == nullptr || activeOrbs[ie])) {
 			wf_ws.prop_common(*orbs.wf[ie], dt, lmax, Ul);
 			wf_ws.prop_abs(*orbs.wf[ie], dt);
 		}
@@ -174,11 +174,11 @@ void workspace::OrbitalsWS<Grid>::prop_simple(Orbitals<Grid>& orbs, field_t cons
 }
 
 template<typename Grid>
-void workspace::OrbitalsWS<Grid>::prop_two_point(Orbitals<Grid>& orbs, field_t const* field, double t, double dt, bool calc_uee) {
+void workspace::OrbitalsWS<Grid>::prop_two_point(Orbitals<Grid>& orbs, field_t const* field, double t, double dt, bool calc_uee, bool* activeOrbs) {
 	if (calc_uee) {
 		// Calc orb(t+dt) and Uee(t)
 		orbs.copy(*tmpOrb);
-		prop_simple(*tmpOrb, field, t, dt, true);
+		prop_simple(*tmpOrb, field, t, dt, true, activeOrbs);
 
 		// Calc Uee(t+dt)
 		calc_Uee(*tmpOrb, Uxc_lmax, Uh_lmax, tmpUee);
@@ -197,11 +197,11 @@ void workspace::OrbitalsWS<Grid>::prop_two_point(Orbitals<Grid>& orbs, field_t c
 }
 
 template<typename Grid>
-void workspace::OrbitalsWS<Grid>::prop(Orbitals<Grid>& orbs, field_t const* field, double t, double dt, bool calc_uee) {
+void workspace::OrbitalsWS<Grid>::prop(Orbitals<Grid>& orbs, field_t const* field, double t, double dt, bool calc_uee, bool* activeOrbs) {
 	if (timeApproxUeeType == TimeApproxUeeType::SIMPLE) {
-		prop_simple(orbs, field, t, dt, calc_uee);
+		prop_simple(orbs, field, t, dt, calc_uee, activeOrbs);
 	} else {
-		prop_two_point(orbs, field, t, dt, calc_uee);
+		prop_two_point(orbs, field, t, dt, calc_uee, activeOrbs);
 	}
 }
 
