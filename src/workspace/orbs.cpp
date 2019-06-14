@@ -206,7 +206,7 @@ void workspace::OrbitalsWS<Grid>::prop(Orbitals<Grid>& orbs, field_t const* fiel
 }
 
 template<typename Grid>
-void workspace::OrbitalsWS<Grid>::prop_img(Orbitals<Grid>& orbs, double dt) {
+void workspace::OrbitalsWS<Grid>::prop_img(Orbitals<Grid>& orbs, double dt, bool activeOrbs[]) {
     auto lmax = std::max(std::max(1, Uxc_lmax), Uh_lmax);
     calc_Uee(orbs, Uxc_lmax, Uh_lmax);
 
@@ -224,7 +224,7 @@ void workspace::OrbitalsWS<Grid>::prop_img(Orbitals<Grid>& orbs, double dt) {
     };
 
     for (int ie = 0; ie < orbs.atom.countOrbs; ++ie) {
-        if (orbs.wf[ie] != nullptr) {
+        if (orbs.wf[ie] != nullptr && (activeOrbs == nullptr || activeOrbs[ie])) {
             wf_ws.prop_common(*orbs.wf[ie], -I*dt, lmax, Ul);
         }
     }

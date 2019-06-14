@@ -1,5 +1,6 @@
 from grid cimport cShGrid, cShNeGrid, ShGrid, ShNeGrid
 
+from libcpp cimport bool as bool_t
 from libcpp.vector cimport vector
 
 
@@ -30,6 +31,7 @@ cdef extern from "atom.h":
 
         int getNumberOrt(int ie)
         int getNumberShell()
+        void getActiveOrbs(int shell, bool_t* activeOrbs)
 
     cdef cppclass AtomCache[Grid]:
         AtomCache(cAtom& atom, Grid& grid)

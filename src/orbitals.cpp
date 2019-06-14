@@ -206,9 +206,9 @@ void Orbitals<Grid>::prod_ne(const Orbitals &orbs, cdouble *res) const {
 }
 
 template <typename Grid>
-void Orbitals<Grid>::normalize() {
+void Orbitals<Grid>::normalize(bool activeOrbs[]) {
 	for (int ie=0; ie<atom.countOrbs; ++ie) {
-		if (wf[ie] != nullptr) {
+		if (wf[ie] != nullptr && (activeOrbs == nullptr || activeOrbs[ie])) {
 			wf[ie]->normalize();
 		}
 	}

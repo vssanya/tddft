@@ -8,6 +8,7 @@ from wavefunc cimport Wavefunc
 from sphere_harmonics cimport cYlmCache
 
 from libcpp.functional cimport function
+from libcpp cimport bool as bool_t
 
 from mpi4py.MPI cimport Comm
 from mpi4py.libmpi cimport MPI_Comm
@@ -34,7 +35,7 @@ cdef extern from "orbitals.h":
         void norm_ne(double* n)
 
         void prod_ne(Orbitals& orbs, cdouble* res)
-        void normalize()
+        void normalize(bool_t* activeOrbs)
 
         double z()
         double z(sh_f mask)

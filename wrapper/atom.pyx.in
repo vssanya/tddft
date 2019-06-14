@@ -131,6 +131,16 @@ cdef class Atom:
     def getNumberOrt(self, int i):
         return self.cdata.getNumberOrt(i)
 
+    def getActiveOrbs(self, int shell, np.ndarray[np.uint8_t, ndim=1] active_orbs = None):
+        cdef bool_t* active_orbs_ptr = NULL
+        if active_orbs is None:
+            active_orbs = np.ndarray(self.cdata.countOrbs, np.uint8)
+
+        active_orbs_ptr = <bool_t*>active_orbs.data
+        self.cdata.getActiveOrbs(shell, active_orbs_ptr)
+
+        return active_orbs
+
     @property
     def countShells(self):
         return self.cdata.getNumberShell()

@@ -101,15 +101,29 @@ def orbs_step_shells(atom, grid, ws, dt, Nt, orbitals_class, atom_cache_class, p
     for shell in range(atom.countShells):
         orbs.init_shell(shell)
 
+        active_orbs = atom.getActiveOrbs(shell)
+
+        Esum = 0.0
+        Esum_last = 0.0
+
         for i in range(Nt):
             if print_calc_info and i % (Nt // 100) == 0:
-                print("i = ", i//100)
                 n = np.sqrt(orbs.norm_ne())
-                print(2/dt*(1-n)/(1+n))
+                E = 2/dt*(1-n)/(1+n)
+
+                Esum_last = Esum
+                Esum = np.sum(E[active_orbs])
+
+                print("i = ", i//100)
+                print(E)
+                print("E_sum = {}".format(Esum))
+
+                if np.abs(Esum - Esum_last) < 1e-6:
+                    break
 
             orbs.ort()
-            orbs.normalize()
-            ws.prop_img(orbs, dt)
+            orbs.normalize(active_orbs)
+            ws.prop_img(orbs, dt, active_orbs)
 
     n = np.sqrt(orbs.norm_ne())
     E = 2/dt*(1-n)/(1+n)

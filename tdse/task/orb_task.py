@@ -278,7 +278,7 @@ class OrbitalsTask(TaskAtom):
         self.t = self.field.get_t(self.dt, dT=self.dT)
 
     def calc_prop(self, i, t):
-        self.ws.prop(self.orbs, self.field, t, self.dt, self.active_orbs)
+        self.ws.prop(self.orbs, self.field, t, self.dt, active_orbs = self.active_orbs)
 
     def write_calc_params(self, params_grp: h5py.Group):
         super().write_calc_params(params_grp)

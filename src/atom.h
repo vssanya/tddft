@@ -92,6 +92,12 @@ class Atom {
 					})->shell + 1;
 		}
 
+		void getActiveOrbs(int shell, bool activeOrbs[]) const {
+			for (int i=0; i<countOrbs; i++) {
+				activeOrbs[i] = orbs[i].shell <= shell;
+			}
+		}
+
         int getNumberOrt(int ie) const {
 			if (ie == countOrbs) {
 				return 1;
