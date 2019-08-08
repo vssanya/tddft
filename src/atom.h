@@ -274,9 +274,35 @@ class NeAtom: public AtomCoulomb {
 		NeAtom(): AtomCoulomb(10, GroundStateOrbs, 2) {}
 };
 
+extern const std::array<double, 2*3> Ne_B;
+extern const std::array<double, 2*3> Ne_C;
+
+class NeAtomSGB: public AtomSGB<3, 2, Ne_C, Ne_B> {
+	public:
+		NeAtomSGB(): AtomSGB(10, NeAtom::GroundStateOrbs, 2) {}
+};
+
 class FNegativeIon: public AtomCoulomb {
 	public:
 		FNegativeIon(): AtomCoulomb(9, NeAtom::GroundStateOrbs, 2) {}
+};
+
+class FNegativeSaeIon: public Atom {
+	public:
+		static constexpr double a1 = 5.137;
+		static constexpr double a2 = 3.863;
+		static constexpr double alpha1 = 1.288;
+		static constexpr double alpha2 = 3.545;
+
+		FNegativeSaeIon(): Atom(9, NeAtom::GroundStateOrbs, 2, POTENTIAL_COULOMB) {}
+
+        double u(double r) const {
+			return - (a1*exp(-alpha1*r) + a2*exp(-alpha2*r))/r;
+		}
+
+        double dudz(double r) const {
+			return (alpha1*a1*exp(-alpha1*r) + alpha2*a2*exp(-alpha2*r))/r - u(r)/r;
+		}
 };
 
 class ArAtom: public AtomCoulomb {
@@ -341,4 +367,23 @@ public:
 
     double u(double r) const { return 0.0; }
     double dudz(double r) const { return 0.0; }
+};
+
+
+class ShortAtom: public Atom {
+	double c;
+	double n;
+
+	public:
+		ShortAtom(double c, double n): Atom(0, {}, State("1s"), POTENTIAL_SMOOTH), c(c), n(n) {}
+
+		double u(double r) const {
+			//return - c * 0.5 * n / sqrt(M_PI) * exp(-pow(n*r, 2));
+			return - c / pow(cosh(n*r), 2);
+		}
+
+		double dudz(double r) const {
+			//return  -2*n*n*r*u(r);
+			return -2*n*tanh(n*r)*u(r);
+		}
 };

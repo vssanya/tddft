@@ -69,17 +69,15 @@ cdef class State:
         obj.cdata = state
         return obj
 
+{{for field in ["l", "m", "n"]}}
     @property
-    def l(self):
-        return self.cdata.l
+    def {{field}}(self):
+        return self.cdata.{{field}}
 
-    @property
-    def m(self):
-        return self.cdata.m
-
-    @property
-    def n(self):
-        return self.cdata.n
+    @{{field}}.setter
+    def {{field}}(self, value):
+        self.cdata.{{field}} = value
+{{endfor}}
 
     @property
     def countElectrons(self):
@@ -164,8 +162,13 @@ cdef class Atom:
 {{endfor}}
 
 Fm = Atom.from_c(<cAtom*> new FNegativeIon(), "F-")
+FmSae = Atom.from_c(<cAtom*> new FNegativeSaeIon(), "F-_sae")
 NaSae   = Atom.from_c(<cAtom*> new NaAtomSGB(), "Na_sae")
 HeSae   = Atom.from_c(<cAtom*> new HeAtomSGB(), "He_sae")
+NeSae   = Atom.from_c(<cAtom*> new NeAtomSGB(), "Ne_sae")
 LiSae   = Atom.from_c(<cAtom*> new LiAtomSGB(), "Li_sae")
 
 NONE = Atom.from_c(<cAtom*> new NoneAtom(), "None")
+
+def getShortAtom(double c, double n):
+    return Atom.from_c(<cAtom*> new ShortAtom(c, n), "ShortAtom_c{}_n{}".format(c, n))

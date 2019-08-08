@@ -6,7 +6,7 @@ import h5py
 
 from mpi4py import MPI
 
-from ..bot_client import BotClient
+#from ..bot_client import BotClient
 
 import tdse
 from tdse.ui.progressbar import ProgressBar
@@ -132,7 +132,8 @@ class Task(object):
         if mode is Task.MODE_ANALISIS:
             self.send_status = False
         if self.is_slurm and self.send_status and self.is_root():
-            self.bot_client = BotClient()
+            #self.bot_client = BotClient()
+            self.bot_client = None
         else:
             self.bot_client = None
 

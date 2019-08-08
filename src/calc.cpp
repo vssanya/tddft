@@ -167,6 +167,51 @@ double calc_orbs_jrcd(
 	return res*dt;
 }
 
+double calc_local_r_max(int N, double const E[], double dt, double r_atom) {
+	double r0 = 0.0;
+    double v0 = 0.0;
+
+    auto exit = false;
+
+    double r_max = 0.0;
+
+    for (int t=0; t<N-1; t++) {
+        double v1 = v0 + 0.5*(E[t+1]+E[t])*dt;
+        double r1 = r0 + 0.5*(v1 + v0)*dt;
+
+        if (!exit && abs(r1) > r_atom) {
+            exit = true;
+		}
+
+        if (exit && r_max < abs(r1)) {
+            r_max = abs(r1);
+		}
+
+        if (exit && abs(r1) < r_atom) {
+            return r_max;
+		}
+
+        v0 = v1;
+        r0 = r1;
+	}
+    
+    return 0.0;
+}
+
+double calc_r_max(int N, double const E[], double dt, double r_atom) {
+	double r_max_global = 0.0;
+
+#pragma omp parallel for reduction(max:r_max_global)
+	for (int ti=0; ti<N; ti++) {
+        double r_max = calc_local_r_max(N-ti, &E[ti], dt, r_atom);
+        if (r_max_global < r_max) {
+            r_max_global = r_max;
+		}
+	}
+
+    return r_max_global;
+}
+
 template double calc_wf_az_with_polarization<ShGrid>(Wavefunc<ShGrid> const* wf, AtomCache<ShGrid> const& atom_cache, double const Upol[], double const dUpol_dr[], field_t const* field, double t);
 template double calc_wf_az_with_polarization<ShNotEqudistantGrid>(Wavefunc<ShNotEqudistantGrid> const* wf, AtomCache<ShNotEqudistantGrid> const& atom_cache, double const Upol[], double const dUpol_dr[], field_t const* field, double t);
 

@@ -177,3 +177,8 @@ def j_interval(double dt, double freq, az, mask_width=0.1, intervals=((0,1),(1,2
     aw[end:] = 0.0
 
     return np.fft.irfft(aw) 
+
+def calc_field_return_rmax(Field field, double dt, double r_atom = 1.0):
+    cdef np.ndarray[double, ndim=1] t = field.get_t(dt)
+    cdef np.ndarray[double, ndim=1] E = field.E(t)
+    return calc_r_max(E.size, &E[0], dt, r_atom)

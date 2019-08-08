@@ -155,7 +155,7 @@ cdef class SumField(OpField):
 cdef class TwoColorBaseField(Field):
     def __cinit__(self, double E0=5.34e-2 , double alpha=0.1,
             double freq=5.6e-2, double phase=0.0,
-            double t_fwhm=2*3.14/5.6e-2, double t0=0.0):
+            double t_fwhm=2*3.14/5.6e-2, double t0=0.0, tp=None):
         self.cfield.E0 = E0
         self.cfield.alpha = alpha
         self.cfield.freq = freq
@@ -227,16 +227,18 @@ cdef class TwoColorGaussAField(TwoColorBaseField):
         return np.arange(t0, t0+dur+dT, dt)
 
 cdef class TwoColorSinField(TwoColorBaseField):
-    def __cinit__(self, double E0=5.34e-2 , double alpha=0.1,
-            double freq=5.6e-2, double phase=0.0,
-            double t_fwhm=2*3.14/5.6e-2, double t0=0.0):
-        self.cfield.tp = t_fwhm/(1.0 - 2.0*np.arcsin(0.5**(1.0/4.0))/np.pi)
+    def __cinit__(self, double E0=5.34e-2 , double alpha=0.1, double freq=5.6e-2,
+            double phase=0.0, double t_fwhm=2*3.14/5.6e-2, double t0=0.0, tp = None):
+        if tp is not None:
+            self.cfield.tp = tp
+        else:
+            self.cfield.tp = t_fwhm/(1.0 - 2.0*np.arcsin(0.5**(1.0/4.0))/np.pi)
+
         self.cfield.fA = <field_func_t>field_func_zero
         self.cfield.fE = <field_func_t>two_color_sin_field_E
 
-    def __init__(self, double E0=5.34e-2 , double alpha=0.1,
-            double freq=5.6e-2, double phase=0.0,
-            double t_fwhm=2*3.14/5.6e-2, double t0=0.0):
+    def __init__(self, double E0=5.34e-2 , double alpha=0.1, double freq=5.6e-2,
+            double phase=0.0, double t_fwhm=2*3.14/5.6e-2, double t0=0.0, double tp = 0.0):
         pass
 
     def get_t(self, double dt, int dT=0):
@@ -271,6 +273,18 @@ cdef class SinEnvField(Field):
         self.cfield.tp = t_fwhm/(1.0 - 2.0*np.arcsin(0.5**(1.0/4.0))/np.pi)
         self.cfield.fA = <field_func_t>field_sin_env_A
         self.cfield.fE = <field_func_t>field_sin_env_E
+        self.cfield.pT = <field_prop_t>field_sin_env_T
+
+        self.cdata = <field_t*>(&self.cfield)
+
+    def _repr_latex_A_(self):
+        return r"\sin(\frac{\pi t}{t_p})^2"
+
+cdef class SinEnvTpField(Field):
+    def __init__(self, double tp):
+        self.cfield.tp = tp
+        self.cfield.fA = <field_func_t>field_sin_env_A
+        self.cfield.fE = <field_func_t>field_func_zero
         self.cfield.pT = <field_prop_t>field_sin_env_T
 
         self.cdata = <field_t*>(&self.cfield)

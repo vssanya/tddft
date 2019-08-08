@@ -95,3 +95,5 @@ double calc_orbs_jrcd(
 		double dt,
 		double t_smooth
 );
+
+double calc_r_max(int N, double const E[], double dt, double r_atom);

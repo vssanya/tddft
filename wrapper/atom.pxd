@@ -45,11 +45,17 @@ cdef extern from "atom.h":
         double* data_u;
         double* data_dudz;
 
+    cdef cppclass ShortAtom:
+        ShortAtom(double c, double n)
+
     cdef cppclass MgAtom:
         MgAtom()
 
     cdef cppclass NaAtom:
         NaAtom()
+
+    cdef cppclass NeAtomSGB:
+        NeAtomSGB()
 
     cdef cppclass NaAtomSGB:
         NaAtomSGB()
@@ -77,6 +83,9 @@ cdef extern from "atom.h":
 
     cdef cppclass FNegativeIon:
         FNegativeIon()
+
+    cdef cppclass FNegativeSaeIon:
+        FNegativeSaeIon()
 
     cdef cppclass ArAtom:
         ArAtom()

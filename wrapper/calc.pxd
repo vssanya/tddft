@@ -25,6 +25,8 @@ cdef extern from "calc.h":
     double calc_orbs_az[Grid](Orbitals[Grid]& orbs, AtomCache[Grid]& atom, field_t* field, double t)
     void calc_orbs_az_ne[Grid](Orbitals[Grid]* orbs, AtomCache[Grid]& atom, field_t* field, double t, double* az)
 
+    double calc_r_max(int N, double* E, double dt, double r_atom)
+
 cdef extern from "utils.h":
     double smoothstep(double x, double x0, double x1)
     void selectGpuDevice(int id)

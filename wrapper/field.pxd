@@ -166,6 +166,9 @@ cdef class GaussEnvField(Field):
 cdef class SinEnvField(Field):
     cdef field_sin_env_t cfield
 
+cdef class SinEnvTpField(Field):
+    cdef field_sin_env_t cfield
+
 cdef class TrEnvField(Field):
     cdef field_tr_env_t cfield
 
