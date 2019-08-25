@@ -43,3 +43,6 @@ def spectral_density_ev(dt, freq, Sw, Nmax=100, **kwargs):
     plt.ylabel('HHG spectrum (a.u.)')
 
     return E
+
+def I_label(value, power):
+    return r"$I = {0} \times 10^{{ {1} }}$ W/cm$^2$".format(value, power)

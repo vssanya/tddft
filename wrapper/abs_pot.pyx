@@ -153,3 +153,9 @@ cdef class UabsZero(Uabs):
 
     def write_params(self, params_grp):
         params_grp.attrs['type'] = "Zero"
+
+def UabsZeroCache(grid):
+    if type(grid) is ShGrid:
+        return UabsCache(UabsZero(), grid)
+    else:
+        return UabsNeCache(UabsZero(), grid)

@@ -63,6 +63,13 @@ cdef class {{Prefix}}AtomCache:
 {{endfor}}
 
 cdef class State:
+    def __cinit__(self, const unsigned char[:] state=b"1s", int m=0, int countElectrons=0, int s=0):
+        self.cdata = cAtom.cState(<char*>&state[0], m, countElectrons, s)
+        pass
+
+    def __init__(self, const unsigned char[:] state=b"1s", int m=0, int countElectrons=0, int s=0):
+        pass
+
     @staticmethod
     cdef State from_c(cAtom.cState state):
         obj = <State>State.__new__(State)
@@ -163,10 +170,10 @@ cdef class Atom:
 
 Fm = Atom.from_c(<cAtom*> new FNegativeIon(), "F-")
 FmSae = Atom.from_c(<cAtom*> new FNegativeSaeIon(), "F-_sae")
-NaSae   = Atom.from_c(<cAtom*> new NaAtomSGB(), "Na_sae")
-HeSae   = Atom.from_c(<cAtom*> new HeAtomSGB(), "He_sae")
-NeSae   = Atom.from_c(<cAtom*> new NeAtomSGB(), "Ne_sae")
-LiSae   = Atom.from_c(<cAtom*> new LiAtomSGB(), "Li_sae")
+
+{{for atom in ['Na', 'He', 'Ne', 'Li', 'Rb']}}
+{{atom}}Sae   = Atom.from_c(<cAtom*> new {{atom}}AtomSGB(), "{{atom}}_sae")
+{{endfor}}
 
 NONE = Atom.from_c(<cAtom*> new NoneAtom(), "None")
 

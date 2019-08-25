@@ -98,7 +98,7 @@ class WavefuncWithSourceTask(TaskAtom):
 
     def calc_ground_state(self, ws=None):
         if ws is None:
-            ws = tdse.workspace.ShWavefuncWS(self.atom_cache, self.grid_source, tdse.abs_pot.UabsCache(tdse.abs_pot.UabsZero(), self.grid_source))
+            ws = tdse.workspace.ShWavefuncWS(self.atom_cache, self.grid_source, tdse.abs_pot.UabsZeroCache(self.grid_source))
 
         return tdse.ground_state.wf(self.atom, self.grid_source, ws, self.dt, 10000)
 
@@ -109,6 +109,7 @@ class WavefuncTask(TaskAtom):
     """
     """
     is_calc_ground_state = True
+    ground_state = None
 
     Workspace = tdse.workspace.ShWavefuncWS
     Wavefunc = tdse.wavefunc.ShWavefunc
@@ -137,7 +138,7 @@ class WavefuncTask(TaskAtom):
 
         if self.is_calc_ground_state:
             print("Start calc ground state")
-            self.wf = self.calc_ground_state(self.ws)
+            self.wf, self.Ip = self.calc_ground_state(self.ws)
         else:
             self.wf = self.Wavefunc(self.sh_grid)
 
@@ -145,9 +146,9 @@ class WavefuncTask(TaskAtom):
 
     def calc_ground_state(self, ws=None):
         if ws is None:
-            ws = self.create_workspace(tdse.abs_pot.UabsZero())
+            ws = self.create_workspace(tdse.abs_pot.UabsZeroCache(self.sh_grid))
 
-        return tdse.ground_state.wf(self.atom, self.sh_grid, ws, self.dt, 10000, self.Wavefunc)[0]
+        return tdse.ground_state.wf(self.atom, self.sh_grid, ws, self.dt, 10000, self.Wavefunc, ground_state = self.ground_state)
 
     def calc_prop(self, i, t):
         self.ws.prop(self.wf, self.field, t, self.dt)
@@ -180,7 +181,7 @@ class WfGpuTask(WavefuncTask):
 
     def calc_ground_state(self, ws=None):
         ws = super().create_workspace()
-        self.wf_gs = tdse.ground_state.wf(self.atom, self.sh_grid, ws, self.dt, 10000)[0]
+        self.wf_gs = tdse.ground_state.wf(self.atom, self.sh_grid, ws, self.dt, 10000)
 
         return tdse.wavefunc_gpu.ShWavefuncGPU(self.wf_gs)
 

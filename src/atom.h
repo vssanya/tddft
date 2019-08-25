@@ -206,10 +206,23 @@ class NaAtom: public AtomCoulomb {
 
 extern const std::array<double, 2*3> Na_B;
 extern const std::array<double, 2*3> Na_C;
-
 class NaAtomSGB: public AtomSGB<3, 2, Na_C, Na_B> {
 	public:
 		NaAtomSGB(): AtomSGB(11, NaAtom::GroundStateOrbs, 2) {}
+};
+
+class RbAtom: public AtomCoulomb {
+	public:
+		static const std::vector<State> GroundStateOrbs;
+
+		RbAtom(): AtomCoulomb(37, GroundStateOrbs, 4) {}
+};
+
+extern const std::array<double, 2*5> Rb_B;
+extern const std::array<double, 2*5> Rb_C;
+class RbAtomSGB: public AtomSGB<5, 2, Rb_C, Rb_B> {
+	public:
+		RbAtomSGB(): AtomSGB(37, RbAtom::GroundStateOrbs, 4) {}
 };
 
 class LiAtom: public AtomCoulomb {

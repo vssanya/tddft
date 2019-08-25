@@ -17,6 +17,9 @@ cdef extern from "atom.h":
             int s
             int countElectrons
 
+            cState(char* id, int m, int countElectrons, int s)
+            cState()
+
         int Z
         vector[cState] orbs
         int countOrbs
@@ -59,6 +62,9 @@ cdef extern from "atom.h":
 
     cdef cppclass NaAtomSGB:
         NaAtomSGB()
+
+    cdef cppclass RbAtomSGB:
+        RbAtomSGB()
 
     cdef cppclass HAtom:
         HAtom()

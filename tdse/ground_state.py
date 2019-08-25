@@ -42,10 +42,13 @@ def wf_n(atom, grid, ws, dt, Nt, wf_class = wavefunc.ShWavefunc):
 
     return wfs[-1], E
 
-def wf(atom, grid, ws, dt, Nt, wf_class = wavefunc.ShWavefunc):
-    l = atom.ground_state.l
-    m = atom.ground_state.m
-    n = atom.ground_state.n + 1
+def wf(atom, grid, ws, dt, Nt, wf_class = wavefunc.ShWavefunc, ground_state = None):
+    if ground_state is None:
+        ground_state = atom.ground_state
+
+    l = ground_state.l
+    m = ground_state.m
+    n = ground_state.n + 1
 
     small_grid = grid.createGridWith(l+1)
 
