@@ -145,13 +145,13 @@ class Wavefunc {
 		double cos(sh_f func) const {
 			return 2*integrate<double>([this, func](int ir, int il) -> double {
 					return clm(il, m)*creal((*this)(ir, il)*conj((*this)(ir, il+1)))*func(ir, il, m);
-					}, grid.n[iL]-1);
+					}, grid.n[iL]-1, std::abs(m));
 		}
 
 		cdouble cos(sh_f func, Wavefunc const& other, int l_max=-1) const {
 			return integrate<cdouble>([this, func, &other](int ir, int il) -> cdouble {
 					return clm(il, m)*((*this)(ir, il)*conj(other(ir, il+1)) + (*this)(ir, il+1)*conj(other(ir, il)))*func(ir, il, m);
-					}, l_max);
+					}, l_max, std::abs(m));
 		}
 
 		// <psi|U(r)cos^2(\theta)|psi>
