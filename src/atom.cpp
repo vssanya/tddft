@@ -58,6 +58,18 @@ const std::array<double, 2*3> Ne_C {{
 	-1.12569309, 1.29942636
 }};
 
+const std::array<double, 2*3> Ar_B {{
+	1.69045518, 2.48113492,
+	83.81780982, 0.57781500,
+	14.79181994, 1.83863745
+}};
+
+const std::array<double, 2*3> Ar_C {{
+	-0.14865117, 1.14865117,
+	-2.01010923, -0.01998004,
+	-20.01846287, 0.53596000
+}};
+
 const std::vector<Atom::State> MgAtom::GroundStateOrbs = {
     State("1s"), State("2s"), State("3s"),
     State("2p"), State("2p", 1, 4)

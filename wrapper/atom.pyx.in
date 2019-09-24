@@ -175,6 +175,8 @@ FmSae = Atom.from_c(<cAtom*> new FNegativeSaeIon(), "F-_sae")
 {{atom}}Sae   = Atom.from_c(<cAtom*> new {{atom}}AtomSGB(), "{{atom}}_sae")
 {{endfor}}
 
+ArSaeSGB = Atom.from_c(<cAtom*> new ArAtomSGB(), "ArSaeSGB")
+
 NONE = Atom.from_c(<cAtom*> new NoneAtom(), "None")
 
 def getShortAtom(double c, double n):

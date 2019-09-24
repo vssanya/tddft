@@ -360,9 +360,7 @@ double ux_lda_func(double n) {
 double uxc_lb(double n, double x) {
 	double const betta = 0.05;
 	double const ksi = pow(2, 1.0/3.0);
-	if (n < 1e-20) {
-		return ux_lda_func(n) + uc_lda_func(n);
-	}
+
 	x *= ksi;
 	return ux_lda_func(n) + uc_lda_func(n) - betta*x*x*pow(n, 1.0/3.0)/ksi/(1.0 + 3.0*betta*x*log(x + sqrt(x*x + 1.0)));
 	//return ux_lda_func(n) + uc_lda_func(n) - betta*x*x/(pow(n, 7.0/3.0) + 3.0*betta*x*n*(log(x + sqrt(x*x + pow(n, 8.0/3.0))) - 4.0*log(n)/3.0));

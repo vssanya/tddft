@@ -61,15 +61,18 @@ def uc_lda(double n):
     return uc_lda_func(n)
 
 
-def potential(Orbs orbs, int l = 0, np.ndarray uh = None, int order=3) -> np.ndarray:
+def potential(Orbs orbs, int l = 0, np.ndarray uh = None, np.ndarray uh_local = None, int order=3) -> np.ndarray:
     if uh is None:
-        uh = np.ndarray((orbs.cdata.wf[0].grid.n[0]), np.double)
+        uh = np.ndarray((orbs.cdata.grid.n[0]), np.double)
 
-    cdef np.ndarray[np.double_t, ndim=1] f = np.ndarray((orbs.cdata.wf[0].grid.n[0]), np.double)
+    if uh_local is None:
+        uh_local = np.ndarray((orbs.cdata.grid.n[0]), np.double)
+
+    cdef np.ndarray[np.double_t, ndim=1] f = np.ndarray((orbs.cdata.grid.n[0]), np.double)
     if Orbs is ShOrbitals:
-        HartreePotential[cShGrid].calc(orbs.cdata, l, <double*>uh.data, <double*>uh.data, &f[0], order)
+        HartreePotential[cShGrid].calc(orbs.cdata, l, <double*>uh.data, <double*>uh_local.data, &f[0], order)
     elif Orbs is ShNeOrbitals:
-        HartreePotential[cShNeGrid].calc(orbs.cdata, l, <double*>uh.data, <double*>uh.data, &f[0], order)
+        HartreePotential[cShNeGrid].calc(orbs.cdata, l, <double*>uh.data, <double*>uh_local.data, &f[0], order)
 
     return uh
 

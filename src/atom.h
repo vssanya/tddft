@@ -374,6 +374,15 @@ public:
 };
 
 
+extern const std::array<double, 2*3> Ar_B;
+extern const std::array<double, 2*3> Ar_C;
+
+class ArAtomSGB: public AtomSGB<3, 2, Ar_C, Ar_B> {
+	public:
+		ArAtomSGB(): AtomSGB(10, ArAtom::GroundStateOrbs, 2) {}
+};
+
+
 class NoneAtom: public Atom {
 public:
     NoneAtom(): Atom(0, {}, State("1s"), POTENTIAL_SMOOTH) {}

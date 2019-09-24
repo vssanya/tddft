@@ -60,6 +60,9 @@ cdef extern from "atom.h":
     cdef cppclass NeAtomSGB:
         NeAtomSGB()
 
+    cdef cppclass ArAtomSGB:
+        ArAtomSGB()
+
     cdef cppclass NaAtomSGB:
         NaAtomSGB()
 
