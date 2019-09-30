@@ -55,7 +55,7 @@ cdef class SpGrid2d:
         pass
 
     def __dealloc__(self):
-        del self.cdata
+        del self.data
 
 cdef class ShGrid:
     def __cinit__(self, int Nr, int Nl, double r_max):

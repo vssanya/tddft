@@ -36,3 +36,4 @@ double* CoreMask<Grid>::getGPUData() {
 
 template class CoreMask<ShGrid>;
 template class CoreMask<ShNotEqudistantGrid>;
+template class CoreMask<SpGrid2d>;

@@ -107,8 +107,8 @@ double y3(int l1, int m1, int l2, int m2, int L, int M);
 #include "integrate.h"
 template <typename T>
 T sh_series_r(std::function<T(int, int)> f, int ir, int l, int m, SpGrid2d const& grid, YlmCache const* ylm_cache) {
-	return integrate_1d_cpp<T>([f, ir, ylm_cache, l, m](int ic) -> T {
-            return f(ir, ic)*(*ylm_cache)(l, m, ic);
+	return integrate_1d_cpp<T>([f, ir, ylm_cache, l, m, grid](int ic) -> T {
+            return f(ir, ic)*(*ylm_cache)(l, m, ic)*std::sin(grid.theta(ic));
 			}, grid.n[iC], grid.d[iC])*2*M_PI;
 }
 

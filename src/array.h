@@ -24,6 +24,8 @@ class Array {
 
 		Array(Grid const& grid): Array(nullptr, grid) {}
 
+		Array(Array<T, Grid, Index...> const& arr): Array(arr.data, arr.grid) {}
+
 		~Array() {
 			if (is_own && data != nullptr) {
 				delete[] data;

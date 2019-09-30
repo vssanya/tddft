@@ -379,7 +379,7 @@ extern const std::array<double, 2*3> Ar_C;
 
 class ArAtomSGB: public AtomSGB<3, 2, Ar_C, Ar_B> {
 	public:
-		ArAtomSGB(): AtomSGB(10, ArAtom::GroundStateOrbs, 2) {}
+		ArAtomSGB(): AtomSGB(18, ArAtom::GroundStateOrbs, 2) {}
 };
 
 
