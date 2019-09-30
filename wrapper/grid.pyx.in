@@ -49,7 +49,7 @@ cdef class CtGrid:
 
 cdef class SpGrid2d:
     def __cinit__(self, int Nr, int Nc, double Rmax):
-        self.cdata = new cSpGrid2d([Nr, Nc], Rmax)
+        self.data = new cSpGrid2d([Nr, Nc], Rmax)
 
     def __init__(self, int Nr, int Nc, double Rmax):
         pass

@@ -1,5 +1,6 @@
 from integrate cimport func_2d_t
-from grid cimport cSpGrid
+from grid cimport cSpGrid2d, cSpGrid
+from array cimport ArraySp2D
 
 cdef extern from "sphere_harmonics.h":
     cdef cppclass cJlCache "JlCache":
@@ -22,7 +23,7 @@ cdef extern from "sphere_harmonics.h":
     double clebsch_gordan_coef(int j1, int m1, int j2, int m2, int J, int M)
     double y3(int l1, int m1, int l2, int m2, int L, int M)
 
-    void sh_series(func_2d_t func, int l, int m, cSpGrid* grid, double* series, cYlmCache* ylm_cache);
+    void sh_series[T](ArraySp2D[T]* arr, int l, int m, T* series, cYlmCache* ylm_cache);
 
 cdef class YlmCache:
     cdef cYlmCache* cdata

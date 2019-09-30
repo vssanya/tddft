@@ -1,18 +1,18 @@
 import tdse.utils
-from grid cimport ShGrid, ShNeGrid
+from grid cimport ShGrid, ShNeGrid, SpGrid2d
 
 if tdse.utils.is_jupyter_notebook():
     import matplotlib.pyplot as plt
     import numpy as np
     from IPython.core.pylabtools import print_figure
 
-{{for Prefix in ["Sh", "ShNe"]}}
+{{for Prefix, Grid in [("Sh", "ShGrid"), ("ShNe", "ShNeGrid"), ("Sp", "SpGrid2d")]}}
 cdef class {{Prefix}}CoreMask:
-    def __cinit__(self, {{Prefix}}Grid grid, double r_core, double dr):
-        self.cdata = new CoreMask[c{{Prefix}}Grid](grid.data, r_core, dr)
+    def __cinit__(self, {{Grid}} grid, double r_core, double dr):
+        self.cdata = new CoreMask[c{{Grid}}](grid.data, r_core, dr)
         self.grid = grid
 
-    def __init__(self, {{Prefix}}Grid grid, double r_core, double dr):
+    def __init__(self, {{Grid}} grid, double r_core, double dr):
         pass
 
     def __dealloc__(self):

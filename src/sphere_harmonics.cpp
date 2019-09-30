@@ -8,9 +8,7 @@
 #include <gsl/gsl_sf_legendre.h>
 #include <gsl/gsl_sf_bessel.h>
 
-#include "integrate.h"
 #include <stdio.h>
-
 
 JlCache::JlCache(SpGrid const* grid, int l_max):
 	l_max(l_max),
@@ -89,25 +87,6 @@ double YlmCache::operator()(int l, int m, double c) const {
 		return (*this)(l, m, ic);
 	} else {
 		return (*this)(l, m, ic)*(1.0 - x) + (*this)(l, m, ic+1)*x;
-	}
-}
-
-double sh_series_r(std::function<double(int, int)> f, int ir, int l, int m, SpGrid const* grid, YlmCache const* ylm_cache) {
-	return integrate_1d_cpp<double>([f, ir, ylm_cache, l, m](int ic) -> double {
-            return f(ir, ic)*(*ylm_cache)(l, m, ic);
-			}, grid->n[iC], grid->d[iC])*2*M_PI;
-}
-
-void sh_series(
-		std::function<double(int, int)> f,
-		int l, int m, SpGrid const* grid,
-		double* series, YlmCache const* ylm_cache,
-		std::optional<Range> rRange) {
-	auto range = rRange.value_or(grid->getFullRange(iR));
-
-#pragma omp parallel for
-	for (int ir = range.start; ir < range.end; ++ir) {
-		series[ir] = sh_series_r(f, ir, l, m, grid, ylm_cache);
 	}
 }
 

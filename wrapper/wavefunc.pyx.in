@@ -8,10 +8,10 @@ if tdse.utils.is_jupyter_notebook():
 
 from types cimport complex_t
 from abs_pot cimport mask_core
-from grid cimport ShGrid, SpGrid, ShNeGrid, ShNeGrid3D
+from grid cimport ShGrid, SpGrid, SpGrid2d, ShNeGrid, ShNeGrid3D
 from sphere_harmonics cimport YlmCache
 
-from masks cimport ShCoreMask, ShNeCoreMask
+from masks cimport ShCoreMask, ShNeCoreMask, SpCoreMask
 
 from libc.stdlib cimport malloc, free
 
@@ -19,7 +19,7 @@ from libc.stdlib cimport malloc, free
 cdef class CtWavefunc:
     def __cinit__(self, SpGrid2d grid):
         self.grid = grid
-        self.cdata = new cCtWavefunc(<cGrid2d*> grid.cdata)
+        self.cdata = new cCtWavefunc(<cGrid2d*> grid.data)
 
     def __init__(self, SpGrid2d grid):
         pass
@@ -32,9 +32,9 @@ cdef class CtWavefunc:
         return self.cdata.norm()
 
 
-{{for Prefix in ["Sh", "ShNe"]}}
+{{for Prefix, Grid in [("Sh", "ShGrid"), ("ShNe", "ShNeGrid"), ("Sp", "SpGrid2d")]}}
 cdef class {{Prefix}}Wavefunc:
-    def __cinit__(self, {{Prefix}}Grid grid, int m=0, dealloc=True):
+    def __cinit__(self, {{Grid}} grid, int m=0, dealloc=True):
         self.grid = grid
 
         if not dealloc:
@@ -44,7 +44,7 @@ cdef class {{Prefix}}Wavefunc:
 
         self.dealloc = dealloc
 
-    def __init__(self, {{Prefix}}Grid grid, int m=0, dealloc=True):
+    def __init__(self, {{Grid}} grid, int m=0, dealloc=True):
         pass
 
     def init_p(self, double p, int l_max=-1):
@@ -128,7 +128,7 @@ cdef class {{Prefix}}Wavefunc:
         return self._figure_data('png')
 
     @staticmethod
-    def random({{Prefix}}Grid grid, int l=0, int m=0):
+    def random({{Grid}} grid, int l=0, int m=0):
         wf = {{Prefix}}Wavefunc(grid, m)
         arr = wf.asarray()
         arr[:] = 0.0
@@ -145,11 +145,17 @@ cdef class {{Prefix}}Wavefunc:
         c{{Prefix}}Wavefunc.ort_l(l, len(wfs), wf_arr)
         free(wf_arr)
 
-cdef {{Prefix}}Wavefunc {{Prefix.lower()}}_wavefunc_from_point(c{{Prefix}}Wavefunc* data, {{Prefix}}Grid grid, bint dealloc):
+cdef {{Prefix}}Wavefunc {{Prefix.lower()}}_wavefunc_from_point(c{{Prefix}}Wavefunc* data, {{Grid}} grid, bint dealloc):
     wf = {{Prefix}}Wavefunc(grid=grid, dealloc=dealloc)
     wf._set_data(data)
     return wf
 {{endfor}}
+
+def convert_sp_to_sh(SpWavefunc src, ShWavefunc dest, YlmCache ylm_cache, m):
+    sp_to_sh(src.cdata, dest.cdata, ylm_cache.cdata, m)
+
+def convert_sh_to_sp(ShWavefunc src, SpWavefunc dest, YlmCache ylm_cache, m):
+    sh_to_sp(src.cdata, dest.cdata, ylm_cache.cdata, m)
 
 cdef class ShNeWavefunc3D:
     def __cinit__(self, ShNeGrid3D grid, dealloc=True):

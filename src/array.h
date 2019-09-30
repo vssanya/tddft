@@ -54,3 +54,9 @@ using Array2D = Array<T, Grid2d, int, int>;
 
 template <typename T>
 using Array3D = Array<T, Grid3d, int, int, int>;
+
+template <typename T>
+using ArraySp2D = Array<T, SpGrid2d, int, int>;
+
+template <typename T>
+using ArraySh = Array<T, ShGrid, int, int>;

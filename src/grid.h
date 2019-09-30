@@ -127,7 +127,8 @@ enum {
 
 class SpGrid2d: public Grid2d {
 public:
-    SpGrid2d(int n[2], double Rmax) {
+	SpGrid2d(): Grid2d() {}
+    SpGrid2d(int const n[2], double Rmax) {
         for (int i = 0; i < 2; ++i) {
             this->n[i] = n[i];
         }
@@ -141,10 +142,19 @@ public:
         return d[iR]*(ir+1);
     }
 
+    int l(int il) const {
+        check_index(iL, il);
+        return il;
+    }
+
     double theta(int ic) const {
         check_index(iC, ic);
         return d[iC]*ic;
     }
+
+	double J(int ir, int il) const {
+		return 1.0;
+	}
 };
 
 class SpGrid: public Grid3d {
@@ -162,6 +172,10 @@ public:
 
         dtheta = M_PI/(n[iC]-1.0);
     }
+
+	SpGrid2d getGrid2d() const {
+		return SpGrid2d(n, d[iR]*n[iR]);
+	}
 
     double r(int ir) const {
         check_index(iR, ir);

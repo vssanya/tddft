@@ -300,7 +300,7 @@ void XCPotential<Grid>::calc_l(
 			return uxc(n[ir + ic*grid->n[iR]], x);
 		};
 
-		sh_series(func, l, 0, grid, U, ylm_cache, rRange);
+		sh_series<double>(func, l, 0, grid->getGrid2d(), U, ylm_cache, rRange);
 	}
 }
 

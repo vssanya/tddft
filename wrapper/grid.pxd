@@ -63,6 +63,14 @@ cdef extern from "grid.h":
         int n[2]
         double d[2]
 
+    cdef cppclass cSpGrid2d "SpGrid2d":
+        cSpGrid2d(int n[2], double Rmax)
+        double r(int ir)
+        double c(int ic)
+
+        int n[2]
+        double d[2]
+
     cdef cppclass cSpGrid "SpGrid":
         cSpGrid(int n[3], double Rmax)
         double r(int ir)
@@ -75,10 +83,7 @@ cdef extern from "grid.h":
         int n[3]
         double d[3]
 
-    cdef cppclass cSpGrid2d "SpGrid2d":
-        cSpGrid2d(int n[2], double Rmax)
-        double r(int ir)
-        double c(int ic)
+        cSpGrid2d getGrid2d()
 
     cdef cppclass cCtGrid "CtGrid":
         cCtGrid(int n[2], double x_max, double y_max)
@@ -98,7 +103,7 @@ cdef class CtGrid:
     cdef cCtGrid* cdata
 
 cdef class SpGrid2d:
-    cdef cSpGrid2d* cdata
+    cdef cSpGrid2d* data
 
 cdef class ShGrid:
     cdef cShGrid* data

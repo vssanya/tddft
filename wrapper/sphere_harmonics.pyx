@@ -2,6 +2,7 @@ import numpy as np
 cimport numpy as np
 
 from grid cimport SpGrid
+from array cimport ArraySp2D
 
 cdef class JlCache:
     def __cinit__(self, SpGrid grid, int l_max):
@@ -41,17 +42,11 @@ cdef class YlmCache:
     def __call__(self, int l, int m, double c):
         return self.cdata[0](l, m, c)
 
-cdef object func_2d = None
-
-cdef double func_2d_wrapper(int i1, int i2):
-    return func_2d(i1, i2)
-
-def series(func, int l, int m, SpGrid grid, YlmCache cache):
-    global func_2d
-
-    func_2d = func
+def series(np.ndarray[np.double_t, ndim=2, mode='c'] arr, int l, int m, SpGrid grid, YlmCache cache):
     cdef np.ndarray[np.double_t, ndim=1, mode='c'] res = np.ndarray(grid.data.n[0], dtype=np.double)
-    sh_series(func_2d_wrapper, l, m, grid.data, &res[0], cache.cdata)
+    cdef ArraySp2D[double]* arr_c = new ArraySp2D[double](&arr[0, 0], grid.data.getGrid2d())
+    sh_series(arr_c, l, m, <double*>&res[0], cache.cdata)
+    del arr_c
     return res
 
 @np.vectorize

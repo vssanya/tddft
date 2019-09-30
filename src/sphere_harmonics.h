@@ -104,10 +104,57 @@ double y3(int l1, int m1, int l2, int m2, int L, int M);
  * */
 
 #ifndef __CUDACC__
+#include "integrate.h"
+template <typename T>
+T sh_series_r(std::function<T(int, int)> f, int ir, int l, int m, SpGrid2d const& grid, YlmCache const* ylm_cache) {
+	return integrate_1d_cpp<T>([f, ir, ylm_cache, l, m](int ic) -> T {
+            return f(ir, ic)*(*ylm_cache)(l, m, ic);
+			}, grid.n[iC], grid.d[iC])*2*M_PI;
+}
+
+template <typename T>
 void sh_series(
-		std::function<double(int, int)> func,
-		int l, int m, SpGrid const* grid,
-		double* series,
+		std::function<T(int, int)> func,
+		int l, int m, SpGrid2d const& grid,
+		T* series,
 		YlmCache const* ylm_cache,
-		std::optional<Range> rRange = std::nullopt);
+		std::optional<Range> rRange = std::nullopt) {
+	auto range = rRange.value_or(grid.getFullRange(iR));
+
+#pragma omp parallel for
+	for (int ir = range.start; ir < range.end; ++ir) {
+		series[ir] = sh_series_r(func, ir, l, m, grid, ylm_cache);
+	}
+}
+
+#include "array.h"
+template <typename T>
+inline void sh_series(
+		ArraySp2D<T> const* arr,
+		int l, int m,
+		T* series,
+		YlmCache const* ylm_cache,
+		std::optional<Range> rRange = std::nullopt) {
+	sh_series(std::function<T(int, int)>(arr[0]), l, m, arr->grid, series, ylm_cache, rRange);
+}
+
+template <typename T>
+void sh_to_sp(ArraySh<T> const* src, ArraySp2D<T>* dest, YlmCache const* ylm_cache, int m) {
+	for (int ir = 0; ir < src->grid.n[iR]; ++ir) {
+		for (int ic = 0; ic < dest->grid.n[iC]; ++ic) {
+			T res = 0.0;
+			for (int l = 0; l < src->grid.n[iL]; ++l) {
+				res += (*src)(ir, l)*(*ylm_cache)(l, m, ic);
+			}
+			(*dest)(ir, ic) = res;
+		}
+	}
+}
+
+template <typename T>
+void sp_to_sh(ArraySp2D<T> const* src, ArraySh<T>* dest, YlmCache const* ylm_cache, int m) {
+	for (int l = 0; l < dest->grid.n[iL]; ++l) {
+		sh_series<T>(src, l, m, &(*dest)(0, l), ylm_cache);
+	}
+}
 #endif

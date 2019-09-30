@@ -1,5 +1,5 @@
 from types cimport sh_f, cdouble
-from grid cimport cShGrid, cShNeGrid, cShNeGrid3D, cSpGrid, cGrid2d
+from grid cimport cShGrid, cShNeGrid, cShNeGrid3D, cSpGrid, cGrid2d, cSpGrid2d
 from grid cimport ShGrid, ShNeGrid, SpGrid2d
 from sphere_harmonics cimport cYlmCache
 
@@ -56,6 +56,11 @@ cdef extern from "sh_wavefunc.h":
 
     ctypedef Wavefunc[cShGrid] cShWavefunc "ShWavefunc"
     ctypedef Wavefunc[cShNeGrid] cShNeWavefunc "ShNeWavefunc"
+    ctypedef Wavefunc[cSpGrid2d] cSpWavefunc "SpWavefunc2d"
+
+cdef extern from "sphere_harmonics.h":
+    void sp_to_sh(cSpWavefunc* src, cShWavefunc* dest, cYlmCache* ylm_cache, int m)
+    void sh_to_sp(cShWavefunc* src, cSpWavefunc* dest, cYlmCache* ylm_cache, int m)
 
 cdef extern from "wavefunc/sh_3d.h":
     cdef cppclass ShWavefunc3D[Grid]:
@@ -90,6 +95,13 @@ cdef class ShWavefunc:
     cdef public ShGrid grid
 
     cdef _set_data(self, cShWavefunc* data)
+
+cdef class SpWavefunc:
+    cdef cSpWavefunc* cdata
+    cdef bint dealloc
+    cdef public SpGrid2d grid
+
+    cdef _set_data(self, cSpWavefunc* data)
 
 cdef class ShNeWavefunc:
     cdef cShNeWavefunc* cdata
