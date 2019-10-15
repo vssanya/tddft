@@ -39,6 +39,13 @@ class Array {
 			}
 		}
 
+		void set(T value) const {
+#pragma omp parallel for
+			for (int i = 0; i < grid.size(); ++i) {
+				data[i] = value;
+			}
+		}
+
 		inline T& operator() (Index... index) {
 			return data[grid.index(index...)];
 		}

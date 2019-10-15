@@ -45,15 +45,15 @@ cdef class {{Prefix}}Orbitals:
     def is_root_or_not_mpi(self):
         return not self.is_mpi() or self.cdata.mpi_rank == 0
 
-    def load(self, filename):
+    def load(self, filename=None, np.ndarray[np.complex_t, ndim=3] data = None):
         arr = self.asarray()
         arr[:] = 0.0
 
-        cdef np.ndarray[np.complex_t, ndim=3] data
         cdef cdouble* data_ptr = NULL
 
         if self.is_root_or_not_mpi():
-            data = np.load(filename)
+            if filename is not None:
+                data = np.load(filename)
             shape = [data.shape[1], data.shape[2]]
             data_ptr = <cdouble*>data.data
         else:

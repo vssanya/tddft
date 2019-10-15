@@ -29,6 +29,11 @@ public:
     void setInitState(cdouble* data, int Nr, int Nl);
 
     /*!
+     * \brief data[:] = value [MPI support]
+     */
+	void set(cdouble value);
+
+    /*!
      * \brief [MPI support]
      */
     double norm(typename Wavefunc<Grid>::sh_f mask = nullptr) const;
@@ -87,6 +92,8 @@ public:
     MPI_Comm spin_comm;
     int mpi_rank;
     Wavefunc<Grid>* mpi_wf;
+
+	std::vector<int> ne_rank; // number of orbital -> mpi rank
 #endif
 };
 

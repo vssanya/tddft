@@ -279,9 +279,8 @@ class Wavefunc: public WavefuncBase2D<Grid> {
 		 * */
 		cdouble get_sp(SpGrid const& grid, int i[3], YlmCache const* ylm_cache) const {
 			cdouble res = 0.0;
-			for (int il = 0; il < this->grid.n[iL]; ++il) {
-				int const l = this->grid.l(il);
-				res += (*this)(i[iR], il)*(*ylm_cache)(l, m, i[iC]);
+			for (int l = 0; l < this->grid.n[iL]; ++l) {
+				res += (*this)(i[iR], l)*(*ylm_cache)(l, m, i[iC]);
 			}
 
 			double r = this->grid.r(i[iR]);

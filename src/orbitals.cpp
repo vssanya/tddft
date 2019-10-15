@@ -18,6 +18,11 @@ Orbitals<Grid>::Orbitals(Atom const& atom, Grid const& grid, MPI_Comm mpi_comm):
 	if (mpi_comm != MPI_COMM_NULL) {
         MPI_Comm_rank(mpi_comm, &mpi_rank);
 
+		ne_rank.resize(atom.countOrbs);
+		for (int ie = 0; ie < atom.countOrbs; ++ie) {
+			ne_rank[ie] = ie;
+		}
+
         data = new cdouble[grid.size()]();
         for (int ie = 0; ie < atom.countOrbs; ++ie) {
             if (ie == mpi_rank) {
@@ -78,28 +83,47 @@ void Orbitals<Grid>::copy(Orbitals& dest) const {
 }
 
 template <typename Grid>
-void Orbitals<Grid>::setInitState(cdouble* data, int Nr, int Nl) {
-    assert(grid.n[iR] <= Nr);
+void Orbitals<Grid>::set(cdouble value) {
+	for (int ie = 0; ie < atom.countOrbs; ++ie) {
+		if (wf[ie] != nullptr) {
+			wf[ie]->set(value);
+		}
+	}
+}
 
-    int const size = Nl*grid.n[iR];
+template <typename Grid>
+void Orbitals<Grid>::setInitState(cdouble* data, int Nr, int Nl) {
+	int Nr_send = std::min(Nr, grid.n[iR]);
+
+	if (grid.n[iR] > Nr) {
+		this->set(0.0);
+	}
+
 #ifdef _MPI
     if (mpi_comm != MPI_COMM_NULL) {
-        assert(grid.n[iR] == Nr);
-        MPI_Scatter(data, size, MPI_C_DOUBLE_COMPLEX, mpi_wf->data, size, MPI_C_DOUBLE_COMPLEX, 0, mpi_comm);
+		for (int ie = 0; ie < atom.countOrbs; ++ie) {
+			if (mpi_rank == 0 && ne_rank[ie] == 0) {
+				for (int l = 0; l < Nl; ++l) {
+					memcpy(&(*wf[ie])(0, l), &data[ie*Nr*Nl + Nr*l], Nr_send*sizeof(cdouble));
+				}
+			} else if (mpi_rank == 0 || mpi_rank == ne_rank[ie]) {
+				for (int l = 0; l < Nl; ++l) {
+					if (mpi_rank == 0) {
+						MPI_Send(&data[ie*Nr*Nl + Nr*l], Nr_send, MPI_C_DOUBLE_COMPLEX, ne_rank[ie], 0, mpi_comm);
+					} else {
+						MPI_Recv(&(*wf[ie])(0, l), Nr_send, MPI_C_DOUBLE_COMPLEX, 0, 0, mpi_comm, MPI_STATUS_IGNORE);
+					}
+				}
+			}
+		}
     } else
 #endif
     {
-        if (Nr == grid.n[iR]) {
-            for (int ie = 0; ie < atom.countOrbs; ++ie) {
-                memcpy(wf[ie]->data, &data[ie*Nr*Nl], size*sizeof(cdouble));
-            }
-        } else {
-            for (int ie = 0; ie < atom.countOrbs; ++ie) {
-                for (int il = 0; il < Nl; ++il) {
-                    memcpy(&wf[ie]->data[il*grid.n[iR]], &data[il*Nr + ie*Nr*Nl], size*sizeof(cdouble));
-                }
-            }
-        }
+		for (int ie = 0; ie < atom.countOrbs; ++ie) {
+			for (int l = 0; l < Nl; ++l) {
+				memcpy(&(*wf[ie])(0, l), &data[l*Nr + ie*Nr*Nl], Nr_send*sizeof(cdouble));
+			}
+		}
     }
 }
 
@@ -254,9 +278,7 @@ void Orbitals<Grid>::n_sp(SpGrid const& grid, double* n, double* n_tmp, YlmCache
 	} else
 #endif
 	{
-#pragma omp parallel
-		{
-#pragma omp for collapse(2)
+#pragma omp parallel for collapse(2)
 			for (int ic = 0; ic < grid.n[iC]; ++ic) {
 				for (int ir = 0; ir < grid.n[iR]; ++ir) {
 					n[ir + ic*grid.n[iR]] = 0.0;
@@ -267,7 +289,6 @@ void Orbitals<Grid>::n_sp(SpGrid const& grid, double* n, double* n_tmp, YlmCache
 					}
 				}
 			}
-		}
 	}
 }
 
