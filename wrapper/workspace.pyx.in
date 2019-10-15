@@ -204,22 +204,30 @@ cdef class {{prefix}}OrbitalsWS:
     def set_time_approx_uee_two_point(self, {{prefix}}Orbitals orbs):
         self.cdata.setTimeApproxUeeTwoPointFor(orbs.cdata[0])
 
-    def prop_img(self, {{prefix}}Orbitals orbs, double dt, np.ndarray[np.uint8_t, ndim=1] active_orbs=None):
+    def prop_img(self, {{prefix}}Orbitals orbs, double dt, np.ndarray[np.uint8_t, ndim=1] active_orbs=None, np.ndarray[np.int_t, ndim=1] dt_count = None):
         cdef bool_t* active_orbs_ptr = NULL
         if active_orbs is not None:
             active_orbs_ptr = <bool_t*>active_orbs.data
 
-        self.cdata.prop_img(orbs.cdata[0], dt, active_orbs_ptr)
+        cdef int* dt_count_ptr = NULL
+        if dt_count is not None:
+            dt_count_ptr = <int*>dt_count.data
+
+        self.cdata.prop_img(orbs.cdata[0], dt, active_orbs_ptr, dt_count_ptr)
 
     def prop_ha(self, {{prefix}}Orbitals orbs, double dt):
         self.cdata.prop_ha(orbs.cdata[0], dt)
 
-    def prop(self, {{prefix}}Orbitals orbs, Field field, double t, double dt, bint calc_uee=True, np.ndarray[np.uint8_t, ndim=1] active_orbs=None):
+    def prop(self, {{prefix}}Orbitals orbs, Field field, double t, double dt, bint calc_uee=True, np.ndarray[np.uint8_t, ndim=1] active_orbs=None, np.ndarray[np.int_t, ndim=1] dt_count = None):
         cdef bool_t* active_orbs_ptr = NULL
         if active_orbs is not None:
             active_orbs_ptr = <bool_t*>active_orbs.data
 
-        self.cdata.prop(orbs.cdata[0], field.cdata, t, dt, calc_uee, active_orbs_ptr)
+        cdef int* dt_count_ptr = NULL
+        if dt_count is not None:
+            dt_count_ptr = <int*>dt_count.data
+
+        self.cdata.prop(orbs.cdata[0], field.cdata, t, dt, calc_uee, active_orbs_ptr, dt_count_ptr)
 
     def calc_uee(self, {{prefix}}Orbitals orbs, Uxc_lmax=None, Uh_lmax=None, Range rRange = None):
         cdef optional[cRange] c_range

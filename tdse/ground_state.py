@@ -69,7 +69,7 @@ def wf(atom, grid, ws, dt, Nt, wf_class = wavefunc.ShWavefunc, ground_state = No
     return wf_full, E
 
 
-def orbs(atom, grid, ws, dt, Nt, orbitals_class, atom_cache_class, print_calc_info=False):
+def orbs(atom, grid, ws, dt, Nt, orbitals_class, atom_cache_class, print_calc_info=False, dt_count=None):
     orbs = orbitals_class(atom, grid)
     orbs.init()
     data = orbs.asarray()
@@ -84,7 +84,7 @@ def orbs(atom, grid, ws, dt, Nt, orbitals_class, atom_cache_class, print_calc_in
 
         orbs.ort()
         orbs.normalize()
-        ws.prop_img(orbs, dt)
+        ws.prop_img(orbs, dt, dt_count=dt_count)
 
     n = np.sqrt(orbs.norm_ne())
     E = 2/dt*(1-n)/(1+n)
@@ -94,7 +94,7 @@ def orbs(atom, grid, ws, dt, Nt, orbitals_class, atom_cache_class, print_calc_in
 
     return orbs, E
 
-def orbs_step_shells(atom, grid, ws, dt, Nt, orbitals_class, atom_cache_class, print_calc_info=False):
+def orbs_step_shells(atom, grid, ws, dt, Nt, orbitals_class, atom_cache_class, print_calc_info=False, dt_count=None):
     orbs = orbitals_class(atom, grid)
     data = orbs.asarray()
     data[:] = 0.0
@@ -126,7 +126,7 @@ def orbs_step_shells(atom, grid, ws, dt, Nt, orbitals_class, atom_cache_class, p
 
             orbs.ort()
             orbs.normalize(active_orbs)
-            ws.prop_img(orbs, dt, active_orbs)
+            ws.prop_img(orbs, dt, active_orbs, dt_count=dt_count)
 
     n = np.sqrt(orbs.norm_ne())
     E = 2/dt*(1-n)/(1+n)

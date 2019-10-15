@@ -144,7 +144,7 @@ void workspace::OrbitalsWS<Grid>::calc_Uee(
 }
 
 template<typename Grid>
-void workspace::OrbitalsWS<Grid>::prop_simple(Orbitals<Grid>& orbs, field_t const* field, double t, double dt, bool calc_uee, bool* activeOrbs) {
+void workspace::OrbitalsWS<Grid>::prop_simple(Orbitals<Grid>& orbs, field_t const* field, double t, double dt, bool calc_uee, bool* activeOrbs, int const* dt_count) {
 	double Et = field_E(field, t + dt/2);
 
 	if (calc_uee) {
@@ -167,18 +167,21 @@ void workspace::OrbitalsWS<Grid>::prop_simple(Orbitals<Grid>& orbs, field_t cons
 
 	for (int ie = 0; ie < orbs.atom.countOrbs; ++ie) {
 		if (orbs.wf[ie] != nullptr && (activeOrbs == nullptr || activeOrbs[ie])) {
-			wf_ws.prop_common(*orbs.wf[ie], dt, lmax, Ul);
-			wf_ws.prop_abs(*orbs.wf[ie], dt);
+			auto count = (dt_count == nullptr) ? 1 : dt_count[ie];
+			for (int i = 0; i < count; ++i) {
+				wf_ws.prop_common(*orbs.wf[ie], dt/count, lmax, Ul);
+				wf_ws.prop_abs(*orbs.wf[ie], dt/count);
+			}
 		}
 	}
 }
 
 template<typename Grid>
-void workspace::OrbitalsWS<Grid>::prop_two_point(Orbitals<Grid>& orbs, field_t const* field, double t, double dt, bool calc_uee, bool* activeOrbs) {
+void workspace::OrbitalsWS<Grid>::prop_two_point(Orbitals<Grid>& orbs, field_t const* field, double t, double dt, bool calc_uee, bool* activeOrbs, int const* dt_count) {
 	if (calc_uee) {
 		// Calc orb(t+dt) and Uee(t)
 		orbs.copy(*tmpOrb);
-		prop_simple(*tmpOrb, field, t, dt, true, activeOrbs);
+		prop_simple(*tmpOrb, field, t, dt, true, activeOrbs, dt_count);
 
 		// Calc Uee(t+dt)
 		calc_Uee(*tmpOrb, Uxc_lmax, Uh_lmax, tmpUee);
@@ -193,20 +196,20 @@ void workspace::OrbitalsWS<Grid>::prop_two_point(Orbitals<Grid>& orbs, field_t c
 		}
 	}
 
-	prop_simple(orbs, field, t, dt, false);
+	prop_simple(orbs, field, t, dt, false, nullptr, dt_count);
 }
 
 template<typename Grid>
-void workspace::OrbitalsWS<Grid>::prop(Orbitals<Grid>& orbs, field_t const* field, double t, double dt, bool calc_uee, bool* activeOrbs) {
+void workspace::OrbitalsWS<Grid>::prop(Orbitals<Grid>& orbs, field_t const* field, double t, double dt, bool calc_uee, bool* activeOrbs, int const* dt_count) {
 	if (timeApproxUeeType == TimeApproxUeeType::SIMPLE) {
-		prop_simple(orbs, field, t, dt, calc_uee, activeOrbs);
+		prop_simple(orbs, field, t, dt, calc_uee, activeOrbs, dt_count);
 	} else {
-		prop_two_point(orbs, field, t, dt, calc_uee, activeOrbs);
+		prop_two_point(orbs, field, t, dt, calc_uee, activeOrbs, dt_count);
 	}
 }
 
 template<typename Grid>
-void workspace::OrbitalsWS<Grid>::prop_img(Orbitals<Grid>& orbs, double dt, bool activeOrbs[]) {
+void workspace::OrbitalsWS<Grid>::prop_img(Orbitals<Grid>& orbs, double dt, bool activeOrbs[], int const dt_count[]) {
     auto lmax = std::max(std::max(1, Uxc_lmax), Uh_lmax);
     calc_Uee(orbs, Uxc_lmax, Uh_lmax);
 
@@ -225,7 +228,10 @@ void workspace::OrbitalsWS<Grid>::prop_img(Orbitals<Grid>& orbs, double dt, bool
 
     for (int ie = 0; ie < orbs.atom.countOrbs; ++ie) {
         if (orbs.wf[ie] != nullptr && (activeOrbs == nullptr || activeOrbs[ie])) {
-            wf_ws.prop_common(*orbs.wf[ie], -I*dt, lmax, Ul);
+			auto count = (dt_count == nullptr) ? 1 : dt_count[ie];
+			for (int i = 0; i < count; ++i) {
+				wf_ws.prop_common(*orbs.wf[ie], -I*dt/count, lmax, Ul);
+			}
         }
     }
 }

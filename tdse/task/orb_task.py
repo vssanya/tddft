@@ -224,6 +224,8 @@ class OrbitalsTask(TaskAtom):
     atom = tdse.atom.Ar
 
     dt = 0.008
+    dt_count = None
+
     dr = 0.025
 
     r_max = 100
@@ -278,7 +280,7 @@ class OrbitalsTask(TaskAtom):
         self.t = self.field.get_t(self.dt, dT=self.dT)
 
     def calc_prop(self, i, t):
-        self.ws.prop(self.orbs, self.field, t, self.dt, active_orbs = self.active_orbs)
+        self.ws.prop(self.orbs, self.field, t, self.dt, active_orbs = self.active_orbs, dt_count = dt_count)
 
     def write_calc_params(self, params_grp: h5py.Group):
         super().write_calc_params(params_grp)
@@ -400,6 +402,8 @@ class OrbitalsGroundStateTask(TaskAtom):
     atom = tdse.atom.Ar
 
     dt = 0.008
+    dt_count = None
+
     dr = 0.025
 
     T = 100
