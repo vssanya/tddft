@@ -23,7 +23,7 @@ cdef extern from "orbitals.h":
         int mpi_rank
         Wavefunc[Grid]* mpi_wf
 
-        Orbitals(cAtom& atom, Grid& grid, MPI_Comm mpi_comm)
+        Orbitals(cAtom& atom, Grid& grid, MPI_Comm mpi_comm, int* orbsRank)
         void init()
         void init_shell(int shell)
         void setInitState(cdouble* data, int Nr, int Nl)

@@ -1,4 +1,5 @@
 #include "calc.h"
+#include "mpi.h"
 #include "utils.h"
 #include "abs_pot.h"
 
@@ -34,17 +35,10 @@ void calc_orbs_az_ne(Orbitals<Grid> const* orbs, const AtomCache<Grid>& atom_cac
     auto func = [&](int ir, int il, int m) -> double {
         return atom_cache.dudz(ir);
     };
-#ifdef _MPI
-	if (orbs->mpi_comm != MPI_COMM_NULL) {
-        double az_local = - (field_E(field, t) + orbs->mpi_wf->cos(func))*orbs->atom.orbs[orbs->mpi_rank].countElectrons;
-		MPI_Gather(&az_local, 1, MPI_DOUBLE, az, 1, MPI_DOUBLE, 0, orbs->mpi_comm);
-	} else
-#endif
-	{
-		for (int ie=0; ie<orbs->atom.countOrbs; ++ie) {
-            az[ie] = - (field_E(field, t) + orbs->wf[ie]->cos(func))*orbs->atom.orbs[ie].countElectrons;
-		}
-	}
+
+	orbs->template calc_array<double>([&](auto wf) -> double {
+			return - (field_E(field, t) + wf->cos(func));
+	}, az);
 }
 
 template<class Grid>
@@ -58,17 +52,9 @@ void calc_orbs_az_ne_Vee_0(Orbitals<Grid> const* orbs, Array2D<double>& Uee, Arr
         return atom_cache.dudz(ir) + dUeedr(ir, 0);
     };
 
-#ifdef _MPI
-	if (orbs->mpi_comm != MPI_COMM_NULL) {
-        double az_local = - (field_E(field, t) + orbs->mpi_wf->cos(func))*orbs->atom.orbs[orbs->mpi_rank].countElectrons;
-		MPI_Gather(&az_local, 1, MPI_DOUBLE, az, 1, MPI_DOUBLE, 0, orbs->mpi_comm);
-	} else
-#endif
-	{
-		for (int ie=0; ie<orbs->atom.countOrbs; ++ie) {
-            az[ie] = - (field_E(field, t) + orbs->wf[ie]->cos(func))*orbs->atom.orbs[ie].countElectrons;
-		}
-	}
+	orbs->template calc_array<double>([&](auto wf) -> double {
+			return - (field_E(field, t) + wf->cos(func));
+	}, az);
 }
 
 template<class Grid>
@@ -94,17 +80,9 @@ void calc_orbs_az_ne_Vee_1(Orbitals<Grid> const* orbs, Array2D<double>& Uee, Arr
         return dUeedr(ir, 1) - Uee(ir, 1)/r;
     };
 
-#ifdef _MPI
-	if (orbs->mpi_comm != MPI_COMM_NULL) {
-        double az_local = - (field_E(field, t) + orbs->mpi_wf->norm(func_0) + orbs->mpi_wf->cos(func_1) + orbs->mpi_wf->cos2(func_2))*orbs->atom.orbs[orbs->mpi_rank].countElectrons;
-		MPI_Gather(&az_local, 1, MPI_DOUBLE, az, 1, MPI_DOUBLE, 0, orbs->mpi_comm);
-	} else
-#endif
-	{
-		for (int ie=0; ie<orbs->atom.countOrbs; ++ie) {
-            az[ie] = - (field_E(field, t) + orbs->wf[ie]->norm(func_0) + orbs->wf[ie]->cos(func_1) + orbs->wf[ie]->cos2(func_2))*orbs->atom.orbs[ie].countElectrons;
-		}
-	}
+	orbs->template calc_array<double>([&](auto wf) -> double {
+			return - (field_E(field, t) + wf->norm(func_0) + wf->cos(func_1) + wf->cos2(func_2));
+	}, az);
 }
 
 double calc_wf_ionization_prob(ShWavefunc const* wf) {

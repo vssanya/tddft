@@ -6,6 +6,18 @@
 #include <mpi.h>
 #include <array>
 
+template <typename T>
+inline decltype(MPI_DOUBLE) getMpiType();
+
+template <>
+inline decltype(MPI_DOUBLE) getMpiType<double>() {
+	return MPI_DOUBLE;
+}
+
+template <>
+inline decltype(MPI_DOUBLE) getMpiType<cdouble>() {
+	return MPI_C_DOUBLE_COMPLEX;
+}
 
 /*!
  * \brief Орбитали Кона-Шэма
@@ -13,7 +25,7 @@
 template <typename Grid>
 class Orbitals {
 public:
-    Orbitals(Atom const& atom, Grid const& grid, MPI_Comm mpi_comm);
+    Orbitals(Atom const& atom, Grid const& grid, MPI_Comm mpi_comm, int const orbsRank[] = nullptr);
     ~Orbitals();
 
     void init();
@@ -27,6 +39,15 @@ public:
      *  \param data[in] is array[Ne, Nr, l_max] only for root
      */
     void setInitState(cdouble* data, int Nr, int Nl);
+
+	template <typename T>
+	void calc_array(std::function<T (Wavefunc<Grid> const*, int ie)> func, T res[]) const;
+
+	template <typename T>
+	void calc_array(std::function<T (Wavefunc<Grid> const*)> func, T res[]) const;
+
+	double calc_sum(std::function<double (Wavefunc<Grid> const*, int ie)> func) const;
+	double calc_sum(std::function<double (Wavefunc<Grid> const*)> func) const;
 
     /*!
      * \brief data[:] = value [MPI support]
@@ -87,10 +108,10 @@ public:
     Wavefunc<Grid>** wf; //!< волновые функции орбиталей
     cdouble* data; //!< raw data[ir + il*nr + ie*nr*nl]
 
+    int mpi_rank;
 #ifdef _MPI
     MPI_Comm mpi_comm;
     MPI_Comm spin_comm;
-    int mpi_rank;
     Wavefunc<Grid>* mpi_wf;
 
 	std::vector<int> ne_rank; // number of orbital -> mpi rank

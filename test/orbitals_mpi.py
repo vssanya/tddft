@@ -16,7 +16,8 @@ class TestOrbitals(unittest.TestCase):
         self.atom = tdse.atom.Ne
 
         self.orbs = tdse.orbitals.ShOrbitals(self.atom, self.grid, self.comm)
-        self.data = self.orbs.asarray()
+        if self.rank == 0.0:
+            self.orbs_base = tdse.orbitals.ShOrbitals(self.atom, self.grid)
 
     def test_load_low(self):
         if self.rank == 0:
@@ -44,3 +45,30 @@ class TestOrbitals(unittest.TestCase):
         data = self.comm.bcast(data, root=0)
 
         np.testing.assert_equal(data[self.rank][:,:100], self.orbs.asarray()[0])
+
+    def test_orbs_rank(self):
+        if self.rank == 0:
+            data = np.zeros((4, 2, 100), dtype=np.complex)
+            data[:] = np.random.random(data.shape)
+            self.orbs_base.load(data=data)
+        else:
+            data = None
+
+        self.orbs.load(data=data)
+
+        orbs_rank = tdse.orbitals.ShOrbitals(self.atom, self.grid, self.comm, np.array([0, 0, 1, 1], dtype=np.intc))
+        orbs_rank.load(data=data)
+
+        v1 = self.orbs.norm()
+        v2 = orbs_rank.norm()
+        if self.rank == 0:
+            v = self.orbs_base.norm()
+            self.assertEqual(v, v1, 9)
+            self.assertEqual(v, v2, 9)
+
+        v1 = self.orbs.z()
+        v2 = orbs_rank.z()
+        if self.rank == 0:
+            v = self.orbs_base.z()
+            self.assertEqual(v, v1, 9)
+            self.assertEqual(v, v2, 9)

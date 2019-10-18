@@ -16,17 +16,22 @@ from masks cimport ShCoreMask, ShNeCoreMask
 
 {{for Prefix in ["Sh", "ShNe"]}}
 cdef class {{Prefix}}Orbitals:
-    def __cinit__(self, Atom atom, {{Prefix}}Grid grid, Comm comm = None):
+    def __cinit__(self, Atom atom, {{Prefix}}Grid grid, Comm comm = None, np.ndarray[int, ndim=1] orbsRank = None):
+        cdef int* orbsRankPtr = NULL
+
         if comm is None:
             comm = COMM_NULL
 
-        self.cdata = new c{{Prefix}}Orbitals(atom.cdata[0], grid.data[0], comm.ob_mpi)
+        if orbsRank is not None:
+            orbsRankPtr = <int*> orbsRank.data
+
+        self.cdata = new c{{Prefix}}Orbitals(atom.cdata[0], grid.data[0], comm.ob_mpi, orbsRankPtr)
 
         self.mpi_comm = comm
         self.grid = grid
         self.atom = atom
 
-    def __init__(self, Atom atom, {{Prefix}}Grid grid, Comm comm = None):
+    def __init__(self, Atom atom, {{Prefix}}Grid grid, Comm comm = None, np.ndarray[int, ndim=1] orbsRank = None):
         pass
 
     def __dealloc__(self):
@@ -46,9 +51,6 @@ cdef class {{Prefix}}Orbitals:
         return not self.is_mpi() or self.cdata.mpi_rank == 0
 
     def load(self, filename=None, np.ndarray[np.complex_t, ndim=3] data = None):
-        arr = self.asarray()
-        arr[:] = 0.0
-
         cdef cdouble* data_ptr = NULL
 
         if self.is_root_or_not_mpi():
@@ -216,7 +218,7 @@ cdef class {{Prefix}}Orbitals:
             np.save(filename, self.asarray())
 
     def __str__(self):
-        return "Orbitals MPI, wf.m = {}".format(self.cdata.mpi_wf.m)
+        return "Orbitals MPI"
 
     # def grad_u(self, ie=0):
         # cdef np.ndarray[np.double_t, ndim=1] res = np.ndarray(self.cdata.grid.n[0], np.double)

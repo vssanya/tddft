@@ -245,6 +245,7 @@ class OrbitalsTask(TaskAtom):
     Orbitals = tdse.orbitals.ShOrbitals
 
     active_orbs = None
+    rank_orbs = None
 
     def init_from_ground_state_task(self, gs_task):
         super().init_from_ground_state_task(gs_task)
@@ -270,7 +271,7 @@ class OrbitalsTask(TaskAtom):
     def calc_init(self):
         super().calc_init()
 
-        self.orbs = self.Orbitals(self.atom, self.sh_grid, self.comm)
+        self.orbs = self.Orbitals(self.atom, self.sh_grid, self.comm, self.rank_orbs)
         self.orbs.load(self.ground_state)
 
         self.ws = self.Workspace(self.atom_cache, self.sh_grid, self.sp_grid, self.uabs_cache, self.ylm_cache, Uxc_lmax=self.Uxc_lmax, Uh_lmax = self.Uh_lmax, uxc=self.uxc)
