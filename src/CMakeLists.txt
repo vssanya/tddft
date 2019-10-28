@@ -23,7 +23,6 @@ set( LIB_SOURCES
 	"workspace/wf_with_polarization.cpp"
 	sh_wavefunc.cpp
 	hartree_potential.cpp
-	integrate.c
 	utils.cpp
 	abs_pot.cpp
 	fields.cpp

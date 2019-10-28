@@ -77,6 +77,11 @@ cdef class {{Prefix}}Wavefunc:
         else:
             return self.cdata.norm(<sh_f> mask.cdata[0])
 
+    def norm_z(self):
+        cdef np.ndarray[np.double_t, ndim=1] res = np.zeros(2*self.grid.Nr)
+        self.cdata.norm_z(&res[0])
+        return res
+
     def norm_l(self):
         arr = self.asarray()
         return np.sum(np.abs(arr)**2, axis=1)*self.grid.data.d[0]

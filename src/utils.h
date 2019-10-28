@@ -1,6 +1,6 @@
 #pragma once
 
-#include <math.h>
+#include "types.h"
 
 /* 
  *
@@ -25,6 +25,10 @@ double plm(int l, int m) __attribute__((pure));
 double clamp(double x, double lower, double upper) __attribute__((pure));
 double smoothstep(double x, double x0, double x1) __attribute__((pure));
 double smoothpulse(double x, double dx_smooth, double dx_pulse) __attribute__((pure));
+
+inline double abs2(cdouble x) {
+	return pow(creal(x), 2) + pow(cimag(x), 2);
+}
 
 inline int div_up(int x, int y)
 {

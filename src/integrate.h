@@ -6,8 +6,6 @@
 #pragma once
 #include <assert.h>
 
-
-#ifdef __cplusplus
 #include <functional>
 
 template<typename T>
@@ -27,8 +25,17 @@ T integrate_1d_cpp(std::function<T(int i)> f, int nx, double dx) {
 	return res;
 }
 
-extern "C" {
-#endif
+template <typename T>
+T integrate_1d_trap(T* f, T* dx, int Nx) {
+	assert(nx > 1);
+
+	T res = 0.0;
+	for (int ix = 0; ix < Nx-1; ++ix) {
+		res += (f[ix] + f[ix+1])*dx[ix];
+	}
+
+	return res;
+}
 
 typedef double (*func_1d_t)(int i);
 typedef double (*func_1d_data_t)(void* data, int i);
@@ -52,7 +59,3 @@ double integrate_1d_2(func_1d_t f, int ix0, int ix1, double dx);
 double integrate_data_1d(func_1d_data_t f, void* data, int nx, double dx);
 double integrate_simpson_data_1d(func_1d_data_t f, void* data, int nx, double dx);
 double integrate_bool_data_1d(func_1d_data_t f, void* data, int nx, double dx);
-
-#ifdef __cplusplus
-}
-#endif

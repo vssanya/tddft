@@ -1,7 +1,5 @@
 #pragma once
 
-#include <stdbool.h>
-#include <math.h>
 #include <functional>
 
 #include "types.h"
@@ -175,6 +173,61 @@ class Wavefunc: public WavefuncBase2D<Grid> {
 			}
 		}
 
+#ifndef __CUDACC__
+		// res(z) = int <psi|psi> dx dy
+		void norm_z(double* res) const {
+			int Nr = this->grid.n[iR];
+
+			double f[Nr];
+			double dp[Nr];
+
+			for (int iz = 0; iz < Nr-1; ++iz) {
+				double z = this->grid.r(iz);
+
+				double rho_prev = 0.0;
+				f[iz] = abs2(get_sp(iz, 0.0))*0.0;
+
+				for (int ir = iz+1; ir < Nr; ++ir) {
+					double r = this->grid.r(ir);
+					double theta = acos(z/r);
+
+					double rho = r*sin(theta);
+
+					f[ir] = abs2(get_sp(ir, theta))*rho;
+					dp[ir-1] = rho - rho_prev;
+
+					rho_prev = rho;
+				}
+
+				res[Nr + iz] = integrate_1d_trap(&f[iz], &dp[iz], Nr - iz);
+			}
+
+			res[2*Nr-1] = 0.0;
+			res[0] = 0.0;
+
+			for (int iz = 0; iz < Nr-1; ++iz) {
+				double z = - this->grid.r(iz);
+
+				double rho_prev = 0.0;
+				f[iz] = abs2(get_sp(iz, 0.0))*0.0;
+
+				for (int ir = iz+1; ir < Nr; ++ir) {
+					double r = this->grid.r(ir);
+					double theta = acos(z/r);
+
+					double rho = r*sin(theta);
+
+					f[ir] = abs2(get_sp(ir, theta))*rho;
+					dp[ir-1] = rho - rho_prev;
+
+					rho_prev = rho;
+				}
+
+				res[Nr-1-iz] = integrate_1d_trap<double>(&f[iz], &dp[iz], Nr - iz);
+			}
+		}
+#endif
+
 		void normalize() {
 			double norm = this->norm(NULL);
 #pragma omp parallel for
@@ -287,13 +340,23 @@ class Wavefunc: public WavefuncBase2D<Grid> {
 			return res/r;
 		}
 
+		cdouble get_sp(int ir, double theta) const {
+			cdouble res = 0.0;
+			for (int l = 0; l < this->grid.n[iL]; ++l) {
+				res += (*this)(ir, l)*YlmCache::calc(l, m, theta);
+			}
+
+			double r = this->grid.r(ir);
+			return res/r;
+		}
+
 		void n_sp(SpGrid const& grid, double* n, YlmCache const* ylm_cache) const {
 #pragma omp parallel for collapse(2)
 			for (int ir = 0; ir < grid.n[iR]; ++ir) {
 				for (int ic = 0; ic < grid.n[iC]; ++ic) {
 					int index[3] = {ir, ic, 0};
 					cdouble const psi = get_sp(grid, index, ylm_cache);
-					n[ir + ic*grid.n[iR]] = pow(creal(psi), 2) + pow(cimag(psi), 2);
+					n[ir + ic*grid.n[iR]] = abs2(psi);
 				}
 			}
 		}

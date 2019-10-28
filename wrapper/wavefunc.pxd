@@ -41,6 +41,7 @@ cdef extern from "sh_wavefunc.h":
 
         double norm(sh_f mask)
         double norm()
+        void norm_z(double* res)
 
         void normalize()
 
