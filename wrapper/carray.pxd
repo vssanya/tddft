@@ -1,4 +1,4 @@
-from grid cimport cGrid2d
+from grid cimport cGrid2d, Grid2d
 
 cdef extern from "array.h":
     cdef cppclass Array2D[T]:
@@ -10,3 +10,4 @@ cdef extern from "array.h":
 
 cdef class DoubleArray2D:
     cdef Array2D[double]* cdata
+    cdef Grid2d grid

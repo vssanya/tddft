@@ -35,6 +35,13 @@ cdef class Grid1d:
     def N(self):
         return self.cdata.n
 
+cdef class Grid2d:
+    def __cinit__(self, int nx, int ny):
+        self.cdata = cGrid2d(nx, ny)
+
+    def __init__(self, int nx, int ny):
+        pass
+
 
 cdef class CtGrid:
     def __cinit__(self, int Nx, int Ny, double Xmax, double Ymax):
