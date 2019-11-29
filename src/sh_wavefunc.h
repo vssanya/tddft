@@ -47,7 +47,6 @@ class Wavefunc: public WavefuncBase2D<Grid> {
 			m(m) {}
 
 		Wavefunc(Grid const& grid, int const m): Wavefunc(nullptr, grid, m) {}
-
 		~Wavefunc() {}
 
 		using WavefuncBase2D<Grid>::operator();
@@ -121,7 +120,7 @@ class Wavefunc: public WavefuncBase2D<Grid> {
 			double res = 0.0;
 			res += integrate<double>([this, func](int ir, int il) -> double {
 					cdouble psi = (*this)(ir, il);
-					return (plm(il, m) + 0.5)*(creal(psi)*creal(psi) + cimag(psi)*cimag(psi))*func(ir, il, m);
+					return (plm(il, m) + 0.5)*abs2(psi)*func(ir, il, m);
 					}, this->grid.n[iL]);
 
 			res += 2*integrate<double>([this, func](int ir, int il) -> double {

@@ -5,6 +5,8 @@
 
 #include <optional>
 
+#include "xc.h"
+
 /*! \file
  * Разложение кулоновского потенциала по сферическим функциям
  * \f[ \frac{1}{\left|r - r'\right|} = \sum_{l=0}^{\infty} \frac{4\pi}{2l + 1} \frac{r_<^l}{r_>^{l+1}} \sum_{m=-l}^{l} Y_l^{m*}(\Omega') Y_l^{m}(\Omega) \f]

@@ -105,9 +105,9 @@ def az_ne_Vee_1(Orbs orbs, AC atom, Field field, double t, np.ndarray Uee, np.nd
         res_ptr = <double*>az.data
 
     if Orbs is ShOrbitals and AC is ShAtomCache:
-        return calc_orbs_az_ne_Vee_0(orbs.cdata, array_uee.cdata[0], array_dueedr.cdata[0], atom.cdata[0], field.cdata, t, res_ptr)
+        return calc_orbs_az_ne_Vee_1(orbs.cdata, array_uee.cdata[0], array_dueedr.cdata[0], atom.cdata[0], field.cdata, t, res_ptr)
     elif Orbs is ShNeOrbitals and AC is ShNeAtomCache:
-        return calc_orbs_az_ne_Vee_0(orbs.cdata, array_uee.cdata[0], array_dueedr.cdata[0], atom.cdata[0], field.cdata, t, res_ptr)
+        return calc_orbs_az_ne_Vee_1(orbs.cdata, array_uee.cdata[0], array_dueedr.cdata[0], atom.cdata[0], field.cdata, t, res_ptr)
     else:
         assert(False)
 

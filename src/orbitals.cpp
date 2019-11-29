@@ -32,15 +32,12 @@ Orbitals<Grid>::Orbitals(Atom const& atom, Grid const& grid, MPI_Comm mpi_comm, 
 		} else {
 			for (int ie = 0; ie < atom.countOrbs; ++ie) {
 				ne_rank[ie] = orbsRank[ie];
-				std::cout << "Ne rank " << ie << " = " << ne_rank[ie] << std::endl;
 
 				if (orbsRank[ie] == mpi_rank) {
 					mpiCountOrbs += 1;
 				}
 			}
 		}
-
-		std::cout << "Count " << mpiCountOrbs << " rank = " << mpi_rank << std::endl;
 
 		if (mpiCountOrbs != 0) {
 			data = new cdouble[grid.size()*mpiCountOrbs]();

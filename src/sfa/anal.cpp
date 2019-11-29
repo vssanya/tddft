@@ -10,7 +10,8 @@ double Fn(double n0, double g, double pn, double pz, double a, double phi) {
 }
 
 double Qc(double g, double w) {
-	return pow(2.0*g/w / (1.0+2.0*g/M_E), 2);
+	//return pow(2.0*g/w / (1.0+2.0*g/M_E), 2);
+	return pow(2.0*g/w, 2);
 }
 
 double Ip_Up(double g, double a) {
@@ -41,8 +42,10 @@ double sfa_djdt(double E, double w, double a, double phi) {
 	double dp = 1e-3;
 	double res = 0.0;
 
+	int dN = std::max(100, int(1.0 / (asinh(g) - g / sqrt(g*g + 1)) / (2*w)));
+
 #pragma omp parallel for reduction(+:res)
-	for (int in = n_min(n0,g); in < n_min(n0,g) + 100; ++in) {
+	for (int in = n_min(n0,g); in < n_min(n0,g) + dN; ++in) {
 		double p = pn(in, n0, g);
 		int size = (int)(2.0*p/dp);
 
@@ -68,8 +71,10 @@ double sfa_dwdt(double E, double w, double a, double phi) {
 	double dp = 1e-3;
 	double res = 0.0;
 
+	int dN = std::max(100, int(1.0 / (asinh(g) - g / sqrt(g*g + 1)) / (2*w)));
+
 #pragma omp parallel for reduction(+:res)
-	for (int in = n_min(n0,g); in < n_min(n0,g) + 100; ++in) {
+	for (int in = n_min(n0,g); in < n_min(n0,g) + dN; ++in) {
 		double p = pn(in, n0, g);
 		int size = (int)(2*p/dp);
 

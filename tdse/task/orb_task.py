@@ -281,7 +281,7 @@ class OrbitalsTask(TaskAtom):
         self.t = self.field.get_t(self.dt, dT=self.dT)
 
     def calc_prop(self, i, t):
-        self.ws.prop(self.orbs, self.field, t, self.dt, active_orbs = self.active_orbs, dt_count = dt_count)
+        self.ws.prop(self.orbs, self.field, t, self.dt, active_orbs = self.active_orbs, dt_count = self.dt_count)
 
     def write_calc_params(self, params_grp: h5py.Group):
         super().write_calc_params(params_grp)
@@ -444,7 +444,7 @@ class OrbitalsGroundStateTask(TaskAtom):
     def calc(self):
         self.calc_init()
 
-        self.orbs, self.E = self.FUNCS['GroundStateSearchFunc'](self.atom, self.sh_grid, self.ws, self.dt, self.Nt, self.Orbitals, self.AtomCacheClass, True)
+        self.orbs, self.E = self.FUNCS['GroundStateSearchFunc'](self.atom, self.sh_grid, self.ws, self.dt, self.Nt, self.Orbitals, self.AtomCacheClass, True, dt_count=self.dt_count)
         self.orbs_gs = self.orbs.asarray()
 
         self.ws.calc_uee(self.orbs)

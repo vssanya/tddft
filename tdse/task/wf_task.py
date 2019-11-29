@@ -181,9 +181,9 @@ class WfGpuTask(WavefuncTask):
 
     def calc_ground_state(self, ws=None):
         ws = super().create_workspace()
-        self.wf_gs = tdse.ground_state.wf(self.atom, self.sh_grid, ws, self.dt, 10000)
+        self.wf_gs, Ip = tdse.ground_state.wf(self.atom, self.sh_grid, ws, self.dt, 10000)
 
-        return tdse.wavefunc_gpu.ShWavefuncGPU(self.wf_gs)
+        return tdse.wavefunc_gpu.ShWavefuncGPU(self.wf_gs), Ip
 
 class WavefuncWithPolarization(WavefuncTask):
     orb_polarization_task = None

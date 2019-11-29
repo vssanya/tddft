@@ -380,12 +380,32 @@ class ShNotEqudistantGrid: public ShGrid {
 
 	template <typename T>
 	T d_dr(T* f, int ir) const {
+		std::function<double(double, double)> const d1[3] = {
+			[](double d1, double d2) -> double {
+				return - d2*d2*(2*d1 + d2) / (d1*(d1 + d2)*(d1*d1 + d1*d2 + d2*d2));
+			},
+			[](double d1, double d2) -> double {
+				return (d2 - d1)*pow(d1 + d2, 2) / (d1*d2*(d1*d1 + d1*d2 + d2*d2));
+			},
+			[](double d1, double d2) -> double {
+				return d1*d1*(d1 + 2*d2) / (d2*(d1 + d2)*(d1*d1 + d1*d2 + d2*d2));
+			}
+		};
+
+		double dr1 = this->dr(ir);
+
 		if (ir == 0) {
-			return (f[ir+1] - f[ir])/(m_dr[ir+1]);
+			double dr2 = this->dr(ir+1);
+
+			return d1[0](dr1, dr2)*f[ir] + d1[1](dr1, dr2)*f[ir] + d1[2](dr1, dr2)*f[ir+1];
 		} else if (ir == n[iR] - 1) {
-			return (f[ir] - f[ir-1])/(m_dr[ir]);
+			double dr2 = dr1;
+
+			return d1[0](dr1, dr2)*f[ir-1] + d1[1](dr1, dr2)*f[ir];
 		} else {
-			return (f[ir-1] - f[ir+1])/(m_dr[ir]+m_dr[ir+1]);
+			double dr2 = this->dr(ir+1);
+
+			return d1[0](dr1, dr2)*f[ir-1] + d1[1](dr1, dr2)*f[ir] + d1[2](dr1, dr2)*f[ir+1];
 		}
 	}
 
