@@ -1,5 +1,6 @@
 from grid cimport Grid1d
 
+"""
 cdef class MaxwellWorkspace1D:
     def __cinit__(self, Grid1d grid):
         self.cdata = new cWorkspace1D(grid.cdata)
@@ -27,3 +28,4 @@ cdef class MaxwellWorkspace1D:
             self.cdata.prop(dt)
         else:
             self.cdata.prop(dt, &eps[0])
+"""

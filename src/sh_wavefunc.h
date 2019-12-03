@@ -32,6 +32,8 @@ class Wavefunc: public WavefuncBase2D<Grid> {
 					l_max = this->grid.n[iL] - 1;
 				}
 
+				l_min = std::max(l_min, m);
+
 				T res = 0.0;
 #pragma omp parallel for reduction(+:res) collapse(2)
 				for (int il = l_min; il < l_max; ++il) {
@@ -91,6 +93,61 @@ class Wavefunc: public WavefuncBase2D<Grid> {
 					}, std::min(this->grid.n[iL], other.grid.n[iL]));
 		}
 
+#ifndef __CUDACC__
+		void sh_prod(Wavefunc const& other, Wavefunc& res, std::optional<int> lmax = std::nullopt) const {
+			res.m = 0;
+
+			int Lmax = lmax.value_or(this->grid.N[iL]);
+
+			for (int ir = 0; ir < res.grid.N[iR]; ir++) {
+				for (int l = 0; l < res.grid.N[iL]; l++) {
+					res(ir, l) = 0.0;
+
+					for (int l1 = 0; l1 < Lmax; l1++) {
+						for (int l2 = std::abs(l-l1); l2 < std::min(std::abs(l+l1), Lmax); l2++) {
+							res(ir, l) += std::pow(-1, other.m) * std::sqrt((2*l1 + 1)/(2*l2 + 1)) *
+								clebsch_gordan_coef(l1, 0, l, 0, l2, 0) *
+								clebsch_gordan_coef(l1, this->m, l, res.m, l2, -other.m) *
+								(*this)(ir, l1) * std::conj(other(ir, l2));
+						}
+					}
+
+					res(ir, l) *= std::sqrt(2*l + 1) / std::sqrt(4*M_PI);
+				}
+			}
+		}
+
+		// (1 + x)^n = 1 + a1*x + a2*x
+		void pow_n(Wavefunc& res, double n, double a1, double a2) {
+			for (int ir = 0; ir < res.grid.N[iR]; ir++) {
+				auto p00 = (*this)(ir, 0) / std::sqrt(4*M_PI);
+
+				for (int l = 0; l < res.grid.N[iL]; l++) {
+					if (l == 0) {
+						res(ir, l) = 1.0;
+					} else {
+						res(ir, l) = a1*(*this)(ir, l) / p00;
+					}
+
+					//cdouble tmp = 0.0;
+					//for (int l1 = 0; l1 < this->grid.N[iL]; l1++) {
+						//for (int l2 = std::abs(l-l1); l2 < std::min(std::abs(l+l1), this->grid.N[iL]); l2++) {
+							//tmp += std::sqrt((2*l1 + 1)*(2*l2 + 1)) *
+								//clebsch_gordan_coef(l1, 0, l, 0, l2, 0) *
+								//clebsch_gordan_coef(l1, this->m, l, res.m, l2, -other.m) *
+								//(*this)(ir, l1) * std::conj(other(ir, l2));
+						//}
+					//}
+
+					res(ir, l) *= pow(p00, n);
+				}
+			}
+		}
+
+		void pow_1_3(Wavefunc& res) const {
+		}
+#endif
+
 		void exclude(Wavefunc const& other) {
 			auto proj = (*this)*other / other.norm();
 
@@ -128,6 +185,32 @@ class Wavefunc: public WavefuncBase2D<Grid> {
 					}, this->grid.n[iL]-2);
 
 			return res*(2.0/3.0);
+		}
+
+		double proj_Y10(sh_f func) const {
+			return 2*0.5*sqrt(3/M_PI)*integrate<double>([this, func](int ir, int l) -> double {
+					return clm(l, m)*creal((*this)(ir, l)*conj((*this)(ir, l+1)))*func(ir, l, m);
+					}, this->grid.n[iL]-1, 1);
+		}
+
+		double proj_Y30(sh_f func) const {
+			double res = 0.0;
+
+			res += 3*integrate<double>([this, func](int ir, int l) -> double {
+					return clm(l, m)*double(l*l + 2*l - 5*m*m)/double((2*l - 1)*(2*l + 5))*
+					creal((*this)(ir, l)*conj((*this)(ir, l+1)))*func(ir, l, m);
+					}, this->grid.n[iL]-1, 1);
+
+			res += 5*integrate<double>([this, func](int ir, int l) -> double {
+					return clm(l,m)*clm(l+1,m)*clm(l+2,m)*
+					creal((*this)(ir, l)*conj((*this)(ir, l+3)))*func(ir, l, m);
+					}, this->grid.n[iL]-3, 0);
+
+			return res*2*0.25*sqrt(7/M_PI);
+		}
+
+		double cos3(sh_f func) const {
+			return 0.2*sqrt(M_PI)*(4.0/sqrt(7.0)*proj_Y30(func) + 2*sqrt(3)*proj_Y10(func));
 		}
 
 		// <psi|U(r)sin^2(\theta)|psi>

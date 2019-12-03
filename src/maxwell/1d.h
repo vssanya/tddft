@@ -7,22 +7,28 @@
 namespace maxwell {
 	// dx / \lambda \ll 1 , for numerical calc use dx / \lambda = 20
 	class Workspace1D {
+		typedef Array1D<double> Arr1;
+
 		public:
 			Workspace1D(Grid1d const& grid);
 			~Workspace1D();
 
 			void prop(double dt);
-			void prop(double dt, double eps[]);
+			void prop(double dt, Arr1 const& eps);
 
 			Grid1d const& grid;
 
-			double* E;
-			double* D;
-			double* H;
+			Arr1 E;
+			Arr1 D;
+			Arr1 H;
+
+		private:
+			void prop_Bz(Arr1& Bz, Arr1 const& Ey, double ksi) const;
+			void prop_Dy(Arr1& Dy, Arr1 const& Hz, double ksi) const;
 	};
 
 	class Workspace2D {
-		typedef Array2D<double> Array2;
+		typedef Array2D<double> Arr2;
 
 		public:
 			Workspace2D(Grid2d const& grid);
@@ -30,18 +36,18 @@ namespace maxwell {
 
 			Grid2d const& grid;
 
-			Array2 Ez;
-			Array2 Dz;
-			Array2 Hx;
-			Array2 Hy;
+			Arr2 Ez;
+			Arr2 Dz;
+			Arr2 Hx;
+			Arr2 Hy;
 
 			void prop(double dt);
-			void prop(double dt, double eps[]);
+			void prop(double dt, Arr2 const& eps);
 
 		private:
-			static void prop_Hx(Array2& Hx, Array2 const& Ez, double ksi);
-			static void prop_Hy(Array2& Hy, Array2 const& Ez, double ksi);
-			static void prop_Dz(Array2& Dz, Array2 const& Hx, Array2 const& Hy, double ksi);
-			static void prop_Ez(Array2& Ez, Array2 const& Dz, Array2 const& eps);
+			static void prop_Hx(Arr2& Hx, Arr2 const& Ez, double ksi);
+			static void prop_Hy(Arr2& Hy, Arr2 const& Ez, double ksi);
+			static void prop_Dz(Arr2& Dz, Arr2 const& Hx, Arr2 const& Hy, double ksi);
+			static void prop_Ez(Arr2& Ez, Arr2 const& Dz, Arr2 const& eps);
 	};
 }

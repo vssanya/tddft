@@ -176,10 +176,7 @@ class AzVeeOrbData(OrbShapeMixin, CalcData):
         self.dUee_dr = np.zeros_like(self.Uee)
 
     def calc(self, task, i, t):
-        if self.l == 0:
-            tdse.calc.az_ne_Vee_0(task.orbs, task.atom_cache, task.field, t, self.Uee, self.dUee_dr, az = self.az_ne)
-        else:
-            tdse.calc.az_ne_Vee_1(task.orbs, task.atom_cache, task.field, t, self.Uee, self.dUee_dr, az = self.az_ne)
+        tdse.calc.az_ne_Vee(task.orbs, task.atom_cache, task.field, t, self.Uee, self.dUee_dr, az = self.az_ne, l = self.l)
 
         if task.rank == 0:
             self.dset[i] = self.az_ne

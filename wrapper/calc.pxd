@@ -21,6 +21,7 @@ cdef extern from "calc.h":
 
     void calc_orbs_az_ne_Vee_0[Grid](Orbitals[Grid]* orbs, Array2D[double]& Uee, Array2D[double]& dUeedr, AtomCache& atom_cache, field_t* field, double t, double* az);
     void calc_orbs_az_ne_Vee_1[Grid](Orbitals[Grid]* orbs, Array2D[double]& Uee, Array2D[double]& dUeedr, AtomCache& atom_cache, field_t* field, double t, double* az);
+    void calc_orbs_az_ne_Vee_2[Grid](Orbitals[Grid]* orbs, Array2D[double]& Uee, Array2D[double]& dUeedr, AtomCache& atom_cache, field_t* field, double t, double* az);
 
     double calc_orbs_az[Grid](Orbitals[Grid]& orbs, AtomCache[Grid]& atom, field_t* field, double t)
     void calc_orbs_az_ne[Grid](Orbitals[Grid]* orbs, AtomCache[Grid]& atom, field_t* field, double t, double* az)

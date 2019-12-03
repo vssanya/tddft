@@ -111,6 +111,33 @@ def az_ne_Vee_1(Orbs orbs, AC atom, Field field, double t, np.ndarray Uee, np.nd
     else:
         assert(False)
 
+def az_ne_Vee_2(Orbs orbs, AC atom, Field field, double t, np.ndarray Uee, np.ndarray dUeedr, np.ndarray az = None):
+    cdef DoubleArray2D array_uee    = DoubleArray2D(Uee)
+    cdef DoubleArray2D array_dueedr = DoubleArray2D(dUeedr)
+
+    cdef double* res_ptr = NULL
+    if orbs.is_root():
+        if az is None:
+            az = np.ndarray(orbs.atom.countOrbs, dtype=np.double)
+        res_ptr = <double*>az.data
+
+    if Orbs is ShOrbitals and AC is ShAtomCache:
+        return calc_orbs_az_ne_Vee_2(orbs.cdata, array_uee.cdata[0], array_dueedr.cdata[0], atom.cdata[0], field.cdata, t, res_ptr)
+    elif Orbs is ShNeOrbitals and AC is ShNeAtomCache:
+        return calc_orbs_az_ne_Vee_2(orbs.cdata, array_uee.cdata[0], array_dueedr.cdata[0], atom.cdata[0], field.cdata, t, res_ptr)
+    else:
+        assert(False)
+
+def az_ne_Vee(Orbs orbs, AC atom, Field field, double t, np.ndarray Uee, np.ndarray dUeedr, np.ndarray az = None, int l = 0):
+    if l == 0:
+        return az_ne_Vee_0(orbs, atom, field, t, Uee, dUeedr, az)
+    elif l == 1:
+        return az_ne_Vee_1(orbs, atom, field, t, Uee, dUeedr, az)
+    elif l == 2:
+        return az_ne_Vee_2(orbs, atom, field, t, Uee, dUeedr, az)
+    else:
+        assert(False)
+
 def smstep(double x, double x0, double x1):
     return smoothstep(x, x0, x1)
 

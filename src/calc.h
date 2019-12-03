@@ -75,6 +75,9 @@ void calc_orbs_az_ne_Vee_0(Orbitals<Grid> const* orbs, Array2D<double>& Uee, Arr
 template<class Grid>
 void calc_orbs_az_ne_Vee_1(Orbitals<Grid> const* orbs, Array2D<double>& Uee, Array2D<double>& dUeedr, const AtomCache<Grid>& atom_cache, field_t const* field, double t, double* az);
 
+template<class Grid>
+void calc_orbs_az_ne_Vee_2(Orbitals<Grid> const* orbs, Array2D<double>& Uee, Array2D<double>& dUeedr, const AtomCache<Grid>& atom_cache, field_t const* field, double t, double* az);
+
 double calc_wf_jrcd(
 		workspace::WfBase* ws,
 		ShWavefunc* wf,

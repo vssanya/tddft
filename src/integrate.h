@@ -27,7 +27,7 @@ T integrate_1d_cpp(std::function<T(int i)> f, int nx, double dx) {
 
 template <typename T>
 T integrate_1d_trap(T* f, T* dx, int Nx) {
-	assert(nx > 1);
+	assert(Nx > 1);
 
 	T res = 0.0;
 	for (int ix = 0; ix < Nx-1; ++ix) {

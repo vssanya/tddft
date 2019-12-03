@@ -5,7 +5,6 @@
 #include <cmath>
 #include <functional>
 
-
 #define check_index(space, index) assert(index >= 0 || index < n[space])
 
 class Range {
