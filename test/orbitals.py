@@ -7,12 +7,20 @@ import numpy.testing as testing
 
 class TestOrbitals(unittest.TestCase):
     def setUp(self):
-        self.grid = tdse.grid.ShGrid(100, 2, 20)
-        self.atom = tdse.atom.Mg
+        self.grid = tdse.grid.ShGrid(100, 4, 20)
+        self.atom = tdse.atom.Ar
 
-        self.orbs = tdse.orbitals.Orbitals(self.atom, self.grid)
+        self.orbs = tdse.orbitals.ShOrbitals(self.atom, self.grid)
         self.orbs.init()
         self.data = self.orbs.asarray()
+
+    def test_init(self):
+        psi = self.orbs.asarray()
+        print(psi)
+        testing.assert_array_equal(psi[0, 1:], 0.0)
+        testing.assert_array_equal(psi[1, 1:], 0.0)
+        testing.assert_array_equal(psi[2, 1:], 0.0)
+        testing.assert_array_equal(psi[0:2, 0] != 0.0, True)
 
     def test_normalize(self):
         self.orbs.normalize()

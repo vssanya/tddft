@@ -122,6 +122,14 @@ cdef class Atom:
 
         return lmax
 
+    @property
+    def orbCountElectrons(self):
+        res = np.zeros(self.countOrbs)
+        for i in range(res.size):
+            res[i] = self.getCountElectrons(i)
+
+        return res
+
     def get_l(self, int i):
         assert(i<self.cdata.countOrbs)
         return self.cdata.orbs[i].l

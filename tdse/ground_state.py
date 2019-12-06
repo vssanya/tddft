@@ -79,14 +79,14 @@ def orbs(atom, grid, ws, dt, Nt, orbitals_class, atom_cache_class, print_calc_in
     for i in range(Nt):
         if print_calc_info and i % (Nt // 100) == 0:
             print("i = ", i//100)
-            n = np.sqrt(orbs.norm_ne())
+            n = np.sqrt(orbs.norm_ne() / atom.orbCountElectrons)
             print(2/dt*(1-n)/(1+n))
 
         orbs.ort()
         orbs.normalize()
         ws.prop_img(orbs, dt, dt_count=dt_count)
 
-    n = np.sqrt(orbs.norm_ne())
+    n = np.sqrt(orbs.norm_ne() / atom.orbCountElectrons)
     E = 2/dt*(1-n)/(1+n)
 
     orbs.ort()
@@ -111,7 +111,7 @@ def orbs_step_shells(atom, grid, ws, dt, Nt, orbitals_class, atom_cache_class, p
 
         for i in range(Nt):
             if print_calc_info and i % (Nt // 100) == 0:
-                n = np.sqrt(orbs.norm_ne())
+                n = np.sqrt(orbs.norm_ne() / atom.orbCountElectrons)
                 E = 2/dt*(1-n)/(1+n)
 
                 Esum_last = Esum
@@ -128,7 +128,7 @@ def orbs_step_shells(atom, grid, ws, dt, Nt, orbitals_class, atom_cache_class, p
             orbs.normalize(active_orbs)
             ws.prop_img(orbs, dt, active_orbs, dt_count=dt_count)
 
-    n = np.sqrt(orbs.norm_ne())
+    n = np.sqrt(orbs.norm_ne() / atom.orbCountElectrons)
     E = 2/dt*(1-n)/(1+n)
 
     orbs.ort()
