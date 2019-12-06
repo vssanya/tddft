@@ -38,7 +38,7 @@ cdef extern from "atom.h":
 
     cdef cppclass AtomCache[Grid]:
         AtomCache(cAtom& atom, Grid& grid)
-        AtomCache(cAtom& atom, Grid& grid, double* u)
+        AtomCache(cAtom& atom, Grid& grid, double* u, int N)
         double u(int ir)
         double dudz(int ir)
 

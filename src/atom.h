@@ -123,7 +123,7 @@ class Atom {
 template<class Grid>
 class AtomCache {
 	public:
-        AtomCache(Atom const& atom, Grid const& grid, double* u);
+        AtomCache(Atom const& atom, Grid const& grid, double* u, int N = -1);
         AtomCache(Atom const& atom, Grid const& grid): AtomCache(atom, grid, nullptr) {}
 		~AtomCache();
 

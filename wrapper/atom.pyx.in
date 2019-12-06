@@ -19,7 +19,7 @@ cdef class {{Prefix}}AtomCache:
         if u is None:
             self.cdata = new AtomCache[c{{Prefix}}Grid](atom.cdata[0], grid.data[0])
         else:
-            self.cdata = new AtomCache[c{{Prefix}}Grid](atom.cdata[0], grid.data[0], &u[0])
+            self.cdata = new AtomCache[c{{Prefix}}Grid](atom.cdata[0], grid.data[0], &u[0], u.size)
 
     def __init__(self, Atom atom, {{Prefix}}Grid grid, double[::1] u = None):
         pass

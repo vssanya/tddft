@@ -247,3 +247,6 @@ template void calc_orbs_az_ne_Vee_0<ShNotEqudistantGrid>(Orbitals<ShNotEqudistan
 
 template void calc_orbs_az_ne_Vee_1<ShGrid>             (Orbitals<ShGrid>              const* orbs, Array2D<double>& Uee, Array2D<double>& dUeedr, const AtomCache<ShGrid>&              atom_cache, field_t const* field, double t, double* az);
 template void calc_orbs_az_ne_Vee_1<ShNotEqudistantGrid>(Orbitals<ShNotEqudistantGrid> const* orbs, Array2D<double>& Uee, Array2D<double>& dUeedr, const AtomCache<ShNotEqudistantGrid>& atom_cache, field_t const* field, double t, double* az);
+
+template void calc_orbs_az_ne_Vee_2<ShGrid>             (Orbitals<ShGrid>              const* orbs, Array2D<double>& Uee, Array2D<double>& dUeedr, const AtomCache<ShGrid>&              atom_cache, field_t const* field, double t, double* az);
+template void calc_orbs_az_ne_Vee_2<ShNotEqudistantGrid>(Orbitals<ShNotEqudistantGrid> const* orbs, Array2D<double>& Uee, Array2D<double>& dUeedr, const AtomCache<ShNotEqudistantGrid>& atom_cache, field_t const* field, double t, double* az);

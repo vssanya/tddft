@@ -279,6 +279,10 @@ double ux_lda_func(double n) {
 }
 
 double uxc_lb(double n, double x) {
+	if (n < 1e-20) {
+		return 0.0;
+	}
+
 	double const betta = 0.05;
 	double const ksi = pow(2, 1.0/3.0);
 

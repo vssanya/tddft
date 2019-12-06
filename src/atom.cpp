@@ -165,7 +165,7 @@ void atom_hydrogen_ground(ShWavefunc* wf) {
 
 
 template <typename Grid>
-AtomCache<Grid>::AtomCache(Atom const& atom, Grid const& grid, double* u): 
+AtomCache<Grid>::AtomCache(Atom const& atom, Grid const& grid, double* u, int N): 
 	atom(atom),
 	grid(grid),
 	gpu_data_u(nullptr),
@@ -174,6 +174,10 @@ AtomCache<Grid>::AtomCache(Atom const& atom, Grid const& grid, double* u):
 	const int Nr = grid.n[iR];
 	data_u = new double[Nr];
 	data_dudz = new double[Nr];
+
+	if (N == -1) {
+		N = Nr;
+	}
 
 	if (u == nullptr) {
 #pragma omp parallel for
@@ -184,9 +188,15 @@ AtomCache<Grid>::AtomCache(Atom const& atom, Grid const& grid, double* u):
 		}
 	} else {
 #pragma omp parallel for
-		for (int ir=0; ir<Nr; ir++) {
+		for (int ir=0; ir<N; ir++) {
 			data_u[ir] = u[ir] + atom.u(grid.r(ir));
 			data_dudz[ir] = grid.d_dr(u, ir) + atom.dudz(grid.r(ir));
+		}
+
+#pragma omp parallel for
+		for (int ir=N; ir<Nr; ir++) {
+			data_u[ir] = atom.u(grid.r(ir));
+			data_dudz[ir] = atom.dudz(grid.r(ir));
 		}
 	}
 }

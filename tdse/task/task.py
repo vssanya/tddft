@@ -278,12 +278,16 @@ class TaskAtom(Task):
     UabsCacheClass = tdse.abs_pot.UabsCache
 
     def init_from_ground_state_task(self, gs_task):
-        self.dt    = gs_task.dt
+        if self.dt is None:
+            self.dt = gs_task.dt
+
         if hasattr(gs_task, 'Rmin'):
             self.Rmin = gs_task.Rmin
             self.Ra = gs_task.Ra
         self.dr    = gs_task.dr
-        self.r_max = gs_task.r_max
+        if self.r_max is None:
+            self.r_max = gs_task.r_max
+
         self.atom  = gs_task.atom
 
     def __init__(self, *args, **kwargs):
