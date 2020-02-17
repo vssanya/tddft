@@ -54,12 +54,16 @@ cdef extern from "workspace.h" namespace "workspace":
     cdef cppclass PropAtType:
         pass
 
+    cdef cppclass Gauge:
+        pass
+
     cdef cppclass WavefuncWS[Grid]:
         WavefuncWS(
             Grid      & grid,
             AtomCache[Grid]& atom_cache,
             cUabsCache& uabs,
             PropAtType propAtType,
+            Gauge gauge,
             int num_threads
         )
 
@@ -87,23 +91,12 @@ cdef extern from "workspace.h" namespace "workspace":
             cShWavefunc& wf_source,
             double E,
             PropAtType propAtType,
+            Gauge gauge,
             int num_threads
         )
         void prop(cShWavefunc& wf, field_t* field, double t, double dt)
 
         double abs_norm
-
-    cdef cppclass WfA:
-        WfA(
-            cShGrid   & grid,
-            AtomCache[cShGrid]& atom_cache,
-            cUabsCache& uabs,
-            PropAtType propAtType,
-            int num_threads
-        )
-        void prop(cShWavefunc& wf, field_t* field, double t, double dt)
-        void prop_without_field(cShWavefunc& wf, double dt)
-        void prop_img(cShWavefunc& wf, double dt)
 
     cdef cppclass WfWithPolarization:
         WfWithPolarization(
@@ -113,6 +106,7 @@ cdef extern from "workspace.h" namespace "workspace":
             double* Upol_1,
             double* Upol_2,
             PropAtType propAtType,
+            Gauge gauge,
             int num_threads
         )
         void prop(cShWavefunc& wf, field_t* field, double t, double dt)
@@ -130,6 +124,7 @@ cdef extern from "workspace.h" namespace "workspace":
             int Uxc_lmax,
             potential_xc_f Uxc,
             PropAtType propAtType,
+            Gauge gauge,
             int num_threads
         )
 
@@ -156,6 +151,10 @@ cdef extern from "workspace.h" namespace "workspace::PropAtType":
     cdef PropAtType Odr3
     cdef PropAtType Odr4
 
+cdef extern from "workspace.h" namespace "workspace::Gauge":
+    cdef Gauge LENGTH
+    cdef Gauge VELOCITY
+
 cdef class ShWavefuncWS:
     cdef:
         WavefuncWS[cShGrid]* cdata
@@ -167,12 +166,6 @@ cdef class ShNeWavefuncWS:
         WavefuncWS[cShNeGrid]* cdata
         UabsNeCache uabs
         ShNeAtomCache atom_cache
-
-cdef class SKnAWorkspace:
-    cdef:
-        WfA* cdata
-        UabsCache uabs
-        ShAtomCache atom_cache
 
 cdef class WfWithPolarizationWorkspace:
     cdef:

@@ -17,9 +17,10 @@ workspace::OrbitalsWS<Grid>::OrbitalsWS(
 		int Uxc_lmax,
 		potential_xc_f Uxc,
 		PropAtType propAtType,
+		Gauge gauge,
 		int num_threads
 		):
-    wf_ws(sh_grid, atom_cache, uabs, propAtType, num_threads),
+    wf_ws(sh_grid, atom_cache, uabs, propAtType, gauge, num_threads),
 	Uh_lmax(Uh_lmax),
 	Uxc(Uxc),
 	Uxc_lmax(Uxc_lmax),
@@ -28,6 +29,7 @@ workspace::OrbitalsWS<Grid>::OrbitalsWS(
 	uee_grid(Grid2d(sh_grid.n[iR], 3)),
 	ylm_cache(ylm_cache),
 	timeApproxUeeType(TimeApproxUeeType::SIMPLE),
+	gauge(gauge),
 	tmpOrb(nullptr),
 	tmpUee(nullptr),
 	Uee(nullptr)
@@ -151,6 +153,11 @@ void workspace::OrbitalsWS<Grid>::calc_Uee(
 template<typename Grid>
 void workspace::OrbitalsWS<Grid>::prop_simple(Orbitals<Grid>& orbs, field_t const* field, double t, double dt, bool calc_uee, bool* activeOrbs, int const* dt_count) {
 	double Et = field_E(field, t + dt/2);
+	double At = -field_A(field, t + dt/2);
+
+	if (gauge == Gauge::VELOCITY) {
+		Et = 0;
+	}
 
 	if (calc_uee) {
 		calc_Uee(orbs, Uxc_lmax, Uh_lmax);
@@ -170,11 +177,28 @@ void workspace::OrbitalsWS<Grid>::prop_simple(Orbitals<Grid>& orbs, field_t cons
 		}
 	};
 
+	sh_f Al[2] = {
+		[At](int ir, int l, int m) -> double {
+			return At*clm(l,m);
+		},
+		[this, At](int ir, int l, int m) -> double {
+			double const r = sh_grid.r(ir);
+			return At*(l+1)*clm(l,m)/r;
+		}
+	};
+
 	for (int ie = 0; ie < orbs.atom.countOrbs; ++ie) {
 		if (orbs.wf[ie] != nullptr && (activeOrbs == nullptr || activeOrbs[ie])) {
 			auto count = (dt_count == nullptr) ? 1 : dt_count[ie];
 			for (int i = 0; i < count; ++i) {
-				wf_ws.prop_common(*orbs.wf[ie], dt/count, lmax, Ul);
+				switch (gauge) {
+					case Gauge::LENGTH:
+						wf_ws.prop_common(*orbs.wf[ie], dt/count, lmax, Ul);
+						break;
+					case Gauge::VELOCITY:
+						wf_ws.prop_common(*orbs.wf[ie], dt/count, lmax, Ul, Al);
+						break;
+				}
 				wf_ws.prop_abs(*orbs.wf[ie], dt/count);
 			}
 		}

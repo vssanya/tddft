@@ -11,12 +11,14 @@ workspace::WavefuncWS<Grid>::WavefuncWS(
 		AtomCache<Grid> const& atom_cache,
 		UabsCache const& uabs,
 		PropAtType propAtType,
+		Gauge gauge,
 		int num_threads
 		):
 	grid(grid),
 	atom_cache(atom_cache),
 	uabs(uabs),
 	propAtType(propAtType),
+	gauge(gauge),
 	num_threads(num_threads)
 {
 #ifdef _OPENMP
@@ -311,6 +313,7 @@ void workspace::WavefuncWS<Grid>::prop_common(Wavefunc<Grid>& wf, cdouble dt, in
 template <typename Grid>
 void workspace::WavefuncWS<Grid>::prop(Wavefunc<Grid>& wf, field_t const* field, double t, double dt) {
 	double Et = field_E(field, t + dt/2);
+	double At = -field_A(field, t + dt/2);
 
 	sh_f Ul[2] = {
 		[this](int ir, int l, int m) -> double {
@@ -323,8 +326,24 @@ void workspace::WavefuncWS<Grid>::prop(Wavefunc<Grid>& wf, field_t const* field,
 		}
 	};
 
+	sh_f Al[2] = {
+		[At](int ir, int l, int m) -> double {
+			return At*clm(l,m);
+		},
+		[this, At](int ir, int l, int m) -> double {
+			double const r = grid.r(ir);
+			return At*(l+1)*clm(l,m)/r;
+		}
+	};
 
-	prop_common(wf, dt, 2, Ul);
+	switch (gauge) {
+		case Gauge::LENGTH:
+			prop_common(wf, dt, 2, Ul);
+			break;
+		case Gauge::VELOCITY:
+			prop_common(wf, dt, 1, Ul, Al);
+			break;
+	}
 
 	prop_abs(wf, dt);
 }
@@ -352,50 +371,6 @@ void workspace::WavefuncWS<Grid>::prop_img(Wavefunc<Grid>& wf, double dt) {
 	};
 
 	prop_common(wf, -I*dt, 1, Ul);
-}
-
-void workspace::WfE::prop(ShWavefunc& wf, field_t const* field, double t, double dt) {
-	double Et = field_E(field, t + dt/2);
-
-	sh_f Ul[2] = {
-		[this](int ir, int l, int m) -> double {
-			double const r = grid.r(ir);
-			return l*(l+1)/(2*r*r) + atom_cache.u(ir);
-		},
-		[this, Et](int ir, int l, int m) -> double {
-			double const r = grid.r(ir);
-			return r*Et*clm(l,m);
-		}
-	};
-
-
-	prop_common(wf, dt, 2, Ul);
-	prop_abs(wf, dt);
-}
-
-void workspace::WfA::prop(ShWavefunc& wf, field_t const* field, double t, double dt) {
-	double At = -field_A(field, t + dt/2);
-
-	sh_f Ul[1] = {
-		[this](int ir, int l, int m) -> double {
-			double const r = grid.r(ir);
-			return l*(l+1)/(2*r*r) + atom_cache.u(ir);
-		},
-	};
-
-	sh_f Al[2] = {
-		[At](int ir, int l, int m) -> double {
-			return At*clm(l,m);
-		},
-		[this, At](int ir, int l, int m) -> double {
-			double const r = grid.r(ir);
-			return At*(l+1)*clm(l,m)/r;
-		}
-	};
-
-
-	prop_common(wf, dt, 1, Ul, Al);
-	prop_abs(wf, dt);
 }
 
 template<>

@@ -34,6 +34,7 @@ namespace workspace
 					int Uxc_lmax,
 					potential_xc_f Uxc,
 					PropAtType propAtType,
+					Gauge gauge,
 					int num_threads
 					);
 			virtual ~OrbitalsWS();
@@ -113,6 +114,8 @@ namespace workspace
 			YlmCache const& ylm_cache;
 
 			TimeApproxUeeType timeApproxUeeType;
+
+			Gauge gauge;
 
 			Orbitals<Grid>* tmpOrb;
 			Array2D<double>* tmpUee;

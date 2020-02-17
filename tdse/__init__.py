@@ -32,3 +32,6 @@ from . import ground_state
 from . import tdsfm
 
 from . import sfa
+
+GAUGE_LENGTH = 0
+GAUGE_VELOCITY = 1

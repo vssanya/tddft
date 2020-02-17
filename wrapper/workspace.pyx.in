@@ -73,14 +73,20 @@ cdef class SFAWorkspace:
 
 {{for prefix, prefix2 in [("Sh", ""), ("ShNe", "Ne")]}}
 cdef class {{prefix}}WavefuncWS:
-    def __cinit__(self, {{prefix}}AtomCache atom_cache, {{prefix}}Grid grid, Uabs{{prefix2}}Cache uabs, int num_threads = -1, int propType=4):
+    def __cinit__(self, {{prefix}}AtomCache atom_cache, {{prefix}}Grid grid, Uabs{{prefix2}}Cache uabs, int num_threads = -1, int propType=4, int gauge = 0):
         cdef PropAtType propAtType
         if propType == 4:
             propAtType = Odr4
         else:
             propAtType = Odr3
 
-        self.cdata = new WavefuncWS[c{{prefix}}Grid](grid.data[0], atom_cache.cdata[0], uabs.cdata[0], propAtType, num_threads)
+        cdef Gauge c_gauge
+        if gauge == 0:
+            c_gauge = LENGTH
+        else:
+            c_gauge = VELOCITY
+
+        self.cdata = new WavefuncWS[c{{prefix}}Grid](grid.data[0], atom_cache.cdata[0], uabs.cdata[0], propAtType, c_gauge, num_threads)
 
         self.uabs = uabs
         self.atom_cache = atom_cache
@@ -108,39 +114,18 @@ SKnWorkspace = ShWavefuncWS
 SNeKnWorkspace = ShWavefuncWS
 
 
-cdef class SKnAWorkspace:
-    def __cinit__(self, ShAtomCache atom_cache, ShGrid grid, UabsCache uabs, int num_threads = -1, int propType=4):
-        cdef PropAtType propAtType
-        if propType == 4:
-            propAtType = Odr4
-        else:
-            propAtType = Odr3
-
-        self.cdata = new WfA(grid.data[0], atom_cache.cdata[0], uabs.cdata[0], propAtType, num_threads)
-        self.uabs = uabs
-        self.atom_cache = atom_cache
-
-    def __dealloc__(self):
-        del self.cdata
-
-    def __init__(self, ShAtomCache atom_cache, ShGrid grid, UabsCache uabs, int num_threads = -1, int propType=4):
-        pass
-
-    def prop(self, ShWavefunc wf, Field field, double t, double dt):
-        self.cdata.prop(wf.cdata[0], field.cdata, t, dt)
-
-    def prop_without_field(self, ShWavefunc wf, double dt):
-        self.cdata.prop_without_field(wf.cdata[0], dt)
-
-    def prop_img(self, ShWavefunc wf, double dt):
-        self.cdata.prop_img(wf.cdata[0], dt)
-
 cdef class WfWithPolarizationWorkspace:
-    def __cinit__(self, ShAtomCache atom_cache, ShGrid grid, UabsCache uabs, double[:] Upol_1, double[:] Upol_2 = None, int num_threads = -1):
-        if Upol_2 is None:
-            self.cdata = new WfWithPolarization(grid.data[0], atom_cache.cdata[0], uabs.cdata[0], &Upol_1[0], NULL, Odr4, num_threads)
+    def __cinit__(self, ShAtomCache atom_cache, ShGrid grid, UabsCache uabs, double[:] Upol_1, double[:] Upol_2 = None, int num_threads = -1, int gauge = 0):
+        cdef Gauge c_gauge
+        if gauge == 0:
+            c_gauge = LENGTH
         else:
-            self.cdata = new WfWithPolarization(grid.data[0], atom_cache.cdata[0], uabs.cdata[0], &Upol_1[0], &Upol_2[0], Odr4, num_threads)
+            c_gauge = VELOCITY
+
+        if Upol_2 is None:
+            self.cdata = new WfWithPolarization(grid.data[0], atom_cache.cdata[0], uabs.cdata[0], &Upol_1[0], NULL, Odr4, c_gauge, num_threads)
+        else:
+            self.cdata = new WfWithPolarization(grid.data[0], atom_cache.cdata[0], uabs.cdata[0], &Upol_1[0], &Upol_2[0], Odr4, c_gauge, num_threads)
 
         self.uabs = uabs
         self.atom_cache = atom_cache
@@ -162,8 +147,14 @@ cdef class WfWithPolarizationWorkspace:
         self.cdata.prop_img(wf.cdata[0], dt)
 
 cdef class SKnWithSourceWorkspace:
-    def __cinit__(self, ShAtomCache atom_cache, ShGrid grid, UabsCache uabs, ShWavefunc source, double E, int num_threads = -1):
-        self.cdata = new WfEWithSource(grid.data[0], atom_cache.cdata[0], uabs.cdata[0], source.cdata[0], E, Odr4, num_threads)
+    def __cinit__(self, ShAtomCache atom_cache, ShGrid grid, UabsCache uabs, ShWavefunc source, double E, int gauge = 0, int num_threads = -1):
+        cdef Gauge c_gauge
+        if gauge == 0:
+            c_gauge = LENGTH
+        else:
+            c_gauge = VELOCITY
+
+        self.cdata = new WfEWithSource(grid.data[0], atom_cache.cdata[0], uabs.cdata[0], source.cdata[0], E, Odr4, c_gauge, num_threads)
         self.uabs = uabs
         self.source = source
         self.atom_cache = atom_cache
@@ -184,14 +175,26 @@ cdef class SKnWithSourceWorkspace:
 
 {{for prefix, prefix2 in [("Sh", ""), ("ShNe", "Ne")]}}
 cdef class {{prefix}}OrbitalsWS:
-    def __cinit__(self, {{prefix}}AtomCache atom_cache, {{prefix}}Grid sh_grid, SpGrid sp_grid, Uabs{{prefix2}}Cache uabs, YlmCache ylm_cache, int Uxc_lmax = 3, int Uh_lmax = 3, Uxc uxc = UXC_LB, int num_threads=-1):
+    def __cinit__(self, {{prefix}}AtomCache atom_cache, {{prefix}}Grid sh_grid, SpGrid sp_grid, Uabs{{prefix2}}Cache uabs, YlmCache ylm_cache, int Uxc_lmax = 3, int Uh_lmax = 3, Uxc uxc = UXC_LB, int propType=4, int gauge=0, int num_threads=-1):
         assert(Uxc_lmax >= 0 and Uxc_lmax <= 3)
         assert(Uh_lmax >= 0 and Uh_lmax <= 3)
+
+        cdef PropAtType propAtType
+        if propType == 4:
+            propAtType = Odr4
+        else:
+            propAtType = Odr3
+
+        cdef Gauge c_gauge
+        if gauge == 0:
+            c_gauge = LENGTH
+        else:
+            c_gauge = VELOCITY
 
         self.cdata = new OrbitalsWS[c{{prefix}}Grid](sh_grid.data[0], sp_grid.data[0],
                               atom_cache.cdata[0], uabs.cdata[0],
                               ylm_cache.cdata[0], Uh_lmax, Uxc_lmax,
-                              uxc.cdata, Odr4, num_threads)
+                              uxc.cdata, propAtType, c_gauge, num_threads)
         self.uabs = uabs
         self.atom_cache = atom_cache
 

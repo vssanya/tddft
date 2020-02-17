@@ -33,6 +33,7 @@ namespace workspace {
 					int Uxc_lmax,
 					potential_xc_f Uxc,
 					PropAtType propAtType,
+					Gauge gauge,
 					int num_threads
 				);
 	};

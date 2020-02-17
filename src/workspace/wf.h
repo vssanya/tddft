@@ -36,6 +36,11 @@ namespace workspace {
 		Odr4  // Numerov scheme
 	};
 
+	enum class Gauge {
+		LENGTH = 0,
+		VELOCITY
+	};
+
 	template<class Grid>
     class WavefuncWS {
 		public:
@@ -46,6 +51,7 @@ namespace workspace {
 					AtomCache<Grid> const& atom_cache,
 					UabsCache const& uabs,
 					PropAtType propAtType,
+					Gauge gauge,
 					int num_threads
 				  );
 
@@ -121,6 +127,7 @@ namespace workspace {
 			cdouble* betta;
 
 			PropAtType propAtType;
+			Gauge gauge;
 
 			int num_threads;
 	};
@@ -181,28 +188,4 @@ namespace workspace {
 
 	typedef WavefuncWS<ShGrid> WfBase;
 	typedef WavefuncWS<ShNotEqudistantGrid> WfNeBase;
-
-	class WfE: public WfBase {
-		public:
-			WfE(
-					ShGrid    const& grid,
-					AtomCache<ShGrid> const& atom_cache,
-					UabsCache const& uabs,
-					PropAtType propAtType,
-					int num_threads
-			   ): WfBase(grid, atom_cache, uabs, propAtType, num_threads) {}
-			void prop(ShWavefunc& wf, field_t const* field, double t, double dt);
-	};
-
-	class WfA: public WfBase {
-		public:
-			WfA(
-					ShGrid    const& grid,
-					AtomCache<ShGrid> const& atom_cache,
-					UabsCache const& uabs,
-					PropAtType propAtType,
-					int num_threads
-			   ): WfBase(grid, atom_cache, uabs, propAtType, num_threads) {}
-			void prop(ShWavefunc& wf, field_t const* field, double t, double dt);
-	};
 }
