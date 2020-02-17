@@ -410,7 +410,7 @@ void workspace::WavefuncWS<ShNotEqudistantGrid>::prop_at_Odr4(Wavefunc<ShNotEqud
 
 	double dr1_dr2 = dr1*(3*dr1 + 4*dr2)*Z - 6*(dr1 + dr2);
 	double d2_l0_11 = 2*(dr1+dr2)*(6*dr1 - (3*dr1 - dr2)*(dr1+dr2)*Z)/(dr1*dr1*dr2*dr1_dr2);
-	double d2_l_11  = 2*(3*dr1-dr2)*(dr1+dr2)*(dr1+dr2)/(dr1*dr1*dr1*dr2*(3*dr1 + 4*dr2));
+	double d2_l_11  = - 2*(3*dr1-dr2)*(dr1+dr2)*(dr1+dr2)/(dr1*dr1*dr1*dr2*(3*dr1 + 4*dr2));
 
 	double M2_l0_11 = (dr1+dr2)*(dr1*(dr1+dr2)*(dr1+3*dr2)*Z - 3*(dr1*dr1 + 3*dr2*dr1 + dr2*dr2))/(3*dr1*dr2*dr1_dr2);
 	double M2_l0_12 = (-dr1*dr1*dr1*Z + dr1*dr1*(dr2*Z + 3) + dr1*dr2*(2*dr2*Z - 3) - 3*dr2*dr2)/(3*dr2*dr1_dr2);

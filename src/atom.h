@@ -25,6 +25,11 @@ class Atom {
 			int countElectrons;
 			int shell;
 
+			State(int n, int l, int m, int s, int countElectrons, int shell):
+				n(n), l(l), m(m), s(0), 
+				countElectrons(countElectrons), shell(shell)
+			{}
+
             State(const char* id="1s", int m=0, int countElectrons = 0, int s=0): m(m), s(s) {
 				switch (id[1]) {
 					case 's':
@@ -65,6 +70,16 @@ class Atom {
 
 		PotentialType potentialType;
 		int countElectrons;
+
+		Atom():
+			Z(0),
+			orbs(),
+			countOrbs(0),
+            groundState(),
+			potentialType(POTENTIAL_SMOOTH),
+			countElectrons(0)
+		{
+		}
 
         Atom(int Z, std::vector<State> orbs, State groundState, PotentialType type):
 			Z(Z),
@@ -155,6 +170,54 @@ class AtomCoulomb: public Atom {
 
         double dudz(double r) const {
 			return Z/pow(r, 2);
+		}
+};
+
+class Fulleren: public Atom {
+	const double Ri = 5.3;
+	const double R0 = 8.1;
+	const double V0 = 0.68;
+	const double k = 250.0/(pow(R0, 3) - pow(Ri, 3));
+
+	public:
+		Fulleren() {
+			Z = 250;
+
+			countOrbs = 70;
+			orbs.resize(countOrbs);
+
+			int i = 0;
+			for (int l = 0; l < 10; ++l) {
+				for (int m=0; m<=l; m++) {
+					for (int n = 0; n < (l < 5 ? 2 : 1); n++) {
+						orbs[i] = State(n, l, m, 0, m==0 ? 2 : 4, n);
+						i++;
+					}
+				}
+			}
+
+
+			groundState = orbs[0];
+		}
+	
+		double u(double r) const {
+			if (r <= Ri) {
+				return - 1.5*k*(R0*R0 - Ri*Ri);
+			} else if (r >= R0) {
+				return -Z/r;
+			} else {
+				return -k*(1.5*R0*R0 - (0.5*r*r + pow(Ri, 3)/r)) - V0;
+			}
+		}
+
+		double dudz(double r) const {
+			if (r <= Ri) {
+				return 0.0;
+			} else if (r >= R0) {
+				return Z/pow(r, 2);
+			} else {
+				return k*(r - pow(Ri, 3)/pow(r,2));
+			}
 		}
 };
 
@@ -334,6 +397,11 @@ class XeAtom: public AtomCoulomb {
 	public:
 		static const std::vector<State> GroundStateOrbs;
 		XeAtom(): AtomCoulomb(54, GroundStateOrbs, 8) {}
+};
+
+class CsPAtom: public AtomCoulomb {
+	public:
+		CsPAtom(): AtomCoulomb(55, XeAtom::GroundStateOrbs, 8) {}
 };
 
 class ArSaeAtom: public Atom {

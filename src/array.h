@@ -5,7 +5,7 @@
 template <typename T, typename Grid, typename... Index>
 class Array {
 	public:
-		Grid const& grid;
+		Grid const grid;
 
 		T* data;
 		bool is_own;
@@ -43,6 +43,13 @@ class Array {
 #pragma omp parallel for
 			for (int i = 0; i < grid.size(); ++i) {
 				data[i] = value;
+			}
+		}
+
+		void mean(Array const* other) {
+#pragma omp parallel for
+			for (int i = 0; i < grid.size(); ++i) {
+				data[i] = 0.5*(data[i] + other->data[i]);
 			}
 		}
 

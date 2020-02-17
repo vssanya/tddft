@@ -25,6 +25,7 @@ workspace::OrbitalsWS<Grid>::OrbitalsWS(
 	Uxc_lmax(Uxc_lmax),
 	sh_grid(sh_grid),
 	sp_grid(sp_grid),
+	uee_grid(Grid2d(sh_grid.n[iR], 3)),
 	ylm_cache(ylm_cache),
 	timeApproxUeeType(TimeApproxUeeType::SIMPLE),
 	tmpOrb(nullptr),
@@ -39,7 +40,8 @@ workspace::OrbitalsWS<Grid>::OrbitalsWS(
 
 template<typename Grid>
 void workspace::OrbitalsWS<Grid>::init() {
-	Uee = new Array2D<double>(Grid2d(sh_grid.n[iR], 3));
+	Uee = new Array2D<double>(uee_grid);
+	Uee->set(0.0);
 
     Utmp = new double[sh_grid.n[iR]]();
     Utmp_local = new double[sh_grid.n[iR]]();
@@ -59,10 +61,13 @@ void workspace::OrbitalsWS<Grid>::setTimeApproxUeeTwoPointFor(Orbitals<Grid> con
 	}
 
 	if (tmpUee == nullptr) {
-		tmpUee = new Array2D<double>(Grid2d(sh_grid.n[iR], 3));
+		tmpUee = new Array2D<double>(uee_grid);
+		tmpUee->set(0.0);
 	}
 
 	tmpOrb = orbs.copy();
+
+	calc_Uee(orbs, Uxc_lmax, Uh_lmax);
 }
 
 template<typename Grid>
@@ -78,7 +83,7 @@ workspace::OrbitalsWS<Grid>::~OrbitalsWS() {
 	}
 
 	if (tmpUee != nullptr) {
-		delete[] tmpUee;
+		delete tmpUee;
 	}
 }
 
@@ -179,24 +184,46 @@ void workspace::OrbitalsWS<Grid>::prop_simple(Orbitals<Grid>& orbs, field_t cons
 template<typename Grid>
 void workspace::OrbitalsWS<Grid>::prop_two_point(Orbitals<Grid>& orbs, field_t const* field, double t, double dt, bool calc_uee, bool* activeOrbs, int const* dt_count) {
 	if (calc_uee) {
-		// Calc orb(t+dt) and Uee(t)
-		orbs.copy(*tmpOrb);
-		prop_simple(*tmpOrb, field, t, dt, true, activeOrbs, dt_count);
+		// Calc Uee(t)
+		calc_Uee(orbs, Uxc_lmax, Uh_lmax, tmpUee);
 
-		// Calc Uee(t+dt)
-		calc_Uee(*tmpOrb, Uxc_lmax, Uh_lmax, tmpUee);
-
-		int Nr = sh_grid.n[iR];
-
+		// Calc Uee(t+dt/2)
 #pragma omp parallel for collapse(2)
 		for (int l=0; l<3; l++) {
-			for (int ir=0; ir<Nr; ir++) {
-				(*Uee)(ir, l) = 0.5*((*Uee)(ir, l) + (*tmpUee)(ir, l));
+			for (int ir=0; ir<Uee->grid.n[iR]; ir++) {
+				(*Uee)(ir, l) = 2*(*tmpUee)(ir, l) - (*Uee)(ir, l);
 			}
+		}
+
+		double err = 1.0;
+		int max_iterations = 2;
+		int n = 0;
+		
+		while (err >= 1.0 and n < max_iterations) {
+			// Calc orb(t+dt)
+			orbs.copy(*tmpOrb);
+			prop_simple(*tmpOrb, field, t, dt, false, activeOrbs, dt_count);
+
+			// calc orb(t+dt/2)
+			tmpOrb->mean(orbs);
+
+			Uee->copy(tmpUee);
+			// Calc Uee(t+dt/2)
+			calc_Uee(*tmpOrb, Uxc_lmax, Uh_lmax);
+
+			err = 0.0;
+#pragma omp parallel for collapse(2) reduction(+:err)
+			for (int l=0; l<3; l++) {
+				for (int ir=0; ir<Uee->grid.n[iR]; ir++) {
+					err += abs((*tmpUee)(ir, l) - (*Uee)(ir, l));
+				}
+			}
+
+			n++;
 		}
 	}
 
-	prop_simple(orbs, field, t, dt, false, nullptr, dt_count);
+	prop_simple(orbs, field, t, dt, false, activeOrbs, dt_count);
 }
 
 template<typename Grid>
@@ -209,9 +236,11 @@ void workspace::OrbitalsWS<Grid>::prop(Orbitals<Grid>& orbs, field_t const* fiel
 }
 
 template<typename Grid>
-void workspace::OrbitalsWS<Grid>::prop_img(Orbitals<Grid>& orbs, double dt, bool activeOrbs[], int const dt_count[]) {
+void workspace::OrbitalsWS<Grid>::prop_img(Orbitals<Grid>& orbs, double dt, bool activeOrbs[], int const dt_count[], bool calc_uee) {
     auto lmax = std::max(std::max(1, Uxc_lmax), Uh_lmax);
-    calc_Uee(orbs, Uxc_lmax, Uh_lmax);
+	if (calc_uee) {
+		calc_Uee(orbs, Uxc_lmax, Uh_lmax);
+	}
 
 	typename workspace::WavefuncWS<Grid>::sh_f Ul[3] = {
         [this](int ir, int l, int m) -> double {
@@ -237,9 +266,14 @@ void workspace::OrbitalsWS<Grid>::prop_img(Orbitals<Grid>& orbs, double dt, bool
 }
 
 template<typename Grid>
-void workspace::OrbitalsWS<Grid>::prop_ha(Orbitals<Grid>& orbs, double dt) {
+void workspace::OrbitalsWS<Grid>::prop_ha(Orbitals<Grid>& orbs, double dt,
+		bool calc_uee,
+		bool activeOrbs[]
+) {
     auto lmax = std::max(std::max(1, Uxc_lmax), Uh_lmax);
-    calc_Uee(orbs, Uxc_lmax, Uh_lmax);
+	if (calc_uee) {
+		calc_Uee(orbs, Uxc_lmax, Uh_lmax);
+	}
 
 	typename workspace::WavefuncWS<Grid>::sh_f Ul[3] = {
         [this](int ir, int l, int m) -> double {
@@ -255,7 +289,7 @@ void workspace::OrbitalsWS<Grid>::prop_ha(Orbitals<Grid>& orbs, double dt) {
     };
 
     for (int ie = 0; ie < orbs.atom.countOrbs; ++ie) {
-        if (orbs.wf[ie] != nullptr) {
+        if (orbs.wf[ie] != nullptr && (activeOrbs == nullptr || activeOrbs[ie])) {
             wf_ws.prop_common(*orbs.wf[ie], dt, lmax, Ul);
         }
     }

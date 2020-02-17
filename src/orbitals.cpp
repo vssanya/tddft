@@ -88,7 +88,7 @@ void Orbitals<Grid>::init_shell(int shell) {
 
 template <typename Grid>
 Orbitals<Grid>* Orbitals<Grid>::copy() const {
-	auto res = new Orbitals<Grid>(atom, grid, this->mpi_comm);
+	auto res = new Orbitals<Grid>(atom, grid, this->mpi_comm, &ne_rank[0]);
 	copy(*res);
 	return res;
 }
@@ -98,6 +98,15 @@ void Orbitals<Grid>::copy(Orbitals& dest) const {
     for (int ie=0; ie<atom.countOrbs; ++ie) {
         if (wf[ie] != nullptr) {
 			wf[ie]->copy(dest.wf[ie]);
+        }
+    }
+}
+
+template <typename Grid>
+void Orbitals<Grid>::mean(Orbitals const& other) {
+    for (int ie=0; ie<atom.countOrbs; ++ie) {
+        if (wf[ie] != nullptr) {
+			wf[ie]->mean(other.wf[ie]);
         }
     }
 }
@@ -322,7 +331,7 @@ void Orbitals<Grid>::n_l0(double* n, double* n_tmp) const {
 		for (int ie = 0; ie < atom.countOrbs; ++ie) {
 			if (wf[ie] != nullptr) {
 				double res = 0.0;
-				for (int il = 0; il < grid.n[iL]; ++il) {
+				for (int il = wf[ie]->m; il < grid.n[iL]; ++il) {
 					res += wf[ie]->abs_2(ir, il);
 				}
 				n_tmp[ir] += res*atom.orbs[ie].countElectrons / (pow(grid.r(ir), 2)*4*M_PI);

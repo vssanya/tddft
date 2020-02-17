@@ -15,8 +15,20 @@ UNIT = {
 
         'eV': 1.602e-19 / 4.3597e-18,
         'W/cm2': 1.0 / 3.50944758e16,
-        'MV/cm': 1.0 / 5.14220652e3
+        'MV/cm': 1.0 / 5.14220652e3,
+        'V/m': 1.0 / 5.14220674763e11
 }
+
+def rank_orbs_equal_dist(active_orbs):
+    rank = np.zeros(active_orbs.size, dtype=np.intc)
+    count_orbs = np.sum(active_orbs)
+    j = 0
+    for i in range(rank.size):
+        rank[i] = j
+        if active_orbs[i] == 1:
+            j = j + 1
+    
+    return rank
 
 @np.vectorize
 def unit_to(value, u_from='au', u_to='au'):
@@ -28,6 +40,10 @@ def t_fwhm(fwhm, u='fs', u_to='au'):
 def length_to_freq(length, u='nm', u_to='au'):
     freq_au = 2*np.pi*const.C / unit_to(length, u)
     return unit_to(freq_au, u_to=u_to)
+
+def freq_to_length(freq, u='au', u_to='nm'):
+    length = 2*np.pi*const.C / unit_to(freq, u)
+    return unit_to(length, u_to=u_to)
 
 def t_shift(tp, I0, Imin):
     return np.sqrt(0.5*tp**2*np.log(I0/Imin))

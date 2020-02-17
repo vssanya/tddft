@@ -172,7 +172,7 @@ cdef class Atom:
         params_grp.attrs['type'] = self.name
 
 
-{{for Prefix in ['H', 'He', 'HSmoth', 'Ne', 'Ar', 'Kr', 'Xe', 'ArSae', 'ArSaeSmooth', 'Na', 'Mg']}}
+{{for Prefix in ['H', 'He', 'HSmoth', 'Ne', 'Ar', 'Kr', 'Xe', 'CsP', 'ArSae', 'ArSaeSmooth', 'Na', 'Mg']}}
 {{Prefix}} = Atom.from_c(<cAtom*> new {{Prefix}}Atom(), "{{Prefix}}")
 {{endfor}}
 
@@ -184,6 +184,8 @@ FmSae = Atom.from_c(<cAtom*> new FNegativeSaeIon(), "F-_sae")
 {{endfor}}
 
 ArSaeSGB = Atom.from_c(<cAtom*> new ArAtomSGB(), "ArSaeSGB")
+
+C60 = Atom.from_c(<cAtom*> new Fulleren(), "Fulleren")
 
 NONE = Atom.from_c(<cAtom*> new NoneAtom(), "None")
 

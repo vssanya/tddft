@@ -152,7 +152,7 @@ class Wavefunc: public WavefuncBase2D<Grid> {
 			auto proj = (*this)*other / other.norm();
 
 #pragma omp parallel for collapse(2)
-			for (int il = 0; il < this->grid.n[iL]; il++) {
+			for (int il = this->m; il < this->grid.n[iL]; il++) {
 				for (int ir = 0; ir < this->grid.n[iR]; ir++) {
 					(*this)(ir, il) -= other(ir, il)*proj;
 				}
@@ -231,7 +231,7 @@ class Wavefunc: public WavefuncBase2D<Grid> {
 		void cos_r(sh_f U, double* res) const {
 			for (int ir = 0; ir < this->grid.n[iR]; ++ir) {
 				res[ir] = 0.0;
-				for (int il = 0; il < this->grid.n[iL]-1; ++il) {
+				for (int il = this->m; il < this->grid.n[iL]-1; ++il) {
 					res[ir] += 2*clm(il, m)*creal((*this)(ir, il)*conj((*this)(ir, il+1)))*U(ir, il, m);
 				}
 			}
@@ -326,6 +326,18 @@ class Wavefunc: public WavefuncBase2D<Grid> {
 			} else {
 				return cos([this, &mask](int ir, int il, int im) {
 						return this->grid.r(ir)*mask(ir, il, im);
+						});
+			}
+		}
+
+		double z2(sh_f mask = nullptr) const {
+			if (mask == nullptr) {
+				return cos2([this](int ir, int il, int im) {
+						return pow(this->grid.r(ir), 2);
+						});
+			} else {
+				return cos2([this, &mask](int ir, int il, int im) {
+						return pow(this->grid.r(ir), 2)*mask(ir, il, im);
 						});
 			}
 		}

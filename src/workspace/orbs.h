@@ -69,10 +69,14 @@ namespace workspace
 					Orbitals<Grid>& OrbitalsWS,
 					double dt,
 					bool activeOrbs[] = nullptr,
-					int const dt_count[] = nullptr
+					int const dt_count[] = nullptr,
+					bool calc_uee = true
 			);
 
-			void prop_ha(Orbitals<Grid>& OrbitalsWS, double dt);
+			void prop_ha(Orbitals<Grid>& OrbitalsWS, double dt,
+					bool calc_uee = true, 
+					bool activeOrbs[] = nullptr
+					);
 
 			void calc_Uee(
 					Orbitals<Grid> const& OrbitalsWS,
@@ -99,6 +103,9 @@ namespace workspace
 
             Grid const& sh_grid;
             SpGrid const& sp_grid;
+
+			Grid2d uee_grid;
+
 			double* uh_tmp;
 			double* n_sp; // for root
 			double* n_sp_local;

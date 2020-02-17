@@ -105,6 +105,9 @@ cdef extern from "atom.h":
     cdef cppclass XeAtom:
         XeAtom()
 
+    cdef cppclass CsPAtom:
+        CsPAtom()
+
     cdef cppclass ArSaeAtom:
         ArSaeAtom()
 
@@ -113,6 +116,9 @@ cdef extern from "atom.h":
 
     cdef cppclass NoneAtom:
         NoneAtom()
+
+    cdef cppclass Fulleren:
+        Fulleren()
 
 cdef class State:
     cdef cAtom.cState cdata

@@ -30,6 +30,16 @@ class AzPolarizationWfData(TimeShapeMixin, CalcData):
     def calc(self, task, i, t):
         self.dset[i] = tdse.calc.az_with_polarization(task.wf, task.atom_cache, self.u, self.dudr, task.field, t)
 
+class FinWfData(CalcData):
+    NAME = "psi_final"
+    DTYPE = np.complex
+
+    def get_shape(self, task):
+        return task.wf.asarray().shape
+
+    def calc_finish(self, task):
+        self.dset[:] = task.wf.asarray()[:]
+
 class NormWfData(TimeShapeMixin, CalcDataWithMask):
     NAME = "n"
 
@@ -41,6 +51,12 @@ class ZWfData(TimeShapeMixin, CalcDataWithMask):
 
     def calc(self, task, i, t):
         self.dset[i] = task.wf.z(self.mask)
+
+class Z2WfData(TimeShapeMixin, CalcDataWithMask):
+    NAME = "z2"
+
+    def calc(self, task, i, t):
+        self.dset[i] = task.wf.z2(self.mask)
 
 class WfGroundStateTask(TaskAtom):
     atom = tdse.atom.H
@@ -100,7 +116,7 @@ class WavefuncWithSourceTask(TaskAtom):
         if ws is None:
             ws = tdse.workspace.ShWavefuncWS(self.atom_cache, self.grid_source, tdse.abs_pot.UabsZeroCache(self.grid_source))
 
-        return tdse.ground_state.wf(self.atom, self.grid_source, ws, self.dt, 10000)
+        return tdse.ground_state.wf(self.atom, self.grid_source, ws, self.dt, 100)
 
     def calc_prop(self, i, t):
         self.ws.prop(self.wf, self.field, t, self.dt)
@@ -110,6 +126,8 @@ class WavefuncTask(TaskAtom):
     """
     is_calc_ground_state = True
     ground_state = None
+    ground_state_dt = None
+    ground_state_T = 100
 
     Workspace = tdse.workspace.ShWavefuncWS
     Wavefunc = tdse.wavefunc.ShWavefunc
@@ -136,11 +154,15 @@ class WavefuncTask(TaskAtom):
 
         self.ws = self.create_workspace()
 
-        if self.is_calc_ground_state:
+        if self.is_calc_ground_state and not (type(self.ground_state) is np.ndarray):
             print("Start calc ground state")
             self.wf, self.Ip = self.calc_ground_state(self.ws)
         else:
-            self.wf = self.Wavefunc(self.sh_grid)
+            self.wf = self.Wavefunc(self.sh_grid, self.atom.ground_state.m)
+            if type(self.ground_state) is np.ndarray:
+                psi = self.wf.asarray()
+                psi[:] = 0.0
+                psi[self.atom.ground_state.l, :self.ground_state.size] = self.ground_state
 
         self.t = self.field.get_t(self.dt, dT=self.dT)
 
@@ -148,7 +170,11 @@ class WavefuncTask(TaskAtom):
         if ws is None:
             ws = self.create_workspace(tdse.abs_pot.UabsZeroCache(self.sh_grid))
 
-        return tdse.ground_state.wf(self.atom, self.sh_grid, ws, self.dt, 10000, self.Wavefunc, ground_state = self.ground_state)
+        if self.ground_state_dt is None:
+            self.ground_state_dt = self.dt
+
+        return tdse.ground_state.wf(self.atom, self.sh_grid, ws, self.ground_state_dt,
+                int(self.ground_state_T/self.ground_state_dt), self.Wavefunc, ground_state = self.ground_state)
 
     def calc_prop(self, i, t):
         self.ws.prop(self.wf, self.field, t, self.dt)
@@ -181,7 +207,7 @@ class WfGpuTask(WavefuncTask):
 
     def calc_ground_state(self, ws=None):
         ws = super().create_workspace()
-        self.wf_gs, Ip = tdse.ground_state.wf(self.atom, self.sh_grid, ws, self.dt, 10000)
+        self.wf_gs, Ip = tdse.ground_state.wf(self.atom, self.sh_grid, ws, self.dt, 100)
 
         return tdse.wavefunc_gpu.ShWavefuncGPU(self.wf_gs), Ip
 

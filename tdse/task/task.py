@@ -6,7 +6,7 @@ import h5py
 
 from mpi4py import MPI
 
-#from ..bot_client import BotClient
+from ..bot_client import BotClient
 
 import tdse
 from tdse.ui.progressbar import ProgressBar
@@ -32,6 +32,9 @@ class CalcData(object):
                                             dtype=self.dtype)
 
     def calc(self, task, i, t):
+        pass
+
+    def calc_finish(self, task):
         pass
 
     def load(self, task, file: h5py.File):
@@ -132,8 +135,7 @@ class Task(object):
         if mode is Task.MODE_ANALISIS:
             self.send_status = False
         if self.is_slurm and self.send_status and self.is_root():
-            #self.bot_client = BotClient()
-            self.bot_client = None
+            self.bot_client = BotClient()
         else:
             self.bot_client = None
 
@@ -173,7 +175,9 @@ class Task(object):
                 data.calc(self, i, t)
 
     def calc_finish(self):
-        pass
+        for data in self.CALC_DATA:
+            if type(data) is not str:
+                data.calc_finish(self)
 
     def calc(self, restart_index=0):
         if self.bot_client is not None:
@@ -214,6 +218,14 @@ class Task(object):
         self.save()
         if self.bot_client is not None:
             self.bot_client.finish()
+
+    def get_save_path(self):
+        path_res = 'res'
+        script_path = inspect.getfile(self.__class__)
+        task_dir = os.path.splitext(os.path.basename(script_path))[0]
+        save_path = os.path.join(os.path.dirname(script_path), path_res, task_dir)
+
+        return save_path
 
     def _create_save_path(self, path_res):
         if self.save_path is None:

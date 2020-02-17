@@ -13,6 +13,14 @@ ctypedef fused IDouble:
     double
     np.ndarray[double, ndim=1]
 
+cdef class TimeDelay():
+    def __init__(self, delay, units='au'):
+        self.delay = tdse.utils.unit_to(delay, units, 'au')
+
+ctypedef fused OpType:
+    Field
+    TimeDelay
+
 
 cdef class Field:
     def E(self, IDouble t):
@@ -40,8 +48,13 @@ cdef class Field:
     def __mul__(self, Field other):
         return MulField(self, other)
 
-    def __add__(self, Field other):
-        return SumField(self, other)
+    def __add__(self, other):
+        if isinstance(other, Field):
+            return SumField(self, other)
+        elif isinstance(other, TimeDelay):
+            return TimeDelayField(self, other.delay)
+        else:
+            assert(False)
 
     @property
     def T(self):
@@ -256,9 +269,14 @@ cdef class TwoColorTrField(TwoColorBaseField):
         return np.arange(0, self.tp, dt)
 
 cdef class GaussEnvField(Field):
-    def __init__(self, double t_fwhm, double dI):
-        self.cfield.dI = dI
+    def __init__(self, double t_fwhm, dI = None, T = None):
         self.cfield.tp = t_fwhm / np.sqrt(2*np.log(2))
+
+        if T is not None:
+            dI = np.exp(-2*(T/(2*self.cfield.tp))**2)
+
+        self.cfield.dI = dI
+
         self.cfield.fA = <field_func_t>field_gauss_env_A
         self.cfield.fE = <field_func_t>field_gauss_env_E
         self.cfield.pT = <field_prop_t>field_gauss_env_T

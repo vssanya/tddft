@@ -48,6 +48,9 @@ cdef extern from "sh_wavefunc.h":
         double z(sh_f mask)
         double z()
 
+        double z2(sh_f mask)
+        double z2()
+
         cdouble pz()
         void random_l(int l)
         cdouble get_sp(cSpGrid& grid, int i[3], cYlmCache* ylm_cache)

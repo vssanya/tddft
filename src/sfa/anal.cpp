@@ -6,7 +6,8 @@
 
 
 double Fn(double n0, double g, double pn, double pz, double a, double phi) {
-	return cosh(2.0*n0*a*g*cos(phi)*(2.0/3.0 + pow(pn, 2) - pow(pz, 2)))*exp(2.0*n0*g/sqrt(pow(g,2) + 1.0)*pz*(pz - a*g*sin(phi)) - 2.0*n0*pow(pn, 2)*asinh(g));
+	//return cosh(2.0*n0*a*g*cos(phi)*(2.0/3.0 + pow(pn, 2) - pow(pz, 2)))*exp(2.0*n0*g/sqrt(pow(g,2) + 1.0)*pz*(pz - a*g*sin(phi)) - 2.0*n0*pow(pn, 2)*asinh(g));
+	return exp(2.0*n0*g/sqrt(pow(g,2) + 1.0)*pz*(pz - a*g*sin(phi)) - 2.0*n0*pow(pn, 2)*asinh(g));
 }
 
 double Qc(double g, double w) {

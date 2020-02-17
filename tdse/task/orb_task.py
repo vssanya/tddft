@@ -290,7 +290,6 @@ class OrbitalsTask(TaskAtom):
 
         self.uxc.write_params(params_grp)
 
-
 class OrbitalsNeTask(OrbitalsTask):
     Workspace = tdse.workspace.ShNeOrbitalsWS
     Orbitals = tdse.orbitals.ShNeOrbitals
@@ -310,6 +309,15 @@ class OrbitalsNeTask(OrbitalsTask):
 
     def create_grid(self):
         return tdse.grid.ShNeGrid(self.Rmin, self.r_max, self.Ra, self.dr, self.Nl)
+
+class UeeCalcOnceMixin():
+    def calc_prop(self, i, t):
+        if i == 0:
+            calc_uee = True
+        else:
+            calc_uee = False
+
+        self.ws.prop(self.orbs, self.field, t, self.dt, active_orbs = self.active_orbs, calc_uee=calc_uee, dt_count = self.dt_count)
 
 class OrbitalsNeWithoutFieldTask(OrbitalsNeTask):
     def calc_prop(self, i, t):

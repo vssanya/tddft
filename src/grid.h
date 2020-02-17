@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <cmath>
+#include <memory>
 #include <functional>
 
 #define check_index(space, index) assert(index >= 0 || index < n[space])
@@ -308,8 +309,6 @@ class ShNotEqudistantGrid: public ShGrid {
 			);
 	}
 
-	ShNotEqudistantGrid(const ShNotEqudistantGrid& grid) = delete;
-
 	void init(func_t f, func_t df, func_t d2f) {
 		double dr = d[iR];
 		double dr2 = dr*dr;
@@ -322,45 +321,37 @@ class ShNotEqudistantGrid: public ShGrid {
 		m_d1[1] = 0.0;
 		m_d1[2] = 0.5/dr;
 
-		dfdxi = new double[n[iR]];
-
-		h = new double[n[iR]];
-		g = new double[n[iR]];
-
-		m_r = new double[n[iR]];
-		m_dr = new double[n[iR]];
+		dfdxi = std::shared_ptr<double>(new double[n[iR]]);
+		h     = std::shared_ptr<double>(new double[n[iR]]);
+		g     = std::shared_ptr<double>(new double[n[iR]]);
+		m_r   = std::shared_ptr<double>(new double[n[iR]]);
+		m_dr  = std::shared_ptr<double>(new double[n[iR]]);
 
 		for (int ir=0; ir<n[iR]; ir++) {
 			double xi = d[iR]*(ir+1);
 
-			m_r[ir] = f(xi);
+			m_r.get()[ir] = f(xi);
 
-			dfdxi[ir] = df(xi);
+			dfdxi.get()[ir] = df(xi);
 
-			h[ir] = std::pow(df(xi), -2);
-			g[ir] = -std::pow(df(xi), -3)*d2f(xi);
+			h.get()[ir] = std::pow(df(xi), -2);
+			g.get()[ir] = -std::pow(df(xi), -3)*d2f(xi);
 		}
 
-		m_dr[0] = m_r[0];
+		m_dr.get()[0] = m_r.get()[0];
 		for (int ir=1; ir<n[iR]; ir++) {
-			m_dr[ir] = m_r[ir] - m_r[ir-1];
+			m_dr.get()[ir] = m_r.get()[ir] - m_r.get()[ir-1];
 		}
 	}
 
-	~ShNotEqudistantGrid() {
-		delete[] dfdxi;
-		delete[] h;
-		delete[] g;
-		delete[] m_r;
-		delete[] m_dr;
-	}
+	~ShNotEqudistantGrid() {}
 
 	double dr(int ir) const {
-		return m_dr[ir];
+		return m_dr.get()[ir];
 	}
 
 	double r(int ir) const {
-		return m_r[ir];
+		return m_r.get()[ir];
 	}
 
 	double Rmax() const {
@@ -396,7 +387,7 @@ class ShNotEqudistantGrid: public ShGrid {
 		if (ir == 0) {
 			double dr2 = this->dr(ir+1);
 
-			return d1[0](dr1, dr2)*f[ir] + d1[1](dr1, dr2)*f[ir] + d1[2](dr1, dr2)*f[ir+1];
+			return (f[ir+1] - f[ir])/dr2;
 		} else if (ir == n[iR] - 1) {
 			double dr2 = dr1;
 
@@ -412,26 +403,26 @@ class ShNotEqudistantGrid: public ShGrid {
 	 * Коэффициенты трехдиагональной матрицы оператора d^2/dr^2 
 	 */
 	double d2(int ir, int i) const {
-		return h[ir]*m_d2[i] + g[ir]*m_d1[i];
+		return h.get()[ir]*m_d2[i] + g.get()[ir]*m_d1[i];
 	}
 
 	double J(int ir, int il) const {
-		return dfdxi[ir];
+		return dfdxi.get()[ir];
 	}
 
-	double* m_dr;
+	std::shared_ptr<double> m_dr;
 
 	private:
 	double m_d2[3];
 	double m_d1[3];
 
 	// d^2/dr^2 = h(\xi) d2/d\xi^2 + g(\xi) d/d\xi
-	double* dfdxi;
+	std::shared_ptr<double> dfdxi;
 
-	double* h;
-	double* g;
+	std::shared_ptr<double> h;
+	std::shared_ptr<double> g;
 
-	double* m_r;
+	std::shared_ptr<double> m_r;
 };
 
 class ShNotEqudistantGrid3D: public ShNotEqudistantGrid {

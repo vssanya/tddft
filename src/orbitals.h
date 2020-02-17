@@ -54,6 +54,8 @@ public:
      */
 	void set(cdouble value);
 
+	void mean(Orbitals const& other);
+
     /*!
      * \brief [MPI support]
      */

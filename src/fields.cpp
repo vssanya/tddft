@@ -210,11 +210,11 @@ double field_tr_sin_env_T(field_tr_sin_env_t const* field) {
 }
 
 double field_car_A(field_car_t const* field, double t) {
-	return field->E*sin(field->freq*t + field->phase)/field->freq;
+	return -field->E*sin(field->freq*t + field->phase)/field->freq;
 }
 
 double field_car_E(field_car_t const* field, double t) {
-	return -field->E*cos(field->freq*t + field->phase);
+	return field->E*cos(field->freq*t + field->phase);
 }
 
 double field_car_T(field_car_t const* field) {

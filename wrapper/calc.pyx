@@ -1,7 +1,7 @@
 import numpy as np
 cimport numpy as np
 
-import numpy.fft
+import pyfftw
 
 from wavefunc cimport ShWavefunc, ShNeWavefunc
 from orbitals cimport ShOrbitals, ShNeOrbitals
@@ -160,7 +160,27 @@ def ionization_probability_tl_exp(double Ip, int Z, double E, double alpha):
 def int_ppt(double x, double m):
     return int_func_res(x, m)
 
-def spectral_density(np.ndarray[double, ndim=1] az, double dt, np.ndarray[double, ndim=1] mask = None, mask_width=0.0) -> np.ndarray:
+def spectral_density_phase(az, double dt, np.ndarray[double, ndim=1] mask = None, mask_width=0.0) -> np.ndarray:
+    cdef i
+
+    if mask is None:
+        mask = np.ndarray(az.shape[-1], dtype=np.double)
+        for i in range(mask.size):
+            mask[i] = 1 - smstep(i, mask.size*(1.0-mask_width), mask.size-1)
+
+    return pyfftw.interfaces.numpy_fft.rfft(az*mask)
+
+def spectral_density(az, double dt, np.ndarray[double, ndim=1] mask = None, mask_width=0.0) -> np.ndarray:
+    cdef i
+
+    if mask is None:
+        mask = np.ndarray(az.shape[-1], dtype=np.double)
+        for i in range(mask.size):
+            mask[i] = 1 - smstep(i, mask.size*(1.0-mask_width), mask.size-1)
+
+    return np.abs(pyfftw.interfaces.numpy_fft.rfft(az*mask)*dt)**2
+
+def jrcd(np.ndarray[double, ndim=1] az, double dt, np.ndarray[double, ndim=1] mask = None, mask_width=0.0) -> np.float64:
     cdef i
 
     if mask is None:
@@ -168,7 +188,7 @@ def spectral_density(np.ndarray[double, ndim=1] az, double dt, np.ndarray[double
         for i in range(mask.size):
             mask[i] = 1 - smstep(i, mask.size*(1.0-mask_width), mask.size-1)
 
-    return np.abs(numpy.fft.rfft(az*mask)*dt)**2
+    return np.sum(az*mask)*dt
 
 def setGpuDevice(int id):
     return selectGpuDevice(id)
@@ -183,7 +203,10 @@ def search_hhg_argmin(double dt, double freq, Sw, interval=(0,1)):
     dN = np.pi / dt / Sw.size / freq
     start = int(interval[0] / dN)
     end = int(interval[1] / dN)
-    return start + np.argmin(Sw[start:end])
+    if start == end:
+        return start
+    else:
+        return start + np.argmin(Sw[start:end])
 
 def j_interval(double dt, double freq, az, mask_width=0.1, intervals=((0,1),(1,2))):
     cdef int i = 0
@@ -192,7 +215,7 @@ def j_interval(double dt, double freq, az, mask_width=0.1, intervals=((0,1),(1,2
     for i in range(mask.size):
         mask[i] = 1 - smstep(i, mask.size*(1.0-mask_width), mask.size-1)
 
-    aw = np.fft.rfft(az*mask)
+    aw = pyfftw.interfaces.numpy_fft.rfft(az*mask)
     
     start = search_hhg_argmin(dt, freq, np.abs(aw), intervals[0])
     end = search_hhg_argmin(dt, freq, np.abs(aw), intervals[1])
@@ -203,7 +226,7 @@ def j_interval(double dt, double freq, az, mask_width=0.1, intervals=((0,1),(1,2
     aw[:start] = 0.0
     aw[end:] = 0.0
 
-    return np.fft.irfft(aw) 
+    return pyfftw.interfaces.numpy_fft.irfft(aw) 
 
 def calc_field_return_rmax(Field field, double dt, double r_atom = 1.0):
     cdef np.ndarray[double, ndim=1] t = field.get_t(dt)

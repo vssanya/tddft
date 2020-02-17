@@ -95,6 +95,12 @@ cdef class {{Prefix}}Wavefunc:
         else:
             return self.cdata.z(<sh_f> mask.cdata[0])
 
+    def z2(self, {{Prefix}}CoreMask mask=None):
+        if mask is None:
+            return self.cdata.z2()
+        else:
+            return self.cdata.z2(<sh_f> mask.cdata[0])
+
     def pz(self):
         cdef cdouble res = self.cdata.pz()
         return (<complex_t*>(&res))[0]

@@ -11,11 +11,11 @@ UabsMultiHump::UabsMultiHump(double l_min, double l_max, std::vector<Hump> humps
 }
 
 UabsMultiHump::UabsMultiHump(double l_min, double l_max, int n, double shift): humps(n), l(n), a(n), shifts(n) {
-	humps[0] = CosHump;
-
-    for (int i=1; i<n; i++) {
-        humps[i] = PTHump;
+    for (int i=0; i<n-1; i++) {
+        humps[i] = CosHump;
     }
+
+	humps[n-1] = PTHump;
 
     init(l_min, l_max, shift);
 }

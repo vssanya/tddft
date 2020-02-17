@@ -102,6 +102,13 @@ FIELD( car,
 		double phase;
 	 )
 
+FIELD( car_chirp,
+		double E;
+		double freq;
+		double phase;
+		double chirp;
+	 )
+
 FIELD( const_env,
 		double tp;
 	 )

@@ -187,16 +187,30 @@ AtomCache<Grid>::AtomCache(Atom const& atom, Grid const& grid, double* u, int N)
 			data_dudz[ir] = atom.dudz(r);
 		}
 	} else {
-#pragma omp parallel for
-		for (int ir=0; ir<N; ir++) {
-			data_u[ir] = u[ir] + atom.u(grid.r(ir));
-			data_dudz[ir] = grid.d_dr(u, ir) + atom.dudz(grid.r(ir));
+		int Nlast = N;
+		if (N < Nr) {
+			for (int i=N-1; i>= 0; i--) {
+				if (abs(u[i]*grid.r(i) - u[i-1]*grid.r(i-1)) < 1e-4*u[i]*grid.r(i)) {
+					Nlast = i;
+					break;
+				}
+			}
 		}
 
 #pragma omp parallel for
-		for (int ir=N; ir<Nr; ir++) {
-			data_u[ir] = atom.u(grid.r(ir));
-			data_dudz[ir] = atom.dudz(grid.r(ir));
+		for (int ir=0; ir<Nlast; ir++) {
+			double r = grid.r(ir);
+			data_u[ir] = u[ir] + atom.u(r);
+			data_dudz[ir] = grid.d_dr(u, ir) + atom.dudz(r);
+		}
+
+		double Zee = u[Nlast] * grid.r(Nlast);
+
+#pragma omp parallel for
+		for (int ir=Nlast; ir<Nr; ir++) {
+			double r = grid.r(ir);
+			data_u[ir] = atom.u(r) + Zee/r;
+			data_dudz[ir] = atom.dudz(r) - Zee/(r*r);
 		}
 	}
 }

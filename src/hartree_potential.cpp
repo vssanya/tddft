@@ -68,7 +68,7 @@ void _hartree_potential_calc_f_l2(Orbitals<Grid> const* orbs, double* f, Range c
 		if (orbs->wf[ie] != nullptr) {
 			auto& wf = *orbs->wf[ie];
 			int const n_e = orbs->atom.orbs[ie].countElectrons;
-			for (int il = 0; il < 2; ++il) {
+			for (int il = wf.m; il < 2; ++il) {
 #pragma omp parallel for
 				for (int ir = rRange.start; ir < rRange.end; ++ir) {
 					f[ir] += creal(n_e*wf(ir, il) * (
@@ -87,7 +87,7 @@ void _hartree_potential_calc_f_l2(Orbitals<Grid> const* orbs, double* f, Range c
 								));
 				}
 			}
-			for (int il = grid.n[iL]-2; il < grid.n[iL]; ++il) {
+			for (int il = std::max(2, grid.n[iL]-2); il < grid.n[iL]; ++il) {
 #pragma omp parallel for
 				for (int ir = rRange.start; ir < rRange.end; ++ir) {
 					f[ir] += creal(n_e*wf(ir, il) * (
@@ -287,7 +287,12 @@ double uxc_lb(double n, double x) {
 	double const ksi = pow(2, 1.0/3.0);
 
 	x *= ksi;
-	return ux_lda_func(n) + uc_lda_func(n) - betta*x*x*pow(n, 1.0/3.0)/ksi/(1.0 + 3.0*betta*x*log(x + sqrt(x*x + 1.0)));
+	double res = ux_lda_func(n) + uc_lda_func(n) - betta*x*x*pow(n, 1.0/3.0)/ksi/(1.0 + 3.0*betta*x*log(x + sqrt(x*x + 1.0)));
+	if (res != res) {
+		return 0.0;
+	} else {
+		return res;
+	}
 	//return ux_lda_func(n) + uc_lda_func(n) - betta*x*x/(pow(n, 7.0/3.0) + 3.0*betta*x*n*(log(x + sqrt(x*x + pow(n, 8.0/3.0))) - 4.0*log(n)/3.0));
 }
 
@@ -328,7 +333,7 @@ double mod_grad_n(SpGrid const& grid, double* n, int ir, int ic) {
 template <typename Grid>
 double mod_dndr(Grid const& grid, double* n, int ir) {
 	double dn_dr = grid.d_dr(n, ir);
-	return sqrt(pow(dn_dr,2))/pow(n[ir], 4.0/3.0);
+	return abs(dn_dr)/pow(n[ir], 4.0/3.0);
 }
 
 template class HartreePotential<ShGrid>;

@@ -156,6 +156,9 @@ cdef class MulField(OpField):
 cdef class SumField(OpField):
     pass
 
+cdef class TimeDelay():
+    cdef public double delay
+
 cdef class TimeDelayField(Field):
     cdef field_time_delay_t cfield
     cdef public Field f

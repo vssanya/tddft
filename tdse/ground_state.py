@@ -9,12 +9,18 @@ def wf_1(atom, grid, ws, dt, Nt, wf_class = wavefunc.ShWavefunc):
     m = atom.ground_state.m
     wf = wf_class.random(grid, l, m)
 
-    for i in range(Nt):
-        wf.normalize()
-        ws.prop_img(wf, dt)
+    Elast = 0.0
+    E = 1.0
 
-    n = np.sqrt(wf.norm())
-    E = 2/dt*(1-n)/(1+n)
+    while np.abs(Elast - E) > 1e-6:
+        for i in range(Nt):
+            wf.normalize()
+            ws.prop_img(wf, dt)
+
+        n = np.sqrt(wf.norm())
+
+        Elast = E
+        E = 2/dt*(1-n)/(1+n)
 
     wf.normalize()
 
@@ -27,12 +33,20 @@ def wf_n(atom, grid, ws, dt, Nt, wf_class = wavefunc.ShWavefunc):
 
     wfs = [wf_class.random(grid, l, m) for i in range(n)]
 
-    for i in range(Nt):
-        wf_class.ort_l(wfs, l)
-        for j in range(n):
-            wf = wfs[j]
-            wf.normalize()
-            ws.prop_img(wf, dt)
+    Elast = 0.0
+    E = 1.0
+
+    while np.abs(Elast - E) > 1e-6:
+        for i in range(Nt):
+            wf_class.ort_l(wfs, l)
+            for j in range(n):
+                wf = wfs[j]
+                wf.normalize()
+                ws.prop_img(wf, dt)
+
+        norm = np.sqrt(wfs[-1].norm())
+        Elast = E
+        E = 2/dt*(1-norm)/(1+norm)
 
     n = np.sqrt(wfs[-1].norm())
     E = 2/dt*(1-n)/(1+n)
@@ -85,6 +99,80 @@ def orbs(atom, grid, ws, dt, Nt, orbitals_class, atom_cache_class, print_calc_in
         orbs.ort()
         orbs.normalize()
         ws.prop_img(orbs, dt, dt_count=dt_count)
+
+    n = np.sqrt(orbs.norm_ne() / atom.orbCountElectrons)
+    E = 2/dt*(1-n)/(1+n)
+
+    orbs.ort()
+    orbs.normalize()
+
+    return orbs, E
+
+def orbs_two_step_uee(atom, grid, ws, dt, Nt, orbitals_class, atom_cache_class, print_calc_info=False, dt_count=None):
+    orbs = orbitals_class(atom, grid)
+    orbs.init()
+    orbs_data = orbs.asarray()
+
+    uxc_prev = np.copy(ws.uee)
+    uxc_next = np.copy(ws.uee)
+    orbs_prev = np.copy(orbs_data)
+
+    atom_cache = atom_cache_class(atom, grid)
+
+    # Nt1 = Nt//10
+    # for i in range(Nt1):
+        # if print_calc_info and i % (Nt1 // 100) == 0:
+            # print("i = ", i//100)
+            # n = np.sqrt(orbs.norm_ne() / atom.orbCountElectrons)
+            # print(2/dt*(1-n)/(1+n))
+
+        # orbs.ort()
+        # orbs.normalize()
+
+        # orbs_data[6,:] = orbs_data[4,:]
+        # orbs_data[5,:] = orbs_data[3,:]
+
+        # ws.prop_img(orbs, dt, dt_count=dt_count)
+
+    dt = dt / 10
+
+    for i in range(Nt):
+        if print_calc_info and i % (Nt // 100) == 0:
+            print("i = ", i//100)
+            n = np.sqrt(orbs.norm_ne() / atom.orbCountElectrons)
+            print(2/dt*(1-n)/(1+n))
+
+        orbs.ort()
+        orbs.normalize()
+
+        orbs_data[6,:] = orbs_data[4,:]
+        orbs_data[5,:] = orbs_data[3,:]
+
+        ws.calc_uee(orbs)
+        ws.uee[:] = (2*ws.uee[:] - uxc_prev[:])
+
+        orbs_prev[:] = orbs_data[:]
+        uxc_prev[:] = ws.uee[:]
+
+        err = 2
+
+        while err > 1e-1:
+            ws.prop_img(orbs, dt, dt_count=dt_count, calc_uee=False)
+
+            orbs_data[:] = 0.5*(orbs_data[:] + orbs_prev[:])
+            ws.calc_uee(orbs, 1, 1)
+
+            err = np.sum(np.abs(ws.uee[0,:300] - uxc_prev[0,:300]))
+
+            if print_calc_info and i % (Nt // 100) == 0:
+                print(err)
+                print("Arg max = ", np.argmax(np.abs(ws.uee)), ", Max = ", np.max(np.abs(ws.uee)))
+
+            orbs_data[:] = orbs_prev[:]
+            uxc_prev[:] = ws.uee[:]
+
+        ws.prop_img(orbs, dt, dt_count=dt_count, calc_uee=False)
+
 
     n = np.sqrt(orbs.norm_ne() / atom.orbCountElectrons)
     E = 2/dt*(1-n)/(1+n)
