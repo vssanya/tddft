@@ -379,22 +379,42 @@ void Orbitals<Grid>::ort() {
 }
 
 template <typename Grid>
-void Orbitals<Grid>::collect(cdouble* dest, int Nl) const {
+void Orbitals<Grid>::collect(cdouble* data, int Nr, int Nl) const {
 	if (Nl == -1) {
 		Nl = grid.n[iL];
 	}
 
-	int size = grid.n[iR]*Nl;
+	if (Nr == -1) {
+		Nr = grid.n[iR];
+	}
+
+	for (int ie = 0; ie < atom.countOrbs; ++ie) {
+		if (mpi_rank == 0 && wf[ie] != nullptr) {
+			for (int l = 0; l < Nl; ++l) {
+				std::cout << "Memcpy ie = " << ie << "l = " << l << "\n";
+				memcpy(&data[ie*Nr*Nl + Nr*l], &(*wf[ie])(0, l), Nr*sizeof(cdouble));
+			}
+		}
+#ifdef _MPI
+		else if (mpi_rank == 0 || wf[ie] != nullptr) {
+			for (int l = 0; l < Nl; ++l) {
+				if (mpi_rank == 0) {
+					MPI_Recv(&data[ie*Nr*Nl + Nr*l], Nr, MPI_C_DOUBLE_COMPLEX, ne_rank[ie], 0, mpi_comm, MPI_STATUS_IGNORE);
+				} else {
+					MPI_Send(&(*wf[ie])(0, l), Nr, MPI_C_DOUBLE_COMPLEX, 0, 0, mpi_comm);
+				}
+			}
+		}
+#endif
+	}
 
 #ifdef _MPI
 	if (mpi_comm != MPI_COMM_NULL) {
-		MPI_Gather(data, size, MPI_C_DOUBLE_COMPLEX, dest, size, MPI_C_DOUBLE_COMPLEX, 0, mpi_comm);
-	} else
-#endif
-	{
-		assert(false);
+		MPI_Barrier(mpi_comm);
 	}
+#endif
 }
 
 template class Orbitals<ShGrid>;
+template class Orbitals<SpGrid2d>;
 template class Orbitals<ShNotEqudistantGrid>;

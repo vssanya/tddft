@@ -13,27 +13,27 @@ public:
 	double* data;
 
 	int l_max;
-	SpGrid const* grid;
+	SpGrid const grid;
 
-    JlCache(SpGrid const* grid, int l_max);
+    JlCache(SpGrid const grid, int l_max);
     ~JlCache();
 	
 	inline
 	double operator()(int ir, int il) const {
-		assert(ir >= -1 && ir < grid->n[iR]);
+		assert(ir >= -1 && ir < grid.n[iR]);
 		assert(il >= 0  && il < l_max);
 
-		return data[ir + il*(grid->n[iR]+1) + 1];
+		return data[ir + il*(grid.n[iR]+1) + 1];
 	}
 
 	double operator()(double r, int il) const;
 
 	inline
 	double& operator()(int ir, int il) {
-		assert(ir >= -1 && ir < grid->n[iR]);
+		assert(ir >= -1 && ir < grid.n[iR]);
 		assert(il >= 0 && il < l_max);
 
-		return data[ir + il*(grid->n[iR]+1) + 1];
+		return data[ir + il*(grid.n[iR]+1) + 1];
 	}
 
     static double calc(double r, int il);
@@ -51,26 +51,27 @@ public:
     double* data;
 	int size;
 	int l_max;
-	SpGrid const* grid;
+	int m_max;
+	SpGrid const grid;
 
-    YlmCache(SpGrid const* grid, int l_max);
+    YlmCache(SpGrid const grid, int l_max, int m_max=2);
     ~YlmCache();
 	
 	inline
 	double operator()(int l, int m, int ic) const {
-		assert(ic >= 0 && ic < grid->n[iC]);
+		assert(ic >= 0 && ic < grid.n[iC]);
 		assert(l >= 0 && l <= l_max);
 
-		return data[l + ic*(l_max+1) + m*(l_max+1)*grid->n[iC]];
+		return data[l + ic*(l_max+1) + m*(l_max+1)*grid.n[iC]];
 	}
     double operator()(int l, int m, double theta) const;
 
 	inline
 	double& operator()(int l, int m, int ic) {
-		assert(ic >= 0 && ic < grid->n[iC]);
+		assert(ic >= 0 && ic < grid.n[iC]);
 		assert(l >= 0 && l <= l_max);
 
-		return data[l + ic*(l_max+1) + m*(l_max+1)*grid->n[iC]];
+		return data[l + ic*(l_max+1) + m*(l_max+1)*grid.n[iC]];
 	}
 
     static double calc(int l, int m, double theta);

@@ -43,11 +43,13 @@ cdef extern from "orbitals.h":
         void z_ne(double* z, sh_f mask)
         void z_ne(double* z)
 
-        void collect(cdouble* dest, int Nl)
+        void collect(cdouble* dest, int Nr, int Nl)
 
         double  n(cSpGrid* grid, int i[2], cYlmCache * ylm_cache)
         void n_sp(cSpGrid& grid, double* n, double* n_tmp, cYlmCache * ylm_cache)
         void n_l0(double* n, double* n_tmp)
+
+        bool_t is_root()
 
         double cos(sh_f U)
         double cos(double* U)

@@ -94,7 +94,7 @@ cdef class {{prefix}}WavefuncWS:
     def __dealloc__(self):
         del self.cdata
 
-    def __init__(self, {{prefix}}AtomCache atom_cache, {{prefix}}Grid grid, Uabs{{prefix2}}Cache uabs, int num_threads = -1, int propType=4):
+    def __init__(self, {{prefix}}AtomCache atom_cache, {{prefix}}Grid grid, Uabs{{prefix2}}Cache uabs, int num_threads = -1, int propType=4, int gauge = 0):
         pass
 
     def prop(self, {{prefix}}Wavefunc wf, Field field, double t, double dt):
@@ -133,7 +133,7 @@ cdef class WfWithPolarizationWorkspace:
     def __dealloc__(self):
         del self.cdata
 
-    def __init__(self, ShAtomCache atom_cache, ShGrid grid, UabsCache uabs, double[:] Upol_1, double[:] Upol_2 = None, int num_threads = -1):
+    def __init__(self, ShAtomCache atom_cache, ShGrid grid, UabsCache uabs, double[:] Upol_1, double[:] Upol_2 = None, int num_threads = -1, int gauge = 0):
         self.Upol_1 = Upol_1
         self.Upol_2 = Upol_2
 
@@ -162,7 +162,7 @@ cdef class SKnWithSourceWorkspace:
     def __dealloc__(self):
         del self.cdata
 
-    def __init__(self, ShAtomCache atom_cache, ShGrid grid, UabsCache uabs, ShWavefunc source, int num_threads = -1):
+    def __init__(self, ShAtomCache atom_cache, ShGrid grid, UabsCache uabs, ShWavefunc source, int gauge = 0, int num_threads = -1):
         pass
 
     def prop(self, ShWavefunc wf, Field field, double t, double dt):
@@ -201,7 +201,7 @@ cdef class {{prefix}}OrbitalsWS:
     def __dealloc__(self):
         del self.cdata
 
-    def __init__(self, {{prefix}}AtomCache atom_cache, {{prefix}}Grid sh_grid, SpGrid sp_grid, Uabs{{prefix2}}Cache uabs, YlmCache ylm_cache, int Uxc_lmax = 3, int Uh_lmax = 3, Uxc uxc = UXC_LB, int num_threads=-1):
+    def __init__(self, {{prefix}}AtomCache atom_cache, {{prefix}}Grid sh_grid, SpGrid sp_grid, Uabs{{prefix2}}Cache uabs, YlmCache ylm_cache, int Uxc_lmax = 3, int Uh_lmax = 3, Uxc uxc = UXC_LB, int gauge = 0, int num_threads=-1):
         pass
 
     def set_time_approx_uee_two_point(self, {{prefix}}Orbitals orbs):

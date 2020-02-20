@@ -26,59 +26,90 @@
 
 class TDSFM_Base {
 	public:
-		SpGrid const* k_grid;
-		ShGrid const* r_grid;
+		SpGrid const k_grid;
+		ShGrid const r_grid;
 
 		int ir;
+		int m_max;
 
 		cdouble* data; //!< data[i + j*grid->Np] = \f$a_{I}(k_{i,j}\f$
 
-		SpGrid* jl_grid;
+		SpGrid jl_grid;
 		JlCache* jl;
 
-		SpGrid* ylm_grid;
+		SpGrid ylm_grid;
 		YlmCache* ylm;
 
 		double int_A;
 		double int_A2;
 
-		TDSFM_Base(SpGrid const* k_grid, ShGrid const* r_grid, int ir);
+		TDSFM_Base(SpGrid const k_grid, ShGrid const r_grid, int ir, int m_max, bool own_data = true);
 		virtual ~TDSFM_Base();
 
 		void init_cache();
 
-        virtual void calc(field_t const* field, ShWavefunc const& wf, double t, double dt, double mask = 1.0) = 0;
-        virtual void calc_inner(field_t const* field, ShWavefunc const& wf, double t, int ir_min, int ir_max, int l_min = 0, int l_max = -1) = 0;
+        virtual void calc(
+				field_t const* field,
+				ShWavefunc const& wf,
+				double t, double dt,
+				double mask = 1.0,
+				cdouble* data = nullptr) = 0;
+
+        virtual void calc_inner(
+				field_t const* field, 
+				ShWavefunc const& wf, 
+				double t, 
+				int ir_min, int ir_max, 
+				int l_min = 0, int l_max = -1,
+				cdouble* data = nullptr) = 0;
 
 		double pz() const;
 		double norm() const;
 
-		void calc_norm_k(ShWavefunc const& wf, int ir_min, int ir_max, int l_min, int l_max);
+		void calc_norm_k(ShWavefunc const& wf, int ir_min, int ir_max, int l_min, int l_max, cdouble* data = nullptr);
 
 		inline
 			cdouble operator()(int ik, int ic) const {
-				return data[ik + ic*k_grid->n[iR]];
+				return data[ik + ic*k_grid.n[iR]];
 			}
 
 		inline
 			cdouble& operator()(int ik, int ic) {
-				return data[ik + ic*k_grid->n[iR]];
+				return data[ik + ic*k_grid.n[iR]];
 			}
 };
 
-struct TDSFM_E: public TDSFM_Base {
-	TDSFM_E(SpGrid const* k_grid, ShGrid const* r_grid, double A_max, int ir, bool init_cache=true);
-	~TDSFM_E();
+class TDSFM_E: public TDSFM_Base {
+	public:
+		TDSFM_E(SpGrid const k_grid, ShGrid const r_grid, double A_max, int ir, int m_max, bool init_cache=true, bool own_data=true);
+		~TDSFM_E();
 
-    void calc(field_t const* field, ShWavefunc const& wf, double t, double dt, double mask);
-    void calc_inner(field_t const* field, ShWavefunc const& wf, double t, int ir_min, int ir_max, int l_min = 0, int l_max = -1);
+		void calc(field_t const* field, ShWavefunc const& wf, double t, double dt, double mask, cdouble* data = nullptr);
+		void calc_inner(field_t const* field, ShWavefunc const& wf, double t, int ir_min, int ir_max, int l_min = 0, int l_max = -1, cdouble* data = nullptr);
 };
 
 
-struct TDSFM_A: public TDSFM_Base {
-	TDSFM_A(SpGrid const* k_grid, ShGrid const* r_grid, int ir, bool init_cache=true);
-	~TDSFM_A();
+class TDSFM_A: public TDSFM_Base {
+	public:
+		TDSFM_A(SpGrid const k_grid, ShGrid const r_grid, int ir, int m_max, bool init_cache=true, bool own_data=true);
+		~TDSFM_A();
 
-    void calc(field_t const* field, ShWavefunc const& wf, double t, double dt, double mask);
-    void calc_inner(field_t const* field, ShWavefunc const& wf, double t, int ir_min, int ir_max, int l_min = 0, int l_max = -1);
+		void calc(field_t const* field, ShWavefunc const& wf, double t, double dt, double mask, cdouble* data = nullptr);
+		void calc_inner(field_t const* field, ShWavefunc const& wf, double t, int ir_min, int ir_max, int l_min = 0, int l_max = -1, cdouble* data = nullptr);
+};
+
+
+#include "workspace/wf.h"
+#include "orbitals.h"
+
+class TDSFMOrbs {
+	public:
+		TDSFMOrbs(Orbitals<ShGrid> const& orbs, SpGrid const k_grid, int ir, workspace::Gauge gauge, bool init_cache=true, double A_max = 0.0);
+		~TDSFMOrbs();
+
+		TDSFM_Base* tdsfmWf;
+		Orbitals<SpGrid2d>* pOrbs;
+
+		void calc(field_t const* field, Orbitals<ShGrid> const& orbs, double t, double dt, double mask);
+		void calc_inner(field_t const* field, Orbitals<ShGrid> const& orbs, double t, int ir_min, int ir_max, int l_min = 0, int l_max = -1);
 };

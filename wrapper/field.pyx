@@ -302,7 +302,7 @@ cdef class SinEnvTpField(Field):
     def __init__(self, double tp):
         self.cfield.tp = tp
         self.cfield.fA = <field_func_t>field_sin_env_A
-        self.cfield.fE = <field_func_t>field_func_zero
+        self.cfield.fE = <field_func_t>field_sin_env_E
         self.cfield.pT = <field_prop_t>field_sin_env_T
 
         self.cdata = <field_t*>(&self.cfield)

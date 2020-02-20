@@ -34,6 +34,9 @@ def rank_orbs_equal_dist(active_orbs):
 def unit_to(value, u_from='au', u_to='au'):
     return UNIT[u_from]*value/UNIT[u_to]
 
+def freq_to_THz(freq):
+    return 1e3 / tdse.utils.unit_to(2*np.pi/freq, 'au', 'fs')
+
 def t_fwhm(fwhm, u='fs', u_to='au'):
     return unit_to(fwhm, u, u_to)/np.sqrt(2*np.log(2))
 

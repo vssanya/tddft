@@ -101,9 +101,13 @@ public:
 		return cos(func);
 	}
 
-	void collect(cdouble* dest, int Nl = -1) const;
+	void collect(cdouble* dest, int Nr = -1, int Nl = -1) const;
 
     void ort();
+
+#ifdef _MPI
+	bool is_root() const { return mpi_comm == MPI_COMM_NULL || mpi_rank == 0; }
+#endif
 
     Atom const& atom;
     Grid const& grid;

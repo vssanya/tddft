@@ -10,18 +10,18 @@
 
 #include <stdio.h>
 
-JlCache::JlCache(SpGrid const* grid, int l_max):
+JlCache::JlCache(SpGrid const grid, int l_max):
 	l_max(l_max),
 	grid(grid)
 {
-	data = new double[(grid->n[iR]+1)*l_max]();
+	data = new double[(grid.n[iR]+1)*l_max]();
 #pragma omp parallel for collapse(2)
 	for (int il=0; il<l_max; il++) {
-        for (int ir=-1; ir<grid->n[iR]; ir++) {
+        for (int ir=-1; ir<grid.n[iR]; ir++) {
 			if (ir == -1) {
 				(*this)(ir, il) = boost::math::sph_bessel(il, 0.0);
 			} else {
-                (*this)(ir, il) = boost::math::sph_bessel(il, grid->r(ir));
+                (*this)(ir, il) = boost::math::sph_bessel(il, grid.r(ir));
 			}
 		}
 	}
@@ -38,8 +38,8 @@ JlCache::~JlCache() {
 double JlCache::operator()(double r, int il) const {
 	assert(il >= 0 && il < l_max);
 
-    int ir = grid->ir(r);
-    double x = (r - grid->r(ir))/grid->d[iR];
+    int ir = grid.ir(r);
+    double x = (r - grid.r(ir))/grid.d[iR];
 	return (*this)(ir, il)*(1.0 - x) + (*this)(ir+1, il)*x;
 }
 
@@ -56,14 +56,15 @@ double y3(int l1, int m1, int l2, int m2, int L, int M) {
 	return sqrt((2*l1 + 1)*(2*l2 + 1)/(4*M_PI*(2*L + 1)))*clebsch_gordan_coef(l1, 0, l2, 0, L, 0)*clebsch_gordan_coef(l1, m1, l2, m2, L, M);
 }
 
-YlmCache::YlmCache(SpGrid const* grid, int l_max):
+YlmCache::YlmCache(SpGrid const grid, int l_max, int m_max):
 	l_max(l_max),
+	m_max(m_max),
 	grid(grid)
 {
-	data = new double[2*(l_max+1)*grid->n[iC]]();
-	for (int ic=0; ic<grid->n[iC]; ++ic) {
-        double theta = grid->theta(ic);
-		for (int m=0; m<2; ++m) {
+	data = new double[m_max*(l_max+1)*grid.n[iC]]();
+	for (int ic=0; ic<grid.n[iC]; ++ic) {
+        double theta = grid.theta(ic);
+		for (int m=0; m<m_max; ++m) {
 			for (int l=0; l<=l_max; ++l) {
                 (*this)(l, m, ic) = YlmCache::calc(l, m, theta);
 			}
@@ -80,10 +81,10 @@ double YlmCache::calc(int l, int m, double theta) {
 }
 
 double YlmCache::operator()(int l, int m, double c) const {
-    int ic = grid->ic(c);
-    double x = (c - grid->c(ic))/grid->d[iC];
+    int ic = grid.ic(c);
+    double x = (c - grid.c(ic))/grid.d[iC];
 
-	if (ic == grid->n[iC] - 1) {
+	if (ic == grid.n[iC] - 1) {
 		return (*this)(l, m, ic);
 	} else {
 		return (*this)(l, m, ic)*(1.0 - x) + (*this)(l, m, ic+1)*x;

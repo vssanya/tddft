@@ -212,6 +212,27 @@ double calc_local_r_max(int N, double const E[], double dt, double r_atom) {
     return 0.0;
 }
 
+double calc_local_pr_max(int N, double const E[], double dt, double r_max) {
+	double r0 = 0.0;
+    double v0 = 0.0;
+
+    double res = 0.0;
+
+    for (int t=0; t<N-1; t++) {
+        double v1 = v0 + 0.5*(E[t+1]+E[t])*dt;
+        double r1 = r0 + 0.5*(v1 + v0)*dt;
+
+		if (abs(r1) < r_max && abs(v1*r1) > res) {
+			res = abs(v1*r1);
+		}
+
+        v0 = v1;
+        r0 = r1;
+	}
+    
+    return res;
+}
+
 double calc_r_max(int N, double const E[], double dt, double r_atom) {
 	double r_max_global = 0.0;
 
@@ -224,6 +245,20 @@ double calc_r_max(int N, double const E[], double dt, double r_atom) {
 	}
 
     return r_max_global;
+}
+
+double calc_pr_max(int N, double const E[], double dt, double r_max) {
+	double res = 0.0;
+
+#pragma omp parallel for reduction(max:res)
+	for (int ti=0; ti<N; ti++) {
+        double res_local = calc_local_pr_max(N-ti, &E[ti], dt, r_max);
+        if (res < res_local) {
+            res = res_local;
+		}
+	}
+
+    return res;
 }
 
 template double calc_wf_az_with_polarization<ShGrid>(Wavefunc<ShGrid> const* wf, AtomCache<ShGrid> const& atom_cache, double const Upol[], double const dUpol_dr[], field_t const* field, double t);

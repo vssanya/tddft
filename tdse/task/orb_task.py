@@ -46,6 +46,44 @@ class UeeOrbData(CalcData):
             if task.rank == 0:
                 self.dset[i // self.dNt] = task.ws.uee[:,:self.Nr]
 
+class POrbData(CalcData):
+    NAME = "p"
+    DTYPE = np.complex
+
+    def __init__(self, sp_grid, r0, **kwargs):
+        super().__init__(**kwargs)
+
+        self.sp_grid = sp_grid
+        self.r0 = r0
+
+    def get_shape(self, task):
+        return (task.orbs.shape[0], self.sp_grid.Nc, self.sp_grid.Nr)
+
+    def calc_init(self, task, file):
+        super().calc_init(task, file)
+
+        if task.gauge == tdse.GAUGE_LENGTH:
+            Amax = np.max(task.field.A(task.t))
+        else:
+            Amax = 0.0
+
+        self.tdsfm = tdse.tdsfm.TDSFMOrbs(task.orbs, self.sp_grid, self.r0//task.dr, task.gauge, A_max = Amax)
+
+    def calc(self, task, i, t):
+        self.tdsfm.calc(task.field, task.orbs, t, task.dt)
+
+    def calc_finish(self, task):
+        if task.rank == 0:
+            orbs_tmp = np.zeros(self.get_shape(task), dtype=np.complex)
+            print(orbs_tmp.shape)
+        else:
+            orbs_tmp = None
+
+        self.tdsfm.collect(orbs_tmp)
+
+        if task.rank == 0:
+            self.dset[:] = orbs_tmp[:]
+
 class UpolOrbData(CalcData):
     NAME = "Upol"
 

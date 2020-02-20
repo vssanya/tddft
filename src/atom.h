@@ -130,6 +130,12 @@ class Atom {
 			return countOrbs - ie;
 		}
 
+		int getMmax() const {
+			return std::max_element(orbs.begin(), orbs.end(), [](const State& s1, const State& s2) {
+					return s1.m < s2.m;
+					})->m;
+		}
+
         bool isSpinPolarized() const {
             return countOrbs > 1 && orbs[0].s != 0;
         }

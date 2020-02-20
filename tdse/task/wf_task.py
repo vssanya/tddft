@@ -40,6 +40,35 @@ class FinWfData(CalcData):
     def calc_finish(self, task):
         self.dset[:] = task.wf.asarray()[:]
 
+class PWfData(CalcData):
+    NAME = "p"
+    DTYPE = np.complex
+
+    def __init__(self, sp_grid, r0, **kwargs):
+        super().__init__(**kwargs)
+
+        self.sp_grid = sp_grid
+        self.r0 = r0
+
+    def get_shape(self, task):
+        return (self.sp_grid.Nr, self.sp_grid.Nc)
+
+    def calc_init(self, task, file):
+        super().calc_init(task, file)
+
+        if task.gauge == tdse.GAUGE_LENGTH:
+            Amax = np.max(task.field.A(task.t))
+            self.tdsfm = tdse.tdsfm.TDSFM_LG(self.sp_grid, task.sh_grid, self.r0//task.dr, Amax, m_max=task.wf.m+1)
+        else:
+            self.tdsfm = tdse.tdsfm.TDSFM_VG(self.sp_grid, task.sh_grid, self.r0//task.dr, m_max=task.wf.m+1)
+
+    def calc(self, task, i, t):
+        self.tdsfm.calc(task.field, task.wf, t, task.dt)
+
+    def calc_finish(self, task):
+        self.dset[:] = self.tdsfm.asarray()[:]
+
+
 class NormWfData(TimeShapeMixin, CalcDataWithMask):
     NAME = "n"
 
@@ -133,6 +162,7 @@ class WavefuncTask(TaskAtom):
     Wavefunc = tdse.wavefunc.ShWavefunc
 
     prop_type = 4
+    gauge = tdse.GAUGE_LENGTH
 
     def __init__(self, path_res='res', mode=None, **kwargs):
         super().__init__(path_res, mode, is_mpi=False, **kwargs)
@@ -147,7 +177,7 @@ class WavefuncTask(TaskAtom):
         if uabs_cache is None:
             uabs_cache = self.uabs_cache
 
-        return self.Workspace(self.atom_cache, self.sh_grid, uabs_cache, propType = self.prop_type)
+        return self.Workspace(self.atom_cache, self.sh_grid, uabs_cache, propType = self.prop_type, gauge=self.gauge)
 
     def calc_init(self):
         super().calc_init()

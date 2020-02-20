@@ -4,7 +4,7 @@ from array cimport ArraySp2D
 
 cdef extern from "sphere_harmonics.h":
     cdef cppclass cJlCache "JlCache":
-        cJlCache(cSpGrid* grid, int l_max)
+        cJlCache(cSpGrid grid, int l_max)
         double operator()(int ir, int il)
         double operator()(double r, int il)
         @staticmethod
@@ -14,8 +14,8 @@ cdef extern from "sphere_harmonics.h":
         double* data
         int size
         int l_max
-        cSpGrid* grid
-        cYlmCache(cSpGrid* grid, int l_max);
+        cSpGrid grid
+        cYlmCache(cSpGrid grid, int l_max);
         double operator()(int l, int m, int ic)
         double operator()(int l, int m, double c)
 
