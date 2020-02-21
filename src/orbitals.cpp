@@ -391,7 +391,6 @@ void Orbitals<Grid>::collect(cdouble* data, int Nr, int Nl) const {
 	for (int ie = 0; ie < atom.countOrbs; ++ie) {
 		if (mpi_rank == 0 && wf[ie] != nullptr) {
 			for (int l = 0; l < Nl; ++l) {
-				std::cout << "Memcpy ie = " << ie << "l = " << l << "\n";
 				memcpy(&data[ie*Nr*Nl + Nr*l], &(*wf[ie])(0, l), Nr*sizeof(cdouble));
 			}
 		}

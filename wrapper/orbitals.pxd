@@ -16,7 +16,7 @@ from mpi4py.libmpi cimport MPI_Comm
 cdef extern from "orbitals.h":
     cdef cppclass Orbitals[Grid]:
         cAtom& atom
-        Grid& grid
+        Grid grid
         Wavefunc[Grid]** wf
         cdouble* data
         MPI_Comm mpi_comm

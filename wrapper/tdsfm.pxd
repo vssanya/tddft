@@ -53,6 +53,7 @@ cdef extern from "tdsfm.h":
 
         void calc(field_t* field, cShOrbitals& orbs, double t, double dt, double mask)
         void calc_inner(field_t* field, cShOrbitals& orbs, double t, int ir_min, int ir_max, int l_min, int l_max)
+        void collect(cdouble* dest)
 
 
 cdef class TDSFM:

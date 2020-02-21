@@ -348,6 +348,10 @@ TDSFMOrbs::~TDSFMOrbs() {
 	delete pOrbs;
 }
 
+void TDSFMOrbs::collect(cdouble* dest) const {
+	pOrbs->collect(dest);
+}
+
 void TDSFMOrbs::calc(field_t const* field, Orbitals<ShGrid> const& orbs, double t, double dt, double mask) {
 	for (int ie = 0; ie < orbs.atom.countOrbs; ++ie) {
 		if (orbs.wf[ie] != nullptr) {

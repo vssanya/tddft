@@ -110,7 +110,7 @@ public:
 #endif
 
     Atom const& atom;
-    Grid const& grid;
+    Grid const grid;
     Wavefunc<Grid>** wf; //!< волновые функции орбиталей
     cdouble* data; //!< raw data[ir + il*nr + ie*nr*nl]
 

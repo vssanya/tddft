@@ -109,7 +109,10 @@ class TDSFMOrbs {
 
 		TDSFM_Base* tdsfmWf;
 		Orbitals<SpGrid2d>* pOrbs;
+		SpGrid2d grid;
 
 		void calc(field_t const* field, Orbitals<ShGrid> const& orbs, double t, double dt, double mask);
 		void calc_inner(field_t const* field, Orbitals<ShGrid> const& orbs, double t, int ir_min, int ir_max, int l_min = 0, int l_max = -1);
+
+		void collect(cdouble* dest) const;
 };

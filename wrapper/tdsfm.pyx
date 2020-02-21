@@ -80,4 +80,4 @@ cdef class TDSFMOrbs:
         if self.cdata.pOrbs.is_root():
             res_ptr = <cdouble*>dest.data
 
-        self.cdata.pOrbs.collect(res_ptr, -1, -1)
+        self.cdata.collect(res_ptr)
