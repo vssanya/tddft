@@ -415,6 +415,12 @@ class Ba2PAtom: public AtomCoulomb {
 		Ba2PAtom(): AtomCoulomb(56, XeAtom::GroundStateOrbs, 8) {}
 };
 
+class BaPAtom: public AtomCoulomb {
+	public:
+		static const std::vector<State> GroundStateOrbs;
+		BaPAtom(): AtomCoulomb(56, GroundStateOrbs, 8) {}
+};
+
 class BaAtom: public AtomCoulomb {
 	public:
 		static const std::vector<State> GroundStateOrbs;

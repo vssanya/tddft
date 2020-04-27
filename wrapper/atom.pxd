@@ -111,6 +111,9 @@ cdef extern from "atom.h":
     cdef cppclass Ba2PAtom:
         Ba2PAtom()
 
+    cdef cppclass BaPAtom:
+        BaPAtom()
+
     cdef cppclass BaAtom:
         BaAtom()
 
