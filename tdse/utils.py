@@ -16,16 +16,23 @@ UNIT = {
         'eV': 1.602e-19 / 4.3597e-18,
         'W/cm2': 1.0 / 3.50944758e16,
         'MV/cm': 1.0 / 5.14220652e3,
-        'V/m': 1.0 / 5.14220674763e11
+        'V/m': 1.0 / 5.14220674763e11,
+
+        'THz': 1.0 / 6579.683920721222 # 1e3*(1/tdse.utils.unit_to(1, 'au', 'fs'))/(2*np.pi)
 }
 
-def rank_orbs_equal_dist(active_orbs):
+def rank_orbs_equal_dist(active_orbs, count_active=1):
     rank = np.zeros(active_orbs.size, dtype=np.intc)
     count_orbs = np.sum(active_orbs)
     j = 0
+    n = 0
     for i in range(rank.size):
         rank[i] = j
         if active_orbs[i] == 1:
+            n = n + 1
+
+        if n == count_active:
+            n = 0
             j = j + 1
     
     return rank
@@ -33,9 +40,6 @@ def rank_orbs_equal_dist(active_orbs):
 @np.vectorize
 def unit_to(value, u_from='au', u_to='au'):
     return UNIT[u_from]*value/UNIT[u_to]
-
-def freq_to_THz(freq):
-    return 1e3 / tdse.utils.unit_to(2*np.pi/freq, 'au', 'fs')
 
 def t_fwhm(fwhm, u='fs', u_to='au'):
     return unit_to(fwhm, u, u_to)/np.sqrt(2*np.log(2))
@@ -47,6 +51,11 @@ def length_to_freq(length, u='nm', u_to='au'):
 def freq_to_length(freq, u='au', u_to='nm'):
     length = 2*np.pi*const.C / unit_to(freq, u)
     return unit_to(length, u_to=u_to)
+
+def chirp_fl(t_fl, t_fwhm):
+    tp = t_fwhm/np.sqrt(4*np.log(2))
+    t0 = t_fl/np.sqrt(4*np.log(2))
+    return np.sqrt(tp**2/t0**2 - 1) / tp**2
 
 def t_shift(tp, I0, Imin):
     return np.sqrt(0.5*tp**2*np.log(I0/Imin))

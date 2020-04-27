@@ -40,8 +40,14 @@ cdef extern from "orbitals.h":
         double z()
         double z(sh_f mask)
 
+        double z2()
+        double z2(sh_f mask)
+
         void z_ne(double* z, sh_f mask)
         void z_ne(double* z)
+
+        void z2_ne(double* z2, sh_f mask)
+        void z2_ne(double* z2)
 
         void collect(cdouble* dest, int Nr, int Nl)
 

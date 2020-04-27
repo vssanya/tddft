@@ -1,4 +1,4 @@
-from .orb_task import AzOrbData, AzVeeOrbData, NormOrbData, ZOrbData, UeeOrbData, UpolOrbData, NspOrbData, PsiOrbData, POrbData
+from .orb_task import AzOrbData, AzVeeOrbData, NormOrbData, ZOrbData, Z2OrbData, UeeOrbData, UpolOrbData, NspOrbData, PsiOrbData, POrbData
 from .orb_task import OrbitalsTask, OrbitalsNeTask, OrbitalsNeWithoutFieldTask, OrbitalsGroundStateTask, OrbitalsGroundStateNeTask, OrbitalsPolarizationTask, OrbitalsPolarizationNeTask
 from .orb_task import UeeCalcOnceMixin
 

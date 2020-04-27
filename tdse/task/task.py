@@ -281,7 +281,7 @@ class TaskAtom(Task):
     ground_state_task = None
 
     dr = 0.025
-    r_max = 100
+    r_max = None
     Nl = 2
 
     uabs = None

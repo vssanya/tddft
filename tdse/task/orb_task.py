@@ -249,10 +249,28 @@ class ZOrbData(OrbShapeMixin, CalcDataWithMask):
             self.z_ne = None
 
     def calc(self, task, i, t):
-        task.orbs.z_ne(mask=self.mask, z = self.z_ne)
+        task.orbs.z_ne(mask=self.mask, z=self.z_ne)
 
         if task.rank == 0:
             self.dset[i] = self.z_ne
+
+
+class Z2OrbData(OrbShapeMixin, CalcDataWithMask):
+    NAME = "z2"
+
+    def calc_init(self, task, file):
+        super().calc_init(task, file)
+
+        if task.rank == 0:
+            self.z2_ne = np.zeros(self.dset.shape[1])
+        else:
+            self.z2_ne = None
+
+    def calc(self, task, i, t):
+        task.orbs.z2_ne(mask=self.mask, z2=self.z2_ne)
+
+        if task.rank == 0:
+            self.dset[i] = self.z2_ne
 
 
 class OrbitalsTask(TaskAtom):

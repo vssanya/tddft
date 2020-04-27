@@ -172,7 +172,7 @@ cdef class Atom:
         params_grp.attrs['type'] = self.name
 
 
-{{for Prefix in ['H', 'He', 'HSmoth', 'Ne', 'Ar', 'Kr', 'Xe', 'CsP', 'ArSae', 'ArSaeSmooth', 'Na', 'Mg']}}
+{{for Prefix in ['H', 'He', 'HSmoth', 'Ne', 'Ar', 'Kr', 'Xe', 'Ba', 'CsP', 'Ba2P', 'ArSae', 'ArSaeSmooth', 'Na', 'Mg']}}
 {{Prefix}} = Atom.from_c(<cAtom*> new {{Prefix}}Atom(), "{{Prefix}}")
 {{endfor}}
 

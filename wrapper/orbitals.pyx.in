@@ -95,6 +95,12 @@ cdef class {{Prefix}}Orbitals:
         else:
             return self.cdata.z(<sh_f> mask.cdata[0])
 
+    def z2(self, {{Prefix}}CoreMask mask = None):
+        if mask is None:
+            return self.cdata.z2()
+        else:
+            return self.cdata.z2(<sh_f> mask.cdata[0])
+
     def z_ne(self, {{Prefix}}CoreMask mask = None, np.ndarray[double, ndim=1] z = None):
         cdef double* res_ptr = NULL
         if self.is_root():
@@ -108,6 +114,20 @@ cdef class {{Prefix}}Orbitals:
             self.cdata.z_ne(res_ptr, <sh_f> mask.cdata[0])
 
         return z
+
+    def z2_ne(self, {{Prefix}}CoreMask mask = None, np.ndarray[double, ndim=1] z2 = None):
+        cdef double* res_ptr = NULL
+        if self.is_root():
+            if z2 is None:
+                z2 = np.ndarray(self.atom.countOrbs, dtype=np.double)
+            res_ptr = <double*>z2.data
+
+        if mask is None:
+            self.cdata.z2_ne(res_ptr)
+        else:
+            self.cdata.z2_ne(res_ptr, <sh_f> mask.cdata[0])
+
+        return z2
 
     def cos(self, np.ndarray[double, ndim=1] U):
         return self.cdata.cos(<double*>U.data)

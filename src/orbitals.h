@@ -74,12 +74,14 @@ public:
 	 * MPI support]
      */
     double z(typename Wavefunc<Grid>::sh_f mask = nullptr) const;
+    double z2(typename Wavefunc<Grid>::sh_f mask = nullptr) const;
 
     /*!
      * \brief [Расчет дипольного момента для каждой орбитали.
 	 * MPI support]
      */
 	void z_ne(double* z, typename Wavefunc<Grid>::sh_f mask = nullptr) const;
+	void z2_ne(double* z2, typename Wavefunc<Grid>::sh_f mask = nullptr) const;
 
     /*!
      * Электронная плотность

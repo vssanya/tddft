@@ -247,10 +247,24 @@ double Orbitals<Grid>::z(typename Wavefunc<Grid>::sh_f mask) const {
 }
 
 template <typename Grid>
+double Orbitals<Grid>::z2(typename Wavefunc<Grid>::sh_f mask) const {
+	return calc_sum([&](auto wf) -> double {
+			return wf->z2(mask);
+	});
+}
+
+template <typename Grid>
 void Orbitals<Grid>::z_ne(double* z, typename Wavefunc<Grid>::sh_f mask) const {
 	calc_array<double>([&](auto wf) -> double {
 			return wf->z(mask);
 	}, z);
+}
+
+template <typename Grid>
+void Orbitals<Grid>::z2_ne(double* z2, typename Wavefunc<Grid>::sh_f mask) const {
+	calc_array<double>([&](auto wf) -> double {
+			return wf->z2(mask);
+	}, z2);
 }
 
 template <typename Grid>

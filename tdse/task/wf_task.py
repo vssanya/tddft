@@ -60,7 +60,7 @@ class PWfData(CalcData):
             Amax = np.max(task.field.A(task.t))
             self.tdsfm = tdse.tdsfm.TDSFM_LG(self.sp_grid, task.sh_grid, self.r0//task.dr, Amax, m_max=task.wf.m+1)
         else:
-            self.tdsfm = tdse.tdsfm.TDSFM_VG(self.sp_grid, task.sh_grid, self.r0//task.dr, m_max=task.wf.m+1)
+            self.tdsfm = tdse.tdsfm.TDSFM_VG(self.sp_grid, task.sh_grid, self.r0//task.dr, task.wf.m+1)
 
     def calc(self, task, i, t):
         self.tdsfm.calc(task.field, task.wf, t, task.dt)
@@ -185,7 +185,6 @@ class WavefuncTask(TaskAtom):
         self.ws = self.create_workspace()
 
         if self.is_calc_ground_state and not (type(self.ground_state) is np.ndarray):
-            print("Start calc ground state")
             self.wf, self.Ip = self.calc_ground_state(self.ws)
         else:
             self.wf = self.Wavefunc(self.sh_grid, self.atom.ground_state.m)
