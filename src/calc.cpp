@@ -237,7 +237,7 @@ double calc_r_max(int N, double const E[], double dt, double r_atom) {
 	double r_max_global = 0.0;
 
 #pragma omp parallel for reduction(max:r_max_global)
-	for (int ti=0; ti<N; ti++) {
+	for (int ti=0; ti<N-1; ti++) {
         double r_max = calc_local_r_max(N-ti, &E[ti], dt, r_atom);
         if (r_max_global < r_max) {
             r_max_global = r_max;

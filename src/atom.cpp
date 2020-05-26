@@ -2,6 +2,7 @@
 #include "orbitals.h"
 
 #include <array>
+#include <iostream>
 
 #ifdef WITH_CUDA
 #include <cuda_runtime.h>
@@ -82,13 +83,6 @@ const std::vector<Atom::State> NaAtom::GroundStateOrbs = {
 	State("2p", 0, 1,  1), State("2p", 1, 1,  1), State("2p",  1, 1,  1)
 };
 
-const std::vector<Atom::State> RbAtom::GroundStateOrbs = {
-	State("1s"), State("2s"), State("3s"), State("4s"), State("5s", 0, 1, -1), // m = 0
-	State("2p"), State("3p"), State("4p"),              // m = 0
-	State("2p", 1, 4), State("3p", 1, 4), State("4p", 1, 4), // m = +- 1
-	State("3d"), State("3d", 1, 4), State("3d", 2, 4)
-};
-
 const std::vector<Atom::State> NeAtom::GroundStateOrbs = {
 	State("1s"), State("2s"), // m = 0
 	State("2p"),              // m = 0
@@ -108,8 +102,24 @@ const std::vector<Atom::State> KrAtom::GroundStateOrbs = {
 	State("3d"), State("3d", 1, 4), State("3d", 2, 4)
 };
 
+const std::vector<Atom::State> RbAtom::GroundStateOrbs = {
+	State("1s"), State("2s"), State("3s"), State("4s"), State("5s", 0, 1), // m = 0
+	State("2p"), State("3p"), State("4p"),              // m = 0
+	State("2p", 1, 4), State("3p", 1, 4), State("4p", 1, 4), // m = +- 1
+	State("3d"), State("3d", 1, 4), State("3d", 2, 4)
+};
+
 const std::vector<Atom::State> XeAtom::GroundStateOrbs = {
 	State("1s"), State("2s"), State("3s"), State("4s"), State("5s"), // m = 0
+	State("2p"), State("3p"), State("4p"), State("5p"),              // m = 0
+	State("2p", 1, 4), State("3p", 1, 4), State("4p", 1, 4), State("5p", 1, 4), // m = +- 1
+	State("3d"), State("4d"),
+	State("3d", 1, 4), State("4d", 1, 4),
+	State("3d", 2, 4), State("4d", 2, 4)
+};
+
+const std::vector<Atom::State> CsAtom::GroundStateOrbs = {
+	State("1s"), State("2s"), State("3s"), State("4s"), State("5s"), State("6s", 0, 1), // m = 0
 	State("2p"), State("3p"), State("4p"), State("5p"),              // m = 0
 	State("2p", 1, 4), State("3p", 1, 4), State("4p", 1, 4), State("5p", 1, 4), // m = +- 1
 	State("3d"), State("4d"),
@@ -205,8 +215,10 @@ AtomCache<Grid>::AtomCache(Atom const& atom, Grid const& grid, double* u, int N)
 			data_dudz[ir] = atom.dudz(r);
 		}
 	} else {
-		int Nlast = N;
+		int Nlast = Nr;
 		if (N < Nr) {
+			Nlast = N;
+
 			for (int i=N-1; i>= 0; i--) {
 				if (abs(u[i]*grid.r(i) - u[i-1]*grid.r(i-1)) < 1e-4*u[i]*grid.r(i)) {
 					Nlast = i;

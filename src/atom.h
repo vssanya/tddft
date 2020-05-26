@@ -405,6 +405,12 @@ class XeAtom: public AtomCoulomb {
 		XeAtom(): AtomCoulomb(54, GroundStateOrbs, 8) {}
 };
 
+class CsAtom: public AtomCoulomb {
+	public:
+		static const std::vector<State> GroundStateOrbs;
+		CsAtom(): AtomCoulomb(55, GroundStateOrbs, 5) {}
+};
+
 class CsPAtom: public AtomCoulomb {
 	public:
 		CsPAtom(): AtomCoulomb(55, XeAtom::GroundStateOrbs, 8) {}

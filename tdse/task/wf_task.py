@@ -191,7 +191,8 @@ class WavefuncTask(TaskAtom):
             if type(self.ground_state) is np.ndarray:
                 psi = self.wf.asarray()
                 psi[:] = 0.0
-                psi[self.atom.ground_state.l, :self.ground_state.size] = self.ground_state
+                Nr = min(self.ground_state.size, self.sh_grid.Nr)
+                psi[self.atom.ground_state.l, :Nr] = self.ground_state[:Nr]
 
         self.t = self.field.get_t(self.dt, dT=self.dT)
 
