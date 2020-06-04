@@ -54,6 +54,9 @@ class WavefuncBase: public Array<cdouble, Grid, Index...> {
 };
 
 template <typename Grid>
+using WavefuncBase1D = WavefuncBase<Grid, int>;
+
+template <typename Grid>
 using WavefuncBase2D = WavefuncBase<Grid, int, int>;
 
 template <typename Grid>

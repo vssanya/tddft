@@ -481,6 +481,8 @@ class OrbitalsGroundStateTask(TaskAtom):
     Workspace = tdse.workspace.ShOrbitalsWS
     Orbitals = tdse.orbitals.ShOrbitals
 
+    norm = None # np.array([1.0, 1.0, 1.0]) is default norm for all orbitals
+
     FUNCS = {
         'GroundStateSearchFunc': tdse.ground_state.orbs
     }
@@ -505,7 +507,7 @@ class OrbitalsGroundStateTask(TaskAtom):
     def calc(self):
         self.calc_init()
 
-        self.orbs, self.E = self.FUNCS['GroundStateSearchFunc'](self.atom, self.sh_grid, self.ws, self.dt, self.Nt, self.Orbitals, self.AtomCacheClass, True, dt_count=self.dt_count)
+        self.orbs, self.E = self.FUNCS['GroundStateSearchFunc'](self.atom, self.sh_grid, self.ws, self.dt, self.Nt, self.Orbitals, self.AtomCacheClass, True, dt_count=self.dt_count, norm = norm)
         self.orbs_gs = self.orbs.asarray()
 
         self.ws.calc_uee(self.orbs)

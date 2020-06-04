@@ -12,10 +12,12 @@ class TestOrbitals(unittest.TestCase):
         self.comm = MPI.COMM_WORLD
         self.rank = self.comm.Get_rank()
 
-        self.grid = tdse.grid.ShGrid(100, 2, 20)
-        self.atom = tdse.atom.Ne
+        self.grid = tdse.grid.ShGrid(100, 3, 20)
+        self.atom = tdse.atom.Ar
 
-        self.orbs = tdse.orbitals.ShOrbitals(self.atom, self.grid, self.comm)
+        active_orbs = np.array(tdse.atom.Ar.getActiveOrbs(1) == 0, np.uint8)
+        self.rank_orbs = tdse.utils.rank_orbs_equal_dist(active_orbs)
+        self.orbs = tdse.orbitals.ShOrbitals(self.atom, self.grid, self.comm, orbsRank = self.rank_orbs)
         if self.rank == 0.0:
             self.orbs_base = tdse.orbitals.ShOrbitals(self.atom, self.grid)
 
@@ -34,56 +36,73 @@ class TestOrbitals(unittest.TestCase):
         if self.rank == 0:
             np.testing.assert_equal(data, data_coll)
 
-    def test_load_low(self):
+    def test_load(self):
         if self.rank == 0:
-            data = np.zeros((4, 2, 10), dtype=np.complex)
+            print(self.orbs.shape)
+            data = np.zeros(self.orbs.shape, dtype=np.complex)
+            data_coll = np.zeros(self.orbs.shape, dtype=np.complex)
             data[:] = np.random.random(data.shape)
         else:
             data = None
-
-        self.orbs.load(data=data)
+            data_coll = None
 
         data = self.comm.bcast(data, root=0)
-
-        np.testing.assert_equal(data[self.rank], self.orbs.asarray()[0,:,:10])
-        np.testing.assert_equal(self.orbs.asarray()[0,:,10:], 0.0)
-
-    def test_load_high(self):
-        if self.rank == 0:
-            data = np.zeros((4, 2, 200), dtype=np.complex)
-            data[:] = np.random.random(data.shape)
-        else:
-            data = None
-
         self.orbs.load(data=data)
 
-        data = self.comm.bcast(data, root=0)
+        for ie, rank in enumerate(self.rank_orbs):
+            if self.rank == rank:
+                np.testing.assert_equal(data[ie,:], self.orbs.get_wf(ie).asarray())
 
-        np.testing.assert_equal(data[self.rank][:,:100], self.orbs.asarray()[0])
+    # def test_load_low(self):
+        # if self.rank == 0:
+            # data = np.zeros((4, 3, 10), dtype=np.complex)
+            # data[:] = np.random.random(data.shape)
+        # else:
+            # data = None
 
-    def test_orbs_rank(self):
-        if self.rank == 0:
-            data = np.zeros((4, 2, 100), dtype=np.complex)
-            data[:] = np.random.random(data.shape)
-            self.orbs_base.load(data=data)
-        else:
-            data = None
+        # self.orbs.load(data=data)
 
-        self.orbs.load(data=data)
+        # data = self.comm.bcast(data, root=0)
 
-        orbs_rank = tdse.orbitals.ShOrbitals(self.atom, self.grid, self.comm, np.array([0, 0, 1, 1], dtype=np.intc))
-        orbs_rank.load(data=data)
+        # np.testing.assert_equal(data[self.rank], self.orbs.asarray()[0,:,:10])
+        # np.testing.assert_equal(self.orbs.asarray()[0,:,10:], 0.0)
 
-        v1 = self.orbs.norm()
-        v2 = orbs_rank.norm()
-        if self.rank == 0:
-            v = self.orbs_base.norm()
-            self.assertEqual(v, v1, 8)
-            self.assertEqual(v, v2, 8)
+    # def test_load_high(self):
+        # if self.rank == 0:
+            # data = np.zeros((4, 2, 200), dtype=np.complex)
+            # data[:] = np.random.random(data.shape)
+        # else:
+            # data = None
 
-        v1 = self.orbs.z()
-        v2 = orbs_rank.z()
-        if self.rank == 0:
-            v = self.orbs_base.z()
-            self.assertEqual(v, v1, 8)
-            self.assertEqual(v, v2, 8)
+        # self.orbs.load(data=data)
+
+        # data = self.comm.bcast(data, root=0)
+
+        # np.testing.assert_equal(data[self.rank][:,:100], self.orbs.asarray()[0])
+
+    # def test_orbs_rank(self):
+        # if self.rank == 0:
+            # data = np.zeros((4, 2, 100), dtype=np.complex)
+            # data[:] = np.random.random(data.shape)
+            # self.orbs_base.load(data=data)
+        # else:
+            # data = None
+
+        # self.orbs.load(data=data)
+
+        # orbs_rank = tdse.orbitals.ShOrbitals(self.atom, self.grid, self.comm, np.array([0, 0, 1, 1], dtype=np.intc))
+        # orbs_rank.load(data=data)
+
+        # v1 = self.orbs.norm()
+        # v2 = orbs_rank.norm()
+        # if self.rank == 0:
+            # v = self.orbs_base.norm()
+            # self.assertEqual(v, v1, 8)
+            # self.assertEqual(v, v2, 8)
+
+        # v1 = self.orbs.z()
+        # v2 = orbs_rank.z()
+        # if self.rank == 0:
+            # v = self.orbs_base.z()
+            # self.assertEqual(v, v1, 8)
+            # self.assertEqual(v, v2, 8)

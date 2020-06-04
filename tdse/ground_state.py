@@ -83,24 +83,27 @@ def wf(atom, grid, ws, dt, Nt, wf_class = wavefunc.ShWavefunc, ground_state = No
     return wf_full, E
 
 
-def orbs(atom, grid, ws, dt, Nt, orbitals_class, atom_cache_class, print_calc_info=False, dt_count=None):
+def orbs(atom, grid, ws, dt, Nt, orbitals_class, atom_cache_class,
+        print_calc_info=False, dt_count=None, norm=None):
     orbs = orbitals_class(atom, grid)
     orbs.init()
-    data = orbs.asarray()
 
-    atom_cache = atom_cache_class(atom, grid)
+    if norm == None:
+        orb_norm = np.ones_like(atom.orbCountElectrons)*atom.orbCountElectrons
+    else:
+        orb_norm = norm*atom.orbCountElectrons
 
     for i in range(Nt):
         if print_calc_info and i % (Nt // 100) == 0:
             print("i = ", i//100)
-            n = np.sqrt(orbs.norm_ne() / atom.orbCountElectrons)
+            n = np.sqrt(orbs.norm_ne() / orb_norm)
             print(2/dt*(1-n)/(1+n))
 
         orbs.ort()
-        orbs.normalize()
+        orbs.normalize(norm)
         ws.prop_img(orbs, dt, dt_count=dt_count)
 
-    n = np.sqrt(orbs.norm_ne() / atom.orbCountElectrons)
+    n = np.sqrt(orbs.norm_ne() / orb_norm)
     E = 2/dt*(1-n)/(1+n)
 
     orbs.ort()
@@ -182,12 +185,15 @@ def orbs_two_step_uee(atom, grid, ws, dt, Nt, orbitals_class, atom_cache_class, 
 
     return orbs, E
 
-def orbs_step_shells(atom, grid, ws, dt, Nt, orbitals_class, atom_cache_class, print_calc_info=False, dt_count=None):
+def orbs_step_shells(atom, grid, ws, dt, Nt, orbitals_class, atom_cache_class, print_calc_info=False, dt_count=None, norm = None):
     orbs = orbitals_class(atom, grid)
     data = orbs.asarray()
     data[:] = 0.0
 
-    atom_cache = atom_cache_class(atom, grid)
+    if norm == None:
+        orb_norm = np.ones_like(atom.orbCountElectrons)*atom.orbCountElectrons
+    else:
+        orb_norm = norm*atom.orbCountElectrons
 
     for shell in range(atom.countShells):
         orbs.init_shell(shell)
@@ -199,7 +205,7 @@ def orbs_step_shells(atom, grid, ws, dt, Nt, orbitals_class, atom_cache_class, p
 
         for i in range(Nt):
             if print_calc_info and i % (Nt // 100) == 0:
-                n = np.sqrt(orbs.norm_ne() / atom.orbCountElectrons)
+                n = np.sqrt(orbs.norm_ne() / orb_norm)
                 E = 2/dt*(1-n)/(1+n)
 
                 Esum_last = Esum
@@ -213,10 +219,10 @@ def orbs_step_shells(atom, grid, ws, dt, Nt, orbitals_class, atom_cache_class, p
                     break
 
             orbs.ort()
-            orbs.normalize(active_orbs)
+            orbs.normalize(active_orbs, norm)
             ws.prop_img(orbs, dt, active_orbs, dt_count=dt_count)
 
-    n = np.sqrt(orbs.norm_ne() / atom.orbCountElectrons)
+    n = np.sqrt(orbs.norm_ne() / orb_norm)
     E = 2/dt*(1-n)/(1+n)
 
     orbs.ort()

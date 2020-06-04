@@ -67,7 +67,7 @@ public:
     /*!
      * \brief [MPI support]
      */
-    void normalize(bool activeOrbs[] = nullptr);
+    void normalize(bool activeOrbs[] = nullptr, double norm[] = nullptr);
 
     /*!
      * \brief [Расчет дипольного момента.

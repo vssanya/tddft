@@ -196,12 +196,17 @@ cdef class {{Prefix}}Orbitals:
 
         return res
 
-    def normalize(self, np.ndarray[np.uint8_t, ndim=1] active_orbs = None):
+    def normalize(self, np.ndarray[np.uint8_t, ndim=1] active_orbs = None, np.ndarray[double, ndim=1] norm = None):
         cdef bool_t* active_orbs_ptr = NULL
+        cdef double* norm_ptr = NULL
+
         if active_orbs is not None:
             active_orbs_ptr = <bool_t*>active_orbs.data
 
-        self.cdata.normalize(active_orbs_ptr)
+        if norm is not None:
+            norm_ptr = <double*>norm.data
+
+        self.cdata.normalize(active_orbs_ptr, norm_ptr)
 
     def get_wf(self, int ie):
         assert(ie < self.cdata.atom.countOrbs)

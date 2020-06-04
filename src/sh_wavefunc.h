@@ -310,11 +310,11 @@ class Wavefunc: public WavefuncBase2D<Grid> {
 		}
 #endif
 
-		void normalize() {
-			double norm = this->norm(NULL);
+		void normalize(double norm = 1.0) {
+			double current_norm = this->norm();
 #pragma omp parallel for
 			for (int i = 0; i < this->grid.size(); ++i) {
-				this->data[i] /= sqrt(norm);
+				this->data[i] /= sqrt(current_norm/norm);
 			}
 		}
 
@@ -417,7 +417,7 @@ class Wavefunc: public WavefuncBase2D<Grid> {
 					}
 				}
 
-				norm[in] = wfs[in]->norm(NULL);
+				norm[in] = wfs[in]->norm();
 			}
 		}
 

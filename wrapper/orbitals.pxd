@@ -35,7 +35,7 @@ cdef extern from "orbitals.h":
         void norm_ne(double* n)
 
         void prod_ne(Orbitals& orbs, cdouble* res)
-        void normalize(bool_t* activeOrbs)
+        void normalize(bool_t* activeOrbs, double* norm)
 
         double z()
         double z(sh_f mask)
