@@ -160,33 +160,30 @@ def ionization_probability_tl_exp(double Ip, int Z, double E, double alpha):
 def int_ppt(double x, double m):
     return int_func_res(x, m)
 
-def spectral_density_phase(az, double dt, np.ndarray[double, ndim=1] mask = None, mask_width=0.0) -> np.ndarray:
+def mask_calc(N, width):
     cdef i
 
+    res = np.ndarray(N, dtype=np.double)
+    for i in range(N):
+        res[i] = 1 - smstep(i, N*(1.0-width), N-1)
+
+    return res
+
+def spectral_density_phase(az, double dt, np.ndarray[double, ndim=1] mask = None, mask_width=0.0) -> np.ndarray:
     if mask is None:
-        mask = np.ndarray(az.shape[-1], dtype=np.double)
-        for i in range(mask.size):
-            mask[i] = 1 - smstep(i, mask.size*(1.0-mask_width), mask.size-1)
+        mask = mask_calc(az.shape[-1], mask_width)
 
     return pyfftw.interfaces.numpy_fft.rfft(az*mask)
 
 def spectral_density(az, double dt, np.ndarray[double, ndim=1] mask = None, mask_width=0.0) -> np.ndarray:
-    cdef i
-
     if mask is None:
-        mask = np.ndarray(az.shape[-1], dtype=np.double)
-        for i in range(mask.size):
-            mask[i] = 1 - smstep(i, mask.size*(1.0-mask_width), mask.size-1)
+        mask = mask_calc(az.shape[-1], mask_width)
 
     return np.abs(pyfftw.interfaces.numpy_fft.rfft(az*mask)*dt)**2
 
 def jrcd(np.ndarray[double, ndim=1] az, double dt, np.ndarray[double, ndim=1] mask = None, mask_width=0.0) -> np.float64:
-    cdef i
-
     if mask is None:
-        mask = np.ndarray(az.size, dtype=np.double)
-        for i in range(mask.size):
-            mask[i] = 1 - smstep(i, mask.size*(1.0-mask_width), mask.size-1)
+        mask = mask_calc(az.size, mask_width)
 
     return np.sum(az*mask)*dt
 
@@ -211,9 +208,7 @@ def search_hhg_argmin(double dt, double freq, Sw, interval=(0,1)):
 def j_interval(double dt, double freq, az, mask_width=0.1, intervals=((0,1),(1,2))):
     cdef int i = 0
 
-    mask = np.ndarray(az.size, dtype=np.double)
-    for i in range(mask.size):
-        mask[i] = 1 - smstep(i, mask.size*(1.0-mask_width), mask.size-1)
+    mask = mask_calc(az.shape[-1], mask_width)
 
     aw = pyfftw.interfaces.numpy_fft.rfft(az*mask)
     
