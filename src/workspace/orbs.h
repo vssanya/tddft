@@ -32,7 +32,7 @@ namespace workspace
 					YlmCache  const& ylm_cache,
 					int Uh_lmax,
 					int Uxc_lmax,
-					potential_xc_f Uxc,
+					XCPotentialEnum potentialType,
 					PropAtType propAtType,
 					Gauge gauge,
 					int num_threads
@@ -98,7 +98,7 @@ namespace workspace
 
 			int Uh_lmax;
 
-			potential_xc_f Uxc;
+			CalcPotential<Grid>* calcPotential;
 			int Uxc_lmax;
 
 			Array2D<double>* Uee;

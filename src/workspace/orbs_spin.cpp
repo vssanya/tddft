@@ -9,11 +9,11 @@ workspace::OrbitalsSpinWS<Grid>::OrbitalsSpinWS(
 		YlmCache  const& ylm_cache,
 		int Uh_lmax,
 		int Uxc_lmax,
-		potential_xc_f Uxc,
+		XCPotentialEnum potentialType,
 		PropAtType propAtType,
 		Gauge gauge,
 		int num_threads
-		): workspace::OrbitalsWS<Grid>(sh_grid, sp_grid, atom_cache, uabs, ylm_cache, Uh_lmax, Uxc_lmax, Uxc, propAtType, gauge, num_threads) {
+		): workspace::OrbitalsWS<Grid>(sh_grid, sp_grid, atom_cache, uabs, ylm_cache, Uh_lmax, Uxc_lmax, potentialType, propAtType, gauge, num_threads) {
 }
 
 template class workspace::OrbitalsSpinWS<ShGrid>;

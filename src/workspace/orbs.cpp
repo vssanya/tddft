@@ -15,14 +15,13 @@ workspace::OrbitalsWS<Grid>::OrbitalsWS(
 		YlmCache  const& ylm_cache,
 		int Uh_lmax,
 		int Uxc_lmax,
-		potential_xc_f Uxc,
+		XCPotentialEnum potentialType,
 		PropAtType propAtType,
 		Gauge gauge,
 		int num_threads
 		):
     wf_ws(sh_grid, atom_cache, uabs, propAtType, gauge, num_threads),
 	Uh_lmax(Uh_lmax),
-	Uxc(Uxc),
 	Uxc_lmax(Uxc_lmax),
 	sh_grid(sh_grid),
 	sp_grid(sp_grid),
@@ -36,6 +35,8 @@ workspace::OrbitalsWS<Grid>::OrbitalsWS(
 {	
 	lmax = std::max(Uh_lmax, Uxc_lmax);
 	lmax = std::max(lmax, 2);
+
+	calcPotential = CalcPotential<Grid>::get(potentialType, sh_grid);
 
 	init();
 }
@@ -80,6 +81,8 @@ workspace::OrbitalsWS<Grid>::~OrbitalsWS() {
 	delete[] Utmp;
 	delete[] Utmp_local;
 
+	delete calcPotential;
+
 	if (tmpOrb != nullptr) {
 		delete tmpOrb;
 	}
@@ -116,7 +119,7 @@ void workspace::OrbitalsWS<Grid>::calc_Uee(
 	}
 
 	for (int il=0; il<Uxc_lmax; ++il) {
-		XCPotential<Grid>::calc_l0(Uxc, il, &orbs, Utmp, &sp_grid, n_sp, n_sp_local, &ylm_cache);
+		calcPotential->calc_l(il, &orbs, Utmp);
 
 #ifdef _MPI
 		if (orbs.mpi_comm == MPI_COMM_NULL || orbs.mpi_rank == 0)
@@ -124,7 +127,7 @@ void workspace::OrbitalsWS<Grid>::calc_Uee(
 		{
 #pragma omp parallel for
 			for (int ir=0; ir<Nr; ++ir) {
-				Uee->data[ir + il*Nr] += Utmp[ir]*UXC_NORM_L[il];
+				Uee->data[ir + il*Nr] += Utmp[ir];
 			}
 		}
 	}

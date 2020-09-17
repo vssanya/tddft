@@ -10,8 +10,8 @@ from field cimport field_t
 from orbitals cimport Orbitals
 from sphere_harmonics cimport cYlmCache
 from atom cimport cAtom, Atom, ShAtomCache, ShNeAtomCache, AtomCache
-from hartree_potential cimport potential_xc_f
 from carray cimport Array2D
+from hartree_potential cimport XCPotentialEnum
 
 
 cdef extern from "eigen.h":
@@ -122,7 +122,7 @@ cdef extern from "workspace.h" namespace "workspace":
             cYlmCache & ylm_cache,
             int Uh_lmax,
             int Uxc_lmax,
-            potential_xc_f Uxc,
+            XCPotentialEnum potentialType,
             PropAtType propAtType,
             Gauge gauge,
             int num_threads

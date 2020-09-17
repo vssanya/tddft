@@ -31,7 +31,7 @@ namespace workspace {
 					YlmCache  const& ylm_cache,
 					int Uh_lmax,
 					int Uxc_lmax,
-					potential_xc_f Uxc,
+					XCPotentialEnum potentialType,
 					PropAtType propAtType,
 					Gauge gauge,
 					int num_threads

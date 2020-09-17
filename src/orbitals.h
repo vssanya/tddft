@@ -94,7 +94,8 @@ public:
      */
     void n_sp(SpGrid const& grid, double* n, double* n_tmp, YlmCache const* ylm_cache, std::optional<int> Lmax = std::nullopt) const;
     double  n(SpGrid const* grid, int i[2], YlmCache const* ylm_cache) const;
-    void n_l0(double* n, double* n_tmp) const;
+    void n_l0(double* n, double* n_tmp, bool res_only_root = true) const;
+    void V00(double* n, double* n_tmp) const;
 
     double cos(typename Wavefunc<Grid>::sh_f U) const;
 	double cos(double* U) const {

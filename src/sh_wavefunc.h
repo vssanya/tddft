@@ -464,6 +464,17 @@ class Wavefunc: public WavefuncBase2D<Grid> {
 			}
 		}
 #endif
+
+		void n_l0(double* n) const {
+#pragma omp parallel for
+			for (int ir = 0; ir < this->grid.n[iR]; ++ir) {
+				double res = 0.0;
+				for (int il = this->m; il < this->grid.n[iL]; ++il) {
+					res += this->abs_2(ir, il);
+				}
+				n[ir] = res / (pow(this->grid.r(ir), 2)*4*M_PI);
+			}
+		}
 };
 
 typedef Wavefunc<ShGrid> ShWavefunc;

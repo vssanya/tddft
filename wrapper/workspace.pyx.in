@@ -7,8 +7,7 @@ from wavefunc cimport ShWavefunc, CtWavefunc, ShNeWavefunc
 from field cimport Field
 from orbitals cimport ShOrbitals, ShNeOrbitals
 from sphere_harmonics cimport YlmCache
-from hartree_potential cimport Uxc
-from hartree_potential import UXC_LB
+from hartree_potential import UxcType
 
 
 cdef class Eigen:
@@ -175,7 +174,7 @@ cdef class SKnWithSourceWorkspace:
 
 {{for prefix, prefix2 in [("Sh", ""), ("ShNe", "Ne")]}}
 cdef class {{prefix}}OrbitalsWS:
-    def __cinit__(self, {{prefix}}AtomCache atom_cache, {{prefix}}Grid sh_grid, SpGrid sp_grid, Uabs{{prefix2}}Cache uabs, YlmCache ylm_cache, int Uxc_lmax = 3, int Uh_lmax = 3, Uxc uxc = UXC_LB, int propType=4, int gauge=0, int num_threads=-1):
+    def __cinit__(self, {{prefix}}AtomCache atom_cache, {{prefix}}Grid sh_grid, SpGrid sp_grid, Uabs{{prefix2}}Cache uabs, YlmCache ylm_cache, int Uxc_lmax = 3, int Uh_lmax = 3, uxc = UxcType.LB, int propType=4, int gauge=0, int num_threads=-1):
         assert(Uxc_lmax >= 0 and Uxc_lmax <= 3)
         assert(Uh_lmax >= 0 and Uh_lmax <= 3)
 
@@ -194,14 +193,14 @@ cdef class {{prefix}}OrbitalsWS:
         self.cdata = new OrbitalsWS[c{{prefix}}Grid](sh_grid.data[0], sp_grid.data[0],
                               atom_cache.cdata[0], uabs.cdata[0],
                               ylm_cache.cdata[0], Uh_lmax, Uxc_lmax,
-                              uxc.cdata, propAtType, c_gauge, num_threads)
+                              <XCPotentialEnum>(<int>uxc.value), propAtType, c_gauge, num_threads)
         self.uabs = uabs
         self.atom_cache = atom_cache
 
     def __dealloc__(self):
         del self.cdata
 
-    def __init__(self, {{prefix}}AtomCache atom_cache, {{prefix}}Grid sh_grid, SpGrid sp_grid, Uabs{{prefix2}}Cache uabs, YlmCache ylm_cache, int Uxc_lmax = 3, int Uh_lmax = 3, Uxc uxc = UXC_LB, int gauge = 0, int num_threads=-1):
+    def __init__(self, {{prefix}}AtomCache atom_cache, {{prefix}}Grid sh_grid, SpGrid sp_grid, Uabs{{prefix2}}Cache uabs, YlmCache ylm_cache, int Uxc_lmax = 3, int Uh_lmax = 3, uxc = UxcType.LB, int gauge = 0, int num_threads=-1):
         pass
 
     def set_time_approx_uee_two_point(self, {{prefix}}Orbitals orbs):

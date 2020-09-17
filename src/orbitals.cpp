@@ -332,7 +332,7 @@ void Orbitals<Grid>::n_sp(SpGrid const& grid, double* n, double* n_tmp, YlmCache
 }
 
 template <typename Grid>
-void Orbitals<Grid>::n_l0(double* n, double* n_tmp) const {
+void Orbitals<Grid>::n_l0(double* n, double* n_tmp, bool res_only_root) const {
 #ifdef _MPI
 	if (mpi_comm == MPI_COMM_NULL)
 #endif
@@ -350,6 +350,40 @@ void Orbitals<Grid>::n_l0(double* n, double* n_tmp) const {
 					res += wf[ie]->abs_2(ir, il);
 				}
 				n_tmp[ir] += res*atom.orbs[ie].countElectrons / (pow(grid.r(ir), 2)*4*M_PI);
+			}
+		}
+	}
+
+#ifdef _MPI
+	if (mpi_comm != MPI_COMM_NULL) {
+		MPI_Reduce(n_tmp, n, grid.n[iR], MPI_DOUBLE, MPI_SUM, 0, mpi_comm);
+	}
+
+	if (!res_only_root) {
+		MPI_Bcast(n, grid.n[iR], MPI_DOUBLE, 0, mpi_comm);
+	}
+#endif
+}
+
+template <typename Grid>
+void Orbitals<Grid>::V00(double* n, double* n_tmp) const {
+#ifdef _MPI
+	if (mpi_comm == MPI_COMM_NULL)
+#endif
+	{
+		n_tmp = n;
+	}
+
+#pragma omp parallel for
+	for (int ir = 0; ir < grid.n[iR]; ++ir) {
+		n_tmp[ir] = 0;
+		for (int ie = 0; ie < atom.countOrbs; ++ie) {
+			if (wf[ie] != nullptr) {
+				double res = 0.0;
+				for (int il = wf[ie]->m; il < grid.n[iL]; ++il) {
+					res += wf[ie]->abs_2(ir, il);
+				}
+				n_tmp[ir] += res*atom.orbs[ie].countElectrons;
 			}
 		}
 	}

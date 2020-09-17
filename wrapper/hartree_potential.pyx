@@ -1,3 +1,5 @@
+from enum import Enum
+
 import numpy as np
 cimport numpy as np
 
@@ -13,6 +15,12 @@ ctypedef fused Orbs:
 ctypedef fused Wf:
     ShWavefunc
     ShNeWavefunc
+
+class UxcType(Enum):
+    LDA = 0
+    LDA_X = 1
+    LB = 2
+    LDA_SIC = 3
 
 cdef class Uxc:
     @staticmethod
@@ -43,18 +51,22 @@ cdef class Uxc:
             assert(uxc.size == orbs.cdata.wf[0].grid.n[0])
 
         if Orbs is ShOrbitals:
-            XCPotential[cShGrid].calc_l0(self.cdata, l, orbs.cdata, &uxc[0], grid.data, &n[0,0], NULL, ylm_cache.cdata)
+            XCPotential[cShGrid].calc_l0(self.cdata, l, orbs.cdata, &uxc[0], &n[0,0], NULL)
         elif Orbs is ShNeOrbitals:
-            XCPotential[cShNeGrid].calc_l0(self.cdata, l, orbs.cdata, &uxc[0], grid.data, &n[0,0], NULL, ylm_cache.cdata)
+            XCPotential[cShNeGrid].calc_l0(self.cdata, l, orbs.cdata, &uxc[0], &n[0,0], NULL)
 
         return uxc
 
     def write_params(self, params_grp):
         params_grp.attrs['Uxc_type'] = self.name
 
-UXC_LB    = Uxc.from_c_func(uxc_lb, "LB")
-UXC_LDA   = Uxc.from_c_func(uxc_lda, "LDA")
-UXC_LDA_X = Uxc.from_c_func(uxc_lda_x, "LDA_X")
+oldUXC_LB    = Uxc.from_c_func(uxc_lb, "LB")
+oldUXC_LDA   = Uxc.from_c_func(uxc_lda, "LDA")
+oldUXC_LDA_X = Uxc.from_c_func(uxc_lda_x, "LDA_X")
+
+UXC_LB    = UxcType.LB
+UXC_LDA   = UxcType.LDA
+UXC_LDA_X = UxcType.LDA_X
 
 @np.vectorize
 def uc_lda(double n):

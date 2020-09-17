@@ -9,8 +9,8 @@ from workspace cimport ShWavefuncWS, ShNeWavefuncWS, ShOrbitalsWS, ShNeOrbitalsW
 from field cimport Field
 from atom cimport ShAtomCache, ShNeAtomCache
 
-from calc_gpu cimport calc_wf_gpu_az
-from wavefunc_gpu cimport ShWavefuncGPU
+# from calc_gpu cimport calc_wf_gpu_az
+# from wavefunc_gpu cimport ShWavefuncGPU
 from carray cimport DoubleArray2D
 
 
@@ -18,7 +18,7 @@ ctypedef fused WF:
     ShOrbitals
     ShNeOrbitals
     ShWavefunc
-    ShWavefuncGPU
+    #ShWavefuncGPU
     ShNeWavefunc
 
 ctypedef fused Orbs:
@@ -40,8 +40,8 @@ def az(WF wf, AC atom, Field field, double t):
         return calc_orbs_az(wf.cdata[0], atom.cdata[0], field.cdata, t)
     elif WF is ShNeOrbitals and AC is ShNeAtomCache:
         return calc_orbs_az(wf.cdata[0], atom.cdata[0], field.cdata, t)
-    elif WF is ShWavefuncGPU and AC is ShAtomCache:
-        return calc_wf_gpu_az(wf.cdata[0], atom.cdata[0], field.cdata, t)
+    #elif WF is ShWavefuncGPU and AC is ShAtomCache:
+        #return calc_wf_gpu_az(wf.cdata[0], atom.cdata[0], field.cdata, t)
     elif WF is ShWavefunc and AC is ShAtomCache:
         return calc_wf_az(wf.cdata, atom.cdata[0], field.cdata, t)
     elif WF is ShNeWavefunc and AC is ShNeAtomCache:
@@ -188,7 +188,8 @@ def jrcd(np.ndarray[double, ndim=1] az, double dt, np.ndarray[double, ndim=1] ma
     return np.sum(az*mask)*dt
 
 def setGpuDevice(int id):
-    return selectGpuDevice(id)
+    pass
+    #return selectGpuDevice(id)
 
 def w_from_aw(double dt, Sw):
     return np.linspace(0, np.pi/dt, Sw.size)

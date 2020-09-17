@@ -1,6 +1,6 @@
 import os
 from ctypes.util import find_library
-WITH_GPU = os.environ.get("TDSE_WITH_GPU") is not None or find_library('cuda') is not None
+WITH_GPU = False#os.environ.get("TDSE_WITH_GPU") is not None or find_library('cuda') is not None
 
 from . import utils
 
@@ -26,7 +26,7 @@ if WITH_GPU:
     from . import workspace_gpu
 
 from . import calc
-from . import calc_gpu
+#from . import calc_gpu
 
 from . import ground_state
 from . import tdsfm

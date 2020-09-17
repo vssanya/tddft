@@ -13,6 +13,9 @@ cdef extern from "hartree_potential.h":
         @staticmethod
         void calc_wf_l0(Wavefunc[Grid]* wf, double* U, double* f, int order)
 
+    cdef cppclass XCPotentialEnum:
+        pass
+
     double mod_grad_n(cSpGrid* grid, double* n, int ir, int ic)
     double ux_lda_func(double n)
     double uc_lda_func(double n)
@@ -36,10 +39,8 @@ cdef extern from "hartree_potential.h":
             potential_xc_f uxc,
             int l, Orbitals[Grid]* orbs,
             double* U,
-            cSpGrid* grid,
             double* n, # for calc using mpi
             double* n_local, # for calc using mpi
-            cYlmCache* ylm_cache
         )
 
 cdef class Uxc:

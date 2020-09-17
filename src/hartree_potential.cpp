@@ -1,8 +1,10 @@
 #include "hartree_potential.h"
 #include "hartree_potential/hp.h"
+#include "sphere_harmonics.h"
 #include "utils.h"
 
 #include "grid.h"
+#include <math.h>
 
 
 template<typename Grid>
@@ -17,6 +19,17 @@ void _hartree_potential_calc_f_l0(Orbitals<Grid> const* orbs, double* f, Range c
 					f[ir] += wf->abs_2(ir, il)*orbs->atom.orbs[ie].countElectrons;
 				}
 			}
+		}
+	}
+}
+
+template<typename Grid>
+void _hartree_potential_wf_calc_f_l0(Wavefunc<Grid> const* wf, double* f, Range const& rRange) {
+	auto& grid = wf->grid;
+	for (int il = wf->m; il < grid.n[iL]; ++il) {
+#pragma omp parallel for
+		for (int ir = rRange.start; ir < rRange.end; ++ir) {
+			f[ir] += wf->abs_2(ir, il);
 		}
 	}
 }
@@ -111,6 +124,14 @@ calc_func_t<Grid> const calc_funcs[3] = {
 };
 
 template<typename Grid>
+using calc_wf_func_t = void (*)(Wavefunc<Grid> const* wf, double* f, Range const& rRange);
+
+template<typename Grid>
+calc_wf_func_t<Grid> const calc_funcs_wf[1] = {
+	_hartree_potential_wf_calc_f_l0,
+};
+
+template<typename Grid>
 void HartreePotential<Grid>::calc_int_func(
 		Orbitals<Grid> const* orbs,
 		int l,
@@ -172,30 +193,29 @@ void HartreePotential<Grid>::calc(
 }
 
 template<typename Grid>
-void HartreePotential<Grid>::calc_wf_l0(
+void HartreePotential<Grid>::calc(
 		Wavefunc<Grid> const* wf,
+		int l,
 		double* U,
 		double* f,
 		int order,
 		std::optional<Range> rRange
 		) {
-	auto& grid = wf->grid;
-	auto range = rRange.value_or(grid.getFullRange(iR));
+	assert(l >= 0 && l <= 2);
 
+	auto& grid = wf->grid;
+
+#pragma omp parallel for
 	for (int ir = 0; ir < grid.n[iR]; ++ir) {
 		f[ir] = 0.0;
 	}
 
-	for (int il = wf->m; il < grid.n[iL]; ++il) {
-		for (int ir = range.start; ir < range.end; ++ir) {
-			f[ir] += wf->abs_2(ir, il);
-		}
-	}
+	calc_funcs_wf<Grid>[l](wf, f, rRange.value_or(grid.getFullRange(iR)));
 
 	if (order == 3) {
-		integrate_rmin_rmax_o3(0, grid, f, U);
+		integrate_rmin_rmax_o3(l, grid, f, U);
 	} else {
-		integrate_rmin_rmax_o5(0, grid, f, U);
+		integrate_rmin_rmax_o5(l, grid, f, U);
 	}
 }
 
@@ -230,13 +250,11 @@ void XCPotential<Grid>::calc_l0(
 		potential_xc_f uxc,
 		int l, Orbitals<Grid> const* orbs,
 		double* U,
-		SpGrid const* grid,
 		double* n, // for calc using mpi
 		double* n_tmp, // for calc using mpi
-		YlmCache const* ylm_cache,
 		std::optional<Range> rRange
 		) {
-	auto range = rRange.value_or(grid->getFullRange(iR));
+	auto range = rRange.value_or(orbs->grid.getFullRange(iR));
 
 	if (l==0) {
 		orbs->n_l0(n, n_tmp);
@@ -248,7 +266,7 @@ void XCPotential<Grid>::calc_l0(
 #pragma omp parallel for
 			for (int ir=range.start; ir<range.end; ++ir) {
 				double x = mod_dndr(orbs->grid, n, ir);
-				U[ir] = uxc(n[ir], x)*sqrt(4*M_PI);//*(1.0 - smoothstep(r, 20, 40));
+				U[ir] = uxc(n[ir], x);
 			}
 		}
 	} else {
@@ -337,3 +355,182 @@ template class HartreePotential<ShGrid>;
 template class HartreePotential<ShNotEqudistantGrid>;
 template class XCPotential<ShGrid>;
 template class XCPotential<ShNotEqudistantGrid>;
+
+template <typename Grid>
+void calc_V(Wavefunc<Grid>& wf1, int sign_m1, Wavefunc<Grid>& wf2, int sign_m2, int L, cdouble* V) {
+	const int m1 = wf1.m*sign_m1;
+	const int m2 = wf2.m*sign_m2;
+	const int M = m1 - m2;
+	for (int ir=0; ir<wf1.grid.n[iR]; ir++) {
+		V[ir] = 0.0;
+		for (int l1=0; l1<wf1.grid.n[iL]; l1++) {
+			//for (int l2=std::max(l1-L, 0); (std::abs(L - l2) <= l1 && l2<wf2.grid.n[iL]); l2++) {
+			for (int l2=0; l2<wf2.grid.n[iL]; l2++) {
+				V[ir] += sqrt((2*l2 + 1)/(2*l1 + 1))*clebsch_gordan_coef(l2, 0, L, 0, l1, 0)*clebsch_gordan_coef(l2, m2, L, M, l1, m1)*wf1(ir, l1)*conj(wf2(ir, l2));
+			}
+		}
+	}
+}
+
+template <typename Grid>
+void SlatterPotential<Grid>::calc_l(int l, Orbitals<Grid> const* orbs, double* U) {
+	for (int ir=0; ir<orbs->grid.n[iR]; ++ir) {
+		U[ir] = 0.0;
+	}
+
+	if (l > 0) {
+		return;
+	}
+
+	double V00[orbs->grid.n[iR]];
+	cdouble V[orbs->grid.n[iR]];
+	cdouble V_int[orbs->grid.n[iR]];
+
+	for (int ie=0; ie<orbs->atom.countOrbs; ++ie) {
+		for (int im = -1; im <= (orbs->wf[ie]->m > 0 ? 1 : 0); im += 2) {
+			for (int je=0; je<orbs->atom.countOrbs; ++je) {
+				for (int jm = -1; jm <= (orbs->wf[je]->m > 0 ? 1 : 0); jm += 2) {
+					for (int L=0; L<2*orbs->grid.n[iL]; ++L) {
+						calc_V(orbs->wf[ie][0], im, orbs->wf[je][0], jm, L, V);
+						integrate_rmin_rmax_o3(L, orbs->grid, V, V_int);
+						for (int ir=0; ir<orbs->grid.n[iR]; ++ir) {
+							U[ir] += creal(conj(V[ir])*V_int[ir]);
+						}
+					}
+				}
+			}
+		}
+	}
+
+	orbs->V00(V00, nullptr);
+	for (int ir=0; ir<orbs->grid.n[iR]; ++ir) {
+		U[ir] = -2*U[ir] / V00[ir];
+	}
+
+	//orbs->n_l0(V00, nullptr);
+	//for (int ir=0; ir<orbs->grid.n[iR]; ++ir) {
+		//U[ir] += uc_lda_func(V00[ir]);/[>sqrt(4*M_PI);//*(1.0 - smoothstep(r, 20, 40));
+	//}
+}
+
+template <typename Grid>
+void SlatterPotential<Grid>::calc_l_gs(int l, Orbitals<Grid> const* orbs, double* U) {
+	for (int ir=0; ir<orbs->grid.n[iR]; ++ir) {
+		U[ir] = 0.0;
+	}
+
+	if (l > 0) {
+		return;
+	}
+
+	double V00[orbs->grid.n[iR]];
+	cdouble V[orbs->grid.n[iR]];
+	cdouble V_int[orbs->grid.n[iR]];
+
+	for (int ie=0; ie<orbs->atom.countOrbs; ++ie) {
+		for (int im = -1; im <= (orbs->wf[ie]->m > 0 ? 1 : 0); im += 2) {
+			for (int je=0; je<orbs->atom.countOrbs; ++je) {
+				for (int jm = -1; jm <= (orbs->wf[je]->m > 0 ? 1 : 0); jm += 2) {
+					auto wf1 = orbs->wf[ie][0];
+					auto wf2 = orbs->wf[je][0];
+					int l1 = orbs->atom.orbs[ie].l;
+					int l2 = orbs->atom.orbs[je].l;
+
+					for (int ir=0; ir<orbs->grid.n[iR]; ++ir) {
+						V[ir] = wf1(ir, l1)*conj(wf2(ir, l2));
+					}
+
+					for (int L=0; L<2*orbs->grid.n[iL]; ++L) {
+						integrate_rmin_rmax_o3(L, orbs->grid, V, V_int);
+
+						for (int ir=0; ir<orbs->grid.n[iR]; ++ir) {
+							U[ir] += creal(pow(clebsch_gordan_coef(l2, 0, L, 0, l1, 0), 2)/(2*l1 + 1)*V_int[ir]*conj(V[ir]));
+						}
+					}
+				}
+			}
+		}
+	}
+
+	orbs->V00(V00, nullptr);
+	for (int ir=0; ir<orbs->grid.n[iR]; ++ir) {
+		U[ir] = -2*U[ir] / V00[ir];
+	}
+
+	//orbs->n_l0(V00, nullptr);
+	//for (int ir=0; ir<orbs->grid.n[iR]; ++ir) {
+		//U[ir] += uc_lda_func(V00[ir]);/[>sqrt(4*M_PI);//*(1.0 - smoothstep(r, 20, 40));
+	//}
+}
+
+template class SlatterPotential<ShGrid>;
+template class SlatterPotential<ShNotEqudistantGrid>;
+
+template <typename Grid>
+SICPotential<Grid>::SICPotential(Grid const& grid):
+	grid(grid),
+	n_l0(Grid1d(grid.n[iR])),
+	n_i_l0(Grid1d(grid.n[iR])),
+	uh_l0(Grid1d(grid.n[iR])),
+	Utmp(Grid1d(grid.n[iR])),
+	tmp(Grid1d(grid.n[iR]))
+{}
+
+template <typename Grid>
+void SICPotential<Grid>::calc_l(int l, Orbitals<Grid> const* orbs, double* U) {
+	double* UcalcData;
+#ifdef _MPI
+	if (orbs->mpi_comm != MPI_COMM_NULL) {
+		UcalcData = Utmp.data;
+	} else
+#endif
+	{
+		UcalcData = U;
+	}
+
+	auto Ucalc = Array1D<double>(UcalcData, Grid1d(grid.n[iR]));
+	Ucalc.set(0.0);
+
+	orbs->n_l0(n_l0.data, tmp.data, false);
+
+	for (int ie=0; ie<orbs->atom.countOrbs; ++ie) {
+		auto wf = orbs->wf[ie];
+		if (wf != nullptr) {
+			wf->n_l0(n_i_l0.data);
+			HartreePotential<Grid>::calc(wf, 0, uh_l0.data, tmp.data, 3);
+
+#pragma omp parallel for
+			for (int ir=0; ir<grid.n[iR]; ++ir) {
+				double uxc = ux_lda_func(n_l0(ir)) - ux_lda_func(2*n_i_l0(ir)) - uh_l0(ir);
+				Ucalc(ir) += n_i_l0(ir)/(n_l0(ir)/2)*uxc*orbs->atom.orbs[ie].countElectrons/2;
+			}
+		}
+	}
+
+#ifdef _MPI
+	if (orbs->mpi_comm != MPI_COMM_NULL) {
+		MPI_Reduce(Utmp.data, U, grid.n[iR], MPI_DOUBLE, MPI_SUM, 0, orbs->mpi_comm);
+	}
+#endif
+}
+
+template class SICPotential<ShGrid>;
+template class SICPotential<ShNotEqudistantGrid>;
+
+
+template <typename Grid>
+CalcPotential<Grid>* CalcPotential<Grid>::get(XCPotentialEnum potentialType, Grid const& grid) {
+	switch (potentialType) {
+		case LDA_SIC:
+			return new SICPotential<Grid>(grid);
+		case LDA:
+			return new FuncPotential<Grid>(grid, uxc_lda);
+		case LDA_X:
+			return new FuncPotential<Grid>(grid, uxc_lda_x);
+		case LB:
+			return new FuncPotential<Grid>(grid, uxc_lb);
+	}
+}
+
+template class CalcPotential<ShGrid>;
+template class CalcPotential<ShNotEqudistantGrid>;

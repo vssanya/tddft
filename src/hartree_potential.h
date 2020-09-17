@@ -29,13 +29,21 @@ class HartreePotential {
 				double* f, int order,
 				std::optional<Range> rRange = std::nullopt);
 
+		static void calc(
+				Wavefunc<Grid> const* wf,
+				int l, double* U,
+				double* f, int order,
+				std::optional<Range> rRange = std::nullopt);
+
 		static void calc_int_func(
 				Orbitals<Grid> const* orbs, int l, double* f,
 				std::optional<Range> rRange = std::nullopt);
 
 		static void calc_wf_l0(
 				Wavefunc<Grid> const* wf, double* U, double* f, int order,
-				std::optional<Range> rRange = std::nullopt);
+				std::optional<Range> rRange = std::nullopt) {
+			HartreePotential::calc(wf, 0, U, f, order, rRange);
+		}
 };
 
 
@@ -51,6 +59,23 @@ double uxc_lda(double n, double x);
 double uxc_lda_x(double n, double x);
 
 typedef double (*potential_xc_f)(double n, double x);
+
+enum XCPotentialEnum: int {
+	LDA = 0,
+	LDA_X,
+	LB,
+	LDA_SIC
+};
+
+template<typename Grid>
+class CalcPotential {
+	public:
+		virtual ~CalcPotential() {};
+		virtual void calc_l(int l, Orbitals<Grid> const* orbs, double* U) {};
+
+		static CalcPotential<Grid>* get(XCPotentialEnum potentialType, Grid const& grid);
+};
+
 /*!
  * Обменное взаимодействие приближение локальной плотности
  * \param l[in]
@@ -76,18 +101,51 @@ class XCPotential {
 				potential_xc_f uxc,
 				int l, Orbitals<Grid> const* orbs,
 				double* U,
-				SpGrid const* grid,
 				double* n, // for calc using mpi
 				double* n_tmp, // for calc using mpi
-				YlmCache const* ylm_cache,
 				std::optional<Range> rRange = std::nullopt
 				);
 //		virtual double u(double n, double x) const = 0;
 };
-//
-//class LDAPotential: public XCPotential {
-//	public:
-//		LDAPotential() {}
-//	
-//		virtual double u(double n, double x) const = 0;
-//}
+
+template<typename Grid>
+class SlatterPotential: public CalcPotential<Grid> {
+	public:
+		void calc_l(int l, Orbitals<Grid> const* orbs, double* U);
+		void calc_l_gs(int l, Orbitals<Grid> const* orbs, double* U);
+};
+
+template<typename Grid>
+class SICPotential: public CalcPotential<Grid> {
+	Grid const grid;
+
+	Array1D<double> n_l0;
+	Array1D<double> n_i_l0;
+	Array1D<double> uh_l0;
+	Array1D<double> Utmp;
+	Array1D<double> tmp;
+
+	public:
+		SICPotential(Grid const& grid);
+		~SICPotential() {};
+		void calc_l(int l, Orbitals<Grid> const* orbs, double* U);
+};
+
+template<typename Grid>
+class FuncPotential: public CalcPotential<Grid> {
+	potential_xc_f func;
+	Array1D<double> n;
+	Array1D<double> n_tmp;
+
+	public:
+	FuncPotential(Grid const& grid, potential_xc_f func):
+		func(func),
+		n(Grid1d(grid.n[iR])),
+		n_tmp(Grid1d(grid.n[iR]))
+	{}
+	~FuncPotential() {}
+
+	void calc_l(int l, Orbitals<Grid> const* orbs, double* U) {
+		XCPotential<Grid>::calc_l0(func, l, orbs, U, n.data, n_tmp.data);
+	}
+};
