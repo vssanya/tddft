@@ -41,7 +41,8 @@ class HartreePotential {
 
 template <typename Grid>
 double mod_dndr(Grid const& grid, double* n, int ir);
-double mod_grad_n(SpGrid const& grid, double* n, int ir, int ic);
+template <typename Grid>
+double mod_grad_n(Grid const& grid, SpGrid const& sp_grid, double* n, int ir, int it);
 double ux_lda_func(double n);
 double uc_lda_func(double n);
 
@@ -81,4 +82,12 @@ class XCPotential {
 				YlmCache const* ylm_cache,
 				std::optional<Range> rRange = std::nullopt
 				);
+//		virtual double u(double n, double x) const = 0;
 };
+//
+//class LDAPotential: public XCPotential {
+//	public:
+//		LDAPotential() {}
+//	
+//		virtual double u(double n, double x) const = 0;
+//}

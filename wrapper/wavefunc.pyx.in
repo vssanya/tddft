@@ -146,6 +146,7 @@ cdef class {{Prefix}}Wavefunc:
     def random({{Grid}} grid, int l=0, int m=0):
         wf = {{Prefix}}Wavefunc(grid, m)
         arr = wf.asarray()
+        print(arr.shape)
         arr[:] = 0.0
         arr[l,:] = np.random.rand(arr.shape[1])
         wf.normalize()

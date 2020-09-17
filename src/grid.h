@@ -115,7 +115,7 @@ enum {
  * */
 enum {
     iR = 0, //!< is index for r
-    iC = 1, //!< is index for \f$\cos\theta\f$
+    iT = 1, //!< is index for \f$\theta\f$
     iP = 2, //!< is index for \f$\phi\f$
 };
 
@@ -136,7 +136,7 @@ public:
         }
 
         d[iR] = Rmax/n[iR];
-        d[iC] = M_PI/(n[iC]-1.0);
+        d[iT] = M_PI/(n[iT]-1.0);
     }
 
     double r(int ir) const {
@@ -149,9 +149,9 @@ public:
         return il;
     }
 
-    double theta(int ic) const {
-        check_index(iC, ic);
-        return d[iC]*ic;
+    double theta(int it) const {
+        check_index(iT, it);
+        return d[iT]*it;
     }
 
 	double J(int ir, int il) const {
@@ -161,9 +161,7 @@ public:
 
 class SpGrid: public Grid3d {
 public:
-    double dtheta;
-
-	SpGrid(): Grid3d(), dtheta(0.0) {}
+	SpGrid(): Grid3d() {}
 
     SpGrid(int n[3], double Rmax) {
         for (int i=0; i<3; ++i) {
@@ -171,10 +169,8 @@ public:
         }
 
         d[iR] = Rmax/n[iR];
-        d[iC] = 2.0/(n[iC]-1.0);
+        d[iT] = M_PI/(n[iT]-1.0);
         d[iP] = 2.0*M_PI/n[iP];
-
-        dtheta = M_PI/(n[iC]-1.0);
     }
 
 	SpGrid2d getGrid2d() const {
@@ -190,14 +186,9 @@ public:
         return r(n[iR]-1);
     }
 
-    double c(int ic) const {
-        check_index(iC, ic);
-        return d[iC]*ic - 1.0;
-    }
-
-    double theta(int ic) const {
-        check_index(iC, ic);
-        return dtheta*ic;
+    double theta(int it) const {
+        check_index(iT, it);
+        return d[iT]*it;
     }
 
     double phi(int ip) const {
@@ -209,8 +200,8 @@ public:
         return (int) (r/d[iR]) - 1;
     }
 
-    int ic(double c) const {
-        return (int) ((c + 1.0) / d[iC]);
+    int it(double theta) const {
+        return (int) (theta / d[iT]);
     }
 };
 
@@ -269,6 +260,17 @@ public:
 
 	template <typename T>
 	T d_dr(T* f, int ir) const {
+		if (ir == 0) {
+			return (f[ir+1] - f[ir])/d[iR];
+		} else if (ir == n[iR] - 1) {
+			return (f[ir] - f[ir-1])/d[iR];
+		} else {
+			return (f[ir-1] - f[ir+1])/(2*d[iR]);
+		}
+	}
+
+	template <typename T>
+	T d_dr_zero(T* f, int ir) const {
 		if (ir == 0) {
 			return (f[ir+1] - f[ir])/d[iR];
 		} else if (ir == n[iR] - 1) {
@@ -392,6 +394,37 @@ class ShNotEqudistantGrid: public ShGrid {
 			double dr2 = this->dr(ir+1);
 
 			return (f[ir+1] - f[ir])/dr2;
+		} else if (ir == n[iR] - 1) {
+			double dr2 = dr1;
+
+			return d1[0](dr1, dr2)*f[ir-1] + d1[1](dr1, dr2)*f[ir];
+		} else {
+			double dr2 = this->dr(ir+1);
+
+			return d1[0](dr1, dr2)*f[ir-1] + d1[1](dr1, dr2)*f[ir] + d1[2](dr1, dr2)*f[ir+1];
+		}
+	}
+
+	template <typename T>
+	T d_dr_zero(T* f, int ir) const {
+		std::function<double(double, double)> const d1[3] = {
+			[](double d1, double d2) -> double {
+				return - d2*d2*(2*d1 + d2) / (d1*(d1 + d2)*(d1*d1 + d1*d2 + d2*d2));
+			},
+			[](double d1, double d2) -> double {
+				return (d2 - d1)*pow(d1 + d2, 2) / (d1*d2*(d1*d1 + d1*d2 + d2*d2));
+			},
+			[](double d1, double d2) -> double {
+				return d1*d1*(d1 + 2*d2) / (d2*(d1 + d2)*(d1*d1 + d1*d2 + d2*d2));
+			}
+		};
+
+		double dr1 = this->dr(ir);
+
+		if (ir == 0) {
+			double dr2 = this->dr(ir+1);
+
+			return (d1[0](dr1, dr2) + d1[1](dr1, dr2))*f[ir] + d1[2](dr1, dr2)*f[ir+1];
 		} else if (ir == n[iR] - 1) {
 			double dr2 = dr1;
 

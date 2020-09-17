@@ -210,15 +210,15 @@ void XCPotential<Grid>::calc_l(
 		YlmCache const* ylm_cache,
 		std::optional<Range> rRange
 		) {
-	orbs->n_sp(grid[0], n, n_tmp, ylm_cache);
+	orbs->n_sp(grid[0], n, n_tmp, ylm_cache, 8);
 
 #ifdef _MPI
 	if (orbs->mpi_rank == 0 || orbs->mpi_comm == MPI_COMM_NULL)
 #endif
 	{
-		auto func = [&grid, uxc, n](int ir, int ic) -> double {
-			double x = mod_grad_n(grid[0], n, ir, ic);
-			return uxc(n[ir + ic*grid->n[iR]], x);
+		auto func = [orbs, &grid, uxc, n](int ir, int it) -> double {
+			double x = mod_grad_n<Grid>(orbs->grid, grid[0], n, ir, it);
+			return uxc(n[ir + it*grid->n[iR]], x);
 		};
 
 		sh_series<double>(func, l, 0, grid->getGrid2d(), U, ylm_cache, rRange);
@@ -279,7 +279,15 @@ double ux_lda_func(double n) {
 }
 
 double uxc_lb(double n, double x) {
-	if (n < 1e-20) {
+	double C = 1.0;
+
+	double const amin = 1e-12;
+	double const amax = 1e-10;
+	if (n > amin && n < amax) {
+		C = (n - amin)/(amax - amin);
+		C = 1 - (C - 1)*(C - 1);
+	} else
+	if (n < amin) {
 		return 0.0;
 	}
 
@@ -291,7 +299,7 @@ double uxc_lb(double n, double x) {
 	if (res != res) {
 		return 0.0;
 	} else {
-		return res;
+		return C*res;
 	}
 	//return ux_lda_func(n) + uc_lda_func(n) - betta*x*x/(pow(n, 7.0/3.0) + 3.0*betta*x*n*(log(x + sqrt(x*x + pow(n, 8.0/3.0))) - 4.0*log(n)/3.0));
 }
@@ -304,30 +312,19 @@ double uxc_lda_x(double n, double x) {
 	return ux_lda_func(n);
 }
 
-double mod_grad_n(SpGrid const& grid, double* n, int ir, int ic) {
-	double dn_dr = 0.0;
-	double dn_dc = 0.0;
+template <typename Grid>
+double mod_grad_n(Grid const& grid, SpGrid const& sp_grid, double* n, int ir, int it) {
+	double dn_dt = 0.0;
+	double dn_dr = grid.d_dr(&n[it*grid.n[iR]], ir);
 
-	if (ir == 0) {
-		dn_dr = (n[ir+1 + ic*grid.n[iR]] - n[ir   + ic*grid.n[iR]])/grid.d[iR];
-	} else if (ir == grid.n[iR] - 1) {
-		dn_dr = (n[ir   + ic*grid.n[iR]] - n[ir-1 + ic*grid.n[iR]])/grid.d[iR];
+	if (it == 0 || it == sp_grid.n[iT] - 1) {
+		dn_dt = 0.0;
 	} else {
-		dn_dr = (n[ir-1 + ic*grid.n[iR]] - n[ir+1 + ic*grid.n[iR]])/(2*grid.d[iR]);
+		dn_dt = (n[ir + (it-1)*grid.n[iR]] - n[ir + (it+1)*grid.n[iR]])/(2*sp_grid.d[iT]);
 	}
 
-	if (ic == 0) {
-		dn_dc = (n[ir + (ic+1)*grid.n[iR]] - n[ir +     ic*grid.n[iR]])/grid.d[iC];
-	} else if (ic == grid.n[iC] - 1) {
-		dn_dc = (n[ir +     ic*grid.n[iR]] - n[ir + (ic-1)*grid.n[iR]])/grid.d[iC];
-	} else {
-		dn_dc = (n[ir + (ic-1)*grid.n[iR]] - n[ir + (ic+1)*grid.n[iR]])/(2*grid.d[iC]);
-	}
-
-	double c = grid.c(ic);
 	double r = grid.r(ir);
-
-	return sqrt(pow(dn_dr,2) + pow(dn_dc/r,2)*(1.0 - c*c))/pow(n[ir + ic*grid.n[iR]], 4.0/3.0);
+	return sqrt(pow(dn_dr,2) + pow(dn_dt/r,2))/pow(n[ir + it*grid.n[iR]], 4.0/3.0);
 }
 
 template <typename Grid>

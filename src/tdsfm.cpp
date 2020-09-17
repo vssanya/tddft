@@ -38,7 +38,7 @@ TDSFM_Base::TDSFM_Base(SpGrid const k_grid, ShGrid const r_grid, int ir, int m_m
 	int_A2(0.0)
 {
 	if (own_data) {
-		data = new cdouble[k_grid.n[iR]*k_grid.n[iC]]();
+		data = new cdouble[k_grid.n[iR]*k_grid.n[iT]]();
 	}
 }
 
@@ -120,9 +120,9 @@ void TDSFM_E::calc(field_t const* field, ShWavefunc const& wf, double t, double 
 
 #pragma omp parallel for collapse(2)
 	for (int ik=0; ik<k_grid.n[iR]; ik++) {
-		for (int ic=0; ic<k_grid.n[iC]; ic++) {
+		for (int it=0; it<k_grid.n[iT]; it++) {
             double k  = k_grid.r(ik);
-            double kz = k_grid.c(ic)*k;
+            double kz = cos(k_grid.theta(it))*k;
 
 			cdouble S = cexp(0.5*I*(k*k*t + 2*kz*int_A + int_A2));
 
@@ -139,7 +139,7 @@ void TDSFM_E::calc(field_t const* field, ShWavefunc const& wf, double t, double 
 						)*(*ylm)(il, wf.m, k_A_z/k_A);
 			}
 
-			data[ik + ic*k_grid.n[iR]] += a_k*r/sqrt(2.0*M_PI)*S*dt*mask;
+			data[ik + it*k_grid.n[iR]] += a_k*r/sqrt(2.0*M_PI)*S*dt*mask;
 		}
 	}
 }
@@ -159,9 +159,9 @@ void TDSFM_A::calc(field_t const* field, ShWavefunc const& wf, double t, double 
 
 #pragma omp parallel for collapse(2)
 	for (int ik=0; ik<k_grid.n[iR]; ik++) {
-		for (int ic=0; ic<k_grid.n[iC]; ic++) {
+		for (int it=0; it<k_grid.n[iT]; it++) {
             double k  = k_grid.r(ik);
-            double kz = k*cos(k_grid.theta(ic));
+            double kz = k*cos(k_grid.theta(it));
 
 			cdouble S = cexp(0.5*I*(k*k*t + 2*kz*int_A));
 
@@ -174,7 +174,7 @@ void TDSFM_A::calc(field_t const* field, ShWavefunc const& wf, double t, double 
 						(*jl)(ik, il)*(dpsi-(il+1)*psi/r) +
 						(*jl)(ik, il+1)*k*psi +
 						2*I*(*jl)(ik, il)*At*clm(il, wf.m)*wf(ir, il+1)
-						)*(*ylm)(il, wf.m, ic);
+						)*(*ylm)(il, wf.m, it);
 			}
 			for (int il=wf.m+1; il<wf.grid.n[iL]-1; il++) {
 				cdouble psi = wf(ir, il);
@@ -183,7 +183,7 @@ void TDSFM_A::calc(field_t const* field, ShWavefunc const& wf, double t, double 
 						(*jl)(ik, il)*(dpsi-(il+1)*psi/r) +
 						(*jl)(ik, il+1)*k*psi +
 						2*I*(*jl)(ik, il)*At*(clm(il-1, wf.m)*wf(ir, il-1) + clm(il, wf.m)*wf(ir, il+1))
-						)*(*ylm)(il, wf.m, ic);
+						)*(*ylm)(il, wf.m, it);
 			}
 			{
 				int il=wf.grid.n[iL]-1;
@@ -193,10 +193,10 @@ void TDSFM_A::calc(field_t const* field, ShWavefunc const& wf, double t, double 
 						(*jl)(ik, il)*(dpsi-(il+1)*psi/r) +
 						(*jl)(ik, il+1)*k*psi +
 						2*I*(*jl)(ik, il)*At*clm(il-1, wf.m)*wf(ir, il-1)
-						)*(*ylm)(il, wf.m, ic);
+						)*(*ylm)(il, wf.m, it);
 			}
 
-			data[ik + ic*k_grid.n[iR]] += a_k*r/sqrt(2.0*M_PI)*S*dt*mask;
+			data[ik + it*k_grid.n[iR]] += a_k*r/sqrt(2.0*M_PI)*S*dt*mask;
 		}
 	}
 }
@@ -214,9 +214,9 @@ void TDSFM_E::calc_inner(field_t const* field, ShWavefunc const& wf, double t, i
 
 #pragma omp parallel for collapse(2)
 	for (int ik=0; ik<k_grid.n[iR]; ik++) {
-		for (int ic=0; ic<k_grid.n[iC]; ic++) {
+		for (int it=0; it<k_grid.n[iT]; it++) {
             double k  = k_grid.r(ik);
-            double kz = k_grid.c(ic)*k;
+            double kz = cos(k_grid.theta(it))*k;
 
 			cdouble S = cexp(0.5*I*(k*k*t + 2*kz*int_A + int_A2));
 
@@ -233,7 +233,7 @@ void TDSFM_E::calc_inner(field_t const* field, ShWavefunc const& wf, double t, i
 				a_k += a_kl*cpow(-I, il)*(*ylm)(il, wf.m, k_A_z/k_A);
 			}
 
-			data[ik + ic*k_grid.n[iR]] += a_k*sqrt(2.0/M_PI)*wf.grid.d[iR]*S;
+			data[ik + it*k_grid.n[iR]] += a_k*sqrt(2.0/M_PI)*wf.grid.d[iR]*S;
 		}
 	}
 }
@@ -249,9 +249,9 @@ void TDSFM_A::calc_inner(field_t const* field, ShWavefunc const& wf, double t, i
 
 #pragma omp parallel for collapse(2)
 	for (int ik=0; ik<k_grid.n[iR]; ik++) {
-		for (int ic=0; ic<k_grid.n[iC]; ic++) {
+		for (int it=0; it<k_grid.n[iT]; it++) {
             double k  = k_grid.r(ik);
-            double kz = k_grid.c(ic)*k;
+            double kz = cos(k_grid.theta(it))*k;
 
 			cdouble S = cexp(0.5*I*(k*k*t + 2*kz*int_A));
 
@@ -262,10 +262,10 @@ void TDSFM_A::calc_inner(field_t const* field, ShWavefunc const& wf, double t, i
                     double r = wf.grid.r(ir);
                     a_kl += r*wf(ir, il)*JlCache::calc(r*k, il);
 				}
-                a_k += a_kl*cpow(-I, il)*(*ylm)(il, wf.m, ic);
+                a_k += a_kl*cpow(-I, il)*(*ylm)(il, wf.m, it);
             }
 
-			data[ik + ic*k_grid.n[iR]] += a_k*sqrt(2.0/M_PI)*wf.grid.d[iR]*S;
+			data[ik + it*k_grid.n[iR]] += a_k*sqrt(2.0/M_PI)*wf.grid.d[iR]*S;
 		}
 	}
 }
@@ -302,16 +302,15 @@ double TDSFM_Base::pz() const {
 
 #pragma omp parallel for reduction(+:pz) collapse(2)
 	for (int ik=0; ik<k_grid.n[iR]; ik++) {
-		for (int ic=0; ic<k_grid.n[iC]; ic++) {
+		for (int it=0; it<k_grid.n[iT]; it++) {
             double k  = k_grid.r(ik);
-            //double kz = k_grid.c(ic)*k;
-            double kz = cos(k_grid.theta(ic))*k;
+            double kz = cos(k_grid.theta(it))*k;
 
-            pz += kz*(pow(creal((*this)(ik, ic)), 2) + pow(cimag((*this)(ik, ic)), 2))*k*k*sin(k_grid.theta(ic));
+            pz += kz*(pow(creal((*this)(ik, it)), 2) + pow(cimag((*this)(ik, it)), 2))*k*k*sin(k_grid.theta(it));
 		}
 	}
 
-    return pz*k_grid.d[iR]*k_grid.dtheta*2*M_PI;
+    return pz*k_grid.d[iR]*k_grid.d[iT]*2*M_PI;
 }
 
 double TDSFM_Base::norm() const {
@@ -319,13 +318,13 @@ double TDSFM_Base::norm() const {
 
 #pragma omp parallel for reduction(+:norm) collapse(2)
 	for (int ik=0; ik<k_grid.n[iR]; ik++) {
-		for (int ic=0; ic<k_grid.n[iC]; ic++) {
+		for (int it=0; it<k_grid.n[iT]; it++) {
             double k  = k_grid.r(ik);
-            norm += (pow(creal((*this)(ik, ic)), 2) + pow(cimag((*this)(ik, ic)), 2))*k*k*sin(k_grid.theta(ic));
+            norm += (pow(creal((*this)(ik, it)), 2) + pow(cimag((*this)(ik, it)), 2))*k*k*sin(k_grid.theta(it));
 		}
 	}
 
-    return norm*k_grid.d[iR]*k_grid.dtheta*2*M_PI;
+    return norm*k_grid.d[iR]*k_grid.d[iT]*2*M_PI;
 }
 
 TDSFMOrbs::TDSFMOrbs(Orbitals<ShGrid> const& orbs, SpGrid const k_grid, int ir, workspace::Gauge gauge, bool init_cache, double A_max) {

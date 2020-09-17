@@ -212,6 +212,29 @@ double calc_local_r_max(int N, double const E[], double dt, double r_atom) {
     return 0.0;
 }
 
+double calc_local_r_max_without_return(int N, double const E[], double dt) {
+	double r0 = 0.0;
+    double v0 = 0.0;
+
+    auto exit = false;
+
+    double r_max = 0.0;
+
+    for (int t=0; t<N-1; t++) {
+        double v1 = v0 + 0.5*(E[t+1]+E[t])*dt;
+        double r1 = r0 + 0.5*(v1 + v0)*dt;
+
+        if (r_max < abs(r1)) {
+            r_max = abs(r1);
+		}
+
+        v0 = v1;
+        r0 = r1;
+	}
+    
+    return r_max;
+}
+
 double calc_local_pr_max(int N, double const E[], double dt, double r_max) {
 	double r0 = 0.0;
     double v0 = 0.0;
@@ -239,6 +262,20 @@ double calc_r_max(int N, double const E[], double dt, double r_atom) {
 #pragma omp parallel for reduction(max:r_max_global)
 	for (int ti=0; ti<N-1; ti++) {
         double r_max = calc_local_r_max(N-ti, &E[ti], dt, r_atom);
+        if (r_max_global < r_max) {
+            r_max_global = r_max;
+		}
+	}
+
+    return r_max_global;
+}
+
+double calc_r_max_without_return(int N, double const E[], double dt) {
+	double r_max_global = 0.0;
+
+#pragma omp parallel for reduction(max:r_max_global)
+	for (int ti=0; ti<N-1; ti++) {
+        double r_max = calc_local_r_max_without_return(N-ti, &E[ti], dt);
         if (r_max_global < r_max) {
             r_max_global = r_max;
 		}

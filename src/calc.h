@@ -100,4 +100,5 @@ double calc_orbs_jrcd(
 );
 
 double calc_r_max(int N, double const E[], double dt, double r_atom);
+double calc_r_max_without_return(int N, double const E[], double dt);
 double calc_pr_max(int N, double const E[], double dt, double r_max);

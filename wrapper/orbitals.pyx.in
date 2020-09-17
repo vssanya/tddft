@@ -132,11 +132,12 @@ cdef class {{Prefix}}Orbitals:
     def cos(self, np.ndarray[double, ndim=1] U):
         return self.cdata.cos(<double*>U.data)
 
-    def collect(self, np.ndarray[complex_t, ndim=3] dest, int Nr = -1, int Nl = -1):
+    def collect(self, np.ndarray[complex_t, ndim=3, mode='c'] dest, int Nr = -1, int Nl = -1):
         cdef cdouble* res_ptr = NULL
         if self.is_root():
-            res_ptr = <cdouble*>dest.data
+            res_ptr = <cdouble*>(&dest[0,0,0])
 
+        print("Cython call collect Nr = {}, Nl = {}".format(Nr, Nl))
         self.cdata.collect(res_ptr, Nr, Nl)
 
 

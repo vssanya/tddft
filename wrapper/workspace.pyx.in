@@ -225,6 +225,13 @@ cdef class {{prefix}}OrbitalsWS:
 
         self.cdata.prop_ha(orbs.cdata[0], dt, calc_uee, active_orbs_ptr)
 
+    def prop_abs(self, {{prefix}}Orbitals orbs, double dt, np.ndarray[np.uint8_t, ndim=1] active_orbs=None):
+        cdef bool_t* active_orbs_ptr = NULL
+        if active_orbs is not None:
+            active_orbs_ptr = <bool_t*>active_orbs.data
+
+        self.cdata.prop_abs(orbs.cdata[0], dt, active_orbs_ptr)
+
     def prop(self, {{prefix}}Orbitals orbs, Field field, double t, double dt, bint calc_uee=True, np.ndarray[np.uint8_t, ndim=1] active_orbs=None, np.ndarray[np.int_t, ndim=1] dt_count = None):
         cdef bool_t* active_orbs_ptr = NULL
         if active_orbs is not None:

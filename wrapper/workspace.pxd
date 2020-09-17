@@ -132,6 +132,7 @@ cdef extern from "workspace.h" namespace "workspace":
         void prop(Orbitals[Grid]& orbs, field_t* field, double t, double dt, bint calc_uee, bool_t* activeOrbs, int* dt_count)
         void prop_img(Orbitals[Grid]& orbs, double dt, bool_t* activeOrbs, int* dt_count, bint calc_uee)
         void prop_ha(Orbitals[Grid]& orbs, double dt, bint calc_uee, bool_t* activeOrbs)
+        void prop_abs(Orbitals[Grid]& orbs, double dt, bool_t* activeOrbs)
         void calc_Uee(Orbitals[Grid]& orbs, int Uxc_lmax, int Uh_lmax, Array2D[double]* Uee, optional[cRange] rRange)
 
         WavefuncWS[Grid]* wf_ws

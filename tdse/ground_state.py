@@ -4,7 +4,7 @@ from . import grid, wavefunc, orbitals
 from .grid import ShGrid
 
 
-def wf_1(atom, grid, ws, dt, Nt, wf_class = wavefunc.ShWavefunc):
+def wf_1(atom, grid, ws, dt, Nt, wf_class, ground_state):
     l = atom.ground_state.l
     m = atom.ground_state.m
     wf = wf_class.random(grid, l, m)
@@ -26,11 +26,12 @@ def wf_1(atom, grid, ws, dt, Nt, wf_class = wavefunc.ShWavefunc):
 
     return wf, E
 
-def wf_n(atom, grid, ws, dt, Nt, wf_class = wavefunc.ShWavefunc):
-    l = atom.ground_state.l
-    m = atom.ground_state.m
-    n = atom.ground_state.n + 1
+def wf_n(atom, grid, ws, dt, Nt, wf_class, ground_state):
+    l = ground_state.l
+    m = ground_state.m
+    n = ground_state.n + 1
 
+    print(grid.Nl)
     wfs = [wf_class.random(grid, l, m) for i in range(n)]
 
     Elast = 0.0
@@ -65,11 +66,12 @@ def wf(atom, grid, ws, dt, Nt, wf_class = wavefunc.ShWavefunc, ground_state = No
     n = ground_state.n + 1
 
     small_grid = grid.createGridWith(l+1)
+    print(l, small_grid.Nl)
 
     if n == 1:
-        wf, E = wf_1(atom, small_grid, ws, dt, Nt, wf_class)
+        wf, E = wf_1(atom, small_grid, ws, dt, Nt, wf_class, ground_state)
     else:
-        wf, E = wf_n(atom, small_grid, ws, dt, Nt, wf_class)
+        wf, E = wf_n(atom, small_grid, ws, dt, Nt, wf_class, ground_state)
 
     if small_grid.Nl == grid.Nl:
         wf_full = wf
@@ -190,7 +192,7 @@ def orbs_step_shells(atom, grid, ws, dt, Nt, orbitals_class, atom_cache_class, p
     data = orbs.asarray()
     data[:] = 0.0
 
-    if norm == None:
+    if norm is None:
         orb_norm = np.ones_like(atom.orbCountElectrons)*atom.orbCountElectrons
     else:
         orb_norm = norm*atom.orbCountElectrons

@@ -10,6 +10,11 @@
 #include "array.h"
 #include "wavefunc/base.h"
 
+#ifndef __CUDACC__
+#include <optional>
+#endif
+
+
 /*!
  * \brief Волновая функция представленная в виде разложения по сферическим гармоникам
  *
@@ -421,13 +426,17 @@ class Wavefunc: public WavefuncBase2D<Grid> {
 			}
 		}
 
+
+#ifndef __CUDACC__
 		/*!
 		 * \return \f$\psi(r, \Omega)\f$
 		 * */
-		cdouble get_sp(SpGrid const& grid, int i[3], YlmCache const* ylm_cache) const {
+		cdouble get_sp(SpGrid const& grid, int i[3], YlmCache const* ylm_cache, std::optional<int> Lmax = std::nullopt) const {
 			cdouble res = 0.0;
-			for (int l = 0; l < this->grid.n[iL]; ++l) {
-				res += (*this)(i[iR], l)*(*ylm_cache)(l, m, i[iC]);
+			int L = std::min(Lmax.value_or(this->grid.n[iL]), this->grid.n[iL]);
+
+			for (int l = 0; l < L; ++l) {
+				res += (*this)(i[iR], l)*(*ylm_cache)(l, m, i[iT]);
 			}
 
 			double r = this->grid.r(i[iR]);
@@ -444,16 +453,17 @@ class Wavefunc: public WavefuncBase2D<Grid> {
 			return res/r;
 		}
 
-		void n_sp(SpGrid const& grid, double* n, YlmCache const* ylm_cache) const {
+		void n_sp(SpGrid const& grid, double* n, YlmCache const* ylm_cache, std::optional<int> Lmax = std::nullopt) const {
 #pragma omp parallel for collapse(2)
 			for (int ir = 0; ir < grid.n[iR]; ++ir) {
-				for (int ic = 0; ic < grid.n[iC]; ++ic) {
-					int index[3] = {ir, ic, 0};
-					cdouble const psi = get_sp(grid, index, ylm_cache);
-					n[ir + ic*grid.n[iR]] = abs2(psi);
+				for (int it = 0; it < grid.n[iT]; ++it) {
+					int index[3] = {ir, it, 0};
+					cdouble const psi = get_sp(grid, index, ylm_cache, Lmax);
+					n[ir + it*grid.n[iR]] = abs2(psi);
 				}
 			}
 		}
+#endif
 };
 
 typedef Wavefunc<ShGrid> ShWavefunc;

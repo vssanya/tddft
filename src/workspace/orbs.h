@@ -79,6 +79,8 @@ namespace workspace
 					bool activeOrbs[] = nullptr
 					);
 
+			void prop_abs(Orbitals<Grid>& OrbitalsWS, double dt, bool activeOrbs[] = nullptr);
+
 			void calc_Uee(
 					Orbitals<Grid> const& OrbitalsWS,
 					int Uxc_lmax,

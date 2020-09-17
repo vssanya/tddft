@@ -50,8 +50,8 @@ void workspace::OrbitalsWS<Grid>::init() {
 
     uh_tmp = new double[sh_grid.n[iR]]();
 
-    n_sp = new double[sp_grid.n[iR]*sp_grid.n[iC]]();
-    n_sp_local = new double[sp_grid.n[iR]*sp_grid.n[iC]]();
+    n_sp = new double[sp_grid.n[iR]*sp_grid.n[iT]]();
+    n_sp_local = new double[sp_grid.n[iR]*sp_grid.n[iT]]();
 }
 
 template<typename Grid>
@@ -317,6 +317,15 @@ void workspace::OrbitalsWS<Grid>::prop_ha(Orbitals<Grid>& orbs, double dt,
             wf_ws.prop_common(*orbs.wf[ie], dt, lmax, Ul);
         }
     }
+}
+
+template<typename Grid>
+void workspace::OrbitalsWS<Grid>::prop_abs(Orbitals<Grid>& orbs, double dt, bool activeOrbs[]) {
+	for (int ie = 0; ie < orbs.atom.countOrbs; ++ie) {
+		if (orbs.wf[ie] != nullptr && (activeOrbs == nullptr || activeOrbs[ie])) {
+			wf_ws.prop_abs(*orbs.wf[ie], dt);
+		}
+	}
 }
 
 template class workspace::OrbitalsWS<ShGrid>;

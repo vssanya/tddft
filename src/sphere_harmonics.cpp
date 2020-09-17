@@ -61,12 +61,12 @@ YlmCache::YlmCache(SpGrid const grid, int l_max, int m_max):
 	m_max(m_max),
 	grid(grid)
 {
-	data = new double[m_max*(l_max+1)*grid.n[iC]]();
-	for (int ic=0; ic<grid.n[iC]; ++ic) {
-        double theta = grid.theta(ic);
+	data = new double[m_max*(l_max+1)*grid.n[iT]]();
+	for (int it=0; it<grid.n[iT]; ++it) {
+        double theta = grid.theta(it);
 		for (int m=0; m<m_max; ++m) {
 			for (int l=0; l<=l_max; ++l) {
-                (*this)(l, m, ic) = YlmCache::calc(l, m, theta);
+                (*this)(l, m, it) = YlmCache::calc(l, m, theta);
 			}
 		}
 	}
@@ -80,14 +80,14 @@ double YlmCache::calc(int l, int m, double theta) {
     return boost::math::spherical_harmonic_r(l, m, theta, 0.0);
 }
 
-double YlmCache::operator()(int l, int m, double c) const {
-    int ic = grid.ic(c);
-    double x = (c - grid.c(ic))/grid.d[iC];
+double YlmCache::operator()(int l, int m, double theta) const {
+    int it = grid.it(theta);
+    double x = (theta - grid.theta(it))/grid.d[iT];
 
-	if (ic == grid.n[iC] - 1) {
-		return (*this)(l, m, ic);
+	if (it == grid.n[iT] - 1) {
+		return (*this)(l, m, it);
 	} else {
-		return (*this)(l, m, ic)*(1.0 - x) + (*this)(l, m, ic+1)*x;
+		return (*this)(l, m, it)*(1.0 - x) + (*this)(l, m, it+1)*x;
 	}
 }
 

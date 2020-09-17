@@ -228,6 +228,11 @@ def calc_field_return_rmax(Field field, double dt, double r_atom = 1.0):
     cdef np.ndarray[double, ndim=1] E = field.E(t)
     return calc_r_max(E.size, &E[0], dt, r_atom)
 
+def calc_field_rmax(Field field, double dt):
+    cdef np.ndarray[double, ndim=1] t = field.get_t(dt)
+    cdef np.ndarray[double, ndim=1] E = field.E(t)
+    return calc_r_max_without_return(E.size, &E[0], dt)
+
 def calc_field_prmax(Field field, double dt, double r_max):
     cdef np.ndarray[double, ndim=1] t = field.get_t(dt)
     cdef np.ndarray[double, ndim=1] E = field.E(t)

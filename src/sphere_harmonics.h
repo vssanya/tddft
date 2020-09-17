@@ -44,7 +44,7 @@ public:
  * \brief [Spherical harmonics](https://en.wikipedia.org/wiki/Spherical_harmonics)\f$Y_l^m(\theta)\f$
  * \param[in] l
  * \param[in] m
- * \param[in] ic index of \f$\cos\theta\f$
+ * \param[in] it index of \f$\theta\f$
  * */
 struct YlmCache {
 public:
@@ -58,20 +58,20 @@ public:
     ~YlmCache();
 	
 	inline
-	double operator()(int l, int m, int ic) const {
-		assert(ic >= 0 && ic < grid.n[iC]);
+	double operator()(int l, int m, int it) const {
+		assert(it >= 0 && it < grid.n[iT]);
 		assert(l >= 0 && l <= l_max);
 
-		return data[l + ic*(l_max+1) + m*(l_max+1)*grid.n[iC]];
+		return data[l + it*(l_max+1) + m*(l_max+1)*grid.n[iT]];
 	}
     double operator()(int l, int m, double theta) const;
 
 	inline
-	double& operator()(int l, int m, int ic) {
-		assert(ic >= 0 && ic < grid.n[iC]);
+	double& operator()(int l, int m, int it) {
+		assert(it >= 0 && it < grid.n[iT]);
 		assert(l >= 0 && l <= l_max);
 
-		return data[l + ic*(l_max+1) + m*(l_max+1)*grid.n[iC]];
+		return data[l + it*(l_max+1) + m*(l_max+1)*grid.n[iT]];
 	}
 
     static double calc(int l, int m, double theta);
@@ -108,9 +108,9 @@ double y3(int l1, int m1, int l2, int m2, int L, int M);
 #include "integrate.h"
 template <typename T>
 T sh_series_r(std::function<T(int, int)> f, int ir, int l, int m, SpGrid2d const& grid, YlmCache const* ylm_cache) {
-	return integrate_1d_cpp<T>([f, ir, ylm_cache, l, m, grid](int ic) -> T {
-            return f(ir, ic)*(*ylm_cache)(l, m, ic)*std::sin(grid.theta(ic));
-			}, grid.n[iC], grid.d[iC])*2*M_PI;
+	return integrate_1d_cpp<T>([f, ir, ylm_cache, l, m, grid](int it) -> T {
+            return f(ir, it)*(*ylm_cache)(l, m, it)*std::sin(grid.theta(it));
+			}, grid.n[iT], grid.d[iT])*2*M_PI;
 }
 
 template <typename T>
@@ -142,12 +142,12 @@ inline void sh_series(
 template <typename T>
 void sh_to_sp(ArraySh<T> const* src, ArraySp2D<T>* dest, YlmCache const* ylm_cache, int m) {
 	for (int ir = 0; ir < src->grid.n[iR]; ++ir) {
-		for (int ic = 0; ic < dest->grid.n[iC]; ++ic) {
+		for (int it = 0; it < dest->grid.n[iT]; ++it) {
 			T res = 0.0;
 			for (int l = 0; l < src->grid.n[iL]; ++l) {
-				res += (*src)(ir, l)*(*ylm_cache)(l, m, ic);
+				res += (*src)(ir, l)*(*ylm_cache)(l, m, it);
 			}
-			(*dest)(ir, ic) = res;
+			(*dest)(ir, it) = res;
 		}
 	}
 }

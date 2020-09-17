@@ -2,6 +2,7 @@
 
 #include <string.h>
 #include <stdio.h>
+#include <iostream>
 
 
 template <typename Grid>
@@ -298,7 +299,7 @@ double Orbitals<Grid>::cos(typename Wavefunc<Grid>::sh_f U) const {
 }
 
 template <typename Grid>
-void Orbitals<Grid>::n_sp(SpGrid const& grid, double* n, double* n_tmp, YlmCache const* ylm_cache) const {
+void Orbitals<Grid>::n_sp(SpGrid const& grid, double* n, double* n_tmp, YlmCache const* ylm_cache, std::optional<int> Lmax) const {
 #ifdef _MPI
 	if (mpi_comm == MPI_COMM_NULL)
 #endif
@@ -307,25 +308,25 @@ void Orbitals<Grid>::n_sp(SpGrid const& grid, double* n, double* n_tmp, YlmCache
 	}
 
 #pragma omp parallel for collapse(2)
-	for (int ic = 0; ic < grid.n[iC]; ++ic) {
+	for (int it = 0; it < grid.n[iT]; ++it) {
 		for (int ir = 0; ir < grid.n[iR]; ++ir) {
 			double res = 0.0;
 
 			for (int ie = 0; ie < atom.countOrbs; ++ie) {
 				if (wf[ie] != nullptr) {
-					int index[3] = {ir, ic, 0};
-					cdouble const psi = wf[ie]->get_sp(grid, index, ylm_cache);
+					int index[3] = {ir, it, 0};
+					cdouble const psi = wf[ie]->get_sp(grid, index, ylm_cache, Lmax);
 					res += (pow(creal(psi), 2) + pow(cimag(psi), 2))*atom.orbs[ie].countElectrons;
 				}
 			}
 
-			n_tmp[ir + ic*grid.n[iR]] = res;
+			n_tmp[ir + it*grid.n[iR]] = res;
 		}
 	}
 
 #ifdef _MPI
 	if (mpi_comm != MPI_COMM_NULL) {
-		MPI_Reduce(n_tmp, n, grid.n[iR]*grid.n[iC], MPI_DOUBLE, MPI_SUM, 0, mpi_comm);
+		MPI_Reduce(n_tmp, n, grid.n[iR]*grid.n[iT], MPI_DOUBLE, MPI_SUM, 0, mpi_comm);
 	}
 #endif
 }
@@ -394,6 +395,8 @@ void Orbitals<Grid>::ort() {
 
 template <typename Grid>
 void Orbitals<Grid>::collect(cdouble* data, int Nr, int Nl) const {
+	std::cout << "Collect Nr = " << Nr << ", Nl = " << Nl << "\n";
+
 	if (Nl == -1) {
 		Nl = grid.n[iL];
 	}
@@ -402,8 +405,11 @@ void Orbitals<Grid>::collect(cdouble* data, int Nr, int Nl) const {
 		Nr = grid.n[iR];
 	}
 
+	std::cout << "Collect Nr = " << Nr << ", Nl = " << Nl << "\n";
+
 	for (int ie = 0; ie < atom.countOrbs; ++ie) {
 		if (mpi_rank == 0 && wf[ie] != nullptr) {
+			std::cout << "Copy main rank: " << ie << "\n";
 			for (int l = 0; l < Nl; ++l) {
 				memcpy(&data[ie*Nr*Nl + Nr*l], &(*wf[ie])(0, l), Nr*sizeof(cdouble));
 			}
@@ -412,8 +418,10 @@ void Orbitals<Grid>::collect(cdouble* data, int Nr, int Nl) const {
 		else if (mpi_rank == 0 || wf[ie] != nullptr) {
 			for (int l = 0; l < Nl; ++l) {
 				if (mpi_rank == 0) {
+					std::cout << "Recv: " << ie << "\n";
 					MPI_Recv(&data[ie*Nr*Nl + Nr*l], Nr, MPI_C_DOUBLE_COMPLEX, ne_rank[ie], 0, mpi_comm, MPI_STATUS_IGNORE);
 				} else {
+					std::cout << "Send: " << ie << "\n";
 					MPI_Send(&(*wf[ie])(0, l), Nr, MPI_C_DOUBLE_COMPLEX, 0, 0, mpi_comm);
 				}
 			}

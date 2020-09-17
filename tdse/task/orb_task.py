@@ -3,7 +3,7 @@ import h5py
 
 import tdse
 
-from .task import CalcData, CalcDataWithMask, TaskAtom
+from .task import CalcData, CalcDataWithMask, TaskAtom, TimeShapeMixin
 
 
 class OrbShapeMixin(object):
@@ -173,10 +173,63 @@ class PsiOrbData(CalcData):
 
     def calc(self, task, i, t):
         if i % self.dNt == 0:
-            task.orbs.collect(self.orbs_tmp, self.Nl)
+            task.orbs.collect(self.orbs_tmp, Nl = self.Nl)
 
             if task.rank == 0:
-                self.dset[i // self.dNt] = self.orbs_tmp
+                self.dset[i // self.dNt, :] = self.orbs_tmp[:]
+
+
+class PsiOrbWhenData(CalcData):
+    NAME = "orbs"
+    DTYPE = np.cdouble
+
+    def __init__(self, Nl=-1, **kwargs):
+        super().__init__(**kwargs)
+
+        self.Nl = Nl
+
+    def calc_init(self, task, file: h5py.File):
+        self.sh_grid = task.sh_grid
+        self.countOrbs = task.atom.countOrbs
+
+        self.Nt = 2
+
+        if self.Nl == -1:
+            self.Nl = self.sh_grid.Nl
+
+        if task.rank == 0:
+            self.orbs_tmp = np.zeros((self.countOrbs, self.Nl, self.sh_grid.Nr), dtype=np.complex)
+        else:
+            self.orbs_tmp = None
+
+        super().calc_init(task, file)
+
+
+    def get_shape(self, task):
+        return (self.Nt, self.countOrbs, self.Nl, self.sh_grid.Nr)
+
+    def calc(self, task, i, t):
+        if i == 42000-100+72 - 1 or i == 42000-100+72:
+            task.orbs.collect(self.orbs_tmp, Nl = self.Nl)
+
+            if task.rank == 0:
+                self.dset[i - (42000-100+72 - 1)] = self.orbs_tmp
+
+    # def calc(self, task, i, t):
+        # if not self.save:
+            # self.prev_r_max = self.r_max
+            # self.r_max = np.argmax(task.ws.uee)
+
+            # if i == 0:
+                # self.prev_r_max = self.r_max
+
+            # if self.prev_r_max != self.r_max:
+                # task.orbs.collect(self.orbs_tmp, self.Nl)
+
+                # if task.rank == 0:
+                    # self.dset[:] = self.orbs_tmp
+
+                # self.save = True
 
 
 class AzOrbData(OrbShapeMixin, CalcData):
@@ -194,6 +247,20 @@ class AzOrbData(OrbShapeMixin, CalcData):
 
         if task.rank == 0:
             self.dset[i] = self.az_ne
+
+class MaxVeeData(TimeShapeMixin, CalcData):
+    NAME = "max_vee"
+
+    def calc(self, task, i, t):
+        if task.rank == 0:
+            self.dset[i] = np.max(np.abs(task.ws.uee))
+
+class RMaxVeeData(TimeShapeMixin, CalcData):
+    NAME = "r_max_vee"
+
+    def calc(self, task, i, t):
+        if task.rank == 0:
+            self.dset[i] = np.argmax(np.abs(task.ws.uee))
 
 class AzVeeOrbData(OrbShapeMixin, CalcData):
     NAME = "az_vee"
@@ -507,7 +574,7 @@ class OrbitalsGroundStateTask(TaskAtom):
     def calc(self):
         self.calc_init()
 
-        self.orbs, self.E = self.FUNCS['GroundStateSearchFunc'](self.atom, self.sh_grid, self.ws, self.dt, self.Nt, self.Orbitals, self.AtomCacheClass, True, dt_count=self.dt_count, norm = norm)
+        self.orbs, self.E = self.FUNCS['GroundStateSearchFunc'](self.atom, self.sh_grid, self.ws, self.dt, self.Nt, self.Orbitals, self.AtomCacheClass, True, dt_count=self.dt_count, norm = self.norm)
         self.orbs_gs = self.orbs.asarray()
 
         self.ws.calc_uee(self.orbs)

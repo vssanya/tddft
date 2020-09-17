@@ -5,6 +5,8 @@
 
 #include <mpi.h>
 #include <array>
+#include <optional>
+
 
 template <typename T>
 inline decltype(MPI_DOUBLE) getMpiType();
@@ -90,7 +92,7 @@ public:
      * \param i is sphere index \f${i_r, i_\Theta, i_\phi}\f$
      * \brief [MPI not support]
      */
-    void n_sp(SpGrid const& grid, double* n, double* n_tmp, YlmCache const* ylm_cache) const;
+    void n_sp(SpGrid const& grid, double* n, double* n_tmp, YlmCache const* ylm_cache, std::optional<int> Lmax = std::nullopt) const;
     double  n(SpGrid const* grid, int i[2], YlmCache const* ylm_cache) const;
     void n_l0(double* n, double* n_tmp) const;
 

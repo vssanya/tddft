@@ -30,13 +30,13 @@ double CtWavefunc::norm() const {
 
 #pragma omp parallel for reduction(+:norm) collapse(2)
     for (int ir=0; ir<sp_grid->n[iX]; ++ir) {
-        for (int ic=0; ic<sp_grid->n[iY]; ++ic) {
+        for (int it=0; it<sp_grid->n[iY]; ++it) {
             double p = sp_grid->r(ir);
-			double theta = sp_grid->theta(ic);
+			double theta = sp_grid->theta(it);
 
-			norm += pow(cabs((*this)(ir,ic))*p, 2)*sin(theta);
+			norm += pow(cabs((*this)(ir,it))*p, 2)*sin(theta);
 		}
 	}
 
-	return norm*sp_grid->d[iR]*sp_grid->d[iC];
+	return norm*sp_grid->d[iR]*sp_grid->d[iT];
 }
