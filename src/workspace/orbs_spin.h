@@ -17,7 +17,6 @@
  */
 
 #include "orbs.h"
-#include <mpi.h>
 
 
 namespace workspace {

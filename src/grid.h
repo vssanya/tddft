@@ -84,7 +84,7 @@ public:
     int    n[3]; //!< is counts of points
     double d[3]; //!< is steps
 
-	Grid3d(): n({0}), d({0.0}) {}
+	Grid3d(): n{0}, d{0.0} {}
 
     size_t size() const { return n[0]*n[1]*n[2]; }
 

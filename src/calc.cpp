@@ -1,5 +1,4 @@
 #include "calc.h"
-#include "mpi.h"
 #include "utils.h"
 #include "abs_pot.h"
 

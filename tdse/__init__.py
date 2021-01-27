@@ -26,12 +26,15 @@ if WITH_GPU:
     from . import workspace_gpu
 
 from . import calc
-#from . import calc_gpu
+if WITH_GPU:
+    from . import calc_gpu
 
 from . import ground_state
 from . import tdsfm
 
 from . import sfa
+
+from . import maxwell
 
 GAUGE_LENGTH = 0
 GAUGE_VELOCITY = 1

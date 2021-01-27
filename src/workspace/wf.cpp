@@ -137,11 +137,6 @@ void workspace::WavefuncWS<Grid>::prop_at_Odr4(Wavefunc<Grid>& wf, cdouble dt, s
 template <typename Grid>
 void workspace::WavefuncWS<Grid>::prop_at_Odr3(Wavefunc<Grid>& wf, cdouble dt, sh_f Ul) {
 	int const Nr = grid.n[iR];
-	double const dr = grid.d[iR];
-
-	int const Z = atom_cache.atom.Z;
-
-	//double const d2_l0_11 = d2[1]*(1.0 - Z*dr/(12.0 - 10.0*Z*dr));
 
 	cdouble al[3];
 	cdouble ar[3];

@@ -3,10 +3,12 @@
 #include "sh_wavefunc.h"
 #include "atom.h"
 
-#include <mpi.h>
 #include <array>
 #include <optional>
 
+
+#ifdef _MPI
+#include <mpi.h>
 
 template <typename T>
 inline decltype(MPI_DOUBLE) getMpiType();
@@ -20,6 +22,9 @@ template <>
 inline decltype(MPI_DOUBLE) getMpiType<cdouble>() {
 	return MPI_C_DOUBLE_COMPLEX;
 }
+#else
+typedef int MPI_Comm;
+#endif
 
 /*!
  * \brief Орбитали Кона-Шэма

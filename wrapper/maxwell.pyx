@@ -1,6 +1,6 @@
 from grid cimport Grid1d
 
-"""
+
 cdef class MaxwellWorkspace1D:
     def __cinit__(self, Grid1d grid):
         self.cdata = new cWorkspace1D(grid.cdata)
@@ -10,17 +10,17 @@ cdef class MaxwellWorkspace1D:
 
     @property
     def E(self):
-        cdef double[::1] res = <double[:self.cdata.grid.n]>self.cdata.E
+        cdef double[::1] res = <double[:self.cdata.grid.n]>self.cdata.E.data
         return res
 
     @property
     def H(self):
-        cdef double[::1] res = <double[:self.cdata.grid.n]>self.cdata.H
+        cdef double[::1] res = <double[:self.cdata.grid.n]>self.cdata.H.data
         return res
 
     @property
     def D(self):
-        cdef double[::1] res = <double[:self.cdata.grid.n]>self.cdata.D
+        cdef double[::1] res = <double[:self.cdata.grid.n]>self.cdata.D.data
         return res
 
     def prop(self, double dt, double[::1] eps = None):
@@ -28,4 +28,3 @@ cdef class MaxwellWorkspace1D:
             self.cdata.prop(dt)
         else:
             self.cdata.prop(dt, &eps[0])
-"""

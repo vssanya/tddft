@@ -15,6 +15,10 @@ namespace maxwell {
 
 			void prop(double dt);
 			void prop(double dt, Arr1 const& eps);
+			void prop(double dt, double* eps) {
+				auto arr = Arr1(eps, grid);
+				prop(dt, arr);
+			};
 
 			Grid1d const& grid;
 

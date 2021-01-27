@@ -22,6 +22,9 @@ class UxcType(Enum):
     LB = 2
     LDA_SIC = 3
 
+    def write_params(self, params_grp):
+        params_grp.attrs['Uxc_type'] = self.name
+
 cdef class Uxc:
     @staticmethod
     cdef Uxc from_c_func(potential_xc_f func, str name):
