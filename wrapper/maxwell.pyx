@@ -23,8 +23,16 @@ cdef class MaxwellWorkspace1D:
         cdef double[::1] res = <double[:self.cdata.grid.n]>self.cdata.D.data
         return res
 
-    def prop(self, double dt, double[::1] eps = None):
-        if eps is None:
-            self.cdata.prop(dt)
+    def prop(self, double ksi = 0.9, dt = None, double[::1] eps = None, double[::1] pol = None):
+        if dt is None:
+            dt = self.get_dt(ksi)
+
+        if eps is not None:
+            self.cdata.prop(<double> dt, &eps[0])
+        elif pol is not None:
+            self.cdata.prop_pol(<double> dt, &pol[0])
         else:
-            self.cdata.prop(dt, &eps[0])
+            self.cdata.prop(<double> dt)
+
+    def get_dt(self, double ksi):
+        return ksi/C_au*self.cdata.grid.d

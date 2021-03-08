@@ -47,8 +47,21 @@ void maxwell::Workspace1D::prop(double dt, Arr1 const& eps) {
 	prop_Bz(H, E, ksi);
 	prop_Dy(D, H, ksi);
 
+#pragma omp parallel for
 	for (int i=0; i<grid.n; i++) {
 		E(i) = D(i) / eps(i);
+	}
+}
+
+void maxwell::Workspace1D::prop_pol(double dt, Arr1 const& P) {
+	double ksi = C_au * dt / grid.d;
+
+	prop_Bz(H, E, ksi);
+	prop_Dy(D, H, ksi);
+
+#pragma omp parallel for
+	for (int i=0; i<grid.n; i++) {
+		E(i) = D(i) - 4*M_PI*P(i);
 	}
 }
 

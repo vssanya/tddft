@@ -41,7 +41,7 @@ class ShWavefuncArrayGPU {
 		ShGrid const* grid;
 		int N; // count wavefunctions
 
-        cdouble* data; //!< data[i + l*grid->Nr] = \f$\Theta_{lm}(r_i)\f$
+		cdouble* data; //!< data[i + l*grid->Nr] = \f$\Theta_{lm}(r_i)\f$
 		bool data_own; //!< кто выделил данные
 
 		int m;         //!< is magnetic quantum number

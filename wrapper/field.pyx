@@ -351,10 +351,10 @@ cdef class CarField(Field):
         self.cdata = <field_t*>(&self.cfield)
 
     def _repr_latex_A_(self):
-        return r"E\sin(\omega t + \varphi)"
+        return r"-\frac{E}{\omega}\sin(\omega t + \varphi)"
 
     def _repr_latex_E_(self):
-        return r"-\frac{E}{\omega}\cos(\omega t + \varphi)"
+        return r"E\cos(\omega t + \varphi)"
 
     @property
     def freq(self):

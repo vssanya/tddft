@@ -21,19 +21,19 @@ set( LIB_SOURCES
 	"workspace/common_alg.cpp"
 	"workspace/sfa.cpp"
 	"workspace/wf_with_polarization.cpp"
-	sh_wavefunc.cpp
-	hartree_potential.cpp
-	utils.cpp
-	abs_pot.cpp
-	fields.cpp
-	masks.cpp
-	calc.cpp
-	sphere_harmonics.cpp
-	orbitals.cpp
-	atom.cpp
-	eigen.cpp
-	linalg.cpp
-	tdsfm.cpp
+	"sh_wavefunc.cpp"
+	"hartree_potential.cpp"
+	"utils.cpp"
+	"abs_pot.cpp"
+	"fields.cpp"
+	"masks.cpp"
+	"calc.cpp"
+	"sphere_harmonics.cpp"
+	"orbitals.cpp"
+	"atom.cpp"
+	"eigen.cpp"
+	"linalg.cpp"
+	"tdsfm.cpp"
 	"sfa/anal.cpp"
 	"hartree_potential/hp_o3.cpp"
 	"hartree_potential/hp_o5.cpp"
@@ -43,7 +43,7 @@ set( LIB_SOURCES
 	)
 
 set( LIB_HEADERS
-	workspace.h
+	"workspace.h"
 	"workspace/wf.h"
 	"workspace/wf_with_source.h"
 	"workspace/orbs.h"
@@ -54,26 +54,26 @@ set( LIB_HEADERS
 	"workspace/wf_with_polarization.h"
 	"maxwell/1d.h"
 
-	array.h
-	fourier.h
-	kn.h
-	prog.h
-	grid.h
-	sh_wavefunc.h
-	hartree_potential.h
-	types.h
-	units.h
-	utils.h
-	abs_pot.h
-	fields.h
-	calc.h
-	sphere_harmonics.h
-	orbitals.h
-	atom.h
-	eigen.h
-	linalg.h
-	tdsfm.h
-	integrate.h
+	"array.h"
+	"fourier.h"
+	"kn.h"
+	"prog.h"
+	"grid.h"
+	"sh_wavefunc.h"
+	"hartree_potential.h"
+	"types.h"
+	"units.h"
+	"utils.h"
+	"abs_pot.h"
+	"fields.h"
+	"calc.h"
+	"sphere_harmonics.h"
+	"orbitals.h"
+	"atom.h"
+	"eigen.h"
+	"linalg.h"
+	"tdsfm.h"
+	"integrate.h"
 	"sfa/anal.h"
 
 	"wavefunc/2d.h"

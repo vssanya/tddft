@@ -20,6 +20,12 @@ namespace maxwell {
 				prop(dt, arr);
 			};
 
+			void prop_pol(double dt, Arr1 const& P);
+			void prop_pol(double dt, double* P) {
+				auto arr = Arr1(P, grid);
+				prop_pol(dt, arr);
+			};
+
 			Grid1d const& grid;
 
 			Arr1 E;
