@@ -41,6 +41,9 @@ def rank_orbs_equal_dist(active_orbs, count_active=1):
 def unit_to(value, u_from='au', u_to='au'):
     return UNIT[u_from]*value/UNIT[u_to]
 
+def to_fs(value):
+    return unit_to(value, 'au', 'fs')
+
 def t_fwhm(fwhm, u='fs', u_to='au'):
     return unit_to(fwhm, u, u_to)/np.sqrt(2*np.log(2))
 

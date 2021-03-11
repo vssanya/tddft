@@ -1,6 +1,7 @@
-import tdse
+import os
 import numpy as np
 
+import tdse
 from .task import CalcData, TaskAtom
 
 
@@ -27,6 +28,11 @@ class WavefuncArrayGPUTask(TaskAtom):
     N = 10
 
     def __init__(self, path_res='res', mode=None, **kwargs):
+        gpu_device_id = int(os.environ.get("CUDA_DEVICE", "0"))
+        tdse.calc.setGpuDevice(gpu_device_id)
+
+        print("Set gpu device id = {}".format(gpu_device_id))
+
         super().__init__(path_res, mode, is_mpi=False, **kwargs)
 
     def save_state(self, i):
@@ -44,8 +50,6 @@ class WavefuncArrayGPUTask(TaskAtom):
         self.ws = tdse.workspace_gpu.WfArrayGPUWorkspace(self.atom_cache, self.sh_grid, self.uabs_cache, self.N)
 
         self.E = np.zeros(self.N)
-
-        self.t = self.field.get_t(self.dt, dT=self.dT)
 
     def calc_ground_state(self):
         ws = tdse.workspace.ShWavefuncWS(self.atom_cache, self.sh_grid, self.uabs_cache)

@@ -356,11 +356,11 @@ void Orbitals<Grid>::n_l0(double* n, double* n_tmp, bool res_only_root) const {
 
 #ifdef _MPI
 	if (mpi_comm != MPI_COMM_NULL) {
-		MPI_Reduce(n_tmp, n, grid.n[iR], MPI_DOUBLE, MPI_SUM, 0, mpi_comm);
-	}
-
-	if (!res_only_root) {
-		MPI_Bcast(n, grid.n[iR], MPI_DOUBLE, 0, mpi_comm);
+		if (res_only_root) {
+			MPI_Reduce(n_tmp, n, grid.n[iR], MPI_DOUBLE, MPI_SUM, 0, mpi_comm);
+		} else {
+			MPI_Allreduce(n_tmp, n, grid.n[iR], MPI_DOUBLE, MPI_SUM, mpi_comm);
+		}
 	}
 #endif
 }

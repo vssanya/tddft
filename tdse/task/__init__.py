@@ -10,3 +10,7 @@ from .sfa_task import SFATask
 from .tdsfm_task import TdsfmInnerTask
 
 from .wf_array_task import AzWfArrayData, WavefuncArrayGPUTask
+
+from .maxwell_tdse import EdepsTData, EdepsXData, MaxwellTDSETask
+
+from .benchmark import CalcTimeStepBenchmarkData

@@ -22,6 +22,7 @@ if (MPI_FOUND)
 	include_directories(${MPI_C_INCLUDE_PATH})
 	add_definitions(-D_MPI)
 endif()
+add_definitions(-D_MPI)
 
 ExternalProject_Add(CUB
 	GIT_REPOSITORY https://github.com/NVlabs/cub.git

@@ -1,6 +1,6 @@
 import os
 from ctypes.util import find_library
-WITH_GPU = False#os.environ.get("TDSE_WITH_GPU") is not None or find_library('cuda') is not None
+WITH_GPU = True#os.environ.get("TDSE_WITH_GPU") is not None or find_library('cuda') is not None
 
 from . import utils
 

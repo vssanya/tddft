@@ -21,26 +21,31 @@ def figsize(scale, aspect=1, width_pt=469.0/2):
     fig_size = [fig_width,fig_height]
     return fig_size
 
-def spectral_density(dt, freq, Sw, Nmax=100, scale=1, **kwargs):
-    N = np.linspace(0, np.pi/dt, Sw.size) / freq
-    plt.plot(N*scale, Sw, **kwargs)
+def spectral_density(dt, freq, Sw, Nmax=100, scale=1, convert_x=None, **kwargs):
+    w = np.linspace(0, np.pi/dt, Sw.size)
+    if convert_x is not None:
+        w = convert_x(w)
+
+    plt.plot(w*scale, Sw, **kwargs)
     plt.yscale('log')
     plt.xlim(0, Nmax*scale)
 
-    plt.xlabel('Harmonic order')
+    plt.xlabel('Frequency (a.u.)')
     plt.ylabel('HHG spectrum (a.u.)')
+
+    return w
+
+
+def spectral_density_n(dt, freq, Sw, Nmax=100, scale=1, **kwargs):
+    N = spectral_density(dt, freq, Sw, Nmax, scale, convert_x=lambda x: x/freq, **kwargs)
+    plt.xlabel('Harmonic order')
 
     return N
 
-def spectral_density_ev(dt, freq, Sw, Nmax=100, **kwargs):
-    E = tdse.utils.unit_to(np.linspace(0, np.pi/dt, Sw.size), 'au', 'eV')
-    Emax = tdse.utils.unit_to(Nmax*freq, 'au', 'eV')
-    plt.plot(E, Sw, **kwargs)
-    plt.yscale('log')
-    plt.xlim(0, Emax)
-
+def spectral_density_ev(dt, freq, Sw, Nmax=100, unit='eV', **kwargs):
+    Emax = tdse.utils.unit_to(Nmax*freq, 'au', unit)
+    E = spectral_density(dt, freq, Sw, Emax, convert_x=lambda x: tdse.utils.unit_to(x, 'au', unit), **kwargs)
     plt.xlabel('Photon energy (eV)')
-    plt.ylabel('HHG spectrum (a.u.)')
 
     return E
 

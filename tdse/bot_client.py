@@ -25,14 +25,14 @@ class BotClient(object):
 
     def send_status(self, status):
         try:
-            requests.post('{}/job/{}/status'.format(self.url, self.job_id),
+            return requests.post('{}/job/{}/status'.format(self.url, self.job_id),
                     params = {'token': self.token}, json={'status': status})
         except Exception as e:
-            pass
+            return e
 
     def send_message(self, message):
         try:
-            requests.post('{}/job/{}/message'.format(self.url, self.job_id),
+            return requests.post('{}/job/{}/message'.format(self.url, self.job_id),
                     params = {'token': self.token}, json={'message': message})
         except Exception as e:
-            pass
+            return e

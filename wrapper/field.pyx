@@ -17,11 +17,6 @@ cdef class TimeDelay():
     def __init__(self, delay, units='au'):
         self.delay = tdse.utils.unit_to(delay, units, 'au')
 
-ctypedef fused OpType:
-    Field
-    TimeDelay
-
-
 cdef class Field:
     def E(self, IDouble t):
         cdef int i = 0
@@ -45,8 +40,13 @@ cdef class Field:
                 A[i] = field_A(self.cdata, t[i])
             return A
 
-    def __mul__(self, Field other):
-        return MulField(self, other)
+    def __mul__(self, other):
+        if isinstance(other, float):
+            return MulField(self, ConstField(other))
+        elif isinstance(other, Field):
+            return MulField(self, other)
+        else:
+            assert(False)
 
     def __add__(self, other):
         if isinstance(other, Field):
@@ -321,12 +321,21 @@ cdef class TrEnvField(Field):
         self.cdata = <field_t*>(&self.cfield)
 
 cdef class TrSinEnvField(Field):
-    def __init__(self, double t_const, double t_smooth):
+    def __init__(self, double t_const, double t_smooth, type="A"):
         self.cfield.t_const = t_const
         self.cfield.t_smooth = t_smooth
-        self.cfield.fA = <field_func_t>field_tr_env_A
-        self.cfield.fE = <field_func_t>field_tr_env_E
-        self.cfield.pT = <field_prop_t>field_tr_env_T
+
+        if type == "A":
+            self.cfield.fA = <field_func_t>field_tr_sin_env_A
+            self.cfield.fE = <field_func_t>field_tr_sin_env_E
+        elif type == "E":
+            self.cfield.fA = <field_func_t>field_func_zero
+            self.cfield.fE = <field_func_t>field_tr_sin_env_A
+        else:
+            assert(False)
+
+
+        self.cfield.pT = <field_prop_t>field_tr_sin_env_T
 
         self.cdata = <field_t*>(&self.cfield)
 
@@ -369,10 +378,17 @@ cdef class CarField(Field):
         return self.cfield.phase
 
 cdef class ConstField(Field):
-    def __init__(self, double A):
+    def __init__(self, double A, type="A"):
         self.cfield.A = A
-        self.cfield.fA = <field_func_t>field_const_A
-        self.cfield.fE = <field_func_t>field_func_zero
+        if type == "A":
+            self.cfield.fA = <field_func_t>field_const_A
+            self.cfield.fE = <field_func_t>field_func_zero
+        elif type == "E":
+            self.cfield.fA = <field_func_t>field_func_zero
+            self.cfield.fE = <field_func_t>field_const_A
+        else:
+            assert(False)
+
         self.cfield.pT = NULL
 
         self.cdata = <field_t*>(&self.cfield)

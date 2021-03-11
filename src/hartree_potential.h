@@ -121,7 +121,9 @@ class SICPotential: public CalcPotential<Grid> {
 
 	Array1D<double> n_l0;
 	Array1D<double> n_i_l0;
+	Array1D<double> n_i_l1;
 	Array1D<double> uh_l0;
+	Array1D<double> uh_l1;
 	Array1D<double> Utmp;
 	Array1D<double> tmp;
 
@@ -129,6 +131,8 @@ class SICPotential: public CalcPotential<Grid> {
 		SICPotential(Grid const& grid);
 		~SICPotential() {};
 		void calc_l(int l, Orbitals<Grid> const* orbs, double* U);
+		void calc_l0(Orbitals<Grid> const* orbs, double* U);
+		void calc_l1(Orbitals<Grid> const* orbs, double* U);
 };
 
 template<typename Grid>

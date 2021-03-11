@@ -180,10 +180,10 @@ double field_tr_sin_env_A(field_tr_sin_env_t const* field, double t) {
 		return 0.0;
 	} else if (t < field->t_smooth) {
 		return pow(sin(M_PI*t/(2*field->t_smooth)), 2);
-	} else if (t < (field->t_const - field->t_smooth)) {
+	} else if (t < (field->t_const + field->t_smooth)) {
 		return 1.0;
-	} else if (t < field->t_const) {
-		return 1.0 - pow(sin(M_PI*(t - field->t_const + field->t_smooth)/(2*field->t_smooth)), 2);
+	} else if (t < field->t_const + 2*field->t_smooth) {
+		return 1.0 - pow(sin(M_PI*(t - field->t_const - field->t_smooth)/(2*field->t_smooth)), 2);
 	} else {
 		return 0.0;
 	}
@@ -195,10 +195,10 @@ double field_tr_sin_env_E(field_tr_sin_env_t const* field, double t) {
 		return 0.0;
 	} else if (t < field->t_smooth) {
 		return -2*freq*sin(freq*t)*cos(freq*t);
-	} else if (t < (field->t_const - field->t_smooth)) {
+	} else if (t < (field->t_const + field->t_smooth)) {
 		return 0.0;
-	} else if (t < field->t_const) {
-		t += - field->t_const + field->t_smooth;
+	} else if (t < field->t_const + 2*field->t_smooth) {
+		t += - field->t_const - field->t_smooth;
 		return 2*freq*sin(freq*t)*cos(freq*t);
 	} else {
 		return 0.0;

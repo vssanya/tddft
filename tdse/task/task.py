@@ -154,6 +154,8 @@ class Task(object):
         if self.bot_client is not None:
             self.bot_client.start()
 
+        self.t = self.get_t()
+
     def data_init(self):
         if self.rank == 0:
             self.file = h5py.File("{}.hdf5".format(self.save_path), 'w')
@@ -179,7 +181,7 @@ class Task(object):
             if type(data) is not str:
                 data.calc_finish(self)
 
-    def calc(self, restart_index=0):
+    def calc(self, restart_index=0, end_index=None):
         if self.bot_client is not None:
             self.bot_client.send_message("Start calc")
 
@@ -190,8 +192,17 @@ class Task(object):
             self.load()
             self.load_state(restart_index)
 
-        progressBar = ProgressBar(self.t.size, prefix="Progress of propagation")
-        for i in range(restart_index, self.t.size):
+        if end_index is None:
+            end_index = self.t.size
+
+        print("Start propogation from t[{}] = {} fs to t[{}] = {} fs, step dt = {} fs".format(
+            restart_index, tdse.utils.to_fs(self.t[restart_index]),
+            end_index-1, tdse.utils.to_fs(self.t[end_index-1]),
+            tdse.utils.to_fs(self.t[1] - self.t[0])))
+
+        progressBar = ProgressBar(end_index - restart_index, prefix="Progress of propagation")
+
+        for i in range(restart_index, end_index):
             self.calc_prop(i, self.t[i])
             self.calc_data(i, self.t[i])
 
@@ -200,7 +211,7 @@ class Task(object):
                     self.save()
 
                 if self.bot_client is not None:
-                    self.bot_client.send_status(i / self.t.size)
+                    self.bot_client.send_status(i / (end_index - restart_index))
 
             if self.save_state_step is not None and (i+1) % int(self.t.size*self.save_state_step/100) == 0:
                 self.save_state(i)
@@ -272,6 +283,12 @@ class Task(object):
                         self.file = h5py.File("{}.hdf5".format(self.save_path), 'r')
 
                     data.load(self, self.file)
+
+    def get_t(self):
+        return self.field.get_t(self.dt, dT=self.dT)
+
+    def get_w(self):
+        return np.linspace(0, np.pi/self.dt, self.aw.size)
 
 
 class TaskAtom(Task):

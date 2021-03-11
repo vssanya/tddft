@@ -188,8 +188,7 @@ def jrcd(np.ndarray[double, ndim=1] az, double dt, np.ndarray[double, ndim=1] ma
     return np.sum(az*mask)*dt
 
 def setGpuDevice(int id):
-    pass
-    #return selectGpuDevice(id)
+    return selectGpuDevice(id)
 
 def w_from_aw(double dt, Sw):
     return np.linspace(0, np.pi/dt, Sw.size)

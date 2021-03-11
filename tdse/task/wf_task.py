@@ -139,8 +139,6 @@ class WavefuncWithSourceTask(TaskAtom):
 
         self.ws = tdse.workspace.SKnWithSourceWorkspace(tdse.atom.ShAtomCache(tdse.atom.NONE, self.sh_grid), self.sh_grid, self.uabs_cache, self.wf_source, self.Ip)
 
-        self.t = self.field.get_t(self.dt, dT=self.dT)
-
     def calc_ground_state(self, ws=None):
         if ws is None:
             ws = tdse.workspace.ShWavefuncWS(self.atom_cache, self.grid_source, tdse.abs_pot.UabsZeroCache(self.grid_source))
@@ -193,8 +191,6 @@ class WavefuncTask(TaskAtom):
                 psi[:] = 0.0
                 Nr = min(self.ground_state.size, self.sh_grid.Nr)
                 psi[self.atom.ground_state.l, :Nr] = self.ground_state[:Nr]
-
-        self.t = self.field.get_t(self.dt, dT=self.dT)
 
     def calc_ground_state(self, ws=None):
         if ws is None:
