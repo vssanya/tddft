@@ -85,7 +85,7 @@ class MaxwellTDSETask(WavefuncArrayGPUTask):
         self.maxwell_ws.E[:] = E
         self.maxwell_ws.D[:] = E
 
-        H = self.field.E(self.field.T/2 - self.maxwell_ws.get_dt(self.ksi) - (self.x - self.x0 + self.m_grid.d/2)/tdse.const.C)
+        H = self.field.E(self.field.T/2 - self.maxwell_ws.get_dt(self.ksi)/2 - (self.x - self.x0 + self.m_grid.d/2)/tdse.const.C)
         self.maxwell_ws.H[:] = H
 
         self.P = np.zeros(self.m_grid.N)
