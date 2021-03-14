@@ -53,6 +53,59 @@ class Array {
 			}
 		}
 
+		void add(Array const& other) {
+#pragma omp parallel for
+			for (int i = 0; i < grid.size(); ++i) {
+				data[i] += other.data[i];
+			}
+		}
+
+		void add_simd(Array const& other) {
+#pragma omp parallel for simd
+			for (int i = 0; i < grid.size(); ++i) {
+				data[i] += other.data[i];
+			}
+		}
+
+		void shift(int value, T fill_value) {
+			assert(value > 0);
+
+			for (int i=0; i<grid.size() - value;i++) {
+				data[i] = data[i+value];
+			}
+
+			for (int i=grid.size() - value; i<grid.size(); i++) {
+				data[i] = fill_value;
+			}
+		}
+
+		int argmax(std::function<T(T)> func) {
+			int argmax;
+			T max = 0.0;
+#pragma omp parallel
+			{
+				int local_argmax = 0;
+				T local_max = 0.0;
+#pragma omp for
+				for (int i = 0; i < grid.size(); ++i) {
+					T current = func(data[i]);
+					if (local_max < current) {
+						local_max = current;
+						local_argmax = i;
+					}
+				}
+#pragma omp critical
+				{
+					if (max < local_max) {
+						max = local_max;
+						argmax = local_argmax;
+					}
+				}
+			}
+
+			return argmax;
+		}
+
 		inline T& operator() (Index... index) {
 			return data[grid.index(index...)];
 		}

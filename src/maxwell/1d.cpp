@@ -65,6 +65,19 @@ void maxwell::Workspace1D::prop_pol(double dt, Arr1 const& P) {
 	}
 }
 
+int maxwell::Workspace1D::move_center_window_to_max_E() {
+	int center = E.argmax([](double x) -> double {
+			return abs(x);
+			});
+
+	int shift_value = center - grid.n/2;
+	E.shift(shift_value, 0.0);
+	H.shift(shift_value, 0.0);
+	D.shift(shift_value, 0.0);
+
+	return shift_value;
+}
+
 maxwell::Workspace2D::Workspace2D(Grid2d const& grid):
 	grid(grid),
 	Ez(grid),

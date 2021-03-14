@@ -26,6 +26,9 @@ namespace maxwell {
 				prop_pol(dt, arr);
 			};
 
+			// return shift in count of points
+			int move_center_window_to_max_E();
+
 			Grid1d const& grid;
 
 			Arr1 E;

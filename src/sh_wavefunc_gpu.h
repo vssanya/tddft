@@ -9,7 +9,7 @@ class ShWavefuncGPU {
 	public:
 		ShGrid const* grid;
 
-        cdouble* data; //!< data[i + l*grid->Nr] = \f$\Theta_{lm}(r_i)\f$
+		cdouble* data; //!< data[i + l*grid->Nr] = \f$\Theta_{lm}(r_i)\f$
 		bool data_own; //!< кто выделил данные
 
 		int m;         //!< is magnetic quantum number
@@ -56,6 +56,7 @@ class ShWavefuncArrayGPU {
 		~ShWavefuncArrayGPU();
 
 		ShWavefunc* get(int in);
+		void set(int index, ShWavefunc const& wf);
 
 		double* cos_func(sh_f func, double* res = nullptr) const;
 		double* cos(double const* u, double* res = nullptr) const;

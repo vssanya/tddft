@@ -31,7 +31,6 @@ ExternalProject_Add(CUB
 	BUILD_COMMAND ""
 	INSTALL_COMMAND ""
 )
-
 ExternalProject_Get_property(CUB SOURCE_DIR)
 include_directories("${SOURCE_DIR}")
 
@@ -55,6 +54,10 @@ if ("${CMAKE_C_COMPILER_ID}" STREQUAL "Intel")
 	link_directories(/share/intel/mkl/lib/intel64)
 endif()
 
-include_directories(/share/vssanya/miniconda3/include)
+add_subdirectory(lib/benchmark)
 
+include_directories(/share/vssanya/miniconda3/include)
 add_subdirectory(src)
+
+add_subdirectory(benchmarks)
+add_subdirectory(test)

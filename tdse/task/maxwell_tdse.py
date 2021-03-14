@@ -3,7 +3,7 @@ import tdse.maxwell
 
 import numpy as np
 
-from .wf_array_task import CalcData, WavefuncArrayGPUTask
+from .wf_array_task import CalcData, WavefuncArrayGPUTask, Task
 
 
 class EdepsTData(CalcData):
@@ -121,6 +121,59 @@ class MaxwellTDSETask(WavefuncArrayGPUTask):
 
     def get_t(self):
         print((self.L - self.x0) / tdse.const.C)
+        return np.arange(0, (self.L - self.x0) / tdse.const.C, self.dt)
+
+    def calc_n(self, x):
+        pass
+
+class MaxwellNonlinearTask(Task):
+    dx = tdse.utils.unit_to(20, "nm") # step in Maxwell equation
+    L = tdse.utils.unit_to(200e3, "nm") # length of media
+    ksi = 0.9 # maxwell propogation parameter
+
+    x0 = tdse.utils.unit_to(60, "nm") # init location of center laser pulse
+
+    Imin = 0.0 # Minimum intensity to start calculating the medium response
+
+    n = None # Gas concentration
+    chi = np.array([0.0, 0.0, 0.0]) # [chi^1, chi^2, chi^3, ...]
+
+    def __init__(self, path_res='res', mode=None, **kwargs):
+        super().__init__(path_res, mode, **kwargs)
+
+        self.grid = tdse.grid.Grid1d(int(self.L/self.dx), self.dx)
+        self.n = np.zeros(self.grid.N)
+        self.x = np.linspace(0, self.L, self.n.size)
+
+        self.wait_pulse = True
+
+    def calc_init(self):
+        self.calc_n(self.x)
+
+        self.ws = tdse.maxwell.MaxwellWorkspace1D(self.grid)
+        self.dt = self.ws.get_dt(self.ksi)
+
+        E = self.field.E(self.field.T/2 - (self.x - self.x0)/tdse.const.C)
+        self.ws.E[:] = E
+        self.ws.D[:] = E
+
+        H = self.field.E(self.field.T/2 - self.dt/2 - (self.x - self.x0 + self.grid.d/2)/tdse.const.C)
+        self.ws.H[:] = H
+
+        self.P = np.zeros(self.grid.N)
+
+        super().calc_init()
+
+    def calc_prop(self, i, t):
+        self.P[:] = 0.0
+
+        for i in self.chi:
+            if self.chi[i] != 0.0:
+                self.P[:] += self.chi[i]*self.n*self.ws.E**(i+1)
+
+        self.ws.prop(dt=self.dt, pol=self.P)
+
+    def get_t(self):
         return np.arange(0, (self.L - self.x0) / tdse.const.C, self.dt)
 
     def calc_n(self, x):

@@ -22,10 +22,10 @@ namespace workspace {
 			UabsCache const* uabsCache;
 			AtomCache<ShGrid> const* atomCache;
 
-            cdouble* d_alpha;
-            cdouble* d_betta;
+			cdouble* d_alpha;
+			cdouble* d_betta;
 
-            double* d_uabs;
+			double* d_uabs;
 			double* d_atomU;
 			double* d_E;
 	};
