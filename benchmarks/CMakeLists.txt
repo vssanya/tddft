@@ -3,4 +3,4 @@ set(BENCHMARK_SOURCES
 	)
 
 add_executable(benchmarks ${BENCHMARK_SOURCES})
-target_link_libraries(benchmarks tdse benchmark::benchmark)
+target_link_libraries(benchmarks tdse benchmark::benchmark ${MPI_C_LIBRARIES})

@@ -3,7 +3,8 @@ import tdse.maxwell
 
 import numpy as np
 
-from .wf_array_task import CalcData, WavefuncArrayGPUTask, Task
+from .task import Task
+from .wf_array_task import CalcData, WavefuncArrayGPUTask
 
 
 class EdepsTData(CalcData):
@@ -15,16 +16,26 @@ class EdepsTData(CalcData):
         self.x = x
 
     def get_shape(self, task):
-        return (task.t.size//task.m_dt,)
+        if type(task) is MaxwellTDSETask:
+            return (task.t.size//task.m_dt,)
+        else:
+            return (task.t.size,)
 
     def calc_init(self, task, file):
         super().calc_init(task, file)
 
-        self.x_index = int(self.x / task.m_grid.d)
+        if type(task) is MaxwellTDSETask:
+            self.x_index = int(self.x / task.m_grid.d)
+        else:
+            self.x_index = int(self.x / task.grid.d)
 
     def calc(self, task, i, t):
-        if i % task.m_dt:
-            self.dset[i // task.m_dt] = task.maxwell_ws.E[self.x_index]
+        if type(task) is MaxwellTDSETask:
+            if i % task.m_dt:
+                self.dset[i // task.m_dt] = task.maxwell_ws.E[self.x_index]
+        else:
+            self.dset[i] = task.ws.E[self.x_index]
+
 
 class EdepsXData(CalcData):
     NAME = "Ex"
@@ -35,7 +46,10 @@ class EdepsXData(CalcData):
         self.t = t
 
     def get_shape(self, task):
-        return (self.t.size, task.m_grid.N)
+        if type(task) is MaxwellTDSETask:
+            return (self.t.size, task.m_grid.N)
+        else:
+            return (self.t.size, task.grid.N)
 
     def calc_init(self, task, file):
         super().calc_init(task, file)
@@ -45,7 +59,10 @@ class EdepsXData(CalcData):
     def calc(self, task, i, t):
         if np.any(self.t_index == i):
             print("Data: ", np.argwhere(self.t_index == i))
-            self.dset[np.argwhere(self.t_index == i),:] = task.maxwell_ws.E[:]
+            if type(task) is MaxwellTDSETask:
+                self.dset[np.argwhere(self.t_index == i),:] = task.maxwell_ws.E[:]
+            else:
+                self.dset[np.argwhere(self.t_index == i),:] = task.ws.E[:]
 
 class MaxwellTDSETask(WavefuncArrayGPUTask):
     dx = tdse.utils.unit_to(20, "nm") # step in Maxwell equation
@@ -167,7 +184,7 @@ class MaxwellNonlinearTask(Task):
     def calc_prop(self, i, t):
         self.P[:] = 0.0
 
-        for i in self.chi:
+        for i in range(self.chi.size):
             if self.chi[i] != 0.0:
                 self.P[:] += self.chi[i]*self.n*self.ws.E**(i+1)
 

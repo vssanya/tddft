@@ -1,3 +1,4 @@
+import numpy as np
 from grid cimport Grid1d
 
 
@@ -11,7 +12,7 @@ cdef class MaxwellWorkspace1D:
     @property
     def E(self):
         cdef double[::1] res = <double[:self.cdata.grid.n]>self.cdata.E.data
-        return res
+        return np.asarray(res)
 
     @property
     def H(self):

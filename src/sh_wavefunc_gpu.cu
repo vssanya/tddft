@@ -152,7 +152,7 @@ ShWavefuncArrayGPU::ShWavefuncArrayGPU(ShWavefunc const& wf, int N):
 ShWavefunc* ShWavefuncArrayGPU::get(int index) {
 	auto wf = new ShWavefunc(grid[0], m);
 
-	cudaMemcpy(wf->data, &data[in*grid->size()], grid->size()*sizeof(cdouble), cudaMemcpyDeviceToHost);
+	cudaMemcpy(wf->data, &data[index*grid->size()], grid->size()*sizeof(cdouble), cudaMemcpyDeviceToHost);
 
 	return wf;
 }

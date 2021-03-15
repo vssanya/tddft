@@ -11,6 +11,6 @@ from .tdsfm_task import TdsfmInnerTask
 
 from .wf_array_task import AzWfArrayData, WavefuncArrayGPUTask
 
-from .maxwell_tdse import EdepsTData, EdepsXData, MaxwellTDSETask
+from .maxwell_tdse import EdepsTData, EdepsXData, MaxwellTDSETask, MaxwellNonlinearTask
 
 from .benchmark import CalcTimeStepBenchmarkData

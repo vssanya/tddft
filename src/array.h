@@ -61,7 +61,7 @@ class Array {
 		}
 
 		void add_simd(Array const& other) {
-#pragma omp parallel for simd
+//#pragma omp parallel for simd
 			for (int i = 0; i < grid.size(); ++i) {
 				data[i] += other.data[i];
 			}
