@@ -44,6 +44,9 @@ def unit_to(value, u_from='au', u_to='au'):
 def to_fs(value):
     return unit_to(value, 'au', 'fs')
 
+def to_nm(value):
+    return unit_to(value, 'au', 'nm')
+
 def t_fwhm(fwhm, u='fs', u_to='au'):
     return unit_to(fwhm, u, u_to)/np.sqrt(2*np.log(2))
 

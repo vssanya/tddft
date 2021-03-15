@@ -35,5 +35,8 @@ cdef class MaxwellWorkspace1D:
         else:
             self.cdata.prop(<double> dt)
 
+    def move_center_window_to_max_E(self):
+        return self.cdata.move_center_window_to_max_E()
+
     def get_dt(self, double ksi):
         return ksi/C_au*self.cdata.grid.d

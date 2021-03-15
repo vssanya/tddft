@@ -13,6 +13,8 @@ cdef extern from "maxwell/1d.h":
         void prop(double dt, double* eps);
         void prop_pol(double dt, double* P);
 
+        int move_center_window_to_max_E();
+
         cGrid1d& grid;
 
         Array1D[double] E;

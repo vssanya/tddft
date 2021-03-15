@@ -17,6 +17,7 @@ cdef extern from "sh_wavefunc_gpu.h":
         cShWavefuncArrayGPU(cShGrid* grid, int m, int N)
 
         cShWavefunc* get(int i)
+        void set(int index, cShWavefunc& wf)
 
     cdef cppclass cShWavefuncGPU "ShWavefuncGPU":
         cShGrid* grid

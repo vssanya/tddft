@@ -69,6 +69,8 @@ class MaxwellTDSETask(WavefuncArrayGPUTask):
     L = tdse.utils.unit_to(200e3, "nm") # length of media
     ksi = 0.9 # maxwell propogation parameter
 
+    use_move_window = False
+
     x0 = tdse.utils.unit_to(60, "nm") # init location of center laser pulse
 
     Imin = 0.0 # Minimum intensity to start calculating the medium response
@@ -78,8 +80,24 @@ class MaxwellTDSETask(WavefuncArrayGPUTask):
     def __init__(self, path_res='res', mode=None, **kwargs):
         super().__init__(path_res, mode, **kwargs)
 
-        self.m_grid = tdse.grid.Grid1d(int(self.L/self.dx), self.dx)
-        self.n = np.zeros(self.m_grid.N)
+        if self.use_move_window:
+            self.Lw = self.field.T * tdse.const.C
+            self.Ndt_move = int(0.05 * self.field.T / self.dt)
+            self.window_N_start = int((self.x0 - tdse.const.C * self.field.T / 2)/self.dx)
+            self.window_P_index = 0
+        else:
+            self.Lw = self.L
+            self.window_N_start = 0
+            self.window_P_index = 0
+
+        self.maxwell_full_grid = tdse.grid.Grid1d(int(self.L/self.dx), self.dx)
+        self.maxwell_window_grid = tdse.grid.Grid1d(int(self.Lw/self.dx), self.dx)
+
+        print("Maxwell grid: N = {}, dx = {}, is_move = {}".format(
+            self.maxwell_window_grid.N, tdse.utils.to_nm(self.dx),
+            self.use_move_window))
+
+        self.n = np.zeros(self.maxwell_full_grid.N)
         self.x = np.linspace(0, self.L, self.n.size)
 
         self.wait_pulse = True
@@ -88,24 +106,28 @@ class MaxwellTDSETask(WavefuncArrayGPUTask):
         self.calc_n(self.x)
 
         self.N_index = np.argwhere(self.n != 0.0).reshape(-1)
-        self.N = self.N_index.size
+        if self.use_move_window:
+            self.N = min(self.N_index.size, self.maxwell_window_grid.N)
+        else:
+            self.N = self.N_index.size
 
         self.az = np.zeros((2,self.N))
         self.vz = np.zeros((2,self.N))
         self.z  = np.zeros((2,self.N))
 
-        self.maxwell_ws = tdse.maxwell.MaxwellWorkspace1D(self.m_grid)
+        self.maxwell_ws = tdse.maxwell.MaxwellWorkspace1D(self.maxwell_window_grid)
         self.m_dt = int(self.maxwell_ws.get_dt(self.ksi) / self.dt)
         print("m_dt = {}".format(self.m_dt))
 
-        E = self.field.E(self.field.T/2 - (self.x - self.x0)/tdse.const.C)
+        E = self.field.E(self.field.T/2 - (self.x_window - self.x0)/tdse.const.C)
         self.maxwell_ws.E[:] = E
         self.maxwell_ws.D[:] = E
 
-        H = self.field.E(self.field.T/2 - self.maxwell_ws.get_dt(self.ksi)/2 - (self.x - self.x0 + self.m_grid.d/2)/tdse.const.C)
+        H = self.field.E(self.field.T/2 - self.maxwell_ws.get_dt(self.ksi)/2 -
+                (self.x_window - self.x0 + self.maxwell_window_grid.d/2)/tdse.const.C)
         self.maxwell_ws.H[:] = H
 
-        self.P = np.zeros(self.m_grid.N)
+        self.P = np.zeros(self.maxwell_window_grid.N)
 
         super().calc_init()
 
@@ -126,15 +148,41 @@ class MaxwellTDSETask(WavefuncArrayGPUTask):
             self.P[self.N_index] = - self.z[1]*self.n[self.N_index]
             self.maxwell_ws.prop(dt=self.dt*self.m_dt, pol=self.P)
 
+            if self.use_move_window and i % self.Ndt_move:
+                N_shift = self.maxwell_ws.move_center_window_to_max_E()
+                self.window_N_start += N_shift
+
+                self.window_P_index += N_shift
+                self.window_P_index = self.window_P_index % self.maxwell_window_grid.N
+
+                if not self.wait_pulse:
+                    for i in range(N_shift):
+                        self.wf_array.set(self.window_P_index-i-1, self.wf_gs)
+
             if self.wait_pulse:
-                self.calc_field(t)
-                if np.any(np.abs(self.E) > tdse.utils.I_to_E(self.Imin)):
-                    print(self.E)
+                if self.use_move_window:
+                    if np.any(self.n_window > 0.0):
+                        self.wait_pulse = False
+                else:
+                    self.calc_field(t)
+                    if np.any(np.abs(self.E) > tdse.utils.I_to_E(self.Imin)):
+                        self.wait_pulse = False
+
+                if not self.wait_pulse:
                     print("Pulse reached media.")
-                    self.wait_pulse = False
+
+
+    @property
+    def n_window(self):
+        return self.n[self.window_N_start:self.window_N_start+self.maxwell_window_grid.N]
+
+    @property
+    def x_window(self):
+        return self.x[self.window_N_start:self.window_N_start+self.maxwell_window_grid.N]
 
     def calc_field(self, t):
-        self.E[:] = np.asarray(self.maxwell_ws.E)[self.N_index]
+        self.E[self.window_P_index:] = self.maxwell_ws.E[0:self.maxwell_window_grid.N-self.window_P_index]
+        self.E[0:self.window_P_index] = self.maxwell_ws.E[self.maxwell_window_grid.N-self.window_P_index:]
 
     def get_t(self):
         print((self.L - self.x0) / tdse.const.C)

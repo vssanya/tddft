@@ -158,6 +158,13 @@ ShWavefunc* ShWavefuncArrayGPU::get(int index) {
 }
 
 void ShWavefuncArrayGPU::set(int index, ShWavefunc const& wf) {
+	if (index < 0) {
+		index += N;
+	}
+
+	assert(index >= 0 && index < N);
+	assert(grid->size() == wf.grid.size());
+
 	cudaMemcpy(&data[grid->size()*index], wf.data, grid->size()*sizeof(cdouble), cudaMemcpyHostToDevice);
 }
 
