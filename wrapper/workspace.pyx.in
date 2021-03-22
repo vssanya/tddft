@@ -85,7 +85,7 @@ cdef class {{prefix}}WavefuncWS:
         else:
             c_gauge = VELOCITY
 
-        self.cdata = new WavefuncWS[c{{prefix}}Grid](grid.data[0], atom_cache.cdata[0], uabs.cdata[0], propAtType, c_gauge, num_threads)
+        self.cdata = new WavefuncWS[c{{prefix}}Grid](grid.data[0], atom_cache.cdata, uabs.cdata[0], propAtType, c_gauge, num_threads)
 
         self.uabs = uabs
         self.atom_cache = atom_cache
@@ -95,6 +95,10 @@ cdef class {{prefix}}WavefuncWS:
 
     def __init__(self, {{prefix}}AtomCache atom_cache, {{prefix}}Grid grid, Uabs{{prefix2}}Cache uabs, int num_threads = -1, int propType=4, int gauge = 0):
         pass
+
+    def set_atom_cache(self, {{prefix}}AtomCache atom_cache):
+        self.cdata.set_atom_cache(atom_cache.cdata)
+        self.atom_cache = atom_cache
 
     def prop(self, {{prefix}}Wavefunc wf, Field field, double t, double dt):
         self.cdata.prop(wf.cdata[0], field.cdata, t, dt)
@@ -122,9 +126,9 @@ cdef class WfWithPolarizationWorkspace:
             c_gauge = VELOCITY
 
         if Upol_2 is None:
-            self.cdata = new WfWithPolarization(grid.data[0], atom_cache.cdata[0], uabs.cdata[0], &Upol_1[0], NULL, Odr4, c_gauge, num_threads)
+            self.cdata = new WfWithPolarization(grid.data[0], atom_cache.cdata, uabs.cdata[0], &Upol_1[0], NULL, Odr4, c_gauge, num_threads)
         else:
-            self.cdata = new WfWithPolarization(grid.data[0], atom_cache.cdata[0], uabs.cdata[0], &Upol_1[0], &Upol_2[0], Odr4, c_gauge, num_threads)
+            self.cdata = new WfWithPolarization(grid.data[0], atom_cache.cdata, uabs.cdata[0], &Upol_1[0], &Upol_2[0], Odr4, c_gauge, num_threads)
 
         self.uabs = uabs
         self.atom_cache = atom_cache
@@ -153,7 +157,7 @@ cdef class SKnWithSourceWorkspace:
         else:
             c_gauge = VELOCITY
 
-        self.cdata = new WfEWithSource(grid.data[0], atom_cache.cdata[0], uabs.cdata[0], source.cdata[0], E, Odr4, c_gauge, num_threads)
+        self.cdata = new WfEWithSource(grid.data[0], atom_cache.cdata, uabs.cdata[0], source.cdata[0], E, Odr4, c_gauge, num_threads)
         self.uabs = uabs
         self.source = source
         self.atom_cache = atom_cache
@@ -191,7 +195,7 @@ cdef class {{prefix}}OrbitalsWS:
             c_gauge = VELOCITY
 
         self.cdata = new OrbitalsWS[c{{prefix}}Grid](sh_grid.data[0], sp_grid.data[0],
-                              atom_cache.cdata[0], uabs.cdata[0],
+                              atom_cache.cdata, uabs.cdata[0],
                               ylm_cache.cdata[0], Uh_lmax, Uxc_lmax,
                               <XCPotentialEnum>(<int>uxc.value), propAtType, c_gauge, num_threads)
         self.uabs = uabs

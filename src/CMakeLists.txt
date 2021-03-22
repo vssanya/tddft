@@ -16,7 +16,6 @@ set( LIB_SOURCES
 	"workspace/wf.cpp"
 	"workspace/wf_with_source.cpp"
 	"workspace/orbs.cpp"
-	"workspace/orbs_spin.cpp"
 	"workspace/gps.cpp"
 	"workspace/common_alg.cpp"
 	"workspace/sfa.cpp"

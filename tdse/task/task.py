@@ -288,6 +288,9 @@ class Task(object):
                     data.load(self, self.file)
 
     def get_t(self):
+        if not hasattr(self, 'field'):
+            return None
+
         return self.field.get_t(self.dt, dT=self.dT)
 
     def get_w(self):
@@ -335,10 +338,13 @@ class TaskAtom(Task):
         else:
             atom_u_data = np.load(self.atom_u_data_path)
 
-        self.atom_cache = self.AtomCacheClass(self.atom, self.sh_grid, atom_u_data)
+        self.atom_cache = self.create_atom_cache(atom_u_data)
 
         if self.uabs is not None:
             self.uabs_cache = self.UabsCacheClass(self.uabs, self.sh_grid)
+
+    def create_atom_cache(self, atom_u_data=None):
+        return self.AtomCacheClass(self.atom, self.sh_grid, atom_u_data)
 
     def create_grid(self):
         Nr = int(self.r_max/self.dr)

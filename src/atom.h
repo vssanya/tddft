@@ -144,18 +144,18 @@ class Atom {
 template<class Grid>
 class AtomCache {
 	public:
-        AtomCache(Atom const& atom, Grid const& grid, double* u, int N = -1);
-        AtomCache(Atom const& atom, Grid const& grid): AtomCache(atom, grid, nullptr) {}
+		AtomCache(Atom const& atom, Grid const& grid, double* u, int N = -1);
+		AtomCache(Atom const& atom, Grid const& grid): AtomCache(atom, grid, nullptr) {}
 		~AtomCache();
 
-        double u(int ir) const { return data_u[ir]; }
-        double dudz(int ir) const { return data_dudz[ir]; }
+		double u(int ir) const { return data_u[ir]; }
+		double dudz(int ir) const { return data_dudz[ir]; }
 
 		double* getGPUDataU();
 		double* getGPUDatadUdz();
 
-        Atom const& atom;
-        Grid const& grid;
+		Atom const& atom;
+		Grid const& grid;
 
 		double* data_u;
 		double* data_dudz;

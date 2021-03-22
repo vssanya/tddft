@@ -8,7 +8,7 @@
 template <typename Grid>
 workspace::WavefuncWS<Grid>::WavefuncWS(
 		Grid    const& grid,
-		AtomCache<Grid> const& atom_cache,
+		AtomCache<Grid> const* atom_cache,
 		UabsCache const& uabs,
 		PropAtType propAtType,
 		Gauge gauge,
@@ -40,7 +40,7 @@ void workspace::WavefuncWS<Grid>::prop_at_Odr4(Wavefunc<Grid>& wf, cdouble dt, s
 	double const dr = grid.d[iR];
 	double const dr2 = dr*dr;
 
-	int const Z = atom_cache.atom.Z;
+	int const Z = atom_cache->atom.Z;
 
 
 	double const d2[3] = {1.0/dr2, -2.0/dr2, 1.0/dr2};
@@ -81,7 +81,7 @@ void workspace::WavefuncWS<Grid>::prop_at_Odr4(Wavefunc<Grid>& wf, cdouble dt, s
 				ar[i] = M2[i]*(1.0 - idt_2*U[i]) + 0.5*idt_2*d2[i];
 			}
 
-			if (l == 0 && atom_cache.atom.potentialType == Atom::POTENTIAL_COULOMB) {
+			if (l == 0 && atom_cache->atom.potentialType == Atom::POTENTIAL_COULOMB) {
 				al[1] = M2_l0_11*(1.0 + idt_2*U[1]) - 0.5*idt_2*d2_l0_11;
 				ar[1] = M2_l0_11*(1.0 - idt_2*U[1]) + 0.5*idt_2*d2_l0_11;
 			}
@@ -313,7 +313,7 @@ void workspace::WavefuncWS<Grid>::prop(Wavefunc<Grid>& wf, field_t const* field,
 	sh_f Ul[2] = {
 		[this](int ir, int l, int m) -> double {
 			double const r = grid.r(ir);
-			return l*(l+1)/(2*r*r) + atom_cache.u(ir);
+			return l*(l+1)/(2*r*r) + atom_cache->u(ir);
 		},
 		[this, Et](int ir, int l, int m) -> double {
 			double const r = grid.r(ir);
@@ -348,7 +348,7 @@ void workspace::WavefuncWS<Grid>::prop_without_field(Wavefunc<Grid>& wf, double 
 	sh_f Ul[1] = {
 		[this](int ir, int l, int m) -> double {
 			double const r = grid.r(ir);
-			return l*(l+1)/(2*r*r) + atom_cache.u(ir);
+			return l*(l+1)/(2*r*r) + atom_cache->u(ir);
 		},
 	};
 
@@ -361,7 +361,7 @@ void workspace::WavefuncWS<Grid>::prop_img(Wavefunc<Grid>& wf, double dt) {
 	sh_f Ul[1] = {
 		[this](int ir, int l, int m) -> double {
 			double const r = grid.r(ir);
-			return l*(l+1)/(2*r*r) + atom_cache.u(ir);
+			return l*(l+1)/(2*r*r) + atom_cache->u(ir);
 		}
 	};
 
@@ -372,7 +372,7 @@ template<>
 void workspace::WavefuncWS<ShNotEqudistantGrid>::prop_at_Odr4(Wavefunc<ShNotEqudistantGrid>& wf, cdouble dt, sh_f Ul) {
 	int const Nr = grid.n[iR];
 
-	int const Z = atom_cache.atom.Z;
+	int const Z = atom_cache->atom.Z;
 
 
 	double dr1 = grid.dr(0);
@@ -437,7 +437,7 @@ void workspace::WavefuncWS<ShNotEqudistantGrid>::prop_at_Odr4(Wavefunc<ShNotEqud
 			double dr1 = grid.dr(ir);
 			double dr2 = grid.dr(ir+1);
 
-			if (l == 0 && atom_cache.atom.potentialType == Atom::POTENTIAL_COULOMB) {
+			if (l == 0 && atom_cache->atom.potentialType == Atom::POTENTIAL_COULOMB) {
 				int i = 1;
 				al[i] = M2_l0_11*(1.0 + idt_2*U[i]) - 0.5*idt_2*d2_l0_11;
 				ar[i] = M2_l0_11*(1.0 - idt_2*U[i]) + 0.5*idt_2*d2_l0_11;

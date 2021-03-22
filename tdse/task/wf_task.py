@@ -90,6 +90,8 @@ class Z2WfData(TimeShapeMixin, CalcDataWithMask):
 class WfGroundStateTask(TaskAtom):
     atom = tdse.atom.H
 
+    ground_state = None
+
     dt = 0.025
     dr = 0.125
 
@@ -112,11 +114,58 @@ class WfGroundStateTask(TaskAtom):
     def calc(self):
         self.calc_init()
 
-        self.wf, self.E = tdse.ground_state.wf(self.atom, self.sh_grid, self.ws, self.dt, self.Nt, **self.state)
+        self.wf, self.E = tdse.ground_state.wf(self.atom, self.sh_grid, self.ws, self.dt, self.Nt, ground_state = self.ground_state)
 
         self.wf_gs = self.wf.asarray()
         self.save()
 
+from abc import ABCMeta, abstractmethod
+class WfGroundStateEDepTask(TaskAtom):
+    __metaclass__ = ABCMeta
+
+    atom = None # need realize method get_atom
+    ground_state = None
+
+    dt = 0.025
+    dr = 0.125
+
+    T = 100
+    r_max = 100
+
+    N = 10 # Count atoms
+    CALC_DATA = ['E']
+
+    def __init__(self, path_res='res', mode=None, is_mpi=False, **kwargs):
+        self.atom = self.get_atom(0)
+
+        self.Nl = self.atom.l_max + 1
+        super().__init__(path_res, mode, is_mpi=False, **kwargs)
+
+        self.Nt = int(self.T / self.dt)
+
+    def calc_init(self):
+        super().calc_init()
+
+        self.E = np.zeros(self.N)
+        self.ws = tdse.workspace.ShWavefuncWS(self.atom_cache, self.sh_grid, tdse.abs_pot.UabsZeroCache(self.sh_grid))
+
+    def calc(self):
+        self.calc_init()
+
+        for i in range(self.N):
+            print("Calc ground state for atom Ni = {}".format(i))
+            self.atom = self.get_atom(i)
+            self.atom_cache = self.create_atom_cache()
+            self.ws.set_atom_cache(self.atom_cache)
+
+            self.wf, Ei = tdse.ground_state.wf(self.atom, self.sh_grid, self.ws, self.dt, self.Nt, ground_state = self.ground_state)
+            self.E[i] = Ei
+
+        self.save()
+
+    @abstractmethod
+    def get_atom(self, i: int) -> tdse.atom.Atom:
+        pass
 
 class WavefuncWithSourceTask(TaskAtom):
     def __init__(self, path_res='res', mode=None, **kwargs):

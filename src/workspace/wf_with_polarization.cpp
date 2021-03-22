@@ -15,12 +15,12 @@ void workspace::WfWithPolarization::prop(ShWavefunc& wf, field_t const* field, d
 	if (Upol_2 == nullptr) {
 		Ul[0] = [this](int ir, int l, int m) -> double {
 			double const r = grid.r(ir);
-			return l*(l+1)/(2*r*r) + atom_cache.u(ir);
+			return l*(l+1)/(2*r*r) + atom_cache->u(ir);
 		};
 	} else {
 		Ul[0] = [this, Et](int ir, int l, int m) -> double {
 				double const r = grid.r(ir);
-				return l*(l+1)/(2*r*r) + atom_cache.u(ir) + plm(l,m)*Upol_2[ir]*Et*Et;
+				return l*(l+1)/(2*r*r) + atom_cache->u(ir) + plm(l,m)*Upol_2[ir]*Et*Et;
 		};
 
 		Ul[2] = [this, Et](int ir, int l, int m) -> double {

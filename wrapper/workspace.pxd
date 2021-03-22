@@ -60,12 +60,14 @@ cdef extern from "workspace.h" namespace "workspace":
     cdef cppclass WavefuncWS[Grid]:
         WavefuncWS(
             Grid      & grid,
-            AtomCache[Grid]& atom_cache,
+            AtomCache[Grid]* atom_cache,
             cUabsCache& uabs,
             PropAtType propAtType,
             Gauge gauge,
             int num_threads
         )
+
+        void set_atom_cache(AtomCache[Grid]* atom_cache)
 
         void prop_ang(Wavefunc[Grid]& wf, double dt, int l, double E)
         #void prop_at(cShWavefunc& wf, cdouble dt, sh_f Ul, int Z, potential_type_e u_type)
@@ -81,12 +83,12 @@ cdef extern from "workspace.h" namespace "workspace":
         cdouble* alpha
         cdouble* betta
         int num_threads
-        AtomCache[Grid] atom_cache
+        AtomCache[Grid]* atom_cache
 
     cdef cppclass WfEWithSource:
         WfEWithSource(
             cShGrid    & grid,
-            AtomCache[cShGrid] & atom_cache,
+            AtomCache[cShGrid]* atom_cache,
             cUabsCache & uabs,
             cShWavefunc& wf_source,
             double E,
@@ -101,7 +103,7 @@ cdef extern from "workspace.h" namespace "workspace":
     cdef cppclass WfWithPolarization:
         WfWithPolarization(
             cShGrid   & grid,
-            AtomCache[cShGrid]& atom_cache,
+            AtomCache[cShGrid]* atom_cache,
             cUabsCache& uabs,
             double* Upol_1,
             double* Upol_2,
@@ -117,7 +119,7 @@ cdef extern from "workspace.h" namespace "workspace":
         OrbitalsWS(
             Grid      & sh_grid,
             cSpGrid   & sp_grid,
-            AtomCache[Grid]& atom_cache,
+            AtomCache[Grid]* atom_cache,
             cUabsCache& uabs,
             cYlmCache & ylm_cache,
             int Uh_lmax,

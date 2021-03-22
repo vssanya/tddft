@@ -4,7 +4,7 @@ from .orb_task import OrbitalsTask, OrbitalsNeTask, OrbitalsNeWithoutFieldTask, 
 from .orb_task import UeeCalcOnceMixin
 
 from .wf_task import AzWfData, NormWfData, ZWfData, Z2WfData, PWfData, AzPolarizationWfData, FinWfData
-from .wf_task import WfGroundStateTask, WavefuncWithSourceTask, WavefuncTask, WavefuncWithPolarization, WfGpuTask, WavefuncNeTask
+from .wf_task import WfGroundStateTask, WfGroundStateEDepTask, WavefuncWithSourceTask, WavefuncTask, WavefuncWithPolarization, WfGpuTask, WavefuncNeTask
 
 from .sfa_task import SFATask
 from .tdsfm_task import TdsfmInnerTask

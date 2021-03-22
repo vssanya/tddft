@@ -10,7 +10,7 @@ template<typename Grid>
 workspace::OrbitalsWS<Grid>::OrbitalsWS(
 		Grid      const& sh_grid,
 		SpGrid    const& sp_grid,
-		AtomCache<Grid> const& atom_cache,
+		AtomCache<Grid> const* atom_cache,
 		UabsCache const& uabs,
 		YlmCache  const& ylm_cache,
 		int Uh_lmax,
@@ -169,7 +169,7 @@ void workspace::OrbitalsWS<Grid>::prop_simple(Orbitals<Grid>& orbs, field_t cons
 	typename workspace::WavefuncWS<Grid>::sh_f Ul[3] = {
         [this](int ir, int l, int m) -> double {
 			double const r = sh_grid.r(ir);
-            return l*(l+1)/(2*r*r) + wf_ws.atom_cache.u(ir) + Uee->data[ir + 0*sh_grid.n[iR]] + plm(l,m)*Uee->data[ir + 2*sh_grid.n[iR]];
+            return l*(l+1)/(2*r*r) + wf_ws.atom_cache->u(ir) + Uee->data[ir + 0*sh_grid.n[iR]] + plm(l,m)*Uee->data[ir + 2*sh_grid.n[iR]];
 		},
         [Et, this](int ir, int l, int m) -> double {
 			double const r = sh_grid.r(ir);
@@ -272,7 +272,7 @@ void workspace::OrbitalsWS<Grid>::prop_img(Orbitals<Grid>& orbs, double dt, bool
 	typename workspace::WavefuncWS<Grid>::sh_f Ul[3] = {
         [this](int ir, int l, int m) -> double {
 			double const r = sh_grid.r(ir);
-            return l*(l+1)/(2*r*r) + wf_ws.atom_cache.u(ir) + Uee->data[ir + 0*sh_grid.n[iR]];
+            return l*(l+1)/(2*r*r) + wf_ws.atom_cache->u(ir) + Uee->data[ir + 0*sh_grid.n[iR]];
         },
         [this](int ir, int l, int m) -> double {
             return clm(l, m)*Uee->data[ir + 1*sh_grid.n[iR]];
@@ -305,7 +305,7 @@ void workspace::OrbitalsWS<Grid>::prop_ha(Orbitals<Grid>& orbs, double dt,
 	typename workspace::WavefuncWS<Grid>::sh_f Ul[3] = {
         [this](int ir, int l, int m) -> double {
 			double const r = sh_grid.r(ir);
-            return l*(l+1)/(2*r*r) + wf_ws.atom_cache.u(ir) + Uee->data[ir + 0*sh_grid.n[iR]];
+            return l*(l+1)/(2*r*r) + wf_ws.atom_cache->u(ir) + Uee->data[ir + 0*sh_grid.n[iR]];
         },
         [this](int ir, int l, int m) -> double {
             return clm(l, m)*Uee->data[ir + 1*sh_grid.n[iR]];

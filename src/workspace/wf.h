@@ -48,12 +48,16 @@ namespace workspace {
 
 			WavefuncWS( 
 					Grid    const& grid,
-					AtomCache<Grid> const& atom_cache,
+					AtomCache<Grid> const* atom_cache,
 					UabsCache const& uabs,
 					PropAtType propAtType,
 					Gauge gauge,
 					int num_threads
 				  );
+
+			void set_atom_cache(AtomCache<Grid> const* atom_cache) {
+				this->atom_cache = atom_cache;
+			}
 
 			virtual ~WavefuncWS() {
 				delete[] alpha;
@@ -120,7 +124,7 @@ namespace workspace {
 			void prop_img(Wavefunc<Grid>& wf, double dt);
 
 			Grid      const& grid;
-			AtomCache<Grid> const& atom_cache;
+			AtomCache<Grid> const* atom_cache;
 			UabsCache const& uabs;
 
 			cdouble* alpha;
