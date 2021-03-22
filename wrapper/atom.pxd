@@ -48,8 +48,11 @@ cdef extern from "atom.h":
         double* data_u;
         double* data_dudz;
 
-    cdef cppclass ShortAtom:
-        ShortAtom(double c, double n)
+    cdef cppclass cShortAtom "ShortAtom":
+        cShortAtom(double c, double n)
+
+    cdef cppclass cSoftCoulombAtom "SoftCoulombAtom":
+        cSoftCoulombAtom(double Rs, double Z)
 
     cdef cppclass MgAtom:
         MgAtom()

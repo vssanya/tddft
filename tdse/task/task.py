@@ -27,9 +27,12 @@ class CalcData(object):
         self.file = file
 
         if task.rank is None or task.rank == 0:
+            shape = self.get_shape(task)
             self.dset = file.create_dataset(self.name,
-                                            shape=self.get_shape(task),
+                                            shape=shape,
                                             dtype=self.dtype)
+
+            print("Create calc data {}: shape = {}, type = {}".format(self.name, shape, self.dtype))
 
     def calc(self, task, i, t):
         pass

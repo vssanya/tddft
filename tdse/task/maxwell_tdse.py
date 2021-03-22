@@ -16,7 +16,7 @@ class EdepsTData(CalcData):
         self.x = x
 
     def get_shape(self, task):
-        if type(task) is MaxwellTDSETask:
+        if issubclass(type(task), MaxwellTDSETask):
             return (task.t.size//task.m_dt,)
         else:
             return (task.t.size,)
@@ -24,15 +24,18 @@ class EdepsTData(CalcData):
     def calc_init(self, task, file):
         super().calc_init(task, file)
 
-        if type(task) is MaxwellTDSETask:
-            self.x_index = int(self.x / task.m_grid.d)
+        if issubclass(type(task), MaxwellTDSETask):
+            self.x_index = int(self.x / task.maxwell_full_grid.d)
         else:
             self.x_index = int(self.x / task.grid.d)
 
     def calc(self, task, i, t):
-        if type(task) is MaxwellTDSETask:
-            if i % task.m_dt:
-                self.dset[i // task.m_dt] = task.maxwell_ws.E[self.x_index]
+        if issubclass(type(task), MaxwellTDSETask):
+            if i % task.m_dt == 0 and i // task.m_dt < self.dset.size:
+                if self.x_index < task.maxwell_ws.E.size + task.window_N_start and self.x_index >= task.window_N_start:
+                    self.dset[i // task.m_dt] = task.maxwell_ws.E[self.x_index - task.window_N_start]
+                else:
+                    self.dset[i // task.m_dt] = 0.0
         else:
             self.dset[i] = task.ws.E[self.x_index]
 
@@ -46,8 +49,8 @@ class EdepsXData(CalcData):
         self.t = t
 
     def get_shape(self, task):
-        if type(task) is MaxwellTDSETask:
-            return (self.t.size, task.m_grid.N)
+        if issubclass(type(task), MaxwellTDSETask):
+            return (self.t.size, task.maxwell_window_grid.N)
         else:
             return (self.t.size, task.grid.N)
 
@@ -59,7 +62,7 @@ class EdepsXData(CalcData):
     def calc(self, task, i, t):
         if np.any(self.t_index == i):
             print("Data: ", np.argwhere(self.t_index == i))
-            if type(task) is MaxwellTDSETask:
+            if issubclass(type(task), MaxwellTDSETask):
                 self.dset[np.argwhere(self.t_index == i),:] = task.maxwell_ws.E[:]
             else:
                 self.dset[np.argwhere(self.t_index == i),:] = task.ws.E[:]
@@ -70,20 +73,25 @@ class MaxwellTDSETask(WavefuncArrayGPUTask):
     ksi = 0.9 # maxwell propogation parameter
 
     use_move_window = False
+    calc_tdse = True
 
     x0 = tdse.utils.unit_to(60, "nm") # init location of center laser pulse
+
+    Lw = None
 
     Imin = 0.0 # Minimum intensity to start calculating the medium response
 
     n = None # Gas concentration
+    chi = None # np.array([chi^1, chi^2, chi^3, ...])
 
     def __init__(self, path_res='res', mode=None, **kwargs):
         super().__init__(path_res, mode, **kwargs)
 
         if self.use_move_window:
-            self.Lw = self.field.T * tdse.const.C
-            self.Ndt_move = int(0.05 * self.field.T / self.dt)
-            self.window_N_start = int((self.x0 - tdse.const.C * self.field.T / 2)/self.dx)
+            if self.Lw is None:
+                self.Lw = self.field.T * tdse.const.C
+            self.Ndt_move = int(0.05 * self.Lw / (tdse.const.C*self.dt))
+            self.window_N_start = int((self.x0 - self.Lw / 2)/self.dx)
             self.window_P_index = 0
         else:
             self.Lw = self.L
@@ -107,7 +115,7 @@ class MaxwellTDSETask(WavefuncArrayGPUTask):
 
         self.N_index = np.argwhere(self.n != 0.0).reshape(-1)
         if self.use_move_window:
-            self.N = min(self.N_index.size, self.maxwell_window_grid.N)
+            self.N = self.maxwell_window_grid.N
         else:
             self.N = self.N_index.size
 
@@ -132,7 +140,7 @@ class MaxwellTDSETask(WavefuncArrayGPUTask):
         super().calc_init()
 
     def calc_prop(self, i, t):
-        if not self.wait_pulse:
+        if not self.wait_pulse and self.calc_tdse:
             super().calc_prop(i, t)
 
             self.az[0] = self.az[1]
@@ -145,7 +153,16 @@ class MaxwellTDSETask(WavefuncArrayGPUTask):
             self.z[1]  = self.z[0]  + (self.vz[0] + self.vz[1])*self.dt/2
 
         if i % self.m_dt == 0:
-            self.P[self.N_index] = - self.z[1]*self.n[self.N_index]
+            if self.use_move_window:
+                self.P[:] = - self.z[1][self.from_wf_index]*self.n_window
+            else:
+                self.P[self.N_index] = - self.z[1]*self.n[self.N_index]
+
+            if self.chi is not None:
+                for i in range(self.chi.size):
+                    if self.chi[i] != 0.0:
+                        self.P[:] += self.chi[i]*self.n_window*self.maxwell_ws.E**(i+1)
+
             self.maxwell_ws.prop(dt=self.dt*self.m_dt, pol=self.P)
 
             if self.use_move_window and i % self.Ndt_move:
@@ -159,6 +176,10 @@ class MaxwellTDSETask(WavefuncArrayGPUTask):
                     for i in range(N_shift):
                         self.wf_array.set(self.window_P_index-i-1, self.wf_gs)
 
+                    self.az[1][self.window_P_index-N_shift:self.window_P_index] = 0.0
+                    self.vz[1][self.window_P_index-N_shift:self.window_P_index] = 0.0
+                    self.z[1][self.window_P_index-N_shift:self.window_P_index] = 0.0
+
             if self.wait_pulse:
                 if self.use_move_window:
                     if np.any(self.n_window > 0.0):
@@ -171,6 +192,13 @@ class MaxwellTDSETask(WavefuncArrayGPUTask):
                 if not self.wait_pulse:
                     print("Pulse reached media.")
 
+    @property
+    def to_wf_index(self):
+        return np.r_[self.maxwell_window_grid.N-self.window_P_index:self.maxwell_window_grid.N,0:self.maxwell_window_grid.N-self.window_P_index]
+
+    @property
+    def from_wf_index(self):
+        return np.r_[self.window_P_index:self.maxwell_window_grid.N,0:self.window_P_index]
 
     @property
     def n_window(self):
@@ -181,12 +209,13 @@ class MaxwellTDSETask(WavefuncArrayGPUTask):
         return self.x[self.window_N_start:self.window_N_start+self.maxwell_window_grid.N]
 
     def calc_field(self, t):
-        self.E[self.window_P_index:] = self.maxwell_ws.E[0:self.maxwell_window_grid.N-self.window_P_index]
-        self.E[0:self.window_P_index] = self.maxwell_ws.E[self.maxwell_window_grid.N-self.window_P_index:]
+        if self.use_move_window:
+            self.E[:] = self.maxwell_ws.E[self.to_wf_index]
+        else:
+            self.E[:] = self.maxwell_ws.E[self.N_index]
 
     def get_t(self):
-        print((self.L - self.x0) / tdse.const.C)
-        return np.arange(0, (self.L - self.x0) / tdse.const.C, self.dt)
+        return np.arange(0, (self.L - self.x0 - self.Lw/2) / tdse.const.C, self.dt)
 
     def calc_n(self, x):
         pass

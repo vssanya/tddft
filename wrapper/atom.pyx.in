@@ -189,5 +189,8 @@ C60 = Atom.from_c(<cAtom*> new Fulleren(), "Fulleren")
 
 NONE = Atom.from_c(<cAtom*> new NoneAtom(), "None")
 
-def getShortAtom(double c, double n):
-    return Atom.from_c(<cAtom*> new ShortAtom(c, n), "ShortAtom_c{}_n{}".format(c, n))
+def ShortAtom(double c, double n):
+    return Atom.from_c(<cAtom*> new cShortAtom(c, n), "ShortAtom_c{}_n{}".format(c, n))
+
+def SoftCoulombAtom(double Rs, double Z):
+    return Atom.from_c(<cAtom*> new cSoftCoulombAtom(Rs, Z), "SoftCoulombAtom_Rs_{}_Z_{}".format(Rs, Z))
