@@ -9,7 +9,7 @@ from .wf_task import WfGroundStateTask, WfGroundStateEDepTask, WavefuncWithSourc
 from .sfa_task import SFATask
 from .tdsfm_task import TdsfmInnerTask
 
-from .wf_array_task import AzWfArrayData, WavefuncArrayGPUTask
+from .wf_array_task import AzWfArrayData, WavefuncArrayTask
 
 from .maxwell_tdse import EdepsTData, EdepsXData, MaxwellTDSETask, MaxwellNonlinearTask
 

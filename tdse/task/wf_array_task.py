@@ -27,10 +27,9 @@ class WavefuncArrayTask(TaskAtom):
 
     N = 10
 
-    def __init__(self, path_res='res', use_gpu=False, is_mpi=False, mode=None, **kwargs):
-        assert(not (use_gpu and is_mpi))
-        self.use_gpu = use_gpu
-
+    def __init__(self, path_res='res', mode=None, **kwargs):
+        self.use_gpu = kwargs.pop("use_gpu", False)
+        assert(not (self.use_gpu and kwargs.get("is_mpi", False)))
         if self.use_gpu:
             gpu_device_id = int(os.environ.get("CUDA_DEVICE", "0"))
             tdse.calc.setGpuDevice(gpu_device_id)
@@ -49,13 +48,13 @@ class WavefuncArrayTask(TaskAtom):
         if self.use_gpu:
             return tdse.workspace_gpu.WfArrayGPUWorkspace
         else:
-            return tdse.workspace.WfArrayWS
+            return tdse.workspace.ShWfArrayWS
 
     def _create_wf_array(self, wf_gs):
         if self.use_gpu:
             wf_array = tdse.wavefunc_gpu.ShWavefuncArrayGPU(wf_gs, self.N)
         else:
-            m = np.full(self.N, 0, dtype=np.int)
+            m = np.full(self.N, 0, dtype=np.intc)
             rank = None
             if self.is_mpi:
                 rank = tdse.utils.rank_equal_dist(self.N, self.size)

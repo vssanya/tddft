@@ -240,7 +240,7 @@ cdef class {{Prefix}}WavefuncArray:
         self.mpi_comm = comm
         self.grid = grid
 
-    def __init__(self, int N, {{Prefix}}Grid grid, Comm comm = None, np.ndarray[int, ndim=1] orbsRank = None):
+    def __init__(self, int N, np.ndarray[int, ndim=1] m, {{Prefix}}Grid grid, Comm comm = None, np.ndarray[int, ndim=1] orbsRank = None):
         pass
 
     def __dealloc__(self):

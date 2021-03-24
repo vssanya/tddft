@@ -4,7 +4,7 @@ import tdse.maxwell
 import numpy as np
 
 from .task import Task
-from .wf_array_task import CalcData, WavefuncArrayGPUTask
+from .wf_array_task import CalcData, WavefuncArrayTask
 
 
 class EdepsTData(CalcData):
@@ -67,7 +67,7 @@ class EdepsXData(CalcData):
             else:
                 self.dset[np.argwhere(self.t_index == i),:] = task.ws.E[:]
 
-class MaxwellTDSETask(WavefuncArrayGPUTask):
+class MaxwellTDSETask(WavefuncArrayTask):
     dx = tdse.utils.unit_to(20, "nm") # step in Maxwell equation
     L = tdse.utils.unit_to(200e3, "nm") # length of media
     ksi = 0.9 # maxwell propogation parameter

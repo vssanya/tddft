@@ -21,6 +21,31 @@ double calc_wf_az_with_polarization(Wavefunc<Grid> const* wf, const AtomCache<Gr
 	return - E*(1 + wf->cos2(func_cos2) + wf->sin2(func_sin2)) - wf->cos(func_cos);
 }
 
+template <typename Grid>
+void calc_wf_az(WavefuncArray<Grid> const *arr,
+                AtomCache<Grid> const *atom_cache,
+								double E[],
+								double *res)
+{
+	double* Elocal;
+	if (arr->is_root()) {
+		Elocal = E;
+	} else {
+		Elocal = new double[arr->N]();
+	}
+
+#ifdef _MPI
+	MPI_Bcast(Elocal, arr->N, MPI_DOUBLE, 0, arr->mpi_comm);
+#endif
+
+  auto func = [&](int ir, int il, int m) -> double {
+    return atom_cache->dudz(ir);
+  };
+
+  arr->template calc_array<double>(
+      [&](auto wf, int ie) -> double { return -(Elocal[ie] + wf->cos(func)); }, res);
+}
+
 template<class Grid>
 double calc_orbs_az(Orbitals<Grid> const& orbs, const AtomCache<Grid> &atom_cache, field_t const* field, double t) {
     auto func = [&](int ir, int il, int m) -> double {
@@ -296,6 +321,9 @@ double calc_pr_max(int N, double const E[], double dt, double r_max) {
 
     return res;
 }
+
+
+template void calc_wf_az<ShGrid>(WavefuncArray<ShGrid> const *arr, AtomCache<ShGrid> const *atom_cache, double E[], double *res);
 
 template double calc_wf_az_with_polarization<ShGrid>(Wavefunc<ShGrid> const* wf, AtomCache<ShGrid> const& atom_cache, double const Upol[], double const dUpol_dr[], field_t const* field, double t);
 template double calc_wf_az_with_polarization<ShNotEqudistantGrid>(Wavefunc<ShNotEqudistantGrid> const* wf, AtomCache<ShNotEqudistantGrid> const& atom_cache, double const Upol[], double const dUpol_dr[], field_t const* field, double t);
