@@ -132,7 +132,7 @@ class Task(object):
         else:
             self.comm = None
             self.rank = 0
-            self.szie = 1
+            self.size = 1
 
         self.is_slurm = os.environ.get('SLURM_JOB_ID', None) is not None
         if mode is Task.MODE_ANALISIS:

@@ -119,23 +119,26 @@ class MaxwellTDSETask(WavefuncArrayGPUTask):
         else:
             self.N = self.N_index.size
 
-        self.az = np.zeros((2,self.N))
-        self.vz = np.zeros((2,self.N))
-        self.z  = np.zeros((2,self.N))
+        if self.is_root:
+            self.az = np.zeros((2,self.N))
+            self.vz = np.zeros((2,self.N))
+            self.z  = np.zeros((2,self.N))
 
-        self.maxwell_ws = tdse.maxwell.MaxwellWorkspace1D(self.maxwell_window_grid)
-        self.m_dt = int(self.maxwell_ws.get_dt(self.ksi) / self.dt)
-        print("m_dt = {}".format(self.m_dt))
+            self.maxwell_ws = tdse.maxwell.MaxwellWorkspace1D(self.maxwell_window_grid)
+            self.m_dt = int(self.maxwell_ws.get_dt(self.ksi) / self.dt)
+            print("m_dt = {}".format(self.m_dt))
 
-        E = self.field.E(self.field.T/2 - (self.x_window - self.x0)/tdse.const.C)
-        self.maxwell_ws.E[:] = E
-        self.maxwell_ws.D[:] = E
+            E = self.field.E(self.field.T/2 - (self.x_window - self.x0)/tdse.const.C)
+            self.maxwell_ws.E[:] = E
+            self.maxwell_ws.D[:] = E
 
-        H = self.field.E(self.field.T/2 - self.maxwell_ws.get_dt(self.ksi)/2 -
-                (self.x_window - self.x0 + self.maxwell_window_grid.d/2)/tdse.const.C)
-        self.maxwell_ws.H[:] = H
+            H = self.field.E(self.field.T/2 - self.maxwell_ws.get_dt(self.ksi)/2 -
+                    (self.x_window - self.x0 + self.maxwell_window_grid.d/2)/tdse.const.C)
+            self.maxwell_ws.H[:] = H
 
-        self.P = np.zeros(self.maxwell_window_grid.N)
+            self.P = np.zeros(self.maxwell_window_grid.N)
+        else:
+            pass
 
         super().calc_init()
 
@@ -143,30 +146,43 @@ class MaxwellTDSETask(WavefuncArrayGPUTask):
         if not self.wait_pulse and self.calc_tdse:
             super().calc_prop(i, t)
 
-            self.az[0] = self.az[1]
-            self.vz[0] = self.vz[1]
-            self.z[0] = self.z[1]
+            if self.is_root:
+                self.az[0] = self.az[1]
+                self.vz[0] = self.vz[1]
+                self.z[0] = self.z[1]
 
-            tdse.calc_gpu.az(self.wf_array, self.atom_cache, self.E, self.az[1])
+            if self.use_gpu:
+                tdse.calc_gpu.az(self.wf_array, self.atom_cache, self.E, self.az[1])
+            else:
+                tdse.calc.az_array(self.wf_array, self.atom_cache, self.E, self.az[1])
 
-            self.vz[1] = self.vz[0] + (self.az[0] + self.az[1])*self.dt/2
-            self.z[1]  = self.z[0]  + (self.vz[0] + self.vz[1])*self.dt/2
+            if self.is_root:
+                self.vz[1] = self.vz[0] + (self.az[0] + self.az[1])*self.dt/2
+                self.z[1]  = self.z[0]  + (self.vz[0] + self.vz[1])*self.dt/2
 
         if i % self.m_dt == 0:
-            if self.use_move_window:
-                self.P[:] = - self.z[1][self.from_wf_index]*self.n_window
-            else:
-                self.P[self.N_index] = - self.z[1]*self.n[self.N_index]
+            if self.is_root:
+                if self.use_move_window:
+                    self.P[:] = - self.z[1][self.from_wf_index]*self.n_window
+                else:
+                    self.P[self.N_index] = - self.z[1]*self.n[self.N_index]
 
-            if self.chi is not None:
-                for i in range(self.chi.size):
-                    if self.chi[i] != 0.0:
-                        self.P[:] += self.chi[i]*self.n_window*self.maxwell_ws.E**(i+1)
+                if self.chi is not None:
+                    for i in range(self.chi.size):
+                        if self.chi[i] != 0.0:
+                            self.P[:] += self.chi[i]*self.n_window*self.maxwell_ws.E**(i+1)
 
-            self.maxwell_ws.prop(dt=self.dt*self.m_dt, pol=self.P)
+                self.maxwell_ws.prop(dt=self.dt*self.m_dt, pol=self.P)
 
             if self.use_move_window and i % self.Ndt_move:
-                N_shift = self.maxwell_ws.move_center_window_to_max_E()
+                if self.is_root:
+                    N_shift = self.maxwell_ws.move_center_window_to_max_E()
+                else:
+                    N_shift = None
+
+                if self.is_mpi:
+                    N_shift = self.comm.bcast(N_shift, root=0)
+
                 self.window_N_start += N_shift
 
                 self.window_P_index += N_shift
@@ -176,9 +192,10 @@ class MaxwellTDSETask(WavefuncArrayGPUTask):
                     for i in range(N_shift):
                         self.wf_array.set(self.window_P_index-i-1, self.wf_gs)
 
-                    self.az[1][self.window_P_index-N_shift:self.window_P_index] = 0.0
-                    self.vz[1][self.window_P_index-N_shift:self.window_P_index] = 0.0
-                    self.z[1][self.window_P_index-N_shift:self.window_P_index] = 0.0
+                    if self.is_root:
+                        self.az[1][self.window_P_index-N_shift:self.window_P_index] = 0.0
+                        self.vz[1][self.window_P_index-N_shift:self.window_P_index] = 0.0
+                        self.z[1][self.window_P_index-N_shift:self.window_P_index] = 0.0
 
             if self.wait_pulse:
                 if self.use_move_window:

@@ -1,4 +1,4 @@
-#include "sh_wavefunc.h"
+#include "sh_2d.h"
 
 #include <stdlib.h>
 #include <stdio.h>

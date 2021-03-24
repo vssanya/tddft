@@ -1,5 +1,5 @@
-from grid cimport cGrid1d, Grid1d
-from carray cimport Array1D
+from grid cimport cGrid1d, Grid1d, cGrid3d, Grid3d
+from carray cimport Array1D, Array3D
 
 cdef extern from "const.h":
     double C_au
@@ -25,3 +25,25 @@ cdef class MaxwellWorkspace1D:
     cdef:
         Grid1d grid
         cWorkspace1D* cdata
+
+cdef extern from "maxwell/3d.h":
+    cdef cppclass cWorkspace3D "maxwell::Workspace3D":
+        cWorkspace3D(cGrid3d& grid);
+
+        void prop(double dt);
+        void prop(double dt, Array3D[double]* j);
+
+        cGrid3d& grid;
+
+        Array3D[double] Ex
+        Array3D[double] Ey
+        Array3D[double] Ez
+
+        Array3D[double] Hx
+        Array3D[double] Hy
+        Array3D[double] Hz
+
+cdef class MaxwellWorkspace3D:
+    cdef:
+        Grid3d grid
+        cWorkspace3D* cdata

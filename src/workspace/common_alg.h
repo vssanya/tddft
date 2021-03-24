@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../sh_wavefunc.h"
+#include "../wavefunc/sh_2d.h"
 #include "../wavefunc/sh_3d.h"
 #include "../types.h"
 #include "../linalg.h"

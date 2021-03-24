@@ -2,8 +2,10 @@
 
 #include "fields.h"
 
-#include "sh_wavefunc.h"
+#include "wavefunc/sh_2d.h"
+
 #include "orbitals.h"
+#include "wavefunc/sh_arr.h"
 #include "workspace.h"
 #include "atom.h"
 #include "array.h"
@@ -40,6 +42,31 @@ double calc_wf_az(
         return atom_cache.dudz(ir);
     };
     return creal(wf_p->cos(func, wf_g[0], l_max));
+}
+
+template <typename Grid>
+void calc_wf_az(WavefuncArray<Grid> const *arr,
+                AtomCache<Grid> const *atom_cache,
+								double E[],
+								double *res)
+{
+	double* Elocal;
+	if (arr->is_root()) {
+		Elocal = E;
+	} else {
+		Elocal = new double[arr->N]();
+	}
+
+#ifdef _MPI
+	MPI_Bcast(Elocal, arr->N, MPI_DOUBLE, 0, arr->mpi_comm);
+#endif
+
+  auto func = [&](int ir, int il, int m) -> double {
+    return atom_cache->dudz(ir);
+  };
+
+  arr->template calc_array<double>(
+      [&](auto wf, int ie) -> double { return -(Elocal[ie] + wf->cos(func)); }, res);
 }
 
 template<class Grid>

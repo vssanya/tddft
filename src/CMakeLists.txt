@@ -15,12 +15,21 @@ endif()
 set( LIB_SOURCES
 	"workspace/wf.cpp"
 	"workspace/wf_with_source.cpp"
+	"workspace/wf_array.cpp"
 	"workspace/orbs.cpp"
 	"workspace/gps.cpp"
 	"workspace/common_alg.cpp"
 	"workspace/sfa.cpp"
 	"workspace/wf_with_polarization.cpp"
-	"sh_wavefunc.cpp"
+
+	"wavefunc/2d.cpp"
+	"wavefunc/sh_2d.cpp"
+	"wavefunc/sh_3d.cpp"
+	"wavefunc/sh_arr.cpp"
+
+	"maxwell/1d.cpp"
+	"maxwell/3d.cpp"
+
 	"hartree_potential.cpp"
 	"utils.cpp"
 	"abs_pot.cpp"
@@ -36,29 +45,36 @@ set( LIB_SOURCES
 	"sfa/anal.cpp"
 	"hartree_potential/hp_o3.cpp"
 	"hartree_potential/hp_o5.cpp"
-	"wavefunc/2d.cpp"
-	"wavefunc/sh_3d.cpp"
-	"maxwell/1d.cpp"
 	)
 
 set( LIB_HEADERS
 	"workspace.h"
 	"workspace/wf.h"
 	"workspace/wf_with_source.h"
+	"workspace/wf_array.h"
 	"workspace/orbs.h"
 	"workspace/orbs_spin.h"
 	"workspace/gps.h"
 	"workspace/common_alg.h"
 	"workspace/sfa.h"
 	"workspace/wf_with_polarization.h"
+
 	"maxwell/1d.h"
+	"maxwell/3d.h"
+
+	"wavefunc/2d.h"
+	"wavefunc/sh_2d.h"
+	"wavefunc/sh_arr.h"
+	"wavefunc/sh_3d.h"
+	"wavefunc/base.h"
+	"wavefunc/cartesian_2d.h"
 
 	"array.h"
 	"fourier.h"
 	"kn.h"
 	"prog.h"
 	"grid.h"
-	"sh_wavefunc.h"
+
 	"hartree_potential.h"
 	"types.h"
 	"units.h"
@@ -74,11 +90,6 @@ set( LIB_HEADERS
 	"tdsfm.h"
 	"integrate.h"
 	"sfa/anal.h"
-
-	"wavefunc/2d.h"
-	"wavefunc/sh_3d.h"
-	"wavefunc/base.h"
-	"wavefunc/cartesian_2d.h"
 	)
 
 add_library( tdse SHARED ${LIB_SOURCES} ${LIB_HEADERS} )

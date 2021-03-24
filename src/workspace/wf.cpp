@@ -306,10 +306,7 @@ void workspace::WavefuncWS<Grid>::prop_common(Wavefunc<Grid>& wf, cdouble dt, in
 }
 
 template <typename Grid>
-void workspace::WavefuncWS<Grid>::prop(Wavefunc<Grid>& wf, field_t const* field, double t, double dt) {
-	double Et = field_E(field, t + dt/2);
-	double At = -field_A(field, t + dt/2);
-
+void workspace::WavefuncWS<Grid>::prop(Wavefunc<Grid>& wf, double Et, double At, double dt) {
 	sh_f Ul[2] = {
 		[this](int ir, int l, int m) -> double {
 			double const r = grid.r(ir);

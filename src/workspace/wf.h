@@ -5,7 +5,7 @@
 #include "../fields.h"
 
 #include "../grid.h"
-#include "../sh_wavefunc.h"
+#include "../wavefunc/sh_2d.h"
 #include "../orbitals.h"
 #include "../abs_pot.h"
 #include "../atom.h"
@@ -117,7 +117,10 @@ namespace workspace {
 			 * */
 			void prop_common(Wavefunc<Grid>& wf, cdouble dt, int l_max, sh_f* Ul, sh_f* Al = nullptr);
 
-			void prop(Wavefunc<Grid>& wf, field_t const* field, double t, double dt);
+			void prop(Wavefunc<Grid>& wf, double E, double A, double dt);
+			void prop(Wavefunc<Grid>& wf, field_t const* field, double t, double dt) {
+				prop(wf, field_E(field, t+dt/2), -field_A(field, t + dt/2), dt);
+			}
 
 			void prop_without_field(Wavefunc<Grid>& wf, double dt);
 

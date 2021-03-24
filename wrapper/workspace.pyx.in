@@ -3,7 +3,7 @@ cimport numpy as np
 
 from atom cimport ShAtomCache, ShNeAtomCache
 from grid cimport ShGrid, SpGrid, ShNeGrid, Range
-from wavefunc cimport ShWavefunc, CtWavefunc, ShNeWavefunc
+from wavefunc cimport ShWavefunc, CtWavefunc, ShNeWavefunc, ShWavefuncArray, ShNeWavefuncArray
 from field cimport Field
 from orbitals cimport ShOrbitals, ShNeOrbitals
 from sphere_harmonics cimport YlmCache
@@ -268,4 +268,34 @@ cdef class {{prefix}}OrbitalsWS:
     def n_sp(self):
         cdef double[:,::1] res = <double[:self.cdata.sp_grid.n[1],:self.cdata.sp_grid.n[0]]>self.cdata.n_sp
         return np.asarray(res)
+{{endfor}}
+
+{{for prefix, prefix2 in [("Sh", ""), ("ShNe", "Ne")]}}
+cdef class {{prefix}}WfArrayWS:
+    def __cinit__(self, {{prefix}}AtomCache atom_cache, {{prefix}}Grid grid, Uabs{{prefix2}}Cache uabs, int N, int num_threads = -1, int propType=4, int gauge = 0):
+        cdef PropAtType propAtType
+        if propType == 4:
+            propAtType = Odr4
+        else:
+            propAtType = Odr3
+
+        cdef Gauge c_gauge
+        if gauge == 0:
+            c_gauge = LENGTH
+        else:
+            c_gauge = VELOCITY
+
+        self.cdata = new WfArray[c{{prefix}}Grid](grid.data[0], atom_cache.cdata, uabs.cdata[0], propAtType, c_gauge, num_threads)
+
+        self.uabs = uabs
+        self.atom_cache = atom_cache
+
+    def __dealloc__(self):
+        del self.cdata
+
+    def __init__(self, {{prefix}}AtomCache atom_cache, {{prefix}}Grid grid, Uabs{{prefix2}}Cache uabs, int num_threads = -1, int propType=4, int gauge = 0):
+        pass
+
+    def prop(self, {{prefix}}WavefuncArray arr, double[:] E, double dt):
+        self.cdata.prop(arr.cdata, &E[0], dt)
 {{endfor}}

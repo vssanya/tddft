@@ -21,9 +21,26 @@ UNIT = {
         'THz': 1.0 / 6579.683920721222 # 1e3*(1/tdse.utils.unit_to(1, 'au', 'fs'))/(2*np.pi)
 }
 
+def rank_equal_dist(N, count_process):
+    rank = np.zeros(N, dtype=np.intc)
+    N_per_process = N // count_process
+    N_remain = N % count_process
+
+    ie = 0
+    for i in range(count_process):
+        count = N_per_process
+        if N_remain != 0:
+            count += 1
+            N_remain -= 1
+
+        rank[ie:ie+count] = i
+        ie += count
+
+    return rank
+
 def rank_orbs_equal_dist(active_orbs, count_active=1):
     rank = np.zeros(active_orbs.size, dtype=np.intc)
-    count_orbs = np.sum(active_orbs)
+
     j = 0
     n = 0
     for i in range(rank.size):

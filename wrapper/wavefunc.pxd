@@ -3,6 +3,11 @@ from grid cimport cShGrid, cShNeGrid, cShNeGrid3D, cSpGrid, cGrid2d, cSpGrid2d
 from grid cimport ShGrid, ShNeGrid, SpGrid2d
 from sphere_harmonics cimport cYlmCache
 
+from libcpp cimport bool as bool_t
+
+from mpi4py.MPI cimport Comm
+from mpi4py.libmpi cimport MPI_Comm
+
 
 cdef extern from "wavefunc/cartesian_2d.h":
     cdef cppclass cCtWavefunc "CtWavefunc":
@@ -16,7 +21,7 @@ cdef extern from "wavefunc/cartesian_2d.h":
         double norm()
 
 
-cdef extern from "sh_wavefunc.h":
+cdef extern from "wavefunc/sh_2d.h":
     cdef cppclass Wavefunc[Grid]:
         Grid& grid
 
@@ -61,6 +66,44 @@ cdef extern from "sh_wavefunc.h":
     ctypedef Wavefunc[cShGrid] cShWavefunc "ShWavefunc"
     ctypedef Wavefunc[cShNeGrid] cShNeWavefunc "ShNeWavefunc"
     ctypedef Wavefunc[cSpGrid2d] cSpWavefunc "SpWavefunc2d"
+
+cdef extern from "wavefunc/sh_arr.h":
+    cdef cppclass WavefuncArray[Grid]:
+        WavefuncArray(int N, Grid& grid, int* m, MPI_Comm mpi_comm, int* const rank)
+
+        void set(cdouble value)
+        void set(int index, Wavefunc[Grid]* wf)
+        void set_all(Wavefunc[Grid]* wf)
+
+        void norm(double* n)
+        void norm(double* n, sh_f mask)
+        void normalize(bool_t* activeOrbs, double* norm)
+
+        void z(double* z)
+        void z(double* z, sh_f mask)
+
+        void z2(double* z2)
+        void z2(double* z2, sh_f mask)
+
+        void cos(double* res, sh_f U)
+
+        int N
+        Grid grid
+        Wavefunc[Grid]** wf
+        cdouble* data
+        MPI_Comm mpi_comm
+        int mpi_rank
+        Wavefunc[Grid]* mpi_wf
+
+cdef class ShWavefuncArray:
+    cdef WavefuncArray[cShGrid]* cdata
+    cdef Comm mpi_comm
+    cdef ShGrid grid
+
+cdef class ShNeWavefuncArray:
+    cdef WavefuncArray[cShNeGrid]* cdata
+    cdef Comm mpi_comm
+    cdef ShNeGrid grid
 
 cdef extern from "sphere_harmonics.h":
     void sp_to_sh(cSpWavefunc* src, cShWavefunc* dest, cYlmCache* ylm_cache, int m)

@@ -21,7 +21,7 @@
 #include "types.h"
 #include "grid.h"
 #include "fields.h"
-#include "sh_wavefunc.h"
+#include "wavefunc/sh_2d.h"
 #include "sphere_harmonics.h"
 
 class TDSFM_Base {

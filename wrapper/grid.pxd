@@ -13,6 +13,8 @@ cdef extern from "grid.h":
         cGrid1d()
         cGrid1d(int n, double d)
 
+        size_t size()
+
     cdef cppclass cGrid2d "Grid2d":
         cGrid2d()
         cGrid2d(int nx, int ny)
@@ -20,9 +22,16 @@ cdef extern from "grid.h":
         int n[2]
         double d[2]
 
+        size_t size()
+
     cdef cppclass cGrid3d "Grid3d":
         int n[3]
         double d[3]
+
+        size_t size()
+
+        cGrid3d()
+        cGrid3d(int nx, int ny, int nz, double dx, double dy, double dz)
 
     cdef cppclass cShGrid "ShGrid":
         cShGrid(int n[2], double Rmax)
@@ -98,6 +107,9 @@ cdef class Grid1d:
 
 cdef class Grid2d:
     cdef cGrid2d cdata
+
+cdef class Grid3d:
+    cdef cGrid3d cdata
 
 cdef class CtGrid:
     cdef cCtGrid* cdata

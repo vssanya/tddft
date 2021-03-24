@@ -2,7 +2,7 @@
 
 #include "grid.h"
 #include "types.h"
-#include "sh_wavefunc.h"
+#include "wavefunc/sh_2d.h"
 
 
 class ShWavefuncGPU {

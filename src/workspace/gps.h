@@ -3,7 +3,7 @@
 #include "../fields.h"
 
 #include "../grid.h"
-#include "../sh_wavefunc.h"
+#include "../wavefunc/sh_2d.h"
 #include "../orbitals.h"
 #include "../abs_pot.h"
 #include "../atom.h"

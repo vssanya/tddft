@@ -6,6 +6,9 @@ if tdse.utils.is_jupyter_notebook():
     import matplotlib.pyplot as plt
     from IPython.core.pylabtools import print_figure
 
+from mpi4py.libmpi cimport MPI_COMM_NULL, MPI_Gather, MPI_C_DOUBLE_COMPLEX
+from mpi4py.MPI import COMM_NULL
+
 from types cimport complex_t
 from abs_pot cimport mask_core
 from grid cimport ShGrid, SpGrid, SpGrid2d, ShNeGrid, ShNeGrid3D
@@ -220,3 +223,140 @@ cdef ShNeWavefunc3D shne_wavefunc3d_from_point(cShNeWavefunc3D* data, ShNeGrid3D
     wf = ShNeWavefunc3D(grid=grid, dealloc=dealloc)
     wf._set_data(data)
     return wf
+
+{{for Prefix in ["Sh", "ShNe"]}}
+cdef class {{Prefix}}WavefuncArray:
+    def __cinit__(self, int N, np.ndarray[int, ndim=1] m, {{Prefix}}Grid grid, Comm comm = None, np.ndarray[int, ndim=1] rank = None):
+        cdef int* rankPtr = NULL
+
+        if comm is None:
+            comm = COMM_NULL
+
+        if rank is not None:
+            rankPtr = <int*> rank.data
+
+        self.cdata = new WavefuncArray[c{{Prefix}}Grid](N, grid.data[0], <int*>m.data, comm.ob_mpi, rankPtr)
+
+        self.mpi_comm = comm
+        self.grid = grid
+
+    def __init__(self, int N, {{Prefix}}Grid grid, Comm comm = None, np.ndarray[int, ndim=1] orbsRank = None):
+        pass
+
+    def __dealloc__(self):
+        if self.cdata != NULL:
+            del self.cdata
+
+    def is_root_or_not_mpi(self):
+        return not self.is_mpi() or self.cdata.mpi_rank == 0
+
+    def set(self, int index, {{Prefix}}Wavefunc wf):
+        self.cdata.set(index, wf.cdata)
+
+    def set_all(self, {{Prefix}}Wavefunc wf):
+        self.cdata.set_all(wf.cdata)
+
+    @property
+    def shape(self):
+        return (self.cdata.N, self.cdata.grid.n[1], self.cdata.grid.n[0])
+
+    def save(self, filename):
+        data = self.asarray()
+
+        if self.is_mpi():
+            if self.mpi_rank == 0:
+                data_save = np.zeros(self.shape, np.complex)
+            else:
+                data_save = None
+
+            self.mpi_comm.Gather(data, data_save, root=0)
+        else:
+            data_save = data
+
+        if self.is_root_or_not_mpi():
+            np.save(filename, data_save)
+
+    def z(self, {{Prefix}}CoreMask mask = None, np.ndarray[double, ndim=1] z = None):
+        cdef double* res_ptr = NULL
+        if self.is_root():
+            if z is None:
+                z = np.ndarray(self.cdata.N, dtype=np.double)
+            res_ptr = <double*>z.data
+
+        if mask is None:
+            self.cdata.z(res_ptr)
+        else:
+            self.cdata.z(res_ptr, <sh_f> mask.cdata[0])
+
+        return z
+
+    def z2(self, {{Prefix}}CoreMask mask = None, np.ndarray[double, ndim=1] z2 = None):
+        cdef double* res_ptr = NULL
+        if self.is_root():
+            if z2 is None:
+                z2 = np.ndarray(self.cdata.N, dtype=np.double)
+            res_ptr = <double*>z2.data
+
+        if mask is None:
+            self.cdata.z2(res_ptr)
+        else:
+            self.cdata.z2(res_ptr, <sh_f> mask.cdata[0])
+
+        return z2
+
+    def norm(self, np.ndarray[double, ndim=1, mode='c'] norm = None, {{Prefix}}CoreMask mask = None):
+        cdef double* res_ptr = NULL
+        if self.is_root():
+            if norm is None:
+                norm = np.ndarray(self.cdata.N, dtype=np.double)
+            res_ptr = <double*>norm.data
+
+        if mask is not None:
+            self.cdata.norm(res_ptr, <sh_f> mask.cdata[0])
+        else:
+            self.cdata.norm(res_ptr)
+
+        return norm
+
+    def normalize(self, np.ndarray[np.uint8_t, ndim=1] active_orbs = None, np.ndarray[double, ndim=1] norm = None):
+        cdef bool_t* active_orbs_ptr = NULL
+        cdef double* norm_ptr = NULL
+
+        if active_orbs is not None:
+            active_orbs_ptr = <bool_t*>active_orbs.data
+
+        if norm is not None:
+            norm_ptr = <double*>norm.data
+
+        self.cdata.normalize(active_orbs_ptr, norm_ptr)
+
+    def asarray(self):
+        cdef complex_t[:, :, ::1] res
+        if self.is_mpi():
+            array = <complex_t[:1, :self.cdata.grid.n[1],:self.cdata.grid.n[0]]>(<complex_t*>self.cdata.data)
+        else:
+            array = <complex_t[:self.cdata.N, :self.cdata.grid.n[1],:self.cdata.grid.n[0]]>(<complex_t*>self.cdata.data)
+
+        return np.asarray(array)
+
+    def is_mpi(self) -> bool:
+        return self.cdata.mpi_comm != MPI_COMM_NULL
+
+    def is_root(self) -> bool:
+        return not self.is_mpi() or self.cdata.mpi_rank == 0
+
+    def save(self, filename):
+        cdef np.ndarray[np.complex_t, ndim=3, mode='c'] arr = None
+        cdef cdouble* arr_ptr = NULL
+        cdef int size = self.cdata.grid.n[0]*self.cdata.grid.n[1]
+
+        if self.is_mpi():
+            if self.cdata.mpi_rank == 0:
+                arr = np.ndarray((self.cdata.N, self.cdata.grid.n[1], self.cdata.grid.n[0]), dtype=np.complex)
+                arr_ptr = <cdouble*>arr.data
+            MPI_Gather(self.cdata.data, size, MPI_C_DOUBLE_COMPLEX, arr_ptr, size, MPI_C_DOUBLE_COMPLEX, 0, self.cdata.mpi_comm)
+            if self.cdata.mpi_rank == 0:
+                np.save(filename, self.asarray())
+        else:
+            np.save(filename, self.asarray())
+{{endfor}}

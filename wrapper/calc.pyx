@@ -3,7 +3,7 @@ cimport numpy as np
 
 import pyfftw
 
-from wavefunc cimport ShWavefunc, ShNeWavefunc
+from wavefunc cimport ShWavefunc, ShNeWavefunc, ShWavefuncArray
 from orbitals cimport ShOrbitals, ShNeOrbitals
 from workspace cimport ShWavefuncWS, ShNeWavefuncWS, ShOrbitalsWS, ShNeOrbitalsWS
 from field cimport Field
@@ -48,6 +48,17 @@ def az(WF wf, AC atom, Field field, double t):
         return calc_wf_az(wf.cdata, atom.cdata[0], field.cdata, t)
     else:
         assert(False)
+
+def az_array(ShWavefuncArray arr, ShAtomCache atom, double[:] E, np.ndarray az = None):
+    cdef double* res_ptr = NULL
+    if arr.is_root():
+        if az is None:
+            az = np.ndarray(arr.cdata.N, dtype=np.double)
+        res_ptr = <double*>az.data
+
+    calc_wf_az(arr.cdata, atom.cdata, &E[0], res_ptr)
+
+    return az
 
 def wf_az_p(WF wf_p, WF wf_g, AC atom, int lmax = -1):
     if WF is ShWavefunc and AC is ShAtomCache:

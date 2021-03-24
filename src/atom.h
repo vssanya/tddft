@@ -1,7 +1,6 @@
 #pragma once
 
 #include "grid.h"
-#include "sh_wavefunc.h"
 
 #include "types.h"
 

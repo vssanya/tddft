@@ -1,30 +1,12 @@
 #pragma once
 
-#include "sh_wavefunc.h"
+#include "wavefunc/sh_2d.h"
 #include "atom.h"
 
 #include <array>
 #include <optional>
 
-
-#ifdef _MPI
-#include <mpi.h>
-
-template <typename T>
-inline decltype(MPI_DOUBLE) getMpiType();
-
-template <>
-inline decltype(MPI_DOUBLE) getMpiType<double>() {
-	return MPI_DOUBLE;
-}
-
-template <>
-inline decltype(MPI_DOUBLE) getMpiType<cdouble>() {
-	return MPI_C_DOUBLE_COMPLEX;
-}
-#else
-typedef int MPI_Comm;
-#endif
+#include "mpi_utils.h"
 
 /*!
  * \brief Орбитали Кона-Шэма

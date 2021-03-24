@@ -40,3 +40,47 @@ cdef class MaxwellWorkspace1D:
 
     def get_dt(self, double ksi):
         return ksi/C_au*self.cdata.grid.d
+
+
+cdef class MaxwellWorkspace3D:
+    def __cinit__(self, Grid3d grid):
+        self.cdata = new cWorkspace3D(grid.cdata)
+
+    def __init__(self, Grid3d grid):
+        pass
+
+    @property
+    def Ex(self):
+        cdef double[:, :, ::1] res = <double[:self.cdata.grid.n[0],:self.cdata.grid.n[1],:self.cdata.grid.n[2]]>self.cdata.Ex.data
+        return np.asarray(res)
+
+    @property
+    def Ey(self):
+        cdef double[:, :, ::1] res = <double[:self.cdata.grid.n[0],:self.cdata.grid.n[1],:self.cdata.grid.n[2]]>self.cdata.Ey.data
+        return np.asarray(res)
+
+    @property
+    def Ez(self):
+        cdef double[:, :, ::1] res = <double[:self.cdata.grid.n[0],:self.cdata.grid.n[1],:self.cdata.grid.n[2]]>self.cdata.Ez.data
+        return np.asarray(res)
+
+    @property
+    def Hx(self):
+        cdef double[:, :, ::1] res = <double[:self.cdata.grid.n[0],:self.cdata.grid.n[1],:self.cdata.grid.n[2]]>self.cdata.Hx.data
+        return np.asarray(res)
+
+    @property
+    def Hy(self):
+        cdef double[:, :, ::1] res = <double[:self.cdata.grid.n[0],:self.cdata.grid.n[1],:self.cdata.grid.n[2]]>self.cdata.Hy.data
+        return np.asarray(res)
+
+    @property
+    def Hz(self):
+        cdef double[:, :, ::1] res = <double[:self.cdata.grid.n[0],:self.cdata.grid.n[1],:self.cdata.grid.n[2]]>self.cdata.Hz.data
+        return np.asarray(res)
+
+    def prop(self, double dt):
+        self.cdata.prop(dt)
+
+    def get_dt(self, int index, double ksi):
+        return ksi/C_au*self.cdata.grid.d[index]

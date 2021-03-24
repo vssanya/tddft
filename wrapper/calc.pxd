@@ -1,5 +1,5 @@
 from workspace cimport WavefuncWS, OrbitalsWS
-from wavefunc cimport Wavefunc, cShWavefunc
+from wavefunc cimport Wavefunc, cShWavefunc, WavefuncArray
 from orbitals cimport Orbitals
 from field cimport field_t
 from types cimport sh_f, cdouble
@@ -9,6 +9,7 @@ from carray cimport Array2D
 
 cdef extern from "calc.h":
     double calc_wf_az[Grid](Wavefunc[Grid]* wf, AtomCache[Grid]& atom, field_t* field, double t)
+    void   calc_wf_az[Grid](WavefuncArray[Grid]* arr, AtomCache[Grid]* atom, double* E, double* res)
     double calc_wf_az[Grid](Wavefunc[Grid]* wf_p, Wavefunc[Grid]* wf_g, AtomCache[Grid]& atom, int l_max)
     double calc_wf_az_with_polarization[Grid](
             Wavefunc[Grid]* wf,

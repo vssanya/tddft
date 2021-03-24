@@ -84,7 +84,8 @@ public:
     int    n[3]; //!< is counts of points
     double d[3]; //!< is steps
 
-	Grid3d(): n{0}, d{0.0} {}
+		Grid3d(): n{0}, d{0.0} {}
+		Grid3d(int nx, int ny, int nz, double dx, double dy, double dz): n{nx, ny, nz}, d{dx, dy, dz} {}
 
     size_t size() const { return n[0]*n[1]*n[2]; }
 
@@ -92,12 +93,12 @@ public:
 		return Range(0, n[index]);
 	}
 
-    size_t index(int i[3]) const {
-        check_index(0, i[0]);
-        check_index(1, i[1]);
-        check_index(2, i[2]);
+    size_t index(int ix, int iy, int iz) const {
+        check_index(0, ix);
+        check_index(1, iy);
+        check_index(2, iz);
 
-        return i[0] + i[1]*n[0] + i[2]*n[1]*n[0];
+        return ix*n[1]*n[2] + iy*n[2] + iz;
     }
 };
 

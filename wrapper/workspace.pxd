@@ -4,7 +4,7 @@ from types cimport cdouble, sh_f, optional, none
 
 from grid cimport cShGrid, cSpGrid, cShNeGrid, cRange
 from abs_pot cimport cUabsCache, UabsCache, UabsNeCache
-from wavefunc cimport ShWavefunc, cCtWavefunc, cShWavefunc, Wavefunc
+from wavefunc cimport ShWavefunc, cCtWavefunc, cShWavefunc, Wavefunc, WavefuncArray
 
 from field cimport field_t
 from orbitals cimport Orbitals
@@ -208,3 +208,30 @@ cdef class Eigen:
 cdef class SFAWorkspace:
     cdef:
         momentum_space* cdata
+
+cdef extern from "workspace/wf_array.h" namespace "workspace":
+    cdef cppclass WfArray[Grid]:
+        WfArray(
+            Grid      & grid,
+            AtomCache[Grid]* atom_cache,
+            cUabsCache& uabs,
+            PropAtType propAtType,
+            Gauge gauge,
+            int num_threads
+        )
+        void prop(WavefuncArray[Grid]* wf, double* E, double dt)
+
+
+cdef class ShWfArrayWS:
+    cdef:
+        WfArray[cShGrid]* cdata
+
+        UabsCache uabs
+        ShAtomCache atom_cache
+
+cdef class ShNeWfArrayWS:
+    cdef:
+        WfArray[cShNeGrid]* cdata
+
+        UabsNeCache uabs
+        ShNeAtomCache atom_cache
