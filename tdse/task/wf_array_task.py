@@ -72,6 +72,8 @@ class WavefuncArrayTask(TaskAtom):
 
         if self.is_root:
             self.E = np.zeros(self.N)
+        else:
+            self.E = None
 
     def calc_ground_state(self):
         ws = tdse.workspace.ShWavefuncWS(self.atom_cache, self.sh_grid, self.uabs_cache)

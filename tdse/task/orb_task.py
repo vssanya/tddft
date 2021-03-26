@@ -43,7 +43,7 @@ class UeeOrbData(CalcData):
             if self.range is None:
                 task.ws.calc_uee(task.orbs, rRange = self.range)
 
-            if task.rank == 0:
+            if task.is_root:
                 self.dset[i // self.dNt] = task.ws.uee[:,:self.Nr]
 
 class POrbData(CalcData):
@@ -73,7 +73,7 @@ class POrbData(CalcData):
         self.tdsfm.calc(task.field, task.orbs, t, task.dt)
 
     def calc_finish(self, task):
-        if task.rank == 0:
+        if task.is_root:
             orbs_tmp = np.zeros(self.get_shape(task), dtype=np.complex)
             print(orbs_tmp.shape)
         else:
@@ -81,7 +81,7 @@ class POrbData(CalcData):
 
         self.tdsfm.collect(orbs_tmp)
 
-        if task.rank == 0:
+        if task.is_root:
             self.dset[:] = orbs_tmp[:]
 
 class UpolOrbData(CalcData):
@@ -98,7 +98,7 @@ class UpolOrbData(CalcData):
         return (task.sh_grid.Nr,)
 
     def calc(self, task, i, t):
-        if task.rank == 0:
+        if task.is_root:
             if self.is_average and (i+1) % self.dN == 0:
                 count = task.t.size // self.dN
                 E = task.field.E(t)
@@ -121,7 +121,7 @@ class NspOrbData(CalcData):
         self.dNt = int(self.dT/task.dt)
         self.Nt = (task.t.size // self.dNt) + 1
 
-        if task.rank == 0:
+        if task.is_root:
             self.n_tmp = np.zeros(self.sp_grid.shape)
         else:
             self.n_tmp = None
@@ -136,7 +136,7 @@ class NspOrbData(CalcData):
         if i % self.dNt == 0:
             task.orbs.n_sp(task.sp_grid, task.ylm_cache, self.n_tmp)
 
-            if task.rank == 0:
+            if task.is_root:
                 self.dset[i // self.dNt] = self.n_tmp
 
 
@@ -160,7 +160,7 @@ class PsiOrbData(CalcData):
         if self.Nl == -1:
             self.Nl = self.sh_grid.Nl
 
-        if task.rank == 0:
+        if task.is_root:
             self.orbs_tmp = np.zeros((self.countOrbs, self.Nl, self.sh_grid.Nr), dtype=np.complex)
         else:
             self.orbs_tmp = None
@@ -175,7 +175,7 @@ class PsiOrbData(CalcData):
         if i % self.dNt == 0:
             task.orbs.collect(self.orbs_tmp, Nl = self.Nl)
 
-            if task.rank == 0:
+            if task.is_root:
                 self.dset[i // self.dNt, :] = self.orbs_tmp[:]
 
 
@@ -197,7 +197,7 @@ class PsiOrbWhenData(CalcData):
         if self.Nl == -1:
             self.Nl = self.sh_grid.Nl
 
-        if task.rank == 0:
+        if task.is_root:
             self.orbs_tmp = np.zeros((self.countOrbs, self.Nl, self.sh_grid.Nr), dtype=np.complex)
         else:
             self.orbs_tmp = None
@@ -212,7 +212,7 @@ class PsiOrbWhenData(CalcData):
         if i == 42000-100+72 - 1 or i == 42000-100+72:
             task.orbs.collect(self.orbs_tmp, Nl = self.Nl)
 
-            if task.rank == 0:
+            if task.is_root:
                 self.dset[i - (42000-100+72 - 1)] = self.orbs_tmp
 
     # def calc(self, task, i, t):
@@ -226,7 +226,7 @@ class PsiOrbWhenData(CalcData):
             # if self.prev_r_max != self.r_max:
                 # task.orbs.collect(self.orbs_tmp, self.Nl)
 
-                # if task.rank == 0:
+                # if task.is_root:
                     # self.dset[:] = self.orbs_tmp
 
                 # self.save = True
@@ -237,7 +237,7 @@ class AzOrbData(OrbShapeMixin, CalcData):
 
     def calc_init(self, task, file):
         super().calc_init(task, file)
-        if task.rank == 0:
+        if task.is_root:
             self.az_ne = np.zeros(self.dset.shape[1])
         else:
             self.az_ne = None
@@ -245,21 +245,21 @@ class AzOrbData(OrbShapeMixin, CalcData):
     def calc(self, task, i, t):
         tdse.calc.az_ne(task.orbs, task.atom_cache, task.field, t, az = self.az_ne)
 
-        if task.rank == 0:
+        if task.is_root:
             self.dset[i] = self.az_ne
 
 class MaxVeeData(TimeShapeMixin, CalcData):
     NAME = "max_vee"
 
     def calc(self, task, i, t):
-        if task.rank == 0:
+        if task.is_root:
             self.dset[i] = np.max(np.abs(task.ws.uee))
 
 class RMaxVeeData(TimeShapeMixin, CalcData):
     NAME = "r_max_vee"
 
     def calc(self, task, i, t):
-        if task.rank == 0:
+        if task.is_root:
             self.dset[i] = np.argmax(np.abs(task.ws.uee))
 
 class AzVeeOrbData(OrbShapeMixin, CalcData):
@@ -272,7 +272,7 @@ class AzVeeOrbData(OrbShapeMixin, CalcData):
 
     def calc_init(self, task, file):
         super().calc_init(task, file)
-        if task.rank == 0:
+        if task.is_root:
             self.az_ne = np.zeros(self.dset.shape[1])
         else:
             self.az_ne = None
@@ -283,7 +283,7 @@ class AzVeeOrbData(OrbShapeMixin, CalcData):
     def calc(self, task, i, t):
         tdse.calc.az_ne_Vee(task.orbs, task.atom_cache, task.field, t, self.Uee, self.dUee_dr, az = self.az_ne, l = self.l)
 
-        if task.rank == 0:
+        if task.is_root:
             self.dset[i] = self.az_ne
 
 class NormOrbData(OrbShapeMixin, CalcDataWithMask):
@@ -292,7 +292,7 @@ class NormOrbData(OrbShapeMixin, CalcDataWithMask):
     def calc_init(self, task, file):
         super().calc_init(task, file)
 
-        if task.rank == 0:
+        if task.is_root:
             self.n_ne = np.zeros(self.dset.shape[1])
         else:
             self.n_ne = None
@@ -300,7 +300,7 @@ class NormOrbData(OrbShapeMixin, CalcDataWithMask):
     def calc(self, task, i, t):
         task.orbs.norm_ne(norm=self.n_ne, mask=self.mask)
 
-        if task.rank == 0:
+        if task.is_root:
             self.dset[i] = self.n_ne
 
 
@@ -310,7 +310,7 @@ class ZOrbData(OrbShapeMixin, CalcDataWithMask):
     def calc_init(self, task, file):
         super().calc_init(task, file)
 
-        if task.rank == 0:
+        if task.is_root:
             self.z_ne = np.zeros(self.dset.shape[1])
         else:
             self.z_ne = None
@@ -318,7 +318,7 @@ class ZOrbData(OrbShapeMixin, CalcDataWithMask):
     def calc(self, task, i, t):
         task.orbs.z_ne(mask=self.mask, z=self.z_ne)
 
-        if task.rank == 0:
+        if task.is_root:
             self.dset[i] = self.z_ne
 
 
@@ -328,7 +328,7 @@ class Z2OrbData(OrbShapeMixin, CalcDataWithMask):
     def calc_init(self, task, file):
         super().calc_init(task, file)
 
-        if task.rank == 0:
+        if task.is_root:
             self.z2_ne = np.zeros(self.dset.shape[1])
         else:
             self.z2_ne = None
@@ -336,7 +336,7 @@ class Z2OrbData(OrbShapeMixin, CalcDataWithMask):
     def calc(self, task, i, t):
         task.orbs.z2_ne(mask=self.mask, z2=self.z2_ne)
 
-        if task.rank == 0:
+        if task.is_root:
             self.dset[i] = self.z2_ne
 
 

@@ -225,4 +225,5 @@ void WavefuncArray<Grid>::collect(cdouble* data, int Nr, int Nl) const {
 }
 
 template class WavefuncArray<ShGrid>;
+template void WavefuncArray<ShGrid>::calc_array<double>(std::function<double (Wavefunc<ShGrid> const*, int ie)> func, double res[]) const;
 template class WavefuncArray<ShNotEqudistantGrid>;

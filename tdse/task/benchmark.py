@@ -11,6 +11,7 @@ class CalcTimeStepBenchmarkData(TimeShapeMixin, CalcData):
         self.start_time = time.time()
 
     def calc(self, task, i, t):
-        current_time = time.time()
-        self.dset[i] = current_time - self.start_time
-        self.start_time = current_time
+        if task.is_root:
+            current_time = time.time()
+            self.dset[i] = current_time - self.start_time
+            self.start_time = current_time

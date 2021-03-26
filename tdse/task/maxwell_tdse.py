@@ -30,14 +30,15 @@ class EdepsTData(CalcData):
             self.x_index = int(self.x / task.grid.d)
 
     def calc(self, task, i, t):
-        if issubclass(type(task), MaxwellTDSETask):
-            if i % task.m_dt == 0 and i // task.m_dt < self.dset.size:
-                if self.x_index < task.maxwell_ws.E.size + task.window_N_start and self.x_index >= task.window_N_start:
-                    self.dset[i // task.m_dt] = task.maxwell_ws.E[self.x_index - task.window_N_start]
-                else:
-                    self.dset[i // task.m_dt] = 0.0
-        else:
-            self.dset[i] = task.ws.E[self.x_index]
+        if task.is_root:
+            if issubclass(type(task), MaxwellTDSETask):
+                if i % task.m_dt == 0 and i // task.m_dt < self.dset.size:
+                    if self.x_index < task.maxwell_ws.E.size + task.window_N_start and self.x_index >= task.window_N_start:
+                        self.dset[i // task.m_dt] = task.maxwell_ws.E[self.x_index - task.window_N_start]
+                    else:
+                        self.dset[i // task.m_dt] = 0.0
+            else:
+                self.dset[i] = task.ws.E[self.x_index]
 
 
 class EdepsXData(CalcData):
@@ -60,12 +61,13 @@ class EdepsXData(CalcData):
         self.t_index = (self.t / task.dt).astype(int)
 
     def calc(self, task, i, t):
-        if np.any(self.t_index == i):
-            print("Data: ", np.argwhere(self.t_index == i))
-            if issubclass(type(task), MaxwellTDSETask):
-                self.dset[np.argwhere(self.t_index == i),:] = task.maxwell_ws.E[:]
-            else:
-                self.dset[np.argwhere(self.t_index == i),:] = task.ws.E[:]
+        if task.is_root:
+            if np.any(self.t_index == i):
+                print("Data: ", np.argwhere(self.t_index == i))
+                if issubclass(type(task), MaxwellTDSETask):
+                    self.dset[np.argwhere(self.t_index == i),:] = task.maxwell_ws.E[:]
+                else:
+                    self.dset[np.argwhere(self.t_index == i),:] = task.ws.E[:]
 
 class MaxwellTDSETask(WavefuncArrayTask):
     dx = tdse.utils.unit_to(20, "nm") # step in Maxwell equation
@@ -101,9 +103,12 @@ class MaxwellTDSETask(WavefuncArrayTask):
         self.maxwell_full_grid = tdse.grid.Grid1d(int(self.L/self.dx), self.dx)
         self.maxwell_window_grid = tdse.grid.Grid1d(int(self.Lw/self.dx), self.dx)
 
-        print("Maxwell grid: N = {}, dx = {}, is_move = {}".format(
-            self.maxwell_window_grid.N, tdse.utils.to_nm(self.dx),
-            self.use_move_window))
+        if self.is_root:
+            print("Maxwell grid: N = {}, dx = {}, is_move = {}".format(
+                self.maxwell_window_grid.N, tdse.utils.to_nm(self.dx),
+                self.use_move_window))
+
+            print("Size of window Lw = {} nm".format(tdse.utils.to_nm(self.Lw)))
 
         self.n = np.zeros(self.maxwell_full_grid.N)
         self.x = np.linspace(0, self.L, self.n.size)
@@ -118,6 +123,9 @@ class MaxwellTDSETask(WavefuncArrayTask):
             self.N = self.maxwell_window_grid.N
         else:
             self.N = self.N_index.size
+            
+        if self.is_root:
+            print("Count tdse equations N = {}".format(self.N))
 
         if self.is_root:
             self.az = np.zeros((2,self.N))
@@ -126,7 +134,7 @@ class MaxwellTDSETask(WavefuncArrayTask):
 
             self.maxwell_ws = tdse.maxwell.MaxwellWorkspace1D(self.maxwell_window_grid)
             self.m_dt = int(self.maxwell_ws.get_dt(self.ksi) / self.dt)
-            print("m_dt = {}".format(self.m_dt))
+            print("Maxwell time step dt = {} fs".format(tdse.utils.to_fs(self.m_dt*self.dt)))
 
             E = self.field.E(self.field.T/2 - (self.x_window - self.x0)/tdse.const.C)
             self.maxwell_ws.E[:] = E
@@ -138,7 +146,11 @@ class MaxwellTDSETask(WavefuncArrayTask):
 
             self.P = np.zeros(self.maxwell_window_grid.N)
         else:
-            pass
+            self.az = [None, None]
+            self.m_dt = None
+
+        if self.is_mpi:
+            self.m_dt = self.comm.bcast(self.m_dt, root=0)
 
         super().calc_init()
 
@@ -202,12 +214,19 @@ class MaxwellTDSETask(WavefuncArrayTask):
                     if np.any(self.n_window > 0.0):
                         self.wait_pulse = False
                 else:
-                    self.calc_field(t)
-                    if np.any(np.abs(self.E) > tdse.utils.I_to_E(self.Imin)):
-                        self.wait_pulse = False
+                    if self.is_root:
+                        self.calc_field(t)
+                        if np.any(np.abs(self.E) > tdse.utils.I_to_E(self.Imin)):
+                            self.wait_pulse = False
 
-                if not self.wait_pulse:
+                    if self.is_mpi:
+                        self.wait_pulse = self.comm.bcast(self.wait_pulse, root=0)
+
+                if not self.wait_pulse and self.is_root:
                     print("Pulse reached media.")
+
+        if self.is_mpi:
+            self.comm.Barrier()
 
     @property
     def to_wf_index(self):
@@ -232,7 +251,10 @@ class MaxwellTDSETask(WavefuncArrayTask):
             self.E[:] = self.maxwell_ws.E[self.N_index]
 
     def get_t(self):
-        return np.arange(0, (self.L - self.x0 - self.Lw/2) / tdse.const.C, self.dt)
+        if self.use_move_window:
+            return np.arange(0, (self.L - self.x0 - self.Lw/2) / tdse.const.C, self.dt)
+        else:
+            return np.arange(0, (self.L - self.x0) / tdse.const.C - self.field.T/2, self.dt)
 
     def calc_n(self, x):
         pass

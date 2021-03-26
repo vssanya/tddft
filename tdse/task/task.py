@@ -128,7 +128,7 @@ class Task(object):
         if self.is_mpi:
             self.comm = MPI.COMM_WORLD
             self.rank = self.comm.Get_rank()
-            self.size = self.comm.Get_rank()
+            self.size = self.comm.Get_size()
         else:
             self.comm = None
             self.rank = 0
@@ -137,7 +137,7 @@ class Task(object):
         self.is_slurm = os.environ.get('SLURM_JOB_ID', None) is not None
         if mode is Task.MODE_ANALISIS:
             self.send_status = False
-        if self.is_slurm and self.send_status and self.is_root():
+        if self.is_slurm and self.send_status and self.is_root:
             self.bot_client = BotClient()
         else:
             self.bot_client = None
@@ -150,6 +150,7 @@ class Task(object):
 
         raise TaskError()
 
+    @property
     def is_root(self):
         return (not self.is_mpi) or (self.rank == 0)
 
@@ -219,7 +220,7 @@ class Task(object):
             if self.save_state_step is not None and (i+1) % int(self.t.size*self.save_state_step/100) == 0:
                 self.save_state(i)
 
-            if self.is_root() and i%100 == 0:
+            if self.is_root and i%100 == 0:
                 progressBar.print(i)
 
             if self.signal_term:

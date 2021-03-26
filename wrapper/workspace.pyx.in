@@ -297,5 +297,9 @@ cdef class {{prefix}}WfArrayWS:
         pass
 
     def prop(self, {{prefix}}WavefuncArray arr, double[:] E, double dt):
-        self.cdata.prop(arr.cdata, &E[0], dt)
+        cdef double* Eptr = NULL
+        if E is not None:
+            Eptr = &E[0]
+
+        self.cdata.prop(arr.cdata, Eptr, dt)
 {{endfor}}
