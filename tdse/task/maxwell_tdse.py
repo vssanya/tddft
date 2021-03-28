@@ -77,6 +77,8 @@ class MaxwellTDSETask(WavefuncArrayTask):
     use_move_window = False
     calc_tdse = True
 
+    test_mode = False # if True wf don't propogate
+
     x0 = tdse.utils.unit_to(60, "nm") # init location of center laser pulse
 
     Lw = None

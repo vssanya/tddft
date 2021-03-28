@@ -67,11 +67,15 @@ public:
 
 	int mpi_rank;
 #ifdef _MPI
+	int mpi_size;
 	MPI_Comm mpi_comm;
-	MPI_Comm spin_comm;
-	Wavefunc<Grid>* mpi_wf;
 
-	std::vector<int> ne_rank; // number of orbital -> mpi rank
+	Wavefunc<Grid>* mpi_wf;
+	int count_wf;
+
+	std::vector<int> ne_rank; // index of wavefunction -> mpi rank
+	std::vector<int> rank_count; // rank -> count of wavefunction
+	std::vector<int> rank_shift;
 #endif
 };
 

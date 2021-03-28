@@ -16,12 +16,12 @@ WavefuncArray<Grid>::WavefuncArray(int N, Grid const& grid, int const m[], MPI_C
 
 #ifdef _MPI
 	this->mpi_comm = mpi_comm;
-    spin_comm = MPI_COMM_NULL;
 
 	if (mpi_comm != MPI_COMM_NULL) {
+		MPI_Comm_size(mpi_comm, &mpi_size);
         MPI_Comm_rank(mpi_comm, &mpi_rank);
 
-		int mpiCount = 0;
+		count_wf = 0;
 		ne_rank.resize(N);
 
 		if (rank == nullptr) {
@@ -29,19 +29,30 @@ WavefuncArray<Grid>::WavefuncArray(int N, Grid const& grid, int const m[], MPI_C
 				ne_rank[ie] = ie;
 			}
 
-			mpiCount = 1;
+			count_wf = 1;
 		} else {
 			for (int ie = 0; ie < N; ++ie) {
 				ne_rank[ie] = rank[ie];
 
 				if (rank[ie] == mpi_rank) {
-					mpiCount += 1;
+					count_wf += 1;
 				}
 			}
 		}
 
-		if (mpiCount != 0) {
-			data = new cdouble[grid.size()*mpiCount]();
+		if (count_wf != 0) {
+			data = new cdouble[grid.size()*count_wf]();
+		}
+
+		rank_count.resize(mpi_size);
+		MPI_Gather(&count_wf, 1, MPI_INT, rank_count.data(), 1, MPI_INT, 0, mpi_comm);
+
+		rank_shift.resize(mpi_size);
+		if (mpi_rank == 0) {
+			rank_shift[0] = 0;
+			for (int i=1; i<mpi_size; ++i) {
+				rank_shift[i] = rank_shift[i-1] + rank_count[i-1];
+			}
 		}
 
 		int iWf = 0;
@@ -84,6 +95,10 @@ void WavefuncArray<Grid>::set(cdouble value) {
 
 template <typename Grid>
 void WavefuncArray<Grid>::set(int index, Wavefunc<Grid> const* wf) {
+	if (index < 0) {
+		index += N;
+	}
+
 	if (this->wf[index] != nullptr) {
 		wf->copy(this->wf[index]);
 	}
@@ -113,27 +128,30 @@ WavefuncArray<Grid>::~WavefuncArray() {
 
 template <typename Grid> template <typename T>
 void WavefuncArray<Grid>::calc_array(std::function<T (Wavefunc<Grid> const*, int ie)> func, T res[]) const {
+	T* res_local;
+#ifdef _MPI
+	if (mpi_comm != MPI_COMM_NULL) {
+		res_local = new T[count_wf]();
+	} else 
+#endif
+	{
+		res_local = res;
+	}
+
+	int local_i = 0;
 	for (int ie=0; ie<N; ++ie) {
 		if (wf[ie] != nullptr) {
-			T res_local = func(wf[ie], ie);
-			if (mpi_rank == 0) {
-				res[ie] = res_local;
-			}
-#ifdef _MPI
-			else {
-				MPI_Send(&res_local, 1, getMpiType<T>(), 0, 0, mpi_comm);
-			}
-#endif
+			res_local[local_i] = func(wf[ie], ie);
+			local_i++;
 		}
-#ifdef _MPI
-		else if (mpi_rank == 0) {
-			MPI_Recv(&res[ie], 1, getMpiType<T>(), ne_rank[ie], 0, mpi_comm, MPI_STATUS_IGNORE);
-		}
-#endif
 	}
 
 #ifdef _MPI
-	MPI_Barrier(mpi_comm);
+	if (mpi_comm != MPI_COMM_NULL) {
+		MPI_Gatherv(res_local, count_wf, getMpiType<T>(), res, rank_count.data(), rank_shift.data(), getMpiType<T>(), 0, mpi_comm);
+
+		delete[] res_local;
+	}
 #endif
 }
 

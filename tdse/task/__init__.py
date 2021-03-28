@@ -14,3 +14,5 @@ from .wf_array_task import AzWfArrayData, WavefuncArrayTask
 from .maxwell_tdse import EdepsTData, EdepsXData, MaxwellTDSETask, MaxwellNonlinearTask
 
 from .benchmark import CalcTimeStepBenchmarkData
+
+from .utils import load
