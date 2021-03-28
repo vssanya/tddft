@@ -41,6 +41,34 @@ cdef class MaxwellWorkspace1D:
     def get_dt(self, double ksi):
         return ksi/C_au*self.cdata.grid.d
 
+cdef class MaxwellWorkspaceCyl1D:
+    def __cinit__(self, Grid1d grid):
+        self.cdata = new cWorkspaceCyl1D(grid.cdata)
+
+    def __init__(self, Grid1d grid):
+        pass
+
+    @property
+    def Er(self):
+        cdef double[::1] res = <double[:self.cdata.grid.n]>self.cdata.Er.data
+        return np.asarray(res)
+
+    @property
+    def Ephi(self):
+        cdef double[::1] res = <double[:self.cdata.grid.n]>self.cdata.Ephi.data
+        return np.asarray(res)
+
+    @property
+    def Hz(self):
+        cdef double[::1] res = <double[:self.cdata.grid.n]>self.cdata.Hz.data
+        return res
+
+    def prop(self, double dt, double[::1] j):
+        self.cdata.prop(dt, &j[0])
+
+    def get_dt(self, double ksi):
+        return ksi/C_au*self.cdata.grid.d
+
 
 cdef class MaxwellWorkspace3D:
     def __cinit__(self, Grid3d grid):

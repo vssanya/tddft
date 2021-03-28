@@ -40,6 +40,23 @@ namespace maxwell {
 			void prop_Dy(Arr1& Dy, Arr1 const& Hz, double ksi) const;
 	};
 
+	class WorkspaceCyl1D {
+		typedef Array1D<double> Arr1;
+
+		public:
+			WorkspaceCyl1D(Grid1d const& grid);
+			~WorkspaceCyl1D();
+
+			// j is array of size 2*N, j[i] = j(r), j[i+1] = j(r+dr/2), j[i+2] = j(r+dr)
+			void prop(double dt, double* j);
+
+			Grid1d const& grid;
+
+			Arr1 Er;
+			Arr1 Ephi;
+			Arr1 Hz;
+	};
+
 	class Workspace2D {
 		typedef Array2D<double> Arr2;
 

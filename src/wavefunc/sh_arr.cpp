@@ -126,6 +126,7 @@ WavefuncArray<Grid>::~WavefuncArray() {
 	}
 }
 
+// ToDo need send array to root, don't send only one element
 template <typename Grid> template <typename T>
 void WavefuncArray<Grid>::calc_array(std::function<T (Wavefunc<Grid> const*, int ie)> func, T res[]) const {
 	T* res_local;

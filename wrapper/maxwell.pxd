@@ -47,3 +47,20 @@ cdef class MaxwellWorkspace3D:
     cdef:
         Grid3d grid
         cWorkspace3D* cdata
+
+cdef extern from "maxwell/1d.h":
+    cdef cppclass cWorkspaceCyl1D "maxwell::WorkspaceCyl1D":
+        cWorkspaceCyl1D(cGrid1d& grid);
+
+        void prop(double dt, double* j);
+
+        cGrid1d& grid;
+
+        Array1D[double] Er;
+        Array1D[double] Ephi;
+        Array1D[double] Hz;
+
+cdef class MaxwellWorkspaceCyl1D:
+    cdef:
+        Grid1d grid
+        cWorkspaceCyl1D* cdata

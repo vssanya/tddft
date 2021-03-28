@@ -28,6 +28,7 @@ set( LIB_SOURCES
 	"wavefunc/sh_arr.cpp"
 
 	"maxwell/1d.cpp"
+	"maxwell/cyl_1d.cpp"
 	"maxwell/3d.cpp"
 
 	"hartree_potential.cpp"

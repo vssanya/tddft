@@ -11,7 +11,7 @@ maxwell::Workspace1D::Workspace1D(Grid1d const& grid):
 maxwell::Workspace1D::~Workspace1D() {}
 
 void maxwell::Workspace1D::prop_Bz(Arr1& Bz, Arr1 const& Ey, double ksi) const {
-#pragma omp for
+#pragma omp parallel for
 	for (int i=0; i<Bz.grid.n-1; i++) {
 		Bz(i) = Bz(i) - ksi*(Ey(i+1) - Ey(i));
 	}
@@ -28,7 +28,7 @@ void maxwell::Workspace1D::prop_Dy(Arr1& Dy, Arr1 const& Hz, double ksi) const {
 		Dy(i) = -ksi*(Hz(i) - 0.0);
 	}
 
-#pragma omp for
+#pragma omp parallel for
 	for (int i=1; i<Dy.grid.n; i++) {
 		Dy(i) = Dy(i) - ksi*(Hz(i) - Hz(i-1));
 	}

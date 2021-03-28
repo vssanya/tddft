@@ -39,10 +39,17 @@ class Array {
 			}
 		}
 
-		void set(T value) const {
+		void set(T value) {
 #pragma omp parallel for
 			for (int i = 0; i < grid.size(); ++i) {
 				data[i] = value;
+			}
+		}
+
+		void set_random() {
+#pragma omp parallel for
+			for (int i = 0; i < grid.size(); ++i) {
+				data[i] = (double) rand() / RAND_MAX;
 			}
 		}
 
