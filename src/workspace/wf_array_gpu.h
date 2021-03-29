@@ -14,6 +14,7 @@ namespace workspace {
 
 			void prop(ShWavefuncArrayGPU* wf, double E[], double dt);
 			void prop_abs(ShWavefuncArrayGPU* wf, double dt);
+			void prop_abs_test(ShWavefuncArrayGPU* wf, double dt);
 			void prop_at(ShWavefuncArrayGPU* wf, double dt);
 
 			ShGrid const* grid;

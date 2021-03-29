@@ -50,6 +50,26 @@ void workspace::WfArrayGpu::prop_abs(ShWavefuncArrayGPU* wf, double dt) {
 	kernel_wf_array_prop_abs<<<gridDim, blockDim>>>((cuComplex*)wf->data, d_uabs, dt, N, grid->n[iR], grid->n[iL]);
 }
 
+__global__ void kernel_wf_array_prop_abs_test(cuComplex* wf_array, double* uabs, double dt, int N, int Nr, int Nl) {
+	int n = blockIdx.x*blockDim.x + threadIdx.x;
+	int il = n / Nr;
+	int ir = n % Nr;
+
+	if (ir < Nr) {
+		for (int in=0; in<N; in++) {
+			cuComplex* wf = &wf_array[Nl*Nr*in];
+			wf[ir + il*Nr] *= exp(-uabs[ir]*dt);
+		}
+	}
+}
+
+void workspace::WfArrayGpu::prop_abs_test(ShWavefuncArrayGPU* wf, double dt) {
+	dim3 blockDim(1);
+	dim3 gridDim(grid->size());
+
+	kernel_wf_array_prop_abs_test<<<gridDim, blockDim>>>((cuComplex*)wf->data, d_uabs, dt, N, grid->n[iR], grid->n[iL]);
+}
+
 // potentialType = 1 (POTENTIAL_COULOMB)
 __global__ void kernel_wf_array_prop_at(cuComplex* wf_array, double* Ur, cuComplex* alpha, cuComplex* betta, int N, int Nr, int Nl, double dr, double dt, int Z, int potentialType) {
 	int in = blockIdx.x*blockDim.x + threadIdx.x;
