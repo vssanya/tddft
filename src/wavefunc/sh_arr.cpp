@@ -79,7 +79,7 @@ WavefuncArray<Grid>::WavefuncArray(int N, Grid const& grid, int const m[], MPI_C
 				m_current = m[ie];
 			}
 
-			wf[ie] = new Wavefunc<Grid>(&data[grid.size()*ie], grid, m[ie]);
+			wf[ie] = new Wavefunc<Grid>(&data[grid.size()*ie], grid, m_current);
 		}
 	}
 }

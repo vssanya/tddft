@@ -23,6 +23,7 @@ namespace workspace {
 			~WfArray() {};
 
 			void prop(WavefuncArray<Grid>* arr, double E[], double dt);
+			void prop_abs(WavefuncArray<Grid>* arr, double dt);
 
 			workspace::WavefuncWS<Grid> ws;
 	};
