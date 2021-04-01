@@ -45,12 +45,7 @@ static void BM_WSArrayCpu_Abs(benchmark::State& state) {
 	auto task = ShWfArrayTask();
 
 	for (auto _ : state) {
-		auto start = std::chrono::high_resolution_clock::now();
 		task.ws.prop_abs(&task.wf, task.dt);
-		auto end = std::chrono::high_resolution_clock::now();
-
-		auto elapsed_seconds = std::chrono::duration_cast<std::chrono::duration<double>>(end - start);
-		state.SetIterationTime(elapsed_seconds.count());
 	}
 }
 
@@ -66,6 +61,6 @@ static void BM_WSArrayCpu_Prop(benchmark::State& state) {
 	}
 }
 
-BENCHMARK(BM_WSArrayCpu_Abs);
-BENCHMARK(BM_WSArrayCpu_Prop);
+BENCHMARK(BM_WSArrayCpu_Abs)->Unit(benchmark::kMillisecond);
+BENCHMARK(BM_WSArrayCpu_Prop)->Unit(benchmark::kMillisecond);
 BENCHMARK_MAIN();
