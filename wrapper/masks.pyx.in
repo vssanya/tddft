@@ -24,7 +24,7 @@ cdef class {{Prefix}}CoreMask:
         params_grp.attrs['mask_dr'] = self.cdata.dr
 
     def __call__(self, ir):
-        return self.cdata[0](ir, 0, 0)
+        return self.cdata[0](ir, 0)
 
     def _repr_png_(self):
         return self._figure_data('png')
@@ -39,7 +39,7 @@ cdef class {{Prefix}}CoreMask:
         u = np.zeros(r.size)
 
         for i in range(u.size):
-            u[i] = self.cdata[0](i, 0, 0)
+            u[i] = self.cdata[0](i, 0)
 
         ax.plot(r, u)
 

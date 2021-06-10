@@ -34,6 +34,38 @@ cdef class CtWavefunc:
     def norm(self):
         return self.cdata.norm()
 
+cdef class CartWavefunc3D:
+    def __cinit__(self, Grid3d grid):
+        self.grid = grid
+        self.cdata = new cCartWavefunc3D(grid.cdata)
+
+    def __init__(self, Grid3d grid):
+        pass
+
+    def __dealloc__(self):
+        if self.cdata != NULL:
+            del self.cdata
+            self.cdata = NULL
+
+    def norm(self):
+        return self.cdata.norm()
+
+    def normalize(self, double norm=1.0):
+        self.cdata.normalize(norm)
+
+    def fill_random(self):
+        self.cdata.set_random()
+
+    def __mul__(CartWavefunc3D self, CartWavefunc3D other):
+        cdef cdouble res = self.cdata[0]*other.cdata[0]
+        return (<complex_t*>(&res))[0]
+
+    def exclude(self, CartWavefunc3D other):
+        self.cdata.exclude(other.cdata[0])
+
+    def asarray(self):
+        cdef complex_t[:, :, ::1] array = <complex_t[:self.cdata.grid.n[2], :self.cdata.grid.n[1],:self.cdata.grid.n[0]]>(<complex_t*>self.cdata.data)
+        return np.asarray(array)
 
 {{for Prefix, Grid in [("Sh", "ShGrid"), ("ShNe", "ShNeGrid"), ("Sp", "SpGrid2d")]}}
 cdef class {{Prefix}}Wavefunc:
@@ -202,7 +234,7 @@ cdef class ShNeWavefunc3D:
         if mask is None:
             return self.cdata.norm()
         else:
-            return self.cdata.norm(<sh_f> mask.cdata[0])
+            return self.cdata.norm(<sh3d_f> mask.cdata[0])
 
     def normalize(self):
         self.cdata.normalize()

@@ -1,6 +1,8 @@
 from grid cimport cGrid1d, Grid1d, cGrid3d, Grid3d
 from carray cimport Array1D, Array3D
 
+from mpi4py.libmpi cimport MPI_Comm
+
 cdef extern from "const.h":
     double C_au
 
@@ -26,12 +28,9 @@ cdef class MaxwellWorkspace1D:
         Grid1d grid
         cWorkspace1D* cdata
 
-cdef extern from "maxwell/3d.h":
-    cdef cppclass cWorkspace3D "maxwell::Workspace3D":
-        cWorkspace3D(cGrid3d& grid);
-
-        void prop(double dt);
-        void prop(double dt, Array3D[double]* j);
+cdef extern from "maxwell/field_3d.h":
+    cdef cppclass cField3D "Field3D":
+        cField3D(cGrid3d &grid, MPI_Comm mpi_comm);
 
         cGrid3d& grid;
 
@@ -43,6 +42,20 @@ cdef extern from "maxwell/3d.h":
         Array3D[double] Hy
         Array3D[double] Hz
 
+cdef class Field3D:
+    cdef:
+        Grid3d grid
+        cField3D* cdata
+
+cdef extern from "maxwell/3d.h":
+    cdef cppclass cWorkspace3D "maxwell::Workspace3D":
+        cWorkspace3D(cGrid3d& grid, MPI_Comm mpi_comm);
+
+        void prop(cField3D field, double dt);
+        void prop(cField3D field, double dt, Array3D[double]* j);
+
+        cGrid3d& grid;
+
 cdef class MaxwellWorkspace3D:
     cdef:
         Grid3d grid
@@ -52,13 +65,17 @@ cdef extern from "maxwell/1d.h":
     cdef cppclass cWorkspaceCyl1D "maxwell::WorkspaceCyl1D":
         cWorkspaceCyl1D(cGrid1d& grid);
 
-        void prop(double dt, double* j);
+        void prop(double dt);
+        void prop(double dt, double* N, double nu);
 
         cGrid1d& grid;
 
         Array1D[double] Er;
         Array1D[double] Ephi;
         Array1D[double] Hz;
+
+        Array1D[double] jr;
+        Array1D[double] jphi;
 
 cdef class MaxwellWorkspaceCyl1D:
     cdef:

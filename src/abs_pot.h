@@ -9,7 +9,7 @@
 double uabs(ShGrid const* grid, int ir, int il, int im) __attribute__((pure));
 
 __attribute__((pure))
-double mask_core(ShGrid const* grid, int ir, int il, int im);
+double mask_core(ShGrid const* grid, int ir, int il);
 
 class Uabs {
 public:

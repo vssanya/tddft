@@ -119,11 +119,11 @@ void sh_series(
 		int l, int m, SpGrid2d const& grid,
 		T* series,
 		YlmCache const* ylm_cache,
-		std::optional<Range> rRange = std::nullopt) {
-	auto range = rRange.value_or(grid.getFullRange(iR));
+		std::optional<SpGrid2d::Range> rRange = std::nullopt) {
+	auto range = rRange.value_or(SpGrid2d::Range());
 
 #pragma omp parallel for
-	for (int ir = range.start; ir < range.end; ++ir) {
+	for (int ir = range.r_min; ir < range.getRmax(grid); ++ir) {
 		series[ir] = sh_series_r(func, ir, l, m, grid, ylm_cache);
 	}
 }
@@ -135,7 +135,7 @@ inline void sh_series(
 		int l, int m,
 		T* series,
 		YlmCache const* ylm_cache,
-		std::optional<Range> rRange = std::nullopt) {
+		std::optional<SpGrid2d::Range> rRange = std::nullopt) {
 	sh_series(std::function<T(int, int)>(arr[0]), l, m, arr->grid, series, ylm_cache, rRange);
 }
 

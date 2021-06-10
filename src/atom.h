@@ -320,18 +320,18 @@ class SoftCoulombAtom: public Atom {
 		double Rs;
 		double Z;
 
-        SoftCoulombAtom(double Rs, double Z): Rs(Rs), Z(Z), Atom(1, HAtom::GroundStateOrbs, 0, POTENTIAL_SMOOTH) {}
+        SoftCoulombAtom(double Rs, double Z): Atom(1, HAtom::GroundStateOrbs, 0, POTENTIAL_SMOOTH), Rs(Rs), Z(Z) {}
 
         double u(double r) const {
-			return -Z*pow(cosh(r/Rs), -2) - tanh(r/Rs)/r;
-		}
+					return -Z*pow(cosh(r/Rs), -2) - tanh(r/Rs)/r;
+				}
 
-        double dudz(double r) const {
-			double const t = tanh(r/Rs);
-			double const s = pow(cosh(r/Rs), -2);
+				double dudz(double r) const {
+					double const t = tanh(r/Rs);
+					double const s = pow(cosh(r/Rs), -2);
 
-			return 2.0*Z*t*s/Rs + t/pow(r, 2) - s/(Rs*r);
-		}
+					return 2.0*Z*t*s/Rs + t/pow(r, 2) - s/(Rs*r);
+				}
 };
 
 class HSmothAtom: public SoftCoulombAtom {
@@ -339,7 +339,7 @@ class HSmothAtom: public SoftCoulombAtom {
 		static constexpr double A = 0.3;
 		static constexpr double ALPHA = 2.17;
 
-        HSmothAtom(): SoftCoulombAtom(A, ALPHA) {}
+		HSmothAtom(): SoftCoulombAtom(A, ALPHA) {}
 };
 
 

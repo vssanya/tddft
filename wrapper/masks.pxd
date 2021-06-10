@@ -6,6 +6,7 @@ cdef extern from "masks.h":
         double dr
 
         CoreMask(Grid* grid, double r_core, double dr)
+        double operator()(int ir, int il)
         double operator()(int ir, int il, int im)
         double* getGPUData()
 

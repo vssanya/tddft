@@ -86,7 +86,7 @@ namespace workspace
 					int Uxc_lmax,
 					int Uh_lmax,
 					Array2D<double>* Uee = nullptr,
-					std::optional<Range> rRange = std::nullopt
+					std::optional<typename Grid::RangeR> rRange = std::nullopt
 					);
 
 			void setTimeApproxUeeTwoPointFor(Orbitals<Grid> const& OrbitalsWS);

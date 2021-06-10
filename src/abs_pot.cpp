@@ -84,7 +84,7 @@ double uabs(ShGrid const* grid, int ir, int il, int im) {
 	return 10*smoothstep(r, r_max-dr, r_max);
 }
 
-double mask_core(ShGrid const* grid, int ir, int il, int im) {
+double mask_core(ShGrid const* grid, int ir, int il) {
 	double const r = grid->r(ir);
 	double const r_core = 10.0;
 	double const dr = 2.0;

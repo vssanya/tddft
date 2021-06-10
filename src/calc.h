@@ -25,7 +25,7 @@ double calc_wf_az(
 		field_t const* field,
 		double t
 ) {
-    auto func = [&](int ir, int il, int m) -> double {
+    auto func = [&](int ir, int il) -> double {
         return atom_cache.dudz(ir);
     };
     return - field_E(field, t) - wf->cos(func);
@@ -38,7 +38,7 @@ double calc_wf_az(
         AtomCache<Grid> const& atom_cache,
 		int l_max = -1
 ) {
-    auto func = [&](int ir, int il, int m) -> double {
+    auto func = [&](int ir, int il) -> double {
         return atom_cache.dudz(ir);
     };
     return creal(wf_p->cos(func, wf_g[0], l_max));

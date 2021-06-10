@@ -21,6 +21,7 @@ set( LIB_SOURCES
 	"workspace/common_alg.cpp"
 	"workspace/sfa.cpp"
 	"workspace/wf_with_polarization.cpp"
+	"workspace/cart_wf_3d.cpp"
 
 	"wavefunc/2d.cpp"
 	"wavefunc/sh_2d.cpp"
@@ -30,6 +31,7 @@ set( LIB_SOURCES
 	"maxwell/1d.cpp"
 	"maxwell/cyl_1d.cpp"
 	"maxwell/3d.cpp"
+	"maxwell/field_3d.cpp"
 
 	"hartree_potential.cpp"
 	"utils.cpp"
@@ -95,9 +97,9 @@ set( LIB_HEADERS
 
 add_library( tdse SHARED ${LIB_SOURCES} ${LIB_HEADERS} )
 if (CUDA_FOUND)
-	target_link_libraries( tdse m ${LAPACK_LIBRARIES} gsl ${CUDA_LIBRARIES})
+	target_link_libraries( tdse m ${LAPACK_LIBRARIES} ${GSL_LIBRARIES} ${FFTW_LIBRARIES} ${CUDA_LIBRARIES})
 else()
-	target_link_libraries( tdse m ${LAPACK_LIBRARIES} ${GSL_LIBRARIES})
+	target_link_libraries( tdse m ${LAPACK_LIBRARIES} ${GSL_LIBRARIES} ${FFTW_LIBRARIES})
 endif()
 
 

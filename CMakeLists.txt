@@ -9,6 +9,8 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_C_STANDARD 11)
 
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/cmake_find/")
+
 include_directories(${PROJECT_SOURCE_DIR}/src)
 
 find_package(OpenMP)
@@ -23,6 +25,8 @@ if (MPI_FOUND)
 	add_definitions(-D_MPI)
 endif()
 add_definitions(-D_MPI)
+
+find_package(FFTW REQUIRED)
 
 ExternalProject_Add(CUB
 	GIT_REPOSITORY https://github.com/NVlabs/cub.git

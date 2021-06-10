@@ -23,9 +23,13 @@ class CoreMask {
 
 		~CoreMask();
 
-	double operator()(int ir, int il, int im) const {
+	double operator()(int ir, int il) const {
 		double const r = grid->r(ir);
 		return smoothstep(r_core + dr - r, 0.0, 2*dr);  
+	}
+
+	double operator()(int ir, int il, int im) const {
+		return this->operator()(ir, il);
 	}
 
 	double* getGPUData();

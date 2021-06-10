@@ -5,15 +5,15 @@
 
 template<class Grid>
 double calc_wf_az_with_polarization(Wavefunc<Grid> const* wf, const AtomCache<Grid> &atom_cache, double const Upol[], double const dUpol_dr[], field_t const* field, double t) {
-    auto func_cos = [&](int ir, int il, int m) -> double {
+    auto func_cos = [&](int ir, int il) -> double {
         return atom_cache.dudz(ir);
     };
 
-    auto func_cos2 = [&](int ir, int il, int m) -> double {
+    auto func_cos2 = [&](int ir, int il) -> double {
         return dUpol_dr[ir];
     };
 
-    auto func_sin2 = [&](int ir, int il, int m) -> double {
+    auto func_sin2 = [&](int ir, int il) -> double {
         return Upol[ir]/wf->grid.r(ir);
     };
 
@@ -38,7 +38,7 @@ void calc_wf_az(WavefuncArray<Grid> const *arr,
 	MPI_Bcast(Elocal, arr->N, MPI_DOUBLE, 0, arr->mpi_comm);
 #endif
 
-  auto func = [&](int ir, int il, int m) -> double {
+  auto func = [&](int ir, int il) -> double {
     return atom_cache->dudz(ir);
   };
 
@@ -48,7 +48,7 @@ void calc_wf_az(WavefuncArray<Grid> const *arr,
 
 template<class Grid>
 double calc_orbs_az(Orbitals<Grid> const& orbs, const AtomCache<Grid> &atom_cache, field_t const* field, double t) {
-    auto func = [&](int ir, int il, int m) -> double {
+    auto func = [&](int ir, int il) -> double {
         return atom_cache.dudz(ir);
     };
     return - field_E(field, t)*atom_cache.atom.countElectrons - orbs.cos(func);
@@ -56,7 +56,7 @@ double calc_orbs_az(Orbitals<Grid> const& orbs, const AtomCache<Grid> &atom_cach
 
 template<class Grid>
 void calc_orbs_az_ne(Orbitals<Grid> const* orbs, const AtomCache<Grid>& atom_cache, field_t const* field, double t, double* az) {
-    auto func = [&](int ir, int il, int m) -> double {
+    auto func = [&](int ir, int il) -> double {
         return atom_cache.dudz(ir);
     };
 
@@ -72,7 +72,7 @@ void calc_orbs_az_ne_Vee_0(Orbitals<Grid> const* orbs, Array2D<double>& Uee, Arr
 		dUeedr(ir, 0) = orbs->grid.d_dr(&Uee(0, 0), ir);
 	}
 
-    auto func = [&](int ir, int il, int m) -> double {
+    auto func = [&](int ir, int il) -> double {
         return atom_cache.dudz(ir) + dUeedr(ir, 0);
     };
 
@@ -90,16 +90,16 @@ void calc_orbs_az_ne_Vee_1(Orbitals<Grid> const* orbs, Array2D<double>& Uee, Arr
 		}
 	}
 
-    auto func_0 = [&](int ir, int il, int m) -> double {
+    auto func_0 = [&](int ir, int il) -> double {
 		double r = orbs->grid.r(ir);
         return Uee(ir, 1) / r;
     };
 
-    auto func_1 = [&](int ir, int il, int m) -> double {
+    auto func_1 = [&](int ir, int il) -> double {
         return atom_cache.dudz(ir) + dUeedr(ir, 0);
     };
 
-    auto func_2 = [&](int ir, int il, int m) -> double {
+    auto func_2 = [&](int ir, int il) -> double {
 		double r = orbs->grid.r(ir);
         return dUeedr(ir, 1) - Uee(ir, 1)/r;
     };
@@ -119,23 +119,23 @@ void calc_orbs_az_ne_Vee_2(Orbitals<Grid> const* orbs, Array2D<double>& Uee, Arr
 		}
 	}
 
-    auto func_0 = [&](int ir, int il, int m) -> double {
+    auto func_0 = [&](int ir, int il) -> double {
 		double r = orbs->grid.r(ir);
         return Uee(ir, 1) / r;
     };
 
-    auto func_1 = [&](int ir, int il, int m) -> double {
+    auto func_1 = [&](int ir, int il) -> double {
 		double r = orbs->grid.r(ir);
         return atom_cache.dudz(ir) + dUeedr(ir, 0) - 0.5*dUeedr(ir, 2) + 3*Uee(ir, 2) / r;
     };
 
-    auto func_2 = [&](int ir, int il, int m) -> double {
+    auto func_2 = [&](int ir, int il) -> double {
 		double r = orbs->grid.r(ir);
         return dUeedr(ir, 1) - Uee(ir, 1)/r;
 	};
 
 	// TODO: 3/2 d/dr(Vee^(2) / r^2) * r^2 * cos(\theta)^3
-    auto func_3 = [&](int ir, int il, int m) -> double {
+    auto func_3 = [&](int ir, int il) -> double {
 		double r = orbs->grid.r(ir);
         return dUeedr(ir, 2) - 2*Uee(ir, 2)/r;
 	};
@@ -146,16 +146,16 @@ void calc_orbs_az_ne_Vee_2(Orbitals<Grid> const* orbs, Array2D<double>& Uee, Arr
 }
 
 double calc_wf_ionization_prob(ShWavefunc const* wf) {
-    auto func = [&](int ir, int il, int m) -> double {
-        return mask_core(&wf->grid, ir, il, m);
+    auto func = [&](int ir, int il) -> double {
+        return mask_core(&wf->grid, ir, il);
     };
     return 1.0 - wf->norm(func);
 }
 
 template<class Grid>
 double calc_orbs_ionization_prob(Orbitals<Grid> const* orbs) {
-    auto func = [&](int ir, int il, int m) -> double {
-        return mask_core(&orbs->grid, ir, il, m);
+    auto func = [&](int ir, int il) -> double {
+        return mask_core(&orbs->grid, ir, il);
     };
     return orbs->atom.countElectrons - orbs->norm(func);
 }

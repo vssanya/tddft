@@ -27,21 +27,21 @@ class HartreePotential {
 				Orbitals<Grid> const* orbs,
 				int l, double* U, double* U_local,
 				double* f, int order,
-				std::optional<Range> rRange = std::nullopt);
+				std::optional<typename Grid::RangeR> rRange = std::nullopt);
 
 		static void calc(
 				Wavefunc<Grid> const* wf,
 				int l, double* U,
 				double* f, int order,
-				std::optional<Range> rRange = std::nullopt);
+				std::optional<typename Grid::RangeR> rRange = std::nullopt);
 
 		static void calc_int_func(
 				Orbitals<Grid> const* orbs, int l, double* f,
-				std::optional<Range> rRange = std::nullopt);
+				std::optional<typename Grid::RangeR> rRange = std::nullopt);
 
 		static void calc_wf_l0(
 				Wavefunc<Grid> const* wf, double* U, double* f, int order,
-				std::optional<Range> rRange = std::nullopt) {
+				std::optional<typename Grid::RangeR> rRange = std::nullopt) {
 			HartreePotential::calc(wf, 0, U, f, order, rRange);
 		}
 };
@@ -94,7 +94,7 @@ class XCPotential {
 				double* n, // for calc using mpi
 				double* n_tmp, // for calc using mpi
 				YlmCache const* ylm_cache,
-				std::optional<Range> rRange = std::nullopt
+				std::optional<typename Grid::RangeR> rRange = std::nullopt
 				);
 
 		static void calc_l0(
@@ -103,7 +103,7 @@ class XCPotential {
 				double* U,
 				double* n, // for calc using mpi
 				double* n_tmp, // for calc using mpi
-				std::optional<Range> rRange = std::nullopt
+				std::optional<typename Grid::RangeR> rRange = std::nullopt
 				);
 //		virtual double u(double n, double x) const = 0;
 };

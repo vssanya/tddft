@@ -43,6 +43,25 @@ cdef class Eigen:
         self.get_evec()[:] = data[:,:-1,:]
         self.get_eval()[:] = data[:,-1,:]
 
+cdef class CartWorkspace:
+    def __cinit__(self, CartWavefunc3D wf, Atom atom):
+        self.cdata = new CartWavefuncWS(wf.cdata, atom.cdata[0], NULL)
+
+    def __dealloc__(self):
+        del self.cdata
+
+    def prop(self, CartWavefunc3D wf, Field field, double t, double dt):
+        #self.cdata.prop(wf.cdata[0], field.cdata, t, dt)
+        self.cdata.prop(field.cdata, t, dt)
+
+    def prop_abs(self, CartWavefunc3D wf, double dt):
+        #self.cdata.prop_abs(wf.cdata[0], dt)
+        self.cdata.prop_abs(dt)
+
+    def prop_img(self, CartWavefunc3D wf, double dt):
+        #self.cdata.prop_img(wf.cdata[0], dt)
+        self.cdata.prop_img(dt)
+
 cdef class GPSWorkspace:
     def __cinit__(self, ShGrid grid, Atom atom, double dt, double Emax):
         self.cdata = ws_gps_alloc(grid.data, atom.cdata, dt, Emax)

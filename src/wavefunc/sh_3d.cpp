@@ -19,21 +19,21 @@ template <typename Grid>
 double ShWavefunc3D<Grid>::cos(sh_f func) const {
 	return 2*this->grid.template integrate<double>([this, func](int ir, int il, int im) -> double {
 			return clm(il, im)*creal((*this)(ir, il, im)*conj((*this)(ir, il+1, im)))*func(ir, il, im);
-			}, this->grid.n[iL]-1);
+			}, typename Grid::Range(0, -2));
 }
 
 template <typename Grid>
 cdouble ShWavefunc3D<Grid>::sin_sin(sh_f func) const {
 	return -this->grid.template integrate<double>([this, func](int ir, int il, int im) -> double {
 			return (cimag(conj((*this)(ir, il, im))*(*this)(ir, il-1, im-1))*alm(il, im) + cimag(conj((*this)(ir, il, im-1))*(*this)(ir, il-1, im))*blm(il, im-1))*func(ir, il, im);
-			}, this->grid.n[iL], 1, -1);
+			}, typename Grid::Range(1, -1, -1));
 }
 
 template <typename Grid>
 cdouble ShWavefunc3D<Grid>::sin_cos(sh_f func) const {
 	return this->grid.template integrate<double>([this, func](int ir, int il, int im) -> double {
 			return (-creal(conj((*this)(ir, il, im))*(*this)(ir, il-1, im-1))*alm(il, im) + creal(conj((*this)(ir, il, im-1))*(*this)(ir, il-1, im))*blm(il, im-1))*func(ir, il, im);
-			}, this->grid.n[iL], 1, -1);
+			}, typename Grid::Range(1, -1, -1));
 }
 
 template class ShWavefunc3D<ShNotEqudistantGrid3D>;

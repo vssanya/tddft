@@ -1,6 +1,6 @@
-from types cimport sh_f, cdouble
-from grid cimport cShGrid, cShNeGrid, cShNeGrid3D, cSpGrid, cGrid2d, cSpGrid2d
-from grid cimport ShGrid, ShNeGrid, SpGrid2d
+from types cimport sh_f, sh3d_f, cdouble
+from grid cimport cShGrid, cShNeGrid, cShNeGrid3D, cSpGrid, cGrid2d, cSpGrid2d, cGrid3d
+from grid cimport ShGrid, ShNeGrid, SpGrid2d, Grid3d
 from sphere_harmonics cimport cYlmCache
 
 from libcpp cimport bool as bool_t
@@ -67,6 +67,28 @@ cdef extern from "wavefunc/sh_2d.h":
     ctypedef Wavefunc[cShNeGrid] cShNeWavefunc "ShNeWavefunc"
     ctypedef Wavefunc[cSpGrid2d] cSpWavefunc "SpWavefunc2d"
 
+cdef extern from "wavefunc/cart_3d.h":
+    cdef cppclass cCartWavefunc3D "CartWavefunc3D":
+        cGrid3d& grid
+
+        cdouble* data
+        bint data_own
+
+        cCartWavefunc3D(cGrid3d grid)
+        cCartWavefunc3D(cdouble* data, cGrid3d grid)
+
+        double norm()
+        double normalize(double norm)
+
+        void set_random()
+
+        void exclude(cCartWavefunc3D other)
+        cdouble operator*(cCartWavefunc3D other)
+
+cdef class CartWavefunc3D:
+    cdef cCartWavefunc3D* cdata
+    cdef public Grid3d grid
+
 cdef extern from "wavefunc/sh_arr.h":
     cdef cppclass WavefuncArray[Grid]:
         WavefuncArray(int N, Grid& grid, int* m, MPI_Comm mpi_comm, int* const rank)
@@ -129,7 +151,7 @@ cdef extern from "wavefunc/sh_3d.h":
         cdouble operator*(ShWavefunc3D& other)
         void exclude(ShWavefunc3D& other)
 
-        double norm(sh_f mask)
+        double norm(sh3d_f mask)
         double norm()
 
         void normalize()

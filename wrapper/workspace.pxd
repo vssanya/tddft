@@ -2,15 +2,15 @@ from libcpp cimport bool as bool_t
 
 from types cimport cdouble, sh_f, optional, none
 
-from grid cimport cShGrid, cSpGrid, cShNeGrid, cRange
+from grid cimport cShGrid, cSpGrid, cShNeGrid, cRange, cGrid3d
 from abs_pot cimport cUabsCache, UabsCache, UabsNeCache
-from wavefunc cimport ShWavefunc, cCtWavefunc, cShWavefunc, Wavefunc, WavefuncArray
+from wavefunc cimport ShWavefunc, cCtWavefunc, cShWavefunc, Wavefunc, WavefuncArray, cCartWavefunc3D, CartWavefunc3D
 
 from field cimport field_t
 from orbitals cimport Orbitals
 from sphere_harmonics cimport cYlmCache
 from atom cimport cAtom, Atom, ShAtomCache, ShNeAtomCache, AtomCache
-from carray cimport Array2D
+from carray cimport Array2D, Array3D
 from hartree_potential cimport XCPotentialEnum
 
 
@@ -56,6 +56,22 @@ cdef extern from "workspace.h" namespace "workspace":
 
     cdef cppclass Gauge:
         pass
+
+    cdef cppclass CartWavefuncWS:
+        CartWavefuncWS(cCartWavefunc3D* wf, cAtom& atom, Array3D[double]* uabs);
+
+        void prop_abs(double dt);
+        void prop(field_t* field, double t, double dt);
+        void prop_img(double dt);
+        void prop_r(double E[3], cdouble dt);
+        void prop_r_norm(double E[3], double norm, cdouble dt);
+        void prop_r_norm_abs(double E[3], double norm, double dt);
+
+        cCartWavefunc3D* wf;
+        cGrid3d& grid;
+
+        cAtom& atom;
+        Array3D[double]& uabs;
 
     cdef cppclass WavefuncWS[Grid]:
         WavefuncWS(
@@ -157,6 +173,10 @@ cdef extern from "workspace.h" namespace "workspace::PropAtType":
 cdef extern from "workspace.h" namespace "workspace::Gauge":
     cdef Gauge LENGTH
     cdef Gauge VELOCITY
+
+cdef class CartWorkspace:
+    cdef:
+        CartWavefuncWS* cdata
 
 cdef class ShWavefuncWS:
     cdef:

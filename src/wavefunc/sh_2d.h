@@ -29,25 +29,7 @@ class Wavefunc: public WavefuncBase2D<Grid> {
 		typedef double  (*func_wf_t        )(Wavefunc const* wf, int ir, int il);
 		typedef cdouble (*func_complex_wf_t)(Wavefunc const* wf, int ir, int il);
 
-		typedef std::function<double(int ir, int il, int m)> sh_f;
-
-		template<class T>
-			inline T integrate(std::function<T(int, int)> func, int l_max = -1, int l_min = 0) const {
-				if (l_max == -1) {
-					l_max = this->grid.n[iL] - 1;
-				}
-
-				l_min = std::max(l_min, m);
-
-				T res = 0.0;
-#pragma omp parallel for reduction(+:res) collapse(2)
-				for (int il = l_min; il < l_max; ++il) {
-					for (int ir = 0; ir < this->grid.n[iR]; ++ir) {
-						res += func(ir, il)*this->grid.J(ir, il);
-					}
-				}
-				return res*this->grid.d[iR];
-			}
+		typedef std::function<double(int ir, int il)> sh_f;
 
 		Wavefunc(cdouble* data, Grid const& grid, int const m):
 			WavefuncBase2D<Grid>(data, grid),
@@ -89,13 +71,6 @@ class Wavefunc: public WavefuncBase2D<Grid> {
 			} else {
 				return d_dr(ir, il);
 			}
-		}
-
-		// \return \f$<\psi_1|\psi_2>\f$
-		cdouble operator*(Wavefunc const& other) const {
-			return integrate<cdouble>([this, &other](int ir, int il) -> cdouble {
-					return (*this)(ir, il)*conj(other(ir, il));
-					}, std::min(this->grid.n[iL], other.grid.n[iL]));
 		}
 
 #ifndef __CUDACC__
@@ -166,50 +141,50 @@ class Wavefunc: public WavefuncBase2D<Grid> {
 
 		// <psi|U(r)cos(\theta)|psi>
 		double cos(sh_f func) const {
-			return 2*integrate<double>([this, func](int ir, int il) -> double {
-					return clm(il, m)*creal((*this)(ir, il)*conj((*this)(ir, il+1)))*func(ir, il, m);
-					}, this->grid.n[iL]-1, std::abs(m));
+			return 2*this->grid.template integrate<double>([this, func](int ir, int il) -> double {
+					return clm(il, m)*creal((*this)(ir, il)*conj((*this)(ir, il+1)))*func(ir, il);
+					}, typename Grid::Range(0, -2, std::abs(m)));
 		}
 
 		cdouble cos(sh_f func, Wavefunc const& other, int l_max=-1) const {
-			return integrate<cdouble>([this, func, &other](int ir, int il) -> cdouble {
-					return clm(il, m)*((*this)(ir, il)*conj(other(ir, il+1)) + (*this)(ir, il+1)*conj(other(ir, il)))*func(ir, il, m);
-					}, l_max, std::abs(m));
+			return this->grid.template integrate<cdouble>([this, func, &other](int ir, int il) -> cdouble {
+					return clm(il, m)*((*this)(ir, il)*conj(other(ir, il+1)) + (*this)(ir, il+1)*conj(other(ir, il)))*func(ir, il);
+					}, typename Grid::Range(0, l_max, std::abs(m)));
 		}
 
 		// <psi|U(r)cos^2(\theta)|psi>
 		double cos2(sh_f func) const {
 			double res = 0.0;
-			res += integrate<double>([this, func](int ir, int il) -> double {
+			res += this->grid.template integrate<double>([this, func](int ir, int il) -> double {
 					cdouble psi = (*this)(ir, il);
-					return (plm(il, m) + 0.5)*abs2(psi)*func(ir, il, m);
-					}, this->grid.n[iL]);
+					return (plm(il, m) + 0.5)*abs2(psi)*func(ir, il);
+					}, typename Grid::Range(0, -1, std::abs(m)));
 
-			res += 2*integrate<double>([this, func](int ir, int il) -> double {
-					return qlm(il, m)*creal((*this)(ir, il)*conj((*this)(ir, il+2)))*func(ir, il, m);
-					}, this->grid.n[iL]-2);
+			res += 2*this->grid.template integrate<double>([this, func](int ir, int il) -> double {
+					return qlm(il, m)*creal((*this)(ir, il)*conj((*this)(ir, il+2)))*func(ir, il);
+					}, typename Grid::Range(0, -3, std::abs(m)));
 
 			return res*(2.0/3.0);
 		}
 
 		double proj_Y10(sh_f func) const {
-			return 2*0.5*sqrt(3/M_PI)*integrate<double>([this, func](int ir, int l) -> double {
-					return clm(l, m)*creal((*this)(ir, l)*conj((*this)(ir, l+1)))*func(ir, l, m);
-					}, this->grid.n[iL]-1, 1);
+			return 2*0.5*sqrt(3/M_PI)*this->grid.template integrate<double>([this, func](int ir, int l) -> double {
+					return clm(l, m)*creal((*this)(ir, l)*conj((*this)(ir, l+1)))*func(ir, l);
+					}, typename Grid::Range(1, this->grid.n[iL]-1, std::abs(m)));
 		}
 
 		double proj_Y30(sh_f func) const {
 			double res = 0.0;
 
-			res += 3*integrate<double>([this, func](int ir, int l) -> double {
+			res += 3*this->grid.template integrate<double>([this, func](int ir, int l) -> double {
 					return clm(l, m)*double(l*l + 2*l - 5*m*m)/double((2*l - 1)*(2*l + 5))*
-					creal((*this)(ir, l)*conj((*this)(ir, l+1)))*func(ir, l, m);
-					}, this->grid.n[iL]-1, 1);
+					creal((*this)(ir, l)*conj((*this)(ir, l+1)))*func(ir, l);
+					}, typename Grid::Range(1, -2, std::abs(m)));
 
-			res += 5*integrate<double>([this, func](int ir, int l) -> double {
+			res += 5*this->grid.template integrate<double>([this, func](int ir, int l) -> double {
 					return clm(l,m)*clm(l+1,m)*clm(l+2,m)*
-					creal((*this)(ir, l)*conj((*this)(ir, l+3)))*func(ir, l, m);
-					}, this->grid.n[iL]-3, 0);
+					creal((*this)(ir, l)*conj((*this)(ir, l+3)))*func(ir, l);
+					}, typename Grid::Range(0, -4, std::abs(m)));
 
 			return res*2*0.25*sqrt(7/M_PI);
 		}
@@ -221,14 +196,14 @@ class Wavefunc: public WavefuncBase2D<Grid> {
 		// <psi|U(r)sin^2(\theta)|psi>
 		double sin2(sh_f func) const {
 			double res = 0.0;
-			res += integrate<double>([this, func](int ir, int il) -> double {
+			res += this->grid.template integrate<double>([this, func](int ir, int il) -> double {
 					cdouble psi = (*this)(ir, il);
-					return (0.5 - plm(il, m))*(creal(psi)*creal(psi) + cimag(psi)*cimag(psi))*func(ir, il, m);
-					}, this->grid.n[iL]);
+					return (0.5 - plm(il, m))*(creal(psi)*creal(psi) + cimag(psi)*cimag(psi))*func(ir, il);
+					}, typename Grid::Range(0, -1, std::abs(m)));
 
-			res -= 2*integrate<double>([this, func](int ir, int il) -> double {
-					return qlm(il, m)*creal((*this)(ir, il)*conj((*this)(ir, il+2)))*func(ir, il, m);
-					}, this->grid.n[iL]-2);
+			res -= 2*this->grid.template integrate<double>([this, func](int ir, int il) -> double {
+					return qlm(il, m)*creal((*this)(ir, il)*conj((*this)(ir, il+2)))*func(ir, il);
+					}, typename Grid::Range(0, -3, std::abs(m)));
 
 			return res*(2.0/3.0);
 		}
@@ -237,27 +212,15 @@ class Wavefunc: public WavefuncBase2D<Grid> {
 			for (int ir = 0; ir < this->grid.n[iR]; ++ir) {
 				res[ir] = 0.0;
 				for (int il = this->m; il < this->grid.n[iL]-1; ++il) {
-					res[ir] += 2*clm(il, m)*creal((*this)(ir, il)*conj((*this)(ir, il+1)))*U(ir, il, m);
+					res[ir] += 2*clm(il, m)*creal((*this)(ir, il)*conj((*this)(ir, il+1)))*U(ir, il);
 				}
 			}
 		}
 
 		double cos_r2(sh_f U, int Z) const {
-			return 2*integrate<double>([this, U](int ir, int il) -> double {
-					return clm(il, m)*creal((*this)(ir, il)*conj((*this)(ir, il+1)))*U(ir, il, m);
-					}, this->grid.n[iL]-1);
-		}
-
-		double norm(sh_f mask = nullptr) const {
-			if (mask == nullptr) {
-				return  integrate<double>([this](int ir, int il) {
-						return this->abs_2(ir, il);
-						}, this->grid.n[iL]);
-			} else {
-				return integrate<double>([this, mask](int ir, int il) {
-						return this->abs_2(ir, il)*mask(ir, il, m);
-						}, this->grid.n[iL]);
-			}
+			return 2*this->grid.template integrate<double>([this, U](int ir, int il) -> double {
+					return clm(il, m)*creal((*this)(ir, il)*conj((*this)(ir, il+1)))*U(ir, il);
+					}, typename Grid::Range(0, -2, std::abs(m)));
 		}
 
 #ifndef __CUDACC__
@@ -315,41 +278,33 @@ class Wavefunc: public WavefuncBase2D<Grid> {
 		}
 #endif
 
-		void normalize(double norm = 1.0) {
-			double current_norm = this->norm();
-#pragma omp parallel for
-			for (int i = 0; i < this->grid.size(); ++i) {
-				this->data[i] /= sqrt(current_norm/norm);
-			}
-		}
-
 		double z(sh_f mask = nullptr) const {
 			if (mask == nullptr) {
-				return cos([this](int ir, int il, int im) {
+				return cos([this](int ir, int il) {
 						return this->grid.r(ir);
 						});
 			} else {
-				return cos([this, &mask](int ir, int il, int im) {
-						return this->grid.r(ir)*mask(ir, il, im);
+				return cos([this, &mask](int ir, int il) {
+						return this->grid.r(ir)*mask(ir, il);
 						});
 			}
 		}
 
 		double z2(sh_f mask = nullptr) const {
 			if (mask == nullptr) {
-				return cos2([this](int ir, int il, int im) {
+				return cos2([this](int ir, int il) {
 						return pow(this->grid.r(ir), 2);
 						});
 			} else {
-				return cos2([this, &mask](int ir, int il, int im) {
-						return pow(this->grid.r(ir), 2)*mask(ir, il, im);
+				return cos2([this, &mask](int ir, int il) {
+						return pow(this->grid.r(ir), 2)*mask(ir, il);
 						});
 			}
 		}
 
 		cdouble pz() const {
 			cdouble i = {0.0, 1.0};
-			return i*integrate<cdouble>([this](int ir, int il) -> cdouble {
+			return i*this->grid.template integrate<cdouble>([this](int ir, int il) -> cdouble {
 					double r = this->grid.r(ir);
 					cdouble psi_0 = conj((*this)(ir, il));
 					cdouble psi_1 = (*this)(ir, il-1);
@@ -357,8 +312,8 @@ class Wavefunc: public WavefuncBase2D<Grid> {
 					return -clm(il-1, m)*psi_0*(
 							d_dr_save(ir, il-1) -
 							il*psi_1/r);
-					}, this->grid.n[iL], 1) +
-			i*integrate<cdouble>([this](int ir, int il) -> cdouble {
+					}, typename Grid::Range(1, this->grid.n[iL], m)) +
+			i*this->grid.template integrate<cdouble>([this](int ir, int il) -> cdouble {
 					double r = this->grid.r(ir);
 					cdouble psi_0 = conj((*this)(ir, il));
 					cdouble psi_1 = (*this)(ir, il+1);
@@ -366,7 +321,7 @@ class Wavefunc: public WavefuncBase2D<Grid> {
 					return -clm(il, m)*psi_0*(
 							d_dr_save(ir, il+1)
 							+ (il + 1)*psi_1/r);
-					}, this->grid.n[iL] - 1, 0);
+					}, typename Grid::Range(0, this->grid.n[iL] - 1, m));
 		}
 
 		void random_l(int l) {

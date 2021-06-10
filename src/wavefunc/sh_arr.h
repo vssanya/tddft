@@ -47,7 +47,7 @@ public:
 
 	void cos(double* res, typename Wavefunc<Grid>::sh_f U) const;
 	void cos(double* res, double* U) const {
-		auto func = [&](int ir, int il, int m) -> double {
+		auto func = [&](int ir, int il) -> double {
 			return U[ir];
 		};
 

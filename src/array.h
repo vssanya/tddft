@@ -47,9 +47,10 @@ class Array {
 		}
 
 		void set_random() {
+			srand((unsigned) time(0));
 #pragma omp parallel for
 			for (int i = 0; i < grid.size(); ++i) {
-				data[i] = (double) rand() / RAND_MAX;
+				data[i] = ((double) rand() / RAND_MAX - 0.5)*2;
 			}
 		}
 

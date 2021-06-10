@@ -98,7 +98,7 @@ void workspace::OrbitalsWS<Grid>::calc_Uee(
 		int Uxc_lmax,
 		int Uh_lmax,
 		Array2D<double>* Uee,
-		std::optional<Range> rRange
+		std::optional<typename Grid::RangeR> rRange
 		) {
 	const int Nr = sh_grid.n[iR];
 

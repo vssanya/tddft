@@ -47,14 +47,18 @@ namespace maxwell {
 			WorkspaceCyl1D(Grid1d const& grid);
 			~WorkspaceCyl1D();
 
-			// j is array of size 2*N, j[i] = j(r), j[i+1] = j(r+dr/2), j[i+2] = j(r+dr)
-			void prop(double dt, double* j);
+			void prop(double dt);
+			// N: r=[0, dr/2, dr, 3dr/2, 2dr, ...]
+			void prop(double dt, double* N, double nu);
 
 			Grid1d const& grid;
 
-			Arr1 Er;
-			Arr1 Ephi;
-			Arr1 Hz;
+			Arr1 Er; // r = [dr/2, 3dr/2, ...]
+			Arr1 Ephi; // r = [0, dr, 2dr, ...]
+			Arr1 Hz; // r = [dr/2, 3dr/2, ...]
+
+			Arr1 jr; // r = [0, dr, 2dr, ...]
+			Arr1 jphi; // r = [dr/2, 3dr/2, ...]
 	};
 
 	class Workspace2D {

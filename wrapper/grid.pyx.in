@@ -5,19 +5,19 @@ from libc.stdlib cimport free
 
 
 cdef class Range:
-    def __cinit__(self, int start, int end):
-        self.cdata = cRange(start, end)
+    def __cinit__(self, int r_min, int r_max):
+        self.cdata = cRange(r_min, r_max)
 
-    def __init__(self, int start, int end):
+    def __init__(self, int r_min, int r_max):
         pass
 
     @property
     def start(self) -> int:
-        return self.cdata.start
+        return self.cdata.r_min
 
     @property
     def end(self) -> int:
-        return self.cdata.end
+        return self.cdata.r_max
 
 
 cdef class Grid1d:
@@ -111,7 +111,7 @@ cdef class ShGrid:
 
     def getRange(self, double rmax):
         cdef cRange r = self.data.getRange(rmax)
-        return Range(r.start, r.end)
+        return Range(r.r_min, r.r_max)
 
     @property
     def dr(self):
@@ -159,7 +159,7 @@ cdef class {{Grid}}:
 
     def getRange(self, double rmax):
         cdef cRange r = self.data.getRange(rmax)
-        return Range(r.start, r.end)
+        return Range(r.r_min, r.r_max)
 
     @property
     def dr(self):

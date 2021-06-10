@@ -1,41 +1,49 @@
 #pragma once
 
+#include "mpi_utils.h"
+
 #include "../grid.h"
 #include "../array.h"
+
+#include "field_3d.h"
 
 
 namespace maxwell {
 	// dx / \lambda \ll 1 , for numerical calc use dx / \lambda = 20
 	class Workspace3D {
-		typedef Array3D<double> Arr3;
-
 		public:
-			Workspace3D(Grid3d const& grid);
+			Workspace3D(Grid3d const& grid, MPI_Comm mpi_comm);
 			~Workspace3D();
 
-			void prop(double dt) {
-				prop_H(dt);
-				prop_E(dt);
+			void prop(Field3D field, double dt) {
+				prop_H(field, dt);
+				prop_E(field, dt);
 			}
 
-			void prop(double dt, Arr3 j[3]) {
-				prop_H(dt);
-				prop_E(dt, j);
+			void prop(Field3D field, double dt, Array3D<double> j[3]) {
+				prop_H(field, dt);
+				prop_E(field, dt, j);
 			}
 
 			Grid3d const& grid;
+			Grid2d bound_grid;
 
-			Arr3 Ex;
-			Arr3 Ey;
-			Arr3 Ez;
+			Array2D<double> rb_Ex;
+			Array2D<double> rb_Ey;
 
-			Arr3 Hx;
-			Arr3 Hy;
-			Arr3 Hz;
+			Array2D<double> lb_Hx;
+			Array2D<double> lb_Hy;
 
 		private:
-			void prop_E(double dt);
-			void prop_E(double dt, Arr3 j[3]);
-			void prop_H(double dt);
+			void prop_E(Field3D& field, double dt);
+			void prop_E(Field3D& field, double dt, Array3D<double> j[3]);
+			void prop_H(Field3D& field, double dt);
+
+#ifdef _MPI
+			MPI_Comm mpi_comm;
+
+			int mpi_size;
+			int mpi_rank;
+#endif
 	};
 }

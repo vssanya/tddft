@@ -3,6 +3,8 @@
 #include "../types.h"
 #include "../array.h"
 
+#include <optional>
+
 
 template<typename Grid, typename... Index>
 class WavefuncBase: public Array<cdouble, Grid, Index...> {
@@ -19,7 +21,7 @@ class WavefuncBase: public Array<cdouble, Grid, Index...> {
 		cdouble operator*(WavefuncBase const& other) const {
 			return this->grid.template integrate<cdouble>([this, &other](Index... index) -> cdouble {
 					return (*this)(index...)*conj(other(index...));
-					}, std::min(this->grid.n[iL], other.grid.n[iL]));
+					}, typename Grid::Range(this->grid, other.grid));
 		}
 
 		void exclude(WavefuncBase const& other) {
@@ -31,24 +33,24 @@ class WavefuncBase: public Array<cdouble, Grid, Index...> {
 			}
 		}
 
-		double norm(sh_f mask = nullptr) const {
+		double norm(std::function<double (Index... index)> mask = nullptr) const {
 			if (mask == nullptr) {
 				return this->grid.template integrate<double>([this](Index... index) -> double {
 						return abs_2(index...);
-						}, this->grid.n[iL]);
+						});
 			} else {
 				return this->grid.template integrate<double>([this, mask](Index... index) -> double {
 						return abs_2(index...)*mask(index...);
-						}, this->grid.n[iL]);
+						});
 			}
 		}
 
-		void normalize() {
-			double norm = this->norm();
+		void normalize(double norm = 1.0) {
+			double current_norm = this->norm();
 
 #pragma omp parallel for
 			for (int i = 0; i < this->grid.size(); ++i) {
-				this->data[i] /= sqrt(norm);
+				this->data[i] /= sqrt(current_norm/norm);
 			}
 		}
 };

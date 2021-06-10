@@ -1,9 +1,9 @@
 cdef extern from "grid.h":
-    cdef cppclass cRange "Range":
-        int start
-        int end
+    cdef cppclass cRange "ShGrid::RangeR":
+        int r_min
+        int r_max
 
-        cRange(int start, int end)
+        cRange(int r_min, int r_max)
         cRange()
 
     cdef cppclass cGrid1d "Grid1d":

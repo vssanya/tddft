@@ -1,6 +1,10 @@
 import numpy as np
 from grid cimport Grid1d
 
+from mpi4py.MPI cimport Comm
+from mpi4py.libmpi cimport MPI_COMM_NULL, MPI_Gather, MPI_C_DOUBLE_COMPLEX
+from mpi4py.MPI import COMM_NULL
+
 
 cdef class MaxwellWorkspace1D:
     def __cinit__(self, Grid1d grid):
@@ -49,6 +53,16 @@ cdef class MaxwellWorkspaceCyl1D:
         pass
 
     @property
+    def jr(self):
+        cdef double[::1] res = <double[:self.cdata.grid.n]>self.cdata.jr.data
+        return np.asarray(res)
+
+    @property
+    def jphi(self):
+        cdef double[::1] res = <double[:self.cdata.grid.n]>self.cdata.jphi.data
+        return np.asarray(res)
+
+    @property
     def Er(self):
         cdef double[::1] res = <double[:self.cdata.grid.n]>self.cdata.Er.data
         return np.asarray(res)
@@ -63,19 +77,43 @@ cdef class MaxwellWorkspaceCyl1D:
         cdef double[::1] res = <double[:self.cdata.grid.n]>self.cdata.Hz.data
         return res
 
-    def prop(self, double dt, double[::1] j):
-        self.cdata.prop(dt, &j[0])
+    def prop(self, double dt, double[::1] N = None, double nu = 1.0):
+        if N is None:
+            self.cdata.prop(dt)
+        else:
+            self.cdata.prop(dt, &N[0], nu)
 
     def get_dt(self, double ksi):
         return ksi/C_au*self.cdata.grid.d
 
 
 cdef class MaxwellWorkspace3D:
-    def __cinit__(self, Grid3d grid):
-        self.cdata = new cWorkspace3D(grid.cdata)
+    def __cinit__(self, Grid3d grid, Comm comm = COMM_NULL):
+        self.cdata = new cWorkspace3D(grid.cdata, comm.ob_mpi)
 
-    def __init__(self, Grid3d grid):
+    def __init__(self, Grid3d grid, Comm comm = COMM_NULL):
         pass
+
+    def __dealloc__(self):
+        if self.cdata != NULL:
+            del self.cdata
+
+    def prop(self, Field3D field, double dt):
+        self.cdata.prop(field.cdata[0], dt)
+
+    def get_dt(self, int index, double ksi):
+        return ksi/C_au*self.cdata.grid.d[index]
+
+cdef class Field3D:
+    def __cinit__(self, Grid3d grid, Comm comm = COMM_NULL):
+        self.cdata = new cField3D(grid.cdata, comm.ob_mpi)
+
+    def __init__(self, Grid3d grid, Comm comm = COMM_NULL):
+        pass
+
+    def __dealloc__(self):
+        if self.cdata != NULL:
+            del self.cdata
 
     @property
     def Ex(self):
@@ -106,9 +144,3 @@ cdef class MaxwellWorkspace3D:
     def Hz(self):
         cdef double[:, :, ::1] res = <double[:self.cdata.grid.n[0],:self.cdata.grid.n[1],:self.cdata.grid.n[2]]>self.cdata.Hz.data
         return np.asarray(res)
-
-    def prop(self, double dt):
-        self.cdata.prop(dt)
-
-    def get_dt(self, int index, double ksi):
-        return ksi/C_au*self.cdata.grid.d[index]
