@@ -98,8 +98,15 @@ cdef class MaxwellWorkspace3D:
         if self.cdata != NULL:
             del self.cdata
 
-    def prop(self, Field3D field, double dt):
-        self.cdata.prop(field.cdata[0], dt)
+    def prop(self, Field3D field, double dt, double[:,:,::1] sigma = None):
+        cdef Array3D[double]* cSigma = NULL
+
+        if sigma is None:
+            self.cdata.prop(field.cdata[0], dt)
+        else:
+            cSigma = new Array3D[double](&sigma[0,0,0], self.cdata.grid)
+            self.cdata.prop(field.cdata[0], dt, cSigma[0])
+            del cSigma
 
     def get_dt(self, int index, double ksi):
         return ksi/C_au*self.cdata.grid.d[index]
@@ -117,30 +124,45 @@ cdef class Field3D:
 
     @property
     def Ex(self):
-        cdef double[:, :, ::1] res = <double[:self.cdata.grid.n[0],:self.cdata.grid.n[1],:self.cdata.grid.n[2]]>self.cdata.Ex.data
+        cdef double[:, :, ::1] res = <double[:self.cdata.grid.n[2],:self.cdata.grid.n[1],:self.cdata.grid.n[0]]>self.cdata.Ex.data
         return np.asarray(res)
 
     @property
     def Ey(self):
-        cdef double[:, :, ::1] res = <double[:self.cdata.grid.n[0],:self.cdata.grid.n[1],:self.cdata.grid.n[2]]>self.cdata.Ey.data
+        cdef double[:, :, ::1] res = <double[:self.cdata.grid.n[2],:self.cdata.grid.n[1],:self.cdata.grid.n[0]]>self.cdata.Ey.data
         return np.asarray(res)
 
     @property
     def Ez(self):
-        cdef double[:, :, ::1] res = <double[:self.cdata.grid.n[0],:self.cdata.grid.n[1],:self.cdata.grid.n[2]]>self.cdata.Ez.data
+        cdef double[:, :, ::1] res = <double[:self.cdata.grid.n[2],:self.cdata.grid.n[1],:self.cdata.grid.n[0]]>self.cdata.Ez.data
+        return np.asarray(res)
+
+    @property
+    def Dx(self):
+        cdef double[:, :, ::1] res = <double[:self.cdata.grid.n[2],:self.cdata.grid.n[1],:self.cdata.grid.n[0]]>self.cdata.Dx.data
+        return np.asarray(res)
+
+    @property
+    def Dy(self):
+        cdef double[:, :, ::1] res = <double[:self.cdata.grid.n[2],:self.cdata.grid.n[1],:self.cdata.grid.n[0]]>self.cdata.Dy.data
+        return np.asarray(res)
+
+    @property
+    def Dz(self):
+        cdef double[:, :, ::1] res = <double[:self.cdata.grid.n[2],:self.cdata.grid.n[1],:self.cdata.grid.n[0]]>self.cdata.Dz.data
         return np.asarray(res)
 
     @property
     def Hx(self):
-        cdef double[:, :, ::1] res = <double[:self.cdata.grid.n[0],:self.cdata.grid.n[1],:self.cdata.grid.n[2]]>self.cdata.Hx.data
+        cdef double[:, :, ::1] res = <double[:self.cdata.grid.n[2],:self.cdata.grid.n[1],:self.cdata.grid.n[0]]>self.cdata.Hx.data
         return np.asarray(res)
 
     @property
     def Hy(self):
-        cdef double[:, :, ::1] res = <double[:self.cdata.grid.n[0],:self.cdata.grid.n[1],:self.cdata.grid.n[2]]>self.cdata.Hy.data
+        cdef double[:, :, ::1] res = <double[:self.cdata.grid.n[2],:self.cdata.grid.n[1],:self.cdata.grid.n[0]]>self.cdata.Hy.data
         return np.asarray(res)
 
     @property
     def Hz(self):
-        cdef double[:, :, ::1] res = <double[:self.cdata.grid.n[0],:self.cdata.grid.n[1],:self.cdata.grid.n[2]]>self.cdata.Hz.data
+        cdef double[:, :, ::1] res = <double[:self.cdata.grid.n[2],:self.cdata.grid.n[1],:self.cdata.grid.n[0]]>self.cdata.Hz.data
         return np.asarray(res)

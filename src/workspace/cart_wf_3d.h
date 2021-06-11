@@ -1,3 +1,5 @@
+#pragma once
+
 #include "atom.h"
 #include "fields.h"
 #include <array.h>

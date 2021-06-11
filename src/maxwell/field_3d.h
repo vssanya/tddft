@@ -14,6 +14,10 @@ public:
   Array3D<double> Ey;
   Array3D<double> Ez;
 
+  Array3D<double> Dx;
+  Array3D<double> Dy;
+  Array3D<double> Dz;
+
   Array3D<double> Hx;
   Array3D<double> Hy;
   Array3D<double> Hz;

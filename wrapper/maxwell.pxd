@@ -38,6 +38,10 @@ cdef extern from "maxwell/field_3d.h":
         Array3D[double] Ey
         Array3D[double] Ez
 
+        Array3D[double] Dx
+        Array3D[double] Dy
+        Array3D[double] Dz
+
         Array3D[double] Hx
         Array3D[double] Hy
         Array3D[double] Hz
@@ -53,6 +57,7 @@ cdef extern from "maxwell/3d.h":
 
         void prop(cField3D field, double dt);
         void prop(cField3D field, double dt, Array3D[double]* j);
+        void prop(cField3D field, double dt, Array3D[double] sigma);
 
         cGrid3d& grid;
 
