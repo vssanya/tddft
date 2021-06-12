@@ -22,7 +22,13 @@ public:
   Array3D<double> Hy;
   Array3D<double> Hz;
 
+  Array3D<double> Bx;
+  Array3D<double> By;
+  Array3D<double> Bz;
+
 #ifdef _MPI
   MPI_Comm mpi_comm;
 #endif
+
+	double E() const;
 };

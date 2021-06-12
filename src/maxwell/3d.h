@@ -30,6 +30,11 @@ namespace maxwell {
 				prop_E(field, dt, sigma);
 			}
 
+			void prop(Field3D field, double dt, Array3D<double>& sigma, double labs, double sigma_abs) {
+				prop_H_with_abs(field, dt, sigma, labs, sigma_abs);
+				prop_E_with_abs(field, dt, sigma, labs, sigma_abs);
+			}
+
 			Grid3d const& grid;
 			Grid2d bound_grid;
 
@@ -43,7 +48,9 @@ namespace maxwell {
 			void prop_E(Field3D& field, double dt);
 			void prop_E(Field3D& field, double dt, Array3D<double> j[3]);
 			void prop_E(Field3D& field, double dt, Array3D<double>& sigma);
+			void prop_E_with_abs(Field3D& field, double dt, Array3D<double>& sigma, double labs, double sigma_abs);
 			void prop_H(Field3D& field, double dt);
+			void prop_H_with_abs(Field3D& field, double dt, Array3D<double>& sigma, double labs, double sigma_abs);
 
 #ifdef _MPI
 			MPI_Comm mpi_comm;
