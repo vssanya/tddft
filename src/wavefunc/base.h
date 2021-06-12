@@ -3,8 +3,6 @@
 #include "../types.h"
 #include "../array.h"
 
-#include <optional>
-
 
 template<typename Grid, typename... Index>
 class WavefuncBase: public Array<cdouble, Grid, Index...> {

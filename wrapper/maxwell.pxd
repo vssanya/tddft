@@ -66,6 +66,8 @@ cdef extern from "maxwell/3d.h":
         void prop(cField3D field, double dt, Array3D[double] sigma);
         void prop(cField3D field, double dt, Array3D[double] sigma, double labs, double sigma_abs);
 
+        void get_sigma_abs(double labs, double* res);
+
         cGrid3d& grid;
 
 cdef class MaxwellWorkspace3D:

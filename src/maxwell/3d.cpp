@@ -187,22 +187,18 @@ void maxwell::Workspace3D::prop_E_with_abs(Field3D& f, double dt, Array3D<double
 	}
 #endif
 
-	int i_labs_1;
-	int i_labs_2;
+	int i_labs_1 = 1;
+	int i_labs_2 = grid.n[2];
 
-	if (mpi_comm == MPI_COMM_NULL || mpi_rank == 0) {
+	if (mpi_comm == MPI_COMM_NULL || mpi_size == 1 || mpi_rank == 0) {
 		i_labs_1 = int(labs/grid.d[2]);
-		i_labs_2 = grid.n[2] - int(labs/grid.d[2]);
 	}
-	else if (mpi_comm == MPI_COMM_NULL || mpi_rank == mpi_size-1) {
-		i_labs_1 = 1;
+	
+	if (mpi_comm == MPI_COMM_NULL || mpi_size == 1 || mpi_rank == mpi_size-1) {
 		i_labs_2 = grid.n[2] - int(labs/grid.d[2]);
-	}
-	else {
-		i_labs_1 = 1;
-		i_labs_2 = grid.n[2];
 	}
 
+	double zmin = grid.z(0);
 #pragma omp parallel for collapse(3)
 	for (int iz=1; iz<i_labs_1; iz++) {
 		for (int iy=1; iy<grid.n[1]; iy++) {
@@ -225,7 +221,7 @@ void maxwell::Workspace3D::prop_E_with_abs(Field3D& f, double dt, Array3D<double
 					f.Ey(ix, iy, iz) = f.Ey(ix, iy, iz)*(1 - nu)/(1 + nu) + (f.Dy(ix, iy, iz) - Dl[1])/(1 + nu);
 					f.Ez(ix, iy, iz) = f.Ez(ix, iy, iz)*(1 - nu)/(1 + nu) + (f.Dz(ix, iy, iz) - Dl[2])/(1 + nu);
 				} else {
-					nu = 2*M_PI*dt*sigma_abs*pow(1 - z/labs, 2);
+					nu = 2*M_PI*dt*sigma_abs*pow(1 - (z-zmin)/labs, 2);
 					f.Ex(ix, iy, iz) = f.Ex(ix, iy, iz)*(1 - nu)/(1 + nu) + (f.Dx(ix, iy, iz) - Dl[0])/(1 + nu);
 					f.Ey(ix, iy, iz) = f.Ey(ix, iy, iz)*(1 - nu)/(1 + nu) + (f.Dy(ix, iy, iz) - Dl[1])/(1 + nu);
 
@@ -460,6 +456,38 @@ void maxwell::Workspace3D::prop_H(Field3D& f, double dt) {
 #endif
 }
 
+void maxwell::Workspace3D::get_sigma_abs(double labs, double *res) const {
+	int i_labs_1 = 0;
+	int i_labs_2 = grid.n[2] - 1;
+
+	if (mpi_comm == MPI_COMM_NULL || mpi_rank == 0) {
+		i_labs_1 = int(labs/grid.d[2]);
+	}
+	
+	if (mpi_comm == MPI_COMM_NULL || mpi_rank == mpi_size-1) {
+		i_labs_2 = grid.n[2] - int(labs/grid.d[2]);
+	}
+
+	double zmin = grid.z(0);
+#pragma omp parallel for
+	for (int iz=0; iz<i_labs_1; iz++) {
+		double z = grid.z(iz);
+		res[iz] = pow(1 - (z - zmin)/labs, 2);
+	}
+
+#pragma omp parallel for
+	for (int iz=i_labs_1; iz<i_labs_2; iz++) {
+		res[iz] = 0.0;
+	}
+
+	double zmax = grid.z(grid.n[2]-1);
+#pragma omp parallel for
+	for (int iz=i_labs_2; iz<grid.n[2]; iz++) {
+		double z = grid.z(iz);
+		res[iz] = pow(1 - (zmax - z)/labs, 2);
+	}
+}
+
 void maxwell::Workspace3D::prop_H_with_abs(Field3D& f, double dt, Array3D<double>& sigma, double labs, double sigma_abs) {
 	double ksi_x = C_au * dt / grid.d[0];
 	double ksi_y = C_au * dt / grid.d[1];
@@ -483,27 +511,23 @@ void maxwell::Workspace3D::prop_H_with_abs(Field3D& f, double dt, Array3D<double
 	}
 #endif
 
-	int i_labs_1;
-	int i_labs_2;
+	int i_labs_1 = 0;
+	int i_labs_2 = grid.n[2] - 1;
 
 	if (mpi_comm == MPI_COMM_NULL || mpi_rank == 0) {
 		i_labs_1 = int(labs/grid.d[2]);
-		i_labs_2 = grid.n[2] - int(labs/grid.d[2]);
 	}
-	else if (mpi_comm == MPI_COMM_NULL || mpi_rank == mpi_size-1) {
-		i_labs_1 = 1;
+	
+	if (mpi_comm == MPI_COMM_NULL || mpi_rank == mpi_size-1) {
 		i_labs_2 = grid.n[2] - int(labs/grid.d[2]);
-	}
-	else {
-		i_labs_1 = 1;
-		i_labs_2 = grid.n[2];
 	}
 
+	double zmin = grid.z(0);
 #pragma omp parallel for collapse(3)
 	for (int iz=0; iz<i_labs_1; iz++) {
 		for (int iy=0; iy<grid.n[1]-1; iy++) {
 			for (int ix=0; ix<grid.n[0]-1; ix++) {
-				double z = grid.z(iz);
+				double z = grid.z(iz) + grid.d[2]/2;
 				double nu = 2*M_PI*dt*sigma(ix, iy, iz);
 
 				if (nu != 0.0) {
@@ -516,8 +540,6 @@ void maxwell::Workspace3D::prop_H_with_abs(Field3D& f, double dt, Array3D<double
 					f.Hz(ix, iy, iz) += - ksi_x*(f.Ey(ix+1, iy, iz) - f.Ey(ix, iy, iz))
 						+ ksi_y*(f.Ex(ix, iy+1, iz) - f.Ex(ix, iy, iz));
 				} else {
-					nu = 2*M_PI*dt*sigma_abs*pow(1 - z/labs, 2);
-
 					double const Bl[3] = {f.Bx(ix, iy, iz), f.By(ix, iy, iz), f.Bz(ix, iy, iz)};
 					f.Bx(ix, iy, iz) += - ksi_y*(f.Ez(ix, iy+1, iz) - f.Ez(ix, iy, iz))
 						+ ksi_z*(f.Ey(ix, iy, iz+1) - f.Ey(ix, iy, iz));
@@ -528,6 +550,7 @@ void maxwell::Workspace3D::prop_H_with_abs(Field3D& f, double dt, Array3D<double
 					f.Bz(ix, iy, iz) += - ksi_x*(f.Ey(ix+1, iy, iz) - f.Ey(ix, iy, iz))
 						+ ksi_y*(f.Ex(ix, iy+1, iz) - f.Ex(ix, iy, iz));
 
+					nu = 2*M_PI*dt*sigma_abs*pow(1 - (z - zmin)/labs, 2);
 					f.Hx(ix, iy, iz) = f.Hx(ix, iy, iz)*(1 - nu)/(1 + nu) + (f.Bx(ix, iy, iz) - Bl[0])/(1 + nu);
 					f.Hy(ix, iy, iz) = f.Hy(ix, iy, iz)*(1 - nu)/(1 + nu) + (f.By(ix, iy, iz) - Bl[1])/(1 + nu);
 
@@ -559,31 +582,30 @@ void maxwell::Workspace3D::prop_H_with_abs(Field3D& f, double dt, Array3D<double
 	for (int iz=i_labs_2; iz<grid.n[2]-1; iz++) {
 		for (int iy=0; iy<grid.n[1]-1; iy++) {
 			for (int ix=0; ix<grid.n[0]-1; ix++) {
-				double z = grid.z(iz);
+				double z = grid.z(iz) + grid.d[2]/2;
 				double nu = 2*M_PI*dt*sigma(ix, iy, iz);
 
 				if (nu != 0.0) {
 					f.Hx(ix, iy, iz) += - ksi_y*(f.Ez(ix, iy+1, iz) - f.Ez(ix, iy, iz))
-						+ ksi_z*(f.Ey(ix, iy, iz+1) - f.Ey(ix, iy, iz));
+						                  + ksi_z*(f.Ey(ix, iy, iz+1) - f.Ey(ix, iy, iz));
 
 					f.Hy(ix, iy, iz) += - ksi_z*(f.Ex(ix, iy, iz+1) - f.Ex(ix, iy, iz))
-						+ ksi_x*(f.Ez(ix+1, iy, iz) - f.Ez(ix, iy, iz));
+						                  + ksi_x*(f.Ez(ix+1, iy, iz) - f.Ez(ix, iy, iz));
 
 					f.Hz(ix, iy, iz) += - ksi_x*(f.Ey(ix+1, iy, iz) - f.Ey(ix, iy, iz))
-						+ ksi_y*(f.Ex(ix, iy+1, iz) - f.Ex(ix, iy, iz));
+						                  + ksi_y*(f.Ex(ix, iy+1, iz) - f.Ex(ix, iy, iz));
 				} else {
-					nu = 2*M_PI*dt*sigma_abs*pow(1 - (zmax - z)/labs, 2);
-
 					double const Bl[3] = {f.Bx(ix, iy, iz), f.By(ix, iy, iz), f.Bz(ix, iy, iz)};
 					f.Bx(ix, iy, iz) += - ksi_y*(f.Ez(ix, iy+1, iz) - f.Ez(ix, iy, iz))
-						+ ksi_z*(f.Ey(ix, iy, iz+1) - f.Ey(ix, iy, iz));
+						                  + ksi_z*(f.Ey(ix, iy, iz+1) - f.Ey(ix, iy, iz));
 
 					f.By(ix, iy, iz) += - ksi_z*(f.Ex(ix, iy, iz+1) - f.Ex(ix, iy, iz))
-						+ ksi_x*(f.Ez(ix+1, iy, iz) - f.Ez(ix, iy, iz));
+						                  + ksi_x*(f.Ez(ix+1, iy, iz) - f.Ez(ix, iy, iz));
 
 					f.Bz(ix, iy, iz) += - ksi_x*(f.Ey(ix+1, iy, iz) - f.Ey(ix, iy, iz))
-						+ ksi_y*(f.Ex(ix, iy+1, iz) - f.Ex(ix, iy, iz));
+						                  + ksi_y*(f.Ex(ix, iy+1, iz) - f.Ex(ix, iy, iz));
 
+					nu = 2*M_PI*dt*sigma_abs*pow(1 - (zmax - z)/labs, 2);
 					f.Hx(ix, iy, iz) = f.Hx(ix, iy, iz)*(1 - nu)/(1 + nu) + (f.Bx(ix, iy, iz) - Bl[0])/(1 + nu);
 					f.Hy(ix, iy, iz) = f.Hy(ix, iy, iz)*(1 - nu)/(1 + nu) + (f.By(ix, iy, iz) - Bl[1])/(1 + nu);
 

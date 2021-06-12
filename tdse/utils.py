@@ -8,9 +8,11 @@ UNIT = {
         'au': 1.0, # atomic unit
 
         's' : 1.0 / 2.418884326505e-17,
+        'ns': 1.0 / 2.418884326505e-8,
         'fs': 1.0 / 2.418884326505e-2,
 
         'm' : 1.0 / 5.2917721092e-11,
+        'mm': 1.0 / 5.2917721092e-8,
         'nm': 1.0 / 5.2917721092e-2,
 
         'eV': 1.602e-19 / 4.3597e-18,
@@ -61,8 +63,26 @@ def unit_to(value, u_from='au', u_to='au'):
 def to_fs(value):
     return unit_to(value, 'au', 'fs')
 
+def to_ns(value):
+    return unit_to(value, 'au', 'ns')
+
 def to_nm(value):
     return unit_to(value, 'au', 'nm')
+
+def to_mm(value):
+    return unit_to(value, 'au', 'mm')
+
+def ns(value):
+    return unit_to(value, 'ns')
+
+def fs(value):
+    return unit_to(value, 'fs')
+
+def nm(value):
+    return unit_to(value, 'nm')
+
+def mm(value):
+    return unit_to(value, 'mm')
 
 def t_fwhm(fwhm, u='fs', u_to='au'):
     return unit_to(fwhm, u, u_to)/np.sqrt(2*np.log(2))

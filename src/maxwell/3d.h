@@ -35,6 +35,8 @@ namespace maxwell {
 				prop_E_with_abs(field, dt, sigma, labs, sigma_abs);
 			}
 
+			void get_sigma_abs(double labs, double* res) const;
+
 			Grid3d const& grid;
 			Grid2d bound_grid;
 
