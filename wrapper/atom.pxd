@@ -102,6 +102,9 @@ cdef extern from "atom.h":
     cdef cppclass ArAtom:
         ArAtom()
 
+    cdef cppclass CaAtom:
+        CaAtom()
+
     cdef cppclass KrAtom:
         KrAtom()
 

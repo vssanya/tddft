@@ -401,6 +401,12 @@ class ArAtom: public AtomCoulomb {
 		ArAtom(): AtomCoulomb(18, GroundStateOrbs, 4) {}
 };
 
+class CaAtom: public AtomCoulomb {
+	public:
+		static const std::vector<State> GroundStateOrbs;
+		CaAtom(): AtomCoulomb(20, GroundStateOrbs, 3) {}
+};
+
 class KrAtom: public AtomCoulomb {
 	public:
 		static const std::vector<State> GroundStateOrbs;

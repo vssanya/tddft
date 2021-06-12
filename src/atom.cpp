@@ -95,6 +95,12 @@ const std::vector<Atom::State> ArAtom::GroundStateOrbs = {
 	State("2p", 1, 4), State("3p", 1, 4)   // m = +- 1
 };
 
+const std::vector<Atom::State> CaAtom::GroundStateOrbs = {
+	State("1s"), State("2s"), State("3s"), State("4s"), // m = 0
+	State("2p"), State("3p"),              // m = 0
+	State("2p", 1, 4), State("3p", 1, 4)   // m = +- 1
+};
+
 const std::vector<Atom::State> KrAtom::GroundStateOrbs = {
 	State("1s"), State("2s"), State("3s"), State("4s"), // m = 0
 	State("2p"), State("3p"), State("4p"),              // m = 0

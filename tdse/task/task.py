@@ -283,10 +283,8 @@ class Task(object):
                 if type(data) is str:
                     setattr(self, data, np.load(self._get_data_path(data)))
                 else:
-                    if self.file is None:
-                        self.file = h5py.File("{}.hdf5".format(self.save_path), 'r')
-
-                    data.load(self, self.file)
+                    with h5py.File("{}.hdf5".format(self.save_path), 'r') as f:
+                        data.load(self, f)
 
     def get_t(self):
         if not hasattr(self, 'field'):
